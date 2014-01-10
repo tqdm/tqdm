@@ -61,6 +61,8 @@ def tqdm(iterable, desc='', total=None, leave=False, mininterval=0.5, miniters=1
     iterating over all elements.
     If less than mininterval seconds or miniters iterations have passed since
     the last progress meter update, it is not updated again.
+    'output_to' can be a file-like object to output the progress message to
+    If not specified, prints to sys.stdout.
     """
     if total is None:
         try:
