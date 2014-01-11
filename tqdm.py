@@ -3,6 +3,7 @@ __all__ = ['tqdm', 'trange']
 import sys
 import time
 
+
 def format_interval(t):
     mins, s = divmod(int(t), 60)
     h, m = divmod(mins, 60)
@@ -10,6 +11,7 @@ def format_interval(t):
         return '%d:%02d:%02d' % (h, m, s)
     else:
         return '%02d:%02d' % (m, s)
+
 
 def format_meter(n, total, elapsed):
     # n - number of finished iterations
@@ -34,9 +36,10 @@ def format_meter(n, total, elapsed):
         
         return '|%s| %d/%d %s [elapsed: %s left: %s, %s iters/sec]' % (
             bar, n, total, percentage, elapsed_str, left_str, rate)
-        
+    
     else:
         return '%d [elapsed: %s, %s iters/sec]' % (n, elapsed_str, rate)
+
 
 class StatusPrinter(object):
     def __init__(self, file):
@@ -47,6 +50,7 @@ class StatusPrinter(object):
         self.file.write('\r'+s+' '*max(self.last_printed_len-len(s), 0))
         self.file.flush()
         self.last_printed_len = len(s)
+
 
 def tqdm(iterable, desc='', total=None, leave=False, file=sys.stderr,
          mininterval=0.5, miniters=1):
@@ -59,8 +63,8 @@ def tqdm(iterable, desc='', total=None, leave=False, file=sys.stderr,
     'total' can give the number of expected iterations. If not given,
     len(iterable) is used if it is defined.
     'file' can be a file-like object to output the progress message to.
-    If leave is False, tqdm deletes its traces from screen after it has finished
-    iterating over all elements.
+    If leave is False, tqdm deletes its traces from screen after it has
+    finished iterating over all elements.
     If less than mininterval seconds or miniters iterations have passed since
     the last progress meter update, it is not updated again.
     """
@@ -69,12 +73,12 @@ def tqdm(iterable, desc='', total=None, leave=False, file=sys.stderr,
             total = len(iterable)
         except TypeError:
             total = None
-
+    
     prefix = desc+': ' if desc else ''
     
     sp = StatusPrinter(file)
     sp.print_status(prefix + format_meter(0, total, 0))
-        
+    
     start_t = last_print_t = time.time()
     last_print_n = 0
     n = 0
@@ -83,7 +87,7 @@ def tqdm(iterable, desc='', total=None, leave=False, file=sys.stderr,
         # Now the object was created and processed, so we can print the meter.
         n += 1
         if n - last_print_n >= miniters:
-            # We check the counter first, to reduce the overhead of time.time().
+            # We check the counter first, to reduce the overhead of time.time()
             cur_t = time.time()
             if cur_t - last_print_t >= mininterval:
                 sp.print_status(prefix + format_meter(n, total, cur_t-start_t))
@@ -98,11 +102,12 @@ def tqdm(iterable, desc='', total=None, leave=False, file=sys.stderr,
             cur_t = time.time()
             sp.print_status(prefix + format_meter(n, total, cur_t-start_t))
 
+
 def trange(*args, **kwargs):
     """A shortcut for writing tqdm(range()) on py3 or tqdm(xrange()) on py2"""
     try:
         f = xrange
     except NameError:
         f = range
-
+    
     return tqdm(f(*args), **kwargs)
