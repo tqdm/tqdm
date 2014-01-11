@@ -97,4 +97,9 @@ def tqdm(iterable, desc='', total=None, leave=False, mininterval=0.5, miniters=1
 
 def trange(*args, **kwargs):
     """A shortcut for writing tqdm(xrange)"""
-    return tqdm(xrange(*args), **kwargs)
+    try:
+        f = xrange
+    except NameError:
+        f = range
+
+    return tqdm(f(*args), **kwargs)
