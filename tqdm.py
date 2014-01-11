@@ -39,16 +39,17 @@ def format_meter(n, total, elapsed):
         return '%d [elapsed: %s, %s iters/sec]' % (n, elapsed_str, rate)
 
 class StatusPrinter(object):
-    def __init__(self, output_to=sys.stdout):
-        self.output_to = output_to
+    def __init__(self, file):
+        self.file = file
         self.last_printed_len = 0
     
     def print_status(self, s):
-        self.output_to.write('\r'+s+' '*max(self.last_printed_len-len(s), 0))
-        self.output_to.flush()
+        self.file.write('\r'+s+' '*max(self.last_printed_len-len(s), 0))
+        self.file.flush()
         self.last_printed_len = len(s)
 
-def tqdm(iterable, desc='', total=None, leave=False, mininterval=0.5, miniters=1, output_to=sys.stdout):
+def tqdm(iterable, desc='', total=None, leave=False, file=sys.stderr,
+         mininterval=0.5, miniters=1):
     """
     Get an iterable object, and return an iterator which acts exactly like the
     iterable, but prints a progress meter and updates it every time a value is
@@ -57,12 +58,11 @@ def tqdm(iterable, desc='', total=None, leave=False, mininterval=0.5, miniters=1
     in the beginning of the line.
     'total' can give the number of expected iterations. If not given,
     len(iterable) is used if it is defined.
+    'file' can be a file-like object to output the progress message to.
     If leave is False, tqdm deletes its traces from screen after it has finished
     iterating over all elements.
     If less than mininterval seconds or miniters iterations have passed since
     the last progress meter update, it is not updated again.
-    'output_to' can be a file-like object to output the progress message to
-    If not specified, prints to sys.stdout.
     """
     if total is None:
         try:
@@ -72,7 +72,7 @@ def tqdm(iterable, desc='', total=None, leave=False, mininterval=0.5, miniters=1
 
     prefix = desc+': ' if desc else ''
     
-    sp = StatusPrinter(output_to)
+    sp = StatusPrinter(file)
     sp.print_status(prefix + format_meter(0, total, 0))
         
     start_t = last_print_t = time.time()
