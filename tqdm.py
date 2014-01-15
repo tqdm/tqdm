@@ -101,6 +101,7 @@ def tqdm(iterable, desc='', total=None, leave=False, file=sys.stderr,
         if last_print_n < n:
             cur_t = time.time()
             sp.print_status(prefix + format_meter(n, total, cur_t-start_t))
+        file.write('\n')
 
 
 def trange(*args, **kwargs):
