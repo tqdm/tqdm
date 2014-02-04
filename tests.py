@@ -9,7 +9,9 @@ def test_format_interval():
 
 
 def test_format_meter():
+    assert format_meter(0, 1000, 13) == \
+        "|----------| 0/1000   0% [elapsed: " \
+        "00:13 left: ?,  0.00 iters/sec]"
     assert format_meter(231, 1000, 392) == \
         "|##--------| 231/1000  23% [elapsed: " \
         "06:32 left: 12:49,  0.00 iters/sec]"
-
