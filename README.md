@@ -35,5 +35,5 @@ def trange(*args, **kwargs):
 Running tests
 -------------
 
-Please make sure tox (http://tox.testrunner.org/) is installed and type
+Please make sure tox (http://tox.testrun.org/) is installed and type
 `tox` from the command line
