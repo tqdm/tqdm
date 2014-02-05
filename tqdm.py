@@ -1,7 +1,10 @@
-__all__ = ['tqdm', 'trange']
+from __future__ import division
 
 import sys
 import time
+
+
+__all__ = ['tqdm', 'trange']
 
 
 def format_interval(t):

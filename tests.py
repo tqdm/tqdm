@@ -14,4 +14,4 @@ def test_format_meter():
         "00:13 left: ?,  0.00 iters/sec]"
     assert format_meter(231, 1000, 392) == \
         "|##--------| 231/1000  23% [elapsed: " \
-        "06:32 left: 12:49,  0.00 iters/sec]"
+        "06:32 left: 21:44,  0.59 iters/sec]"
