@@ -31,3 +31,9 @@ def trange(*args, **kwargs):
     """A shortcut for writing tqdm(xrange)"""
     return tqdm(xrange(*args), **kwargs)
 ```
+
+Running tests
+-------------
+
+Please make sure tox (http://tox.testrunner.org/) is installed and type
+`tox` from the command line
