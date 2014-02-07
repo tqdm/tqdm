@@ -1,6 +1,8 @@
 from __future__ import unicode_literals
-from six import StringIO
+
 import csv
+import sys
+from six import StringIO
 from tqdm import format_interval, format_meter, tqdm
 
 
@@ -19,6 +21,12 @@ def test_format_meter():
         "06:32 left: 21:44,  0.59 iters/sec]"
 
 
+def test_nothing_fails():
+    """ Just make sure we're able to iterate using tqdm """
+    for i in tqdm(range(10)):
+        pass
+
+
 def test_iterate_over_csv_rows():
     # Create a test csv pseudo file
     test_csv_file = StringIO()
@@ -31,3 +39,32 @@ def test_iterate_over_csv_rows():
     reader = csv.DictReader(test_csv_file, fieldnames=('row1', 'row2', 'row3'))
     for row in tqdm(reader):
         pass
+
+
+def test_file_output():
+    """ Tests that output to arbitrary file-like objects works """
+    our_file = StringIO()
+    for i in tqdm(range(3), file=our_file):
+        if i == 1:
+            our_file.seek(0)
+            assert '0/3' in our_file.read()
+
+
+def test_leave_option():
+    """
+    Tests that if leave=True, tqdm will leave the info
+    about the last iteration on the screen
+    """
+    our_file = StringIO()
+    for i in tqdm(range(3), file=our_file, leave=True):
+        pass
+    our_file.seek(0)
+    assert '3/3 100%' in our_file.read()
+    our_file.close()
+
+    our_file2 = StringIO()
+    for i in tqdm(range(3), file=our_file2, leave=False):
+        pass
+    our_file2.seek(0)
+    assert '3/3 100%' not in our_file2.read()
+    our_file2.close()
