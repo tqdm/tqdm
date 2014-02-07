@@ -1,5 +1,5 @@
 from __future__ import unicode_literals
-from StringIO import StringIO
+from six import StringIO
 import csv
 from tqdm import format_interval, format_meter, tqdm
 
