@@ -1,7 +1,6 @@
 #!/usr/bin/env python
-
-from distutils.core import setup
-
+# -*- coding: utf-8 -*-
+from setuptools import setup
 setup(name='tqdm',
       version='1.0',
       description='A Simple Python Progress Meter',
