@@ -1,6 +1,8 @@
 tqdm
 ====
 
+[![Build Status](https://img.shields.io/travis/kmike/tqdm.svg?branch=all-fixes)](https://travis-ci.org/kmike/tqdm)
+
 Instantly make your loops show a progress meter - just wrap any iterable with "tqdm(iterable)", and you're done!
 
 ![ScreenShot](https://i.imgur.com/he9Aw5C.gif)
@@ -36,4 +38,4 @@ Running tests
 -------------
 
 Please make sure tox (http://tox.testrun.org/) is installed and type
-`tox` from the command line
+`tox` from the command line.
