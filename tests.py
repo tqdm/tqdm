@@ -1,7 +1,6 @@
 from __future__ import unicode_literals
 
 import csv
-import sys
 from six import StringIO
 from tqdm import format_interval, format_meter, tqdm
 
