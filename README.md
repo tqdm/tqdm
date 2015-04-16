@@ -1,7 +1,7 @@
 tqdm
 ====
 
-Instantly make your loops show a progress meter - just wrap any iterator with "tqdm(iterator)", and you're done!
+Instantly make your loops show a progress meter - just wrap any iterable with "tqdm(iterable)", and you're done!
 
 ![ScreenShot](https://i.imgur.com/he9Aw5C.gif)
 
