@@ -1,3 +1,5 @@
+![Logo](logo.png)
+
 # tqdm
 
 [![Build Status](https://travis-ci.org/tqdm/tqdm.svg?branch=master)](https://travis-ci.org/tqdm/tqdm)
@@ -7,7 +9,7 @@ Instantly make your loops show a progress meter - just wrap any iterable with "t
 
 tqdm (read ta<i>qa</i>dum, تقدّم) means "progress" in arabic.
 
-![ScreenShot](tqdm.gif)
+![Screenshot](tqdm.gif)
 
 You can also use trange(N) as a shortcut for tqdm(xrange(N))
 
