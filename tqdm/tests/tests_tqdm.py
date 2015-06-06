@@ -1,8 +1,16 @@
 from __future__ import unicode_literals
 
 import csv
-from six import StringIO
-from tqdm import format_interval, format_meter, tqdm
+
+try:
+    from StringIO import StringIO
+except:
+    from io import StringIO
+
+from tqdm import format_interval
+from tqdm import format_meter
+from tqdm import tqdm
+from tqdm import trange
 
 
 def test_format_interval():
@@ -18,6 +26,8 @@ def test_format_meter():
     assert format_meter(231, 1000, 392) == \
         "|##--------| 231/1000  23% [elapsed: " \
         "06:32 left: 21:44,  0.59 iters/sec]"
+    assert format_meter(10000, 1000, 13) == \
+        "10000 [elapsed: 00:13, 769.23 iters/sec]"
 
 
 def test_nothing_fails():
@@ -67,3 +77,27 @@ def test_leave_option():
     our_file2.seek(0)
     assert '3/3 100%' not in our_file2.read()
     our_file2.close()
+
+
+def test_trange():
+    our_file = StringIO()
+    for i in trange(3, file=our_file, leave=True):
+        pass
+    our_file.seek(0)
+    assert '3/3 100%' in our_file.read()
+    our_file.close()
+
+    our_file2 = StringIO()
+    for i in trange(3, file=our_file2, leave=False):
+        pass
+    our_file2.seek(0)
+    assert '3/3 100%' not in our_file2.read()
+    our_file2.close()
+
+
+def test_min_interval():
+    our_file = StringIO()
+    for i in tqdm(range(3), file=our_file, min_interval=1e-10):
+        pass
+    our_file.seek(0)
+    assert "|----------| 0/3   0% [elapsed: 00:00 left" in our_file.read()

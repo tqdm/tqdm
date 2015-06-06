@@ -4,12 +4,12 @@ from setuptools import setup
 
 setup(
     name='tqdm',
-    version='1.0',
+    version='2.0',
     description='A Simple Python Progress Meter',
     license='MIT License',
     author='Noam Yorav-Raphael',
     author_email='noamraph@gmail.com',
-    url='https://github.com/noamraph/tqdm',
+    url='https://github.com/tqdm/tqdm',
     py_modules=['tqdm'],
     classifiers=[
         'Development Status :: 5 - Production/Stable',
