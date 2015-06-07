@@ -97,7 +97,7 @@ def test_trange():
 
 def test_min_interval():
     our_file = StringIO()
-    for i in tqdm(range(3), file=our_file, min_interval=1e-10):
+    for i in tqdm(range(3), file=our_file, mininterval=1e-10):
         pass
     our_file.seek(0)
     assert "|----------| 0/3   0% [elapsed: 00:00 left" in our_file.read()
