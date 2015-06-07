@@ -1,16 +1,15 @@
 language: python
-
-python:
-  - "2.7"
-  - "3.4"
-
+python: 2.7
+env:
+- TOXENV=py26
+- TOXENV=py27
+- TOXENV=py32
+- TOXENV=py33
+- TOXENV=py34
+- TOXENV=pypy
+- TOXENV=pypy3
+- TOXENV=flake8
 install:
-  - pip install nose flake8 coverage python-coveralls
-  - pip install .
-
+- pip install tox
 script:
-  - make flake8
-  - make coverage
-
-after_success:
-  - coveralls
+- tox
