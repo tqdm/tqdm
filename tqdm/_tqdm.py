@@ -58,24 +58,26 @@ class StatusPrinter(object):
 def tqdm(iterable, desc='', total=None,
          leave=False, file=sys.stderr,
          min_interval=0.5, miniters=1):
-    """Get an iterable object, and return an iterator which acts exactly like the
-    iterable, but prints a progress meter and updates it every time a value is
-    requested.
+    """Get an iterable object, and return an iterator which acts exactly like
+    the iterable, but prints a progress meter and updates it every time a
+    value is requested.
 
     Parameters
     ----------
     desc: str
-        A short string, describing the progress, that is added in the beginning of the line.
+        A short string, describing the progress, that is added in the beginning
+        of the line.
     total : int
-        The number of expected iterations. If not given, len(iterable) is used if it is defined.
+        The number of expected iterations. If not given, len(iterable) is used
+        if it is defined.
     file : `io.TextIOWrapper` or `io.StringIO`
         A file-like object to output the progress message to.
     leave : bool
-        If it is False, tqdm deletes its traces from screen after it has finished iterating over
-        all elements.
+        If it is False, tqdm deletes its traces from screen after it has
+        finished iterating over all elements.
     min_interval : float
-        If less than min_interval seconds or miniters iterations have passed since the last
-        progress meter update, it is not updated again.
+        If less than min_interval seconds or miniters iterations have passed
+        since the last progress meter update, it is not updated again.
     """
     if total is None:
         try:
