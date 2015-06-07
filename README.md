@@ -5,7 +5,8 @@
 [![Build Status](https://travis-ci.org/tqdm/tqdm.svg?branch=master)](https://travis-ci.org/tqdm/tqdm)
 [![Coverage Status](https://coveralls.io/repos/tqdm/tqdm/badge.svg)](https://coveralls.io/r/tqdm/tqdm)
 
-Instantly make your loops show a progress meter - just wrap any iterable with "tqdm(iterable)", and you're done !
+Instantly make your loops show a progress meter - just wrap any iterable with 
+"tqdm(iterable)", and you're done!
 
 tqdm (read ta<i>qa</i>dum, تقدّم) means "progress" in arabic.
 
@@ -63,16 +64,8 @@ def trange(*args, **kwargs):
 
 ## Contributions
 
-During development you may want to use these commands :
-
-```sh
-$ make help
-Please use make <target> where <target> is one of
-    test                 : run tests
-    flake8               : run flake8 to check PEP8
-    coverage             : run tests and check code coverage
-    clean                : clean current repository
-```
+To run the testing suite please make sure tox (http://tox.testrun.org/) 
+is installed, then type `tox` from the command line.
 
 ## License
 
