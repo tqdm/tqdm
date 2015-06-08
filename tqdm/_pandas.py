@@ -12,7 +12,8 @@ def enable_progress_apply():
         from pandas.core.groupby import DataFrameGroupBy
         DataFrameGroupBy.progress_apply = _progress_apply
     except ImportError:
-        raise("You can't enable Pandas progress apply because Pandas is not installed")
+        raise("You can't enable Pandas progress apply ",
+              "because Pandas is not installed")
 
 
 def _progress_apply(groups, func, progress_kwargs={}, *args, **kwargs):

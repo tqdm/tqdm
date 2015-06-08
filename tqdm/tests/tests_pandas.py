@@ -10,7 +10,6 @@ import time
 from nose.plugins.skip import SkipTest
 from nose.tools import with_setup
 
-from tqdm import tqdm
 
 def setup_pandas():
     try:
@@ -30,7 +29,8 @@ def test_pandas():
 
     df = pd.DataFrame(np.random.randint(0, 100, (1000, 6)))
     df.groupby(0).progress_apply(lambda x: time.sleep(0.01),
-                                 progress_kwargs=dict(file=our_file, leave=False))
+                                 progress_kwargs=dict(file=our_file,
+                                                      leave=False))
 
     our_file.seek(0)
 
@@ -47,7 +47,8 @@ def test_pandas_leave():
 
     df = pd.DataFrame(np.random.randint(0, 100, (1000, 6)))
     df.groupby(0).progress_apply(lambda x: time.sleep(0.01),
-                                 progress_kwargs=dict(file=our_file, leave=True))
+                                 progress_kwargs=dict(file=our_file,
+                                                      leave=True))
     our_file.seek(0)
 
     assert "|##########| 100/100 100%" in our_file.read()
