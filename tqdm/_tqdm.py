@@ -1,4 +1,4 @@
-from __future__ import division
+from __future__ import division, absolute_import
 
 import sys
 import time
@@ -57,25 +57,34 @@ class StatusPrinter(object):
 
 def tqdm(iterable, desc='', total=None,
          leave=False, file=sys.stderr,
-         min_interval=0.5, miniters=1):
-    """Get an iterable object, and return an iterator which acts exactly like the
-    iterable, but prints a progress meter and updates it every time a value is
-    requested.
+         mininterval=0.5, miniters=1):
+    """Get an iterable object, and return an iterator which acts exactly like
+    the iterable, but prints a progress meter and updates it every time a
+    value is requested.
 
     Parameters
     ----------
-    desc: str
-        A short string, describing the progress, that is added in the beginning of the line.
-    total : int
-        The number of expected iterations. If not given, len(iterable) is used if it is defined.
-    file : `io.TextIOWrapper` or `io.StringIO`
-        A file-like object to output the progress message to.
-    leave : bool
-        If it is False, tqdm deletes its traces from screen after it has finished iterating over
-        all elements.
-    min_interval : float
-        If less than min_interval seconds or miniters iterations have passed since the last
-        progress meter update, it is not updated again.
+    iterable: iterable
+        Iterable to show progress for.
+    desc: str, optional
+        A short string, describing the progress, that is added in the beginning
+        of the line.
+    total : int, optional
+        The number of expected iterations. If not given, len(iterable) is used
+        if it is defined.
+    file : `io.TextIOWrapper` or `io.StringIO`, optional
+        A file-like object to output the progress message to. By default,
+        sys.stderr is used.
+    leave : bool, optional
+        If it is False (default), tqdm deletes its traces from screen after
+        it has finished iterating over all elements.
+    mininterval : float, optional
+        If less than mininterval seconds have passed since the last progress
+        meter update, it is not updated again (default: 0.5).
+    miniters : float, optional
+        If less than miniters iterations have passed since the last progress
+        meter update, it is not updated again (default: 1).
+
     """
     if total is None:
         try:
@@ -98,7 +107,7 @@ def tqdm(iterable, desc='', total=None,
         if n - last_print_n >= miniters:
             # We check the counter first, to reduce the overhead of time.time()
             cur_t = time.time()
-            if cur_t - last_print_t >= min_interval:
+            if cur_t - last_print_t >= mininterval:
                 sp.print_status(prefix + format_meter(n, total, cur_t-start_t))
                 last_print_n = n
                 last_print_t = cur_t

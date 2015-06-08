@@ -1,0 +1,4 @@
+[run]
+branch = True
+omit =
+    tqdm/tests/*
