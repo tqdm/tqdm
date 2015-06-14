@@ -21,13 +21,12 @@ def test_format_interval():
 
 def test_format_meter():
     assert format_meter(0, 1000, 13) == \
-        "|----------| 0/1000   0% [elapsed: " \
-        "00:13 left: ?,  0.00 iters/sec]"
+        "  0%|                                | 0/1000 [00:13<?,  0.00 it/s]"
     assert format_meter(231, 1000, 392) == \
-        "|##--------| 231/1000  23% [elapsed: " \
-        "06:32 left: 21:44,  0.59 iters/sec]"
+        u" 23%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u258d" \
+        "                        | 231/1000 [06:32<21:44,  0.59 it/s]"
     assert format_meter(10000, 1000, 13) == \
-        "10000 [elapsed: 00:13, 769.23 iters/sec]"
+        "10000 [00:13, 769.23 it/s]"
 
 
 def test_nothing_fails():
@@ -68,14 +67,14 @@ def test_leave_option():
     for i in tqdm(range(3), file=our_file, leave=True):
         pass
     our_file.seek(0)
-    assert '3/3 100%' in our_file.read()
+    assert '| 3/3 ' in our_file.read()
     our_file.close()
 
     our_file2 = StringIO()
     for i in tqdm(range(3), file=our_file2, leave=False):
         pass
     our_file2.seek(0)
-    assert '3/3 100%' not in our_file2.read()
+    assert '| 3/3 ' not in our_file2.read()
     our_file2.close()
 
 
@@ -84,14 +83,14 @@ def test_trange():
     for i in trange(3, file=our_file, leave=True):
         pass
     our_file.seek(0)
-    assert '3/3 100%' in our_file.read()
+    assert '| 3/3 ' in our_file.read()
     our_file.close()
 
     our_file2 = StringIO()
     for i in trange(3, file=our_file2, leave=False):
         pass
     our_file2.seek(0)
-    assert '3/3 100%' not in our_file2.read()
+    assert '| 3/3 ' not in our_file2.read()
     our_file2.close()
 
 
@@ -100,4 +99,4 @@ def test_min_interval():
     for i in tqdm(range(3), file=our_file, mininterval=1e-10):
         pass
     our_file.seek(0)
-    assert "|----------| 0/3   0% [elapsed: 00:00 left" in our_file.read()
+    assert "  0%|                                | 0/3 [00:00<" in our_file.read()
