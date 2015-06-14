@@ -43,9 +43,11 @@ def format_meter(n, total, elapsed):
         bar_length = int(frac * N_BARS)
         frac_bar_length = int((frac * N_BARS * 8) % 8)
         
-        bar = u'\u2588'*bar_length + \
-                (unichr(0x2590-frac_bar_length) if frac_bar_length else ' ')\
-                + ' '*max(N_BARS-bar_length-1,0)
+        bar = u'\u2588'*bar_length
+        if bar_length < N_BARS:
+            bar = bar \
+                  +(unichr(0x2590-frac_bar_length) if frac_bar_length else ' ')\
+                  + ' '*max(N_BARS - bar_length - 1, 0)
 
         left_str = format_interval(elapsed * (total-n) / n) if n else '?'
 
