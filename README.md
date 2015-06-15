@@ -25,41 +25,47 @@ pip install -e git+https://github.com/tqdm/tqdm.git#egg=master
 ## Documentation
 
 ```python
-def tqdm(iterable, desc='', total=None,
-         leave=False, file=sys.stderr,
-         mininterval=0.5, miniters=1):
-    """Get an iterable object, and return an iterator which acts exactly like
-    the iterable, but prints a progress meter and updates it every time a
-    value is requested.
-
+def tqdm(iterable, desc=None, total=None, leave=False, file=sys.stderr,
+         ncols=None, mininterval=0.1, miniters=1):
+    """
+    Decorate an iterable object, returning an iterator which acts exactly
+    like the orignal iterable, but prints a dynamically updating
+    progressbar.
+    
     Parameters
     ----------
-    iterable: iterable
-        Iterable to show progress for.
-    desc: str, optional
-        A short string, describing the progress, that is added in the beginning
-        of the line.
-    total : int, optional
-        The number of expected iterations. If not given, len(iterable) is used
-        if it is defined.
-    file : `io.TextIOWrapper` or `io.StringIO`, optional
-        A file-like object to output the progress message to. By default,
-        sys.stderr is used.
-    leave : bool, optional
-        If it is False (default), tqdm deletes its traces from screen after
-        it has finished iterating over all elements.
-    mininterval : float, optional
-        If less than mininterval seconds have passed since the last progress
-        meter update, it is not updated again (default: 0.5).
-    miniters : float, optional
-        If less than miniters iterations have passed since the last progress
-        meter update, it is not updated again (default: 1).
-
+    iterable  : iterable
+        Iterable to decorate with a progressbar.
+    desc  : str, optional
+        Prefix for the progressbar.
+    total  : int, optional
+        The number of expected iterations. If not given, len(iterable) is
+        used if possible. As a last resort, only basic progress statistics
+        are displayed.
+    file  : `io.TextIOWrapper` or `io.StringIO`, optional
+        Specifies where to output the progress messages.
+    leave  : bool, optional
+        if unset, removes all traces of the progressbar upon termination of
+        iteration [default: False].
+    ncols  : int, optional
+        The width of the entire output message. If sepcified, dynamically
+        resizes the progress meter [default: None]. The fallback meter
+        width is 10.
+    mininterval  : float, optional
+        Minimum progress update interval, in seconds [default: 0.5].
+    miniters  : int, optional
+        Minimum progress update interval, in iterations [default: 1].
+    
+    Returns
+    -------
+    out  : decorated iterator.
     """
 
 def trange(*args, **kwargs):
-    """A shortcut for writing tqdm(xrange)"""
-    return tqdm(xrange(*args), **kwargs)
+    """
+    A shortcut for tqdm(xrange(*args), **kwargs).
+    On Python3+ range is used instead of xrange.
+    """
 ```
 
 ## Contributions
@@ -83,3 +89,10 @@ $ make coverage
 ## Authors
 
 - noamraph (original author)
+- JackMc
+- arkottke
+- obiwanus
+- fordhurley
+- kmike
+- hadim
+- casperdcl
