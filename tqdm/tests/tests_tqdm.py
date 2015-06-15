@@ -20,13 +20,15 @@ def test_format_interval():
 
 
 def test_format_meter():
-    try: unich = unichr
-    except: unich = chr
+    try:
+        unich = unichr
+    except:
+        unich = chr
 
     assert format_meter(0, 1000, 13) == \
         "  0%|          | 0/1000 [00:13<?,  0.00 it/s]"
-    assert format_meter(0, 1000, 13, ncols=70, prefix='desc: ') == \
-        "desc: 0%|                               | 0/1000 [00:13<?,  0.00 it/s]"
+    assert format_meter(0, 1000, 13, ncols=68, prefix='desc: ') == \
+        "desc: 0%|                             | 0/1000 [00:13<?,  0.00 it/s]"
     assert format_meter(231, 1000, 392) == \
         " 23%|" + unich(0x2588)*2 + unich(0x258e) + \
         "       | 231/1000 [06:32<21:44,  0.59 it/s]"

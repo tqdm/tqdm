@@ -12,8 +12,8 @@ import sys
 import time
 
 
-__author__ = {"github.com/" : ["noamraph", "JackMc", "arkottke", "obiwanus",
-        "fordhurley", "kmike", "hadim", "casperdcl"]}
+__author__ = {"github.com/": ["noamraph", "JackMc", "arkottke", "obiwanus",
+                              "fordhurley", "kmike", "hadim", "casperdcl"]}
 __all__ = ['tqdm', 'trange', 'format_interval', 'format_meter']
 
 
@@ -53,8 +53,10 @@ def format_meter(n, total, elapsed, ncols=None, prefix=''):
         bar_length = int(frac * N_BARS)
         frac_bar_length = int((frac * N_BARS * 8) % 8)
 
-        try: unich = unichr
-        except: unich = chr
+        try:
+            unich = unichr
+        except:
+            unich = chr
 
         bar = unich(0x2588)*bar_length
         frac_bar = unich(0x2590 - frac_bar_length) if frac_bar_length else ' '
@@ -85,7 +87,7 @@ def tqdm(iterable, desc=None, total=None, leave=False, file=sys.stderr,
     Decorate an iterable object, returning an iterator which acts exactly
     like the orignal iterable, but prints a dynamically updating
     progressbar.
-    
+
     Parameters
     ----------
     iterable  : iterable
@@ -109,7 +111,7 @@ def tqdm(iterable, desc=None, total=None, leave=False, file=sys.stderr,
         Minimum progress update interval, in seconds [default: 0.5].
     miniters  : int, optional
         Minimum progress update interval, in iterations [default: 1].
-    
+
     Returns
     -------
     out  : decorated iterator.
@@ -137,7 +139,7 @@ def tqdm(iterable, desc=None, total=None, leave=False, file=sys.stderr,
             cur_t = time.time()
             if cur_t - last_print_t >= mininterval:
                 sp.print_status(format_meter(
-                        n, total, cur_t-start_t, ncols, prefix))
+                    n, total, cur_t-start_t, ncols, prefix))
                 last_print_n = n
                 last_print_t = cur_t
 
@@ -147,7 +149,8 @@ def tqdm(iterable, desc=None, total=None, leave=False, file=sys.stderr,
     else:
         if last_print_n < n:
             cur_t = time.time()
-            sp.print_status(format_meter(n, total, cur_t-start_t, ncols, prefix))
+            sp.print_status(format_meter(
+                n, total, cur_t-start_t, ncols, prefix))
         file.write('\n')
 
 
