@@ -26,10 +26,13 @@ def format_interval(t):
         return '{0:02d}:{1:02d}'.format(m, s)
 
 
-def format_meter(n, total, elapsed):
+def format_meter(n, total, elapsed, ncols=None, prefix=''):
     # n - number of finished iterations
     # total - total number of iterations, or None
     # elapsed - number of seconds passed since start
+    # ncols - the output width in chars. If specified, dynamically resizes bar.
+    #     [default bar width: 10].
+    # prefix - prepend message (included in total width)
     if total and n > total:
         total = None
 
@@ -39,20 +42,27 @@ def format_meter(n, total, elapsed):
     if total:
         frac = float(n) / total
 
-        N_BARS = 32
-        bar_length = int(frac * N_BARS)
-        frac_bar_length = int((frac * N_BARS * 8) % 8)
-        
-        bar = u'\u2588'*bar_length
-        if bar_length < N_BARS:
-            bar = bar \
-                  +(unichr(0x2590-frac_bar_length) if frac_bar_length else ' ')\
-                  + ' '*max(N_BARS - bar_length - 1, 0)
-
         left_str = format_interval(elapsed * (total-n) / n) if n else '?'
 
-        return u'{3:3.0f}%|{0}| {1}/{2} [{4}<{5}, {6} it/s]'.format(
-            bar, n, total, frac * 100, elapsed_str, left_str, rate)
+        l_bar = '{1}{0:.0f}%|'.format(frac * 100, prefix) if prefix else \
+                '{0:3.0f}%|'.format(frac * 100)
+        r_bar = '| {0}/{1} [{2}<{3}, {4} it/s]'.format(
+                n, total, elapsed_str, left_str, rate)
+
+        N_BARS = max(1, ncols - len(l_bar) - len(r_bar)) if ncols else 10
+        bar_length = int(frac * N_BARS)
+        frac_bar_length = int((frac * N_BARS * 8) % 8)
+
+        try: unich = unichr
+        except: unich = chr
+
+        bar = unich(0x2588)*bar_length
+        frac_bar = unich(0x2590 - frac_bar_length) if frac_bar_length else ' '
+
+        if bar_length < N_BARS:
+            bar = bar + frac_bar + ' '*max(N_BARS - bar_length - 1, 0)
+
+        return l_bar + bar + r_bar
 
     else:
         return '{0:d} [{1}, {2} it/s]'.format(n, elapsed_str, rate)
@@ -70,7 +80,7 @@ class StatusPrinter(object):
 
 
 def tqdm(iterable, desc=None, total=None, leave=False, file=sys.stderr,
-         mininterval=0.5, miniters=1):
+         ncols=None, mininterval=0.1, miniters=1):
     """
     Decorate an iterable object, returning an iterator which acts exactly
     like the orignal iterable, but prints a dynamically updating
@@ -91,6 +101,10 @@ def tqdm(iterable, desc=None, total=None, leave=False, file=sys.stderr,
     leave  : bool, optional
         if unset, removes all traces of the progressbar upon termination of
         iteration [default: False].
+    ncols  : int, optional
+        The width of the entire output message. If sepcified, dynamically
+        resizes the progress meter [default: None]. The fallback meter
+        width is 10.
     mininterval  : float, optional
         Minimum progress update interval, in seconds [default: 0.5].
     miniters  : int, optional
@@ -109,7 +123,7 @@ def tqdm(iterable, desc=None, total=None, leave=False, file=sys.stderr,
     prefix = desc+': ' if desc else ''
 
     sp = StatusPrinter(file)
-    sp.print_status(prefix + format_meter(0, total, 0))
+    sp.print_status(format_meter(0, total, 0, ncols, prefix))
 
     start_t = last_print_t = time.time()
     last_print_n = 0
@@ -122,7 +136,8 @@ def tqdm(iterable, desc=None, total=None, leave=False, file=sys.stderr,
             # We check the counter first, to reduce the overhead of time.time()
             cur_t = time.time()
             if cur_t - last_print_t >= mininterval:
-                sp.print_status(prefix + format_meter(n, total, cur_t-start_t))
+                sp.print_status(format_meter(
+                        n, total, cur_t-start_t, ncols, prefix))
                 last_print_n = n
                 last_print_t = cur_t
 
@@ -132,7 +147,7 @@ def tqdm(iterable, desc=None, total=None, leave=False, file=sys.stderr,
     else:
         if last_print_n < n:
             cur_t = time.time()
-            sp.print_status(prefix + format_meter(n, total, cur_t-start_t))
+            sp.print_status(format_meter(n, total, cur_t-start_t, ncols, prefix))
         file.write('\n')
 
 

@@ -20,13 +20,21 @@ def test_format_interval():
 
 
 def test_format_meter():
+    try: unich = unichr
+    except: unich = chr
+
     assert format_meter(0, 1000, 13) == \
-        "  0%|                                | 0/1000 [00:13<?,  0.00 it/s]"
+        "  0%|          | 0/1000 [00:13<?,  0.00 it/s]"
+    assert format_meter(0, 1000, 13, ncols=70, prefix='desc: ') == \
+        "desc: 0%|                               | 0/1000 [00:13<?,  0.00 it/s]"
     assert format_meter(231, 1000, 392) == \
-        u" 23%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u258d" \
-        "                        | 231/1000 [06:32<21:44,  0.59 it/s]"
+        " 23%|" + unich(0x2588)*2 + unich(0x258e) + \
+        "       | 231/1000 [06:32<21:44,  0.59 it/s]"
     assert format_meter(10000, 1000, 13) == \
         "10000 [00:13, 769.23 it/s]"
+    assert format_meter(231, 1000, 392, ncols=56) == \
+        " 23%|" + unich(0x2588)*3 + unich(0x258d) + \
+        "           | 231/1000 [06:32<21:44,  0.59 it/s]"
 
 
 def test_nothing_fails():
@@ -99,4 +107,4 @@ def test_min_interval():
     for i in tqdm(range(3), file=our_file, mininterval=1e-10):
         pass
     our_file.seek(0)
-    assert "  0%|                                | 0/3 [00:00<" in our_file.read()
+    assert "  0%|          | 0/3 [00:00<" in our_file.read()
