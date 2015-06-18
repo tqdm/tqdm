@@ -180,19 +180,3 @@ def trange(*args, **kwargs):
         f = range
 
     return tqdm(f(*args), **kwargs)
-
-
-# def tqdmise(iterable):
-#     """
-#     A decorator for custom iterators:
-#         @tqdmise
-#         def myiter(*args, **kwargs):
-#             ...
-#     is equivalent to
-#         def myiter(*args):
-#             ...
-#     myiter = tqdmise(myiter(*args), **kwargs)
-#     """
-#     def with_tqdm(*args, **kwargs):
-#         return tqdm(iterable(*args), **kwargs)
-#     return with_tqdm
