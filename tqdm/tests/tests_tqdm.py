@@ -34,8 +34,8 @@ def test_format_meter():
         "       | 231/1000 [06:32<21:44,  0.59 it/s]"
     assert format_meter(10000, 1000, 13) == \
         "10000 [00:13, 769.23 it/s]"
-    assert format_meter(231, 1000, 392, ncols=56) == \
-        " 23%|" + unich(0x2588)*3 + unich(0x258d) + \
+    assert format_meter(231, 1000, 392, ncols=56, ascii=True) == \
+        " 23%|" + '#'*3 + '4' + \
         "           | 231/1000 [06:32<21:44,  0.59 it/s]"
 
 

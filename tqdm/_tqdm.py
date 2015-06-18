@@ -17,6 +17,16 @@ __author__ = {"github.com/": ["noamraph", "JackMc", "arkottke", "obiwanus",
 __all__ = ['tqdm', 'trange', 'format_interval', 'format_meter']
 
 
+def _is_utf(encoding):
+    return ('U8' == encoding) or ('utf' in encoding) or ('UTF' in encoding)
+
+
+def _supports_unicode(file):
+    if not getattr(file, 'encoding', None):
+        return False
+    return _is_utf(file.encoding)
+
+
 def format_interval(t):
     mins, s = divmod(int(t), 60)
     h, m = divmod(mins, 60)
@@ -26,13 +36,33 @@ def format_interval(t):
         return '{0:02d}:{1:02d}'.format(m, s)
 
 
-def format_meter(n, total, elapsed, ncols=None, prefix=''):
-    # n - number of finished iterations
-    # total - total number of iterations, or None
-    # elapsed - number of seconds passed since start
-    # ncols - the output width in chars. If specified, dynamically resizes bar.
-    #     [default bar width: 10].
-    # prefix - prepend message (included in total width)
+def format_meter(n, total, elapsed, ncols=None, prefix='', ascii=False):
+    """
+    Parameter parsing and formatting for output
+
+    Parameters
+    ----------
+    n  : int
+        Number of finished iterations
+    total  : int
+        The number of expected iterations. If None, only basic progress
+        statistics are displayed.
+    elapsed  : float
+        Number of seconds passed since start
+    ncols  : int, optional
+        The width of the entire output message. If sepcified, dynamically
+        resizes the progress meter [default: None]. The fallback meter
+        width is 10.
+    prefix  : str, optional
+        Prefix message (included in total width)
+    ascii  : bool, optional
+        If not set, use unicode (smooth blocks) to fill the meter
+        [default: False]. The fallback is to use ASCII characters (1-9 #).
+
+    Returns
+    -------
+    out  : Formatted meter and stats, ready to display.
+    """
     if total and n > total:
         total = None
 
@@ -50,15 +80,24 @@ def format_meter(n, total, elapsed, ncols=None, prefix=''):
                 n, total, elapsed_str, left_str, rate)
 
         N_BARS = max(1, ncols - len(l_bar) - len(r_bar)) if ncols else 10
-        bar_length, frac_bar_length = divmod(int(frac * N_BARS * 8), 8)
 
-        try:    # pragma: no cover
-            unich = unichr
-        except NameError:    # pragma: no cover
-            unich = chr
+        if ascii:
+            bar_length, frac_bar_length = divmod(int(frac * N_BARS * 10), 10)
 
-        bar = unich(0x2588)*bar_length
-        frac_bar = unich(0x2590 - frac_bar_length) if frac_bar_length else ' '
+            bar = '#'*bar_length
+            frac_bar = chr(48 + frac_bar_length) if frac_bar_length else ' '
+
+        else:
+            bar_length, frac_bar_length = divmod(int(frac * N_BARS * 8), 8)
+
+            try:    # pragma: no cover
+                unich = unichr
+            except NameError:    # pragma: no cover
+                unich = chr
+
+            bar = unich(0x2588)*bar_length
+            frac_bar = unich(0x2590 - frac_bar_length) \
+                if frac_bar_length else ' '
 
         if bar_length < N_BARS:
             return l_bar + bar + frac_bar + \
@@ -83,7 +122,8 @@ class StatusPrinter(object):
 
 
 def tqdm(iterable, desc=None, total=None, leave=False, file=sys.stderr,
-         ncols=None, mininterval=0.1, miniters=None, disable=False):
+         ncols=None, mininterval=0.1, miniters=None,
+         ascii=None, disable=False):
     """
     Decorate an iterable object, returning an iterator which acts exactly
     like the orignal iterable, but prints a dynamically updating
@@ -113,6 +153,9 @@ def tqdm(iterable, desc=None, total=None, leave=False, file=sys.stderr,
         Minimum progress update interval, in seconds [default: 0.1].
     miniters  : int, optional
         Minimum progress update interval, in iterations [default: None].
+    ascii  : bool, optional
+        If not set, use unicode (smooth blocks) to fill the meter
+        [default: False]. The fallback is to use ASCII characters (1-9 #).
     disable : bool
         Disable the progress bar if True [default: False].
 
@@ -138,10 +181,13 @@ def tqdm(iterable, desc=None, total=None, leave=False, file=sys.stderr,
     else:
         dynamic_miniters = False
 
+    if ascii is None:
+        ascii = _supports_unicode(file)
+
     prefix = desc+': ' if desc else ''
 
     sp = StatusPrinter(file)
-    sp.print_status(format_meter(0, total, 0, ncols, prefix))
+    sp.print_status(format_meter(0, total, 0, ncols, prefix, ascii))
 
     start_t = last_print_t = time.time()
     last_print_n = 0
@@ -155,7 +201,7 @@ def tqdm(iterable, desc=None, total=None, leave=False, file=sys.stderr,
             cur_t = time.time()
             if cur_t - last_print_t >= mininterval:
                 sp.print_status(format_meter(
-                    n, total, cur_t-start_t, ncols, prefix))
+                    n, total, cur_t-start_t, ncols, prefix, ascii))
                 if dynamic_miniters:
                     miniters = max(miniters, n - last_print_n + 1)
                 last_print_n = n
@@ -165,7 +211,7 @@ def tqdm(iterable, desc=None, total=None, leave=False, file=sys.stderr,
         if last_print_n < n:
             cur_t = time.time()
             sp.print_status(format_meter(
-                n, total, cur_t-start_t, ncols, prefix))
+                n, total, cur_t-start_t, ncols, prefix, ascii))
         file.write('\n')
     else:
         sp.print_status('')
@@ -177,9 +223,9 @@ def trange(*args, **kwargs):
     A shortcut for tqdm(xrange(*args), **kwargs).
     On Python3+ range is used instead of xrange.
     """
-    try:
+    try:    # pragma: no cover
         f = xrange
-    except NameError:  # pragma: no cover
+    except NameError:    # pragma: no cover
         f = range
 
     return tqdm(f(*args), **kwargs)
