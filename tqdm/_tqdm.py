@@ -17,6 +17,16 @@ __author__ = {"github.com/": ["noamraph", "JackMc", "arkottke", "obiwanus",
 __all__ = ['tqdm', 'trange', 'format_interval', 'format_meter']
 
 
+def _is_utf(encoding):
+    return ('U8' == encoding) or ('utf' in encoding) or ('UTF' in encoding)
+
+
+def _supports_unicode(file):
+    if not getattr(file, 'encoding', None):
+        return False
+    return _is_utf(file.encoding)
+
+
 def format_interval(t):
     mins, s = divmod(int(t), 60)
     h, m = divmod(mins, 60)
@@ -29,7 +39,7 @@ def format_interval(t):
 def format_meter(n, total, elapsed, ncols=None, prefix='', ascii=False):
     """
     Parameter parsing and formatting for output
-    
+
     Parameters
     ----------
     n  : int
@@ -166,17 +176,7 @@ def tqdm(iterable, desc=None, total=None, leave=False, file=sys.stderr,
         dynamic_miniters = False
 
     if ascii is None:
-        try:
-            file.encoding
-        except AttributeError:
-            ascii = True
-        else:
-            if file.encoding:
-                ascii = not ('U8' == file.encoding or
-                             ('utf' in file.encoding) or
-                             ('UTF' in file.encoding))
-            else:
-                ascii = True
+        ascii = _supports_unicode(file)
 
     prefix = desc+': ' if desc else ''
 
