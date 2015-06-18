@@ -122,7 +122,8 @@ class StatusPrinter(object):
 
 
 def tqdm(iterable, desc=None, total=None, leave=False, file=sys.stderr,
-         ncols=None, mininterval=0.1, miniters=None, ascii=None, disable=False):
+         ncols=None, mininterval=0.1, miniters=None,
+         ascii=None, disable=False):
     """
     Decorate an iterable object, returning an iterator which acts exactly
     like the orignal iterable, but prints a dynamically updating
