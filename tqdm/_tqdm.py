@@ -50,8 +50,7 @@ def format_meter(n, total, elapsed, ncols=None, prefix=''):
                 n, total, elapsed_str, left_str, rate)
 
         N_BARS = max(1, ncols - len(l_bar) - len(r_bar)) if ncols else 10
-        bar_length = int(frac * N_BARS)
-        frac_bar_length = int((frac * N_BARS * 8) % 8)
+        bar_length, frac_bar_length = divmod(int(frac * N_BARS * 8), 8)
 
         try:
             unich = unichr
@@ -62,9 +61,10 @@ def format_meter(n, total, elapsed, ncols=None, prefix=''):
         frac_bar = unich(0x2590 - frac_bar_length) if frac_bar_length else ' '
 
         if bar_length < N_BARS:
-            bar = bar + frac_bar + ' '*max(N_BARS - bar_length - 1, 0)
-
-        return l_bar + bar + r_bar
+            return l_bar + bar + frac_bar + \
+                ' '*max(N_BARS - bar_length - 1, 0) + r_bar
+        else:
+            return l_bar + bar + r_bar
 
     else:
         return '{0:d} [{1}, {2} it/s]'.format(n, elapsed_str, rate)
@@ -76,13 +76,14 @@ class StatusPrinter(object):
         self.last_printed_len = 0
 
     def print_status(self, s):
-        self.file.write('\r'+s+' '*max(self.last_printed_len-len(s), 0))
+        len_s = len(s)
+        self.file.write('\r'+s+' '*max(self.last_printed_len - len_s, 0))
         self.file.flush()
-        self.last_printed_len = len(s)
+        self.last_printed_len = len_s
 
 
 def tqdm(iterable, desc=None, total=None, leave=False, file=sys.stderr,
-         ncols=None, mininterval=0.1, miniters=1):
+         ncols=None, mininterval=0.1, miniters=None):
     """
     Decorate an iterable object, returning an iterator which acts exactly
     like the orignal iterable, but prints a dynamically updating
@@ -100,6 +101,7 @@ def tqdm(iterable, desc=None, total=None, leave=False, file=sys.stderr,
         are displayed.
     file  : `io.TextIOWrapper` or `io.StringIO`, optional
         Specifies where to output the progress messages.
+        Uses file.write(str) and file.flush() methods.
     leave  : bool, optional
         if unset, removes all traces of the progressbar upon termination of
         iteration [default: False].
@@ -108,9 +110,9 @@ def tqdm(iterable, desc=None, total=None, leave=False, file=sys.stderr,
         resizes the progress meter [default: None]. The fallback meter
         width is 10.
     mininterval  : float, optional
-        Minimum progress update interval, in seconds [default: 0.5].
+        Minimum progress update interval, in seconds [default: 0.1].
     miniters  : int, optional
-        Minimum progress update interval, in iterations [default: 1].
+        Minimum progress update interval, in iterations [default: None].
 
     Returns
     -------
@@ -121,6 +123,15 @@ def tqdm(iterable, desc=None, total=None, leave=False, file=sys.stderr,
             total = len(iterable)
         except (TypeError, AttributeError):
             total = None
+        # not good for slow iterators
+        # elif not miniters:
+        #     miniters = int(total/100)
+
+    if miniters is None:
+        miniters = 0
+        dynamic_miniters = True
+    else:
+        dynamic_miniters = False
 
     prefix = desc+': ' if desc else ''
 
@@ -140,18 +151,22 @@ def tqdm(iterable, desc=None, total=None, leave=False, file=sys.stderr,
             if cur_t - last_print_t >= mininterval:
                 sp.print_status(format_meter(
                     n, total, cur_t-start_t, ncols, prefix))
+
+                if dynamic_miniters:
+                    miniters = max(miniters, n - last_print_n + 1)
+
                 last_print_n = n
                 last_print_t = cur_t
 
-    if not leave:
-        sp.print_status('')
-        sys.stdout.write('\r')
-    else:
+    if leave:
         if last_print_n < n:
             cur_t = time.time()
             sp.print_status(format_meter(
                 n, total, cur_t-start_t, ncols, prefix))
         file.write('\n')
+    else:
+        sp.print_status('')
+        sys.stdout.write('\r')
 
 
 def trange(*args, **kwargs):
@@ -165,3 +180,19 @@ def trange(*args, **kwargs):
         f = range
 
     return tqdm(f(*args), **kwargs)
+
+
+# def tqdmise(iterable):
+#     """
+#     A decorator for custom iterators:
+#         @tqdmise
+#         def myiter(*args, **kwargs):
+#             ...
+#     is equivalent to
+#         def myiter(*args):
+#             ...
+#     myiter = tqdmise(myiter(*args), **kwargs)
+#     """
+#     def with_tqdm(*args, **kwargs):
+#         return tqdm(iterable(*args), **kwargs)
+#     return with_tqdm
