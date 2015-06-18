@@ -54,7 +54,7 @@ def format_meter(n, total, elapsed, ncols=None, prefix=''):
 
         try:
             unich = unichr
-        except:
+        except NameError:
             unich = chr
 
         bar = unich(0x2588)*bar_length

@@ -22,7 +22,7 @@ def test_format_interval():
 def test_format_meter():
     try:
         unich = unichr
-    except:
+    except NameError:
         unich = chr
 
     assert format_meter(0, 1000, 13) == \
@@ -50,7 +50,7 @@ def test_iterate_over_csv_rows():
     test_csv_file = StringIO()
     writer = csv.writer(test_csv_file)
     for i in range(3):
-        writer.writerow(['test', 'test', 'test'])
+        writer.writerow(['test']*3)
     test_csv_file.seek(0)
 
     # Test that nothing fails if we iterate over rows
@@ -110,3 +110,11 @@ def test_min_interval():
         pass
     our_file.seek(0)
     assert "  0%|          | 0/3 [00:00<" in our_file.read()
+
+
+def test_min_iters():
+    our_file = StringIO()
+    for i in tqdm(range(3), file=our_file, leave=True, miniters=4):
+        our_file.write('blank\n')
+    our_file.seek(0)
+    assert '\nblank\nblank\n' in our_file.read()
