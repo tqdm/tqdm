@@ -27,13 +27,32 @@ def format_interval(t):
 
 
 def format_meter(n, total, elapsed, ncols=None, prefix='', ascii=False):
-    # n - number of finished iterations
-    # total - total number of iterations, or None
-    # elapsed - number of seconds passed since start
-    # ncols - the output width in chars. If specified, dynamically resizes bar.
-    #     [default bar width: 10].
-    # prefix - prepend message (included in total width)
-    # ascii - whether to use ascii (otherwise unicode) character set
+    """
+    Parameter parsing and formatting for output
+    
+    Parameters
+    ----------
+    n  : int
+        Number of finished iterations
+    total  : int
+        The number of expected iterations. If None, only basic progress
+        statistics are displayed.
+    elapsed  : float
+        Number of seconds passed since start
+    ncols  : int, optional
+        The width of the entire output message. If sepcified, dynamically
+        resizes the progress meter [default: None]. The fallback meter
+        width is 10.
+    prefix  : str, optional
+        Prefix message (included in total width)
+    ascii  : bool, optional
+        If not set, use unicode (smooth blocks) to fill the meter
+        [default: False]. The fallback is to use ASCII characters (1-9 #).
+
+    Returns
+    -------
+    out  : Formatted meter and stats, ready to display.
+    """
     if total and n > total:
         total = None
 
