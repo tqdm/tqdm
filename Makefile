@@ -1,7 +1,8 @@
-.PHONY: flake8 test coverage
+.PHONY: all flake8 test coverage
 
+all: flake8 coverage
 flake8:
-	flake8 --exclude "test_*" --max-line-length=80 --count --statistics --exit-zero tqdm/
+	flake8 --max-line-length=80 --count --statistics --exit-zero tqdm/
 
 test:
 	nosetests tqdm -v
