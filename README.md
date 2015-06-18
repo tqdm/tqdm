@@ -33,7 +33,7 @@ pip install -e git+https://github.com/tqdm/tqdm.git#egg=master
 
 ```python
 def tqdm(iterable, desc=None, total=None, leave=False, file=sys.stderr,
-         ncols=None, mininterval=0.1, miniters=None):
+         ncols=None, mininterval=0.1, miniters=None, disable=False):
     """
     Decorate an iterable object, returning an iterator which acts exactly
     like the orignal iterable, but prints a dynamically updating
@@ -63,6 +63,8 @@ def tqdm(iterable, desc=None, total=None, leave=False, file=sys.stderr,
         Minimum progress update interval, in seconds [default: 0.1].
     miniters  : int, optional
         Minimum progress update interval, in iterations [default: None].
+    disable : bool
+        Disable the progress bar if True [default: False].
 
     Returns
     -------
