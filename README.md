@@ -5,14 +5,21 @@
 [![Build Status](https://travis-ci.org/tqdm/tqdm.svg?branch=master)](https://travis-ci.org/tqdm/tqdm)
 [![Coverage Status](https://coveralls.io/repos/tqdm/tqdm/badge.svg)](https://coveralls.io/r/tqdm/tqdm)
 
-Instantly make your loops show a progress meter - just wrap any iterable with
-"tqdm(iterable)", and you're done!
-
 tqdm (read ta<i>qa</i>dum, تقدّم) means "progress" in arabic.
+
+Instantly make your loops show a progress meter - just wrap any iterable with
+"tqdm(iterable)", and you're done! Here's what the output looks like:
+
+ 76%|████████████████████` ` ` ` ` ` | 7641/10000 [00:34<00:10, 222.22 it/s]
+
+You can also use `trange(N)` as a shortcut for `tqdm(xrange(N))`
 
 ![Screenshot](tqdm.gif)
 
-You can also use trange(N) as a shortcut for tqdm(xrange(N))
+Overhead is low -- about 55ns per iteration. By comparison, our esteemed
+competition, [ProgressBar](https://code.google.com/p/python-progressbar/), has
+an 878ns/iter overhead. It's a matter of taste, but we also like to think our
+version is much more visually appealing.
 
 ## Installation
 
@@ -26,12 +33,12 @@ pip install -e git+https://github.com/tqdm/tqdm.git#egg=master
 
 ```python
 def tqdm(iterable, desc=None, total=None, leave=False, file=sys.stderr,
-         ncols=None, mininterval=0.1, miniters=1):
+         ncols=None, mininterval=0.1, miniters=None):
     """
     Decorate an iterable object, returning an iterator which acts exactly
     like the orignal iterable, but prints a dynamically updating
     progressbar.
-    
+
     Parameters
     ----------
     iterable  : iterable
@@ -44,6 +51,7 @@ def tqdm(iterable, desc=None, total=None, leave=False, file=sys.stderr,
         are displayed.
     file  : `io.TextIOWrapper` or `io.StringIO`, optional
         Specifies where to output the progress messages.
+        Uses file.write(str) and file.flush() methods.
     leave  : bool, optional
         if unset, removes all traces of the progressbar upon termination of
         iteration [default: False].
@@ -52,10 +60,10 @@ def tqdm(iterable, desc=None, total=None, leave=False, file=sys.stderr,
         resizes the progress meter [default: None]. The fallback meter
         width is 10.
     mininterval  : float, optional
-        Minimum progress update interval, in seconds [default: 0.5].
+        Minimum progress update interval, in seconds [default: 0.1].
     miniters  : int, optional
-        Minimum progress update interval, in iterations [default: 1].
-    
+        Minimum progress update interval, in iterations [default: None].
+
     Returns
     -------
     out  : decorated iterator.
@@ -73,7 +81,8 @@ def trange(*args, **kwargs):
 To run the testing suite please make sure tox (http://tox.testrun.org/)
 is installed, then type `tox` from the command line.
 
-Alternatively if you don't want to use `tox`, a Makefile is provided with the following command:
+Alternatively if you don't want to use `tox`, a Makefile is provided with the
+following command:
 
 ```sh
 $ make flake8
