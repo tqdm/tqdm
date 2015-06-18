@@ -33,7 +33,7 @@ pip install -e git+https://github.com/tqdm/tqdm.git#egg=master
 
 ```python
 def tqdm(iterable, desc=None, total=None, leave=False, file=sys.stderr,
-         ncols=None, mininterval=0.1, miniters=None, ascii=None):
+         ncols=None, mininterval=0.1, miniters=None, ascii=None, disable=False):
     """
     Decorate an iterable object, returning an iterator which acts exactly
     like the orignal iterable, but prints a dynamically updating
@@ -66,6 +66,8 @@ def tqdm(iterable, desc=None, total=None, leave=False, file=sys.stderr,
     ascii  : bool, optional
         If not set, use unicode (▏▎▋█ █) to fill the meter
         [default: False]. The fallback is to use ASCII characters (1-9 #).
+    disable : bool
+        Disable the progress bar if True [default: False].
 
     Returns
     -------

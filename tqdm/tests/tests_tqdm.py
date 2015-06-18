@@ -50,7 +50,7 @@ def test_iterate_over_csv_rows():
     test_csv_file = StringIO()
     writer = csv.writer(test_csv_file)
     for i in range(3):
-        writer.writerow(['test']*3)
+        writer.writerow(['test'] * 3)
     test_csv_file.seek(0)
 
     # Test that nothing fails if we iterate over rows
@@ -118,3 +118,11 @@ def test_min_iters():
         our_file.write('blank\n')
     our_file.seek(0)
     assert '\nblank\nblank\n' in our_file.read()
+
+
+def test_disable():
+    our_file = StringIO()
+    for i in tqdm(range(3), file=our_file, disable=True):
+        pass
+    our_file.seek(0)
+    assert our_file.read() == ""

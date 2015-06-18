@@ -90,9 +90,9 @@ def format_meter(n, total, elapsed, ncols=None, prefix='', ascii=False):
         else:
             bar_length, frac_bar_length = divmod(int(frac * N_BARS * 8), 8)
 
-            try:
+            try:    # pragma: no cover
                 unich = unichr
-            except NameError:
+            except NameError:    # pragma: no cover
                 unich = chr
 
             bar = unich(0x2588)*bar_length
@@ -122,7 +122,7 @@ class StatusPrinter(object):
 
 
 def tqdm(iterable, desc=None, total=None, leave=False, file=sys.stderr,
-         ncols=None, mininterval=0.1, miniters=None, ascii=None):
+         ncols=None, mininterval=0.1, miniters=None, ascii=None, disable=False):
     """
     Decorate an iterable object, returning an iterator which acts exactly
     like the orignal iterable, but prints a dynamically updating
@@ -155,19 +155,24 @@ def tqdm(iterable, desc=None, total=None, leave=False, file=sys.stderr,
     ascii  : bool, optional
         If not set, use unicode (smooth blocks) to fill the meter
         [default: False]. The fallback is to use ASCII characters (1-9 #).
+    disable : bool
+        Disable the progress bar if True [default: False].
 
     Returns
     -------
     out  : decorated iterator.
     """
+
+    if disable:
+        for obj in iterable:
+            yield obj
+        return
+
     if total is None:
         try:
             total = len(iterable)
         except (TypeError, AttributeError):
             total = None
-        # not good for slow iterators
-        # elif not miniters:
-        #     miniters = int(total/100)
 
     if miniters is None:
         miniters = 0
@@ -196,10 +201,8 @@ def tqdm(iterable, desc=None, total=None, leave=False, file=sys.stderr,
             if cur_t - last_print_t >= mininterval:
                 sp.print_status(format_meter(
                     n, total, cur_t-start_t, ncols, prefix, ascii))
-
                 if dynamic_miniters:
                     miniters = max(miniters, n - last_print_n + 1)
-
                 last_print_n = n
                 last_print_t = cur_t
 
@@ -219,9 +222,9 @@ def trange(*args, **kwargs):
     A shortcut for tqdm(xrange(*args), **kwargs).
     On Python3+ range is used instead of xrange.
     """
-    try:
+    try:    # pragma: no cover
         f = xrange
-    except NameError:
+    except NameError:    # pragma: no cover
         f = range
 
     return tqdm(f(*args), **kwargs)
