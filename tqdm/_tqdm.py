@@ -26,13 +26,14 @@ def format_interval(t):
         return '{0:02d}:{1:02d}'.format(m, s)
 
 
-def format_meter(n, total, elapsed, ncols=None, prefix=''):
+def format_meter(n, total, elapsed, ncols=None, prefix='', ascii=False):
     # n - number of finished iterations
     # total - total number of iterations, or None
     # elapsed - number of seconds passed since start
     # ncols - the output width in chars. If specified, dynamically resizes bar.
     #     [default bar width: 10].
     # prefix - prepend message (included in total width)
+    # ascii - whether to use ascii (otherwise unicode) character set
     if total and n > total:
         total = None
 
@@ -50,15 +51,24 @@ def format_meter(n, total, elapsed, ncols=None, prefix=''):
                 n, total, elapsed_str, left_str, rate)
 
         N_BARS = max(1, ncols - len(l_bar) - len(r_bar)) if ncols else 10
-        bar_length, frac_bar_length = divmod(int(frac * N_BARS * 8), 8)
 
-        try:
-            unich = unichr
-        except NameError:
-            unich = chr
+        if ascii:
+            bar_length, frac_bar_length = divmod(int(frac * N_BARS * 10), 10)
 
-        bar = unich(0x2588)*bar_length
-        frac_bar = unich(0x2590 - frac_bar_length) if frac_bar_length else ' '
+            bar = '#'*bar_length
+            frac_bar = chr(48 + frac_bar_length) if frac_bar_length else ' '
+
+        else:
+            bar_length, frac_bar_length = divmod(int(frac * N_BARS * 8), 8)
+
+            try:
+                unich = unichr
+            except NameError:
+                unich = chr
+
+            bar = unich(0x2588)*bar_length
+            frac_bar = unich(0x2590 - frac_bar_length) \
+                if frac_bar_length else ' '
 
         if bar_length < N_BARS:
             return l_bar + bar + frac_bar + \
@@ -83,7 +93,7 @@ class StatusPrinter(object):
 
 
 def tqdm(iterable, desc=None, total=None, leave=False, file=sys.stderr,
-         ncols=None, mininterval=0.1, miniters=None):
+         ncols=None, mininterval=0.1, miniters=None, ascii=None):
     """
     Decorate an iterable object, returning an iterator which acts exactly
     like the orignal iterable, but prints a dynamically updating
@@ -113,6 +123,9 @@ def tqdm(iterable, desc=None, total=None, leave=False, file=sys.stderr,
         Minimum progress update interval, in seconds [default: 0.1].
     miniters  : int, optional
         Minimum progress update interval, in iterations [default: None].
+    ascii  : bool, optional
+        If not set, use unicode (smooth blocks) to fill the meter
+        [default: False]. The fallback is to use ASCII characters (1-9 #).
 
     Returns
     -------
@@ -133,10 +146,23 @@ def tqdm(iterable, desc=None, total=None, leave=False, file=sys.stderr,
     else:
         dynamic_miniters = False
 
+    if ascii is None:
+        try:
+            file.encoding
+        except AttributeError:
+            ascii = True
+        else:
+            if file.encoding:
+                ascii = not ('U8' == file.encoding or
+                             ('utf' in file.encoding) or
+                             ('UTF' in file.encoding))
+            else:
+                ascii = True
+
     prefix = desc+': ' if desc else ''
 
     sp = StatusPrinter(file)
-    sp.print_status(format_meter(0, total, 0, ncols, prefix))
+    sp.print_status(format_meter(0, total, 0, ncols, prefix, ascii))
 
     start_t = last_print_t = time.time()
     last_print_n = 0
@@ -150,7 +176,7 @@ def tqdm(iterable, desc=None, total=None, leave=False, file=sys.stderr,
             cur_t = time.time()
             if cur_t - last_print_t >= mininterval:
                 sp.print_status(format_meter(
-                    n, total, cur_t-start_t, ncols, prefix))
+                    n, total, cur_t-start_t, ncols, prefix, ascii))
 
                 if dynamic_miniters:
                     miniters = max(miniters, n - last_print_n + 1)
@@ -162,7 +188,7 @@ def tqdm(iterable, desc=None, total=None, leave=False, file=sys.stderr,
         if last_print_n < n:
             cur_t = time.time()
             sp.print_status(format_meter(
-                n, total, cur_t-start_t, ncols, prefix))
+                n, total, cur_t-start_t, ncols, prefix, ascii))
         file.write('\n')
     else:
         sp.print_status('')
