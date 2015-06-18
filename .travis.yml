@@ -1,16 +1,18 @@
 sudo: false
 language: python
-python: 2.7
+python: 3.4
 env:
-- TOXENV=py26
-- TOXENV=py27
-- TOXENV=py32
-- TOXENV=py33
-- TOXENV=py34
-- TOXENV=pypy
-- TOXENV=pypy3
-- TOXENV=flake8
+  - TOXENV=py26
+  - TOXENV=py27
+  - TOXENV=py32
+  - TOXENV=py33
+  - TOXENV=py34
+  - TOXENV=pypy
+  - TOXENV=pypy3
+  - TOXENV=flake8
 install:
-- pip install tox
+  - pip install tox coveralls
 script:
-- tox
+  - tox
+after_success:
+  - coveralls
