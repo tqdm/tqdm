@@ -175,6 +175,26 @@ def tqdm(iterable, desc=None, total=None, leave=False, file=sys.stderr,
         except (TypeError, AttributeError):
             total = None
 
+    if (ncols is None) and (file in (sys.stderr, sys.stdout)):
+        try:
+            from termios import TIOCGWINSZ
+            from fcntl import ioctl
+            from array import array
+        except ImportError:
+            pass
+        else:
+            try:
+                ncols = array('h', ioctl(file, TIOCGWINSZ, '\0' * 8))[1]
+            except SystemExit:
+                raise
+            except:
+                try:
+                    from os import environ
+                except ImportError:
+                    pass
+                else:
+                    ncols = int(environ.get('COLUMNS', 1)) - 1
+
     if miniters is None:
         miniters = 0
         dynamic_miniters = True
