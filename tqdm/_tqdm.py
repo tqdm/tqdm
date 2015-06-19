@@ -182,7 +182,7 @@ def tqdm(iterable, desc=None, total=None, leave=False, file=sys.stderr,
         dynamic_miniters = False
 
     if ascii is None:
-        ascii = _supports_unicode(file)
+        ascii = not _supports_unicode(file)
 
     prefix = desc+': ' if desc else ''
 
