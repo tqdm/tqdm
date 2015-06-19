@@ -203,7 +203,7 @@ def tqdm(iterable, desc=None, total=None, leave=False, file=sys.stderr,
                 sp.print_status(format_meter(
                     n, total, cur_t-start_t, ncols, prefix, ascii))
                 if dynamic_miniters:
-                    miniters = max(miniters, n - last_print_n + 1)
+                    miniters = max(miniters, n - last_print_n)
                 last_print_n = n
                 last_print_t = cur_t
 
@@ -215,7 +215,7 @@ def tqdm(iterable, desc=None, total=None, leave=False, file=sys.stderr,
         file.write('\n')
     else:
         sp.print_status('')
-        sys.stdout.write('\r')
+        file.write('\r')
 
 
 def trange(*args, **kwargs):

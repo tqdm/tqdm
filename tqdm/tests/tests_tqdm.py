@@ -39,10 +39,11 @@ def test_format_meter():
         "           | 231/1000 [06:32<21:44,  0.59 it/s]"
 
 
-def test_nothing_fails():
-    """ Just make sure we're able to iterate using tqdm """
+def test_all_defaults():
     for i in tqdm(range(10)):
         pass
+    import sys
+    sys.stderr.write('tests_tqdm.test_all_defaults ... ')
 
 
 def test_iterate_over_csv_rows():
@@ -55,8 +56,10 @@ def test_iterate_over_csv_rows():
 
     # Test that nothing fails if we iterate over rows
     reader = csv.DictReader(test_csv_file, fieldnames=('row1', 'row2', 'row3'))
-    for row in tqdm(reader):
+    our_file = StringIO()
+    for row in tqdm(reader, file=our_file):
         pass
+    our_file.close()
 
 
 def test_file_output():
@@ -110,6 +113,7 @@ def test_min_interval():
         pass
     our_file.seek(0)
     assert "  0%|          | 0/3 [00:00<" in our_file.read()
+    our_file.close()
 
 
 def test_min_iters():
@@ -118,6 +122,15 @@ def test_min_iters():
         our_file.write('blank\n')
     our_file.seek(0)
     assert '\nblank\nblank\n' in our_file.read()
+    our_file.close()
+
+    our_file2 = StringIO()
+    for i in tqdm(range(3), file=our_file2, leave=True, miniters=1):
+        our_file2.write('blank\n')
+    our_file2.seek(0)
+    # assume mininterval = 0.1 means no intermediate output
+    assert '\nblank\nblank\n' in our_file2.read()
+    our_file2.close()
 
 
 def test_disable():
