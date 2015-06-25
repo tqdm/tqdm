@@ -162,7 +162,7 @@ def tqdm(iterable, desc=None, total=None, leave=False, file=sys.stderr,
             total = None
 
     if (ncols is None) and (file in (sys.stderr, sys.stdout)):
-        ncols = _environ_cols()
+        ncols = _environ_cols(file)
 
     if miniters is None:
         miniters = 0

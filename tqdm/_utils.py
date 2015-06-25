@@ -20,7 +20,7 @@ def _supports_unicode(file):
     return _is_utf(file.encoding)
 
 
-def _environ_cols():  # pragma: no cover
+def _environ_cols(file):  # pragma: no cover
     try:
         from termios import TIOCGWINSZ
         from fcntl import ioctl
