@@ -8,7 +8,7 @@ Usage:
     ...
 """
 from __future__ import division, absolute_import
-from _utils import _is_utf, _supports_unicode, _environ_cols
+from ._utils import _supports_unicode, _environ_cols
 import sys
 import time
 
