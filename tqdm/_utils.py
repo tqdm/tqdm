@@ -1,3 +1,15 @@
+try:    # pragma: no cover
+    _range = xrange
+except NameError:    # pragma: no cover
+    _range = range
+
+
+try:    # pragma: no cover
+    _unich = unichr
+except NameError:    # pragma: no cover
+    _unich = chr
+
+
 def _is_utf(encoding):
     return ('U8' == encoding) or ('utf' in encoding) or ('UTF' in encoding)
 
@@ -20,8 +32,8 @@ def _environ_cols():  # pragma: no cover
             return array('h', ioctl(file, TIOCGWINSZ, '\0' * 8))[1]
         except:
             try:
-                from os import environ
+                from os.environ import get
             except ImportError:
                 return None
             else:
-                return int(environ.get('COLUMNS', 1)) - 1
+                return int(get('COLUMNS', 1)) - 1
