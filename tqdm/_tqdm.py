@@ -8,6 +8,7 @@ Usage:
     ...
 """
 from __future__ import division, absolute_import
+from ._utils import _supports_unicode, _environ_cols, _range, _unich
 import sys
 import time
 
@@ -15,16 +16,6 @@ import time
 __author__ = {"github.com/": ["noamraph", "JackMc", "arkottke", "obiwanus",
                               "fordhurley", "kmike", "hadim", "casperdcl"]}
 __all__ = ['tqdm', 'trange', 'format_interval', 'format_meter']
-
-
-def _is_utf(encoding):
-    return ('U8' == encoding) or ('utf' in encoding) or ('UTF' in encoding)
-
-
-def _supports_unicode(file):
-    if not getattr(file, 'encoding', None):
-        return False
-    return _is_utf(file.encoding)
 
 
 def format_interval(t):
@@ -90,13 +81,8 @@ def format_meter(n, total, elapsed, ncols=None, prefix='', ascii=False):
         else:
             bar_length, frac_bar_length = divmod(int(frac * N_BARS * 8), 8)
 
-            try:    # pragma: no cover
-                unich = unichr
-            except NameError:    # pragma: no cover
-                unich = chr
-
-            bar = unich(0x2588)*bar_length
-            frac_bar = unich(0x2590 - frac_bar_length) \
+            bar = _unich(0x2588)*bar_length
+            frac_bar = _unich(0x2590 - frac_bar_length) \
                 if frac_bar_length else ' '
 
         if bar_length < N_BARS:
@@ -175,6 +161,9 @@ def tqdm(iterable, desc=None, total=None, leave=False, file=sys.stderr,
         except (TypeError, AttributeError):
             total = None
 
+    if (ncols is None) and (file in (sys.stderr, sys.stdout)):
+        ncols = _environ_cols()
+
     if miniters is None:
         miniters = 0
         dynamic_miniters = True
@@ -223,9 +212,4 @@ def trange(*args, **kwargs):
     A shortcut for tqdm(xrange(*args), **kwargs).
     On Python3+ range is used instead of xrange.
     """
-    try:    # pragma: no cover
-        f = xrange
-    except NameError:    # pragma: no cover
-        f = range
-
-    return tqdm(f(*args), **kwargs)
+    return tqdm(_range(*args), **kwargs)
