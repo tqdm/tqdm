@@ -8,6 +8,7 @@ Usage:
     ...
 """
 from __future__ import division, absolute_import
+from _utils import _is_utf, _supports_unicode, _environ_cols
 import sys
 import time
 
@@ -15,16 +16,6 @@ import time
 __author__ = {"github.com/": ["noamraph", "JackMc", "arkottke", "obiwanus",
                               "fordhurley", "kmike", "hadim", "casperdcl"]}
 __all__ = ['tqdm', 'trange', 'format_interval', 'format_meter']
-
-
-def _is_utf(encoding):
-    return ('U8' == encoding) or ('utf' in encoding) or ('UTF' in encoding)
-
-
-def _supports_unicode(file):
-    if not getattr(file, 'encoding', None):
-        return False
-    return _is_utf(file.encoding)
 
 
 def format_interval(t):
@@ -176,24 +167,7 @@ def tqdm(iterable, desc=None, total=None, leave=False, file=sys.stderr,
             total = None
 
     if (ncols is None) and (file in (sys.stderr, sys.stdout)):
-        try:
-            from termios import TIOCGWINSZ
-            from fcntl import ioctl
-            from array import array
-        except ImportError:
-            pass
-        else:
-            try:
-                ncols = array('h', ioctl(file, TIOCGWINSZ, '\0' * 8))[1]
-            except SystemExit:
-                raise
-            except:
-                try:
-                    from os import environ
-                except ImportError:
-                    pass
-                else:
-                    ncols = int(environ.get('COLUMNS', 1)) - 1
+        ncols = _environ_cols()
 
     if miniters is None:
         miniters = 0
