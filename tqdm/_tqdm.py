@@ -58,10 +58,10 @@ def format_meter(n, total, elapsed, ncols=None, prefix='', unit=None, unit_scale
     unit  : str, optional
         String that will be used to define the unit of each iteration.
         [default: "it"]
-    unit_scale  : str, optional
+    unit_scale  : bool, optional
         If set, the number of iterations will be reduced/scaled automatically
         and a metric prefix following the International System of Units standard
-        will be added (kilo, mega, etc.).
+        will be added (kilo, mega, etc.). [default: False]
     ascii  : bool, optional
         If not set, use unicode (smooth blocks) to fill the meter
         [default: False]. The fallback is to use ASCII characters (1-9 #).
@@ -183,10 +183,10 @@ class tqdm(object):
     unit  : str, optional
         String that will be used to define the unit of each iteration.
         [default: "it"]
-    unit_scale  : str, optional
+    unit_scale  : bool, optional
         If set, the number of iterations will be reduced/scaled automatically
         and a metric prefix following the International System of Units standard
-        will be added (kilo, mega, etc.).
+        will be added (kilo, mega, etc.). [default: False]
     ascii  : bool, optional
         If not set, use unicode (smooth blocks) to fill the meter
         [default: False]. The fallback is to use ASCII characters (1-9 #).

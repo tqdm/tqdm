@@ -71,10 +71,10 @@ class tqdm:
     unit  : str, optional
         String that will be used to define the unit of each iteration.
         [default: "it"]
-    unit_scale  : str, optional
+    unit_scale  : bool, optional
         If set, the number of iterations will be reduced/scaled automatically
         and a metric prefix following the International System of Units standard
-        will be added (kilo, mega, etc.).
+        will be added (kilo, mega, etc.). [default: False]
     ascii  : bool, optional
         If not set, use unicode (▏▎▋█ █) to fill the meter
         [default: False]. The fallback is to use ASCII characters (1-9 #).
