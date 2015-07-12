@@ -21,11 +21,12 @@ def format_sizeof(num, suffix='bytes'):
     """
     Readable size format, courtesy of Sridhar Ratnakumar
     """
-    for unit in ['','K','M','G','T','P','E','Z']:
+    for unit in ['', 'K', 'M', 'G', 'T', 'P', 'E', 'Z']:
         if abs(num) < 1000.0:
             return "%3.1f%s%s" % (num, unit, suffix)
         num /= 1000.0
     return "%.1f%s%s" % (num, 'Y', suffix)
+
 
 def format_interval(t):
     mins, s = divmod(int(t), 60)
@@ -36,7 +37,8 @@ def format_interval(t):
         return '{0:02d}:{1:02d}'.format(m, s)
 
 
-def format_meter(n, total, elapsed, ncols=None, prefix='', unit=None, unit_scale=False, ascii=False):
+def format_meter(n, total, elapsed, ncols=None, prefix='', \
+     unit=None, unit_scale=False, ascii=False):
     """
     Return a string-based progress bar given some parameters
 
@@ -59,9 +61,10 @@ def format_meter(n, total, elapsed, ncols=None, prefix='', unit=None, unit_scale
         String that will be used to define the unit of each iteration.
         [default: "it"]
     unit_scale  : bool, optional
-        If set, the number of iterations will be reduced/scaled automatically
-        and a metric prefix following the International System of Units standard
-        will be added (kilo, mega, etc.). [default: False]
+        If set, the number of iterations will be reduced/scaled
+        automatically and a metric prefix following the
+        International System of Units standard will be added
+        (kilo, mega, etc.). [default: False]
     ascii  : bool, optional
         If not set, use unicode (smooth blocks) to fill the meter
         [default: False]. The fallback is to use ASCII characters (1-9 #).
@@ -70,7 +73,10 @@ def format_meter(n, total, elapsed, ncols=None, prefix='', unit=None, unit_scale
     -------
     out  : Formatted meter and stats, ready to display.
     """
-    if total and n > total: # in case the total is wrong (n is above the total), then we switch to the mode without showing the total prediction (since ETA would be wrong anyway)
+
+    # in case the total is wrong (n is above the total), then we switch to the mode without showing
+    # the total prediction (since ETA would be wrong anyway)
+    if total and n > total:
         total = None
 
     elapsed_str = format_interval(elapsed)
@@ -184,9 +190,10 @@ class tqdm(object):
         String that will be used to define the unit of each iteration.
         [default: "it"]
     unit_scale  : bool, optional
-        If set, the number of iterations will be reduced/scaled automatically
-        and a metric prefix following the International System of Units standard
-        will be added (kilo, mega, etc.). [default: False]
+        If set, the number of iterations will be reduced/scaled
+        automatically and a metric prefix following the
+        International System of Units standard will be added
+        (kilo, mega, etc.). [default: False]
     ascii  : bool, optional
         If not set, use unicode (smooth blocks) to fill the meter
         [default: False]. The fallback is to use ASCII characters (1-9 #).
