@@ -32,8 +32,11 @@ pip install -e git+https://github.com/tqdm/tqdm.git#egg=master
 ## Documentation
 
 ```python
-def tqdm(iterable, desc=None, total=None, leave=False, file=sys.stderr,
-         ncols=None, mininterval=0.1, miniters=None, ascii=None, disable=False):
+class tqdm:
+
+    def __init__(self, iterable=None, desc=None, total=None, leave=False, file=sys.stderr,
+         ncols=None, mininterval=0.1, miniters=None, unit=None, unit_scale=False,
+         ascii=None, disable=False):
     """
     Decorate an iterable object, returning an iterator which acts exactly
     like the orignal iterable, but prints a dynamically updating
@@ -42,7 +45,8 @@ def tqdm(iterable, desc=None, total=None, leave=False, file=sys.stderr,
     Parameters
     ----------
     iterable  : iterable
-        Iterable to decorate with a progressbar.
+        Iterable to decorate with a progressbar. You can leave
+        it to None if you want to manually manage the updates.
     desc  : str, optional
         Prefix for the progressbar.
     total  : int, optional
@@ -56,13 +60,21 @@ def tqdm(iterable, desc=None, total=None, leave=False, file=sys.stderr,
         if unset, removes all traces of the progressbar upon termination of
         iteration [default: False].
     ncols  : int, optional
-        The width of the entire output message. If sepcified, dynamically
-        resizes the progress meter [default: None]. The fallback meter
-        width is 10.
+        The width of the entire output message. If specified, dynamically
+        resizes the progress meter to stay within this bound [default: None].
+        The fallback meter width is 10 for the progress bar + no limit for
+        the iterations counter and statistics.
     mininterval  : float, optional
         Minimum progress update interval, in seconds [default: 0.1].
     miniters  : int, optional
         Minimum progress update interval, in iterations [default: None].
+    unit  : str, optional
+        String that will be used to define the unit of each iteration.
+        [default: "it"]
+    unit_scale  : str, optional
+        If set, the number of iterations will be reduced/scaled automatically
+        and a metric prefix following the International System of Units standard
+        will be added (kilo, mega, etc.).
     ascii  : bool, optional
         If not set, use unicode (▏▎▋█ █) to fill the meter
         [default: False]. The fallback is to use ASCII characters (1-9 #).
@@ -71,8 +83,23 @@ def tqdm(iterable, desc=None, total=None, leave=False, file=sys.stderr,
 
     Returns
     -------
-    out  : decorated iterator.
+    out  : decorated iterator or just a progressbar manager.
     """
+
+    def update(self, n=1):
+        """
+        Manually update the progress bar, useful for streams such as reading files (set init(total=filesize) and then in the reading loop, use update(len(current_buffer)) )
+
+        Parameters
+        ----------
+        n  : int
+            Increment to add to the internal counter of iterations.
+        """
+
+    def close(self):
+        """
+        Call this method to force print the last progress bar update based on the latest n value
+        """
 
 def trange(*args, **kwargs):
     """
