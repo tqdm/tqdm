@@ -42,7 +42,7 @@ def format_interval(t):
 
 
 def format_meter(n, total, elapsed, ncols=None, prefix='',
-                          unit=None, unit_scale=False, ascii=False):
+         unit=None, unit_scale=False, ascii=False):
     """
     Return a string-based progress bar given some parameters
 
@@ -112,8 +112,8 @@ def format_meter(n, total, elapsed, ncols=None, prefix='',
 
         l_bar = '{1}{0:.0f}%|'.format(percentage, prefix) if prefix else \
                 '{0:3.0f}%|'.format(percentage)
-        r_bar = '| {0}/{1}{2} [{3}<{4}, {5} {6}/s]'.format( \
-                n_fmt, total_fmt, unit, elapsed_str, remaining_str, \
+        r_bar = '| {0}/{1}{2} [{3}<{4}, {5} {6}/s]'.format(
+                n_fmt, total_fmt, unit, elapsed_str, remaining_str,
                 rate, rate_unit)
 
         if ncols == 0:
@@ -123,7 +123,8 @@ def format_meter(n, total, elapsed, ncols=None, prefix='',
                              else 10
 
             if ascii:
-                bar_length, frac_bar_length = divmod(int(frac * N_BARS * 10), 10)
+                bar_length, frac_bar_length = divmod(
+                    int(frac * N_BARS * 10), 10)
 
                 bar = '#'*bar_length
                 frac_bar = chr(48 + frac_bar_length) if frac_bar_length \
@@ -145,8 +146,8 @@ def format_meter(n, total, elapsed, ncols=None, prefix='',
 
         return l_bar + full_bar + r_bar
 
-    else: # no progressbar nor ETA, just progress statistics
-        return '{0}{1} [{2}, {3} {4}/s]'.format( \
+    else:  # no progressbar nor ETA, just progress statistics
+        return '{0}{1} [{2}, {3} {4}/s]'.format(
             n_fmt, unit, elapsed_str, rate, rate_unit)
 
 
@@ -219,8 +220,9 @@ class tqdm(object):
     """
 
     def __init__(self, iterable=None, desc=None, total=None, leave=False,
-                      file=sys.stderr, ncols=None, mininterval=0.1, miniters=None,
-                      unit=None, unit_scale=False, ascii=None, disable=False):
+                      file=sys.stderr, ncols=None, mininterval=0.1,
+                      miniters=None, unit=None, unit_scale=False, ascii=None,
+                      disable=False):
 
         # Preprocess the arguments
         if total is None and iterable is not None:
