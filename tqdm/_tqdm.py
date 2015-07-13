@@ -7,7 +7,10 @@ Usage:
   for i in trange(10):
     ...
 """
-from __future__ import division, absolute_import # future division is important to divide integers and get as a result precise floating numbers (instead of truncated int)
+# future division is important to divide integers and get as
+# a result precise floating numbers (instead of truncated int)
+from __future__ import division, absolute_import
+# import compatibility functions and utilities
 from ._utils import _supports_unicode, _environ_cols, _range, _unich
 import sys
 import time
@@ -16,6 +19,7 @@ import time
 __author__ = {"github.com/": ["noamraph", "JackMc", "arkottke", "obiwanus",
                               "fordhurley", "kmike", "hadim", "casperdcl"]}
 __all__ = ['tqdm', 'trange', 'format_interval', 'format_meter']
+
 
 def format_sizeof(num, suffix='bytes'):
     """
@@ -37,8 +41,8 @@ def format_interval(t):
         return '{0:02d}:{1:02d}'.format(m, s)
 
 
-def format_meter(n, total, elapsed, ncols=None, prefix='', \
-     unit=None, unit_scale=False, ascii=False):
+def format_meter(n, total, elapsed, ncols=None, prefix='',
+                          unit=None, unit_scale=False, ascii=False):
     """
     Return a string-based progress bar given some parameters
 
@@ -74,8 +78,9 @@ def format_meter(n, total, elapsed, ncols=None, prefix='', \
     out  : Formatted meter and stats, ready to display.
     """
 
-    # in case the total is wrong (n is above the total), then we switch to the mode without showing
-    # the total prediction (since ETA would be wrong anyway)
+    # in case the total is wrong (n is above the total), then
+    # we switch to the mode without showing the total prediction
+    # (since ETA would be wrong anyway)
     if total and n > total:
         total = None
 
@@ -89,35 +94,40 @@ def format_meter(n, total, elapsed, ncols=None, prefix='', \
         rate = '?'
 
     rate_unit = unit if unit else 'it'
-    if not unit: unit = ''
+    if not unit:
+        unit = ''
 
     n_fmt = str(n)
     total_fmt = str(total)
     if unit_scale:
         n_fmt = format_sizeof(n, suffix='')
-        if total: total_fmt = format_sizeof(total, suffix='')
+        if total:
+            total_fmt = format_sizeof(total, suffix='')
 
     if total:
         frac = n / total
         percentage = frac * 100
-        
+
         remaining_str = format_interval(elapsed * (total-n) / n) if n else '?'
 
         l_bar = '{1}{0:.0f}%|'.format(percentage, prefix) if prefix else \
                 '{0:3.0f}%|'.format(percentage)
-        r_bar = '| {0}/{1}{2} [{3}<{4}, {5} {6}/s]'.format(
-                n_fmt, total_fmt, unit, elapsed_str, remaining_str, rate, rate_unit)
+        r_bar = '| {0}/{1}{2} [{3}<{4}, {5} {6}/s]'.format( \
+                n_fmt, total_fmt, unit, elapsed_str, remaining_str, \
+                rate, rate_unit)
 
         if ncols == 0:
             bar = ''
         else:
-            N_BARS = max(1, ncols - len(l_bar) - len(r_bar)) if ncols else 10
+            N_BARS = max(1, ncols - len(l_bar) - len(r_bar)) if ncols \
+                             else 10
 
             if ascii:
                 bar_length, frac_bar_length = divmod(int(frac * N_BARS * 10), 10)
 
                 bar = '#'*bar_length
-                frac_bar = chr(48 + frac_bar_length) if frac_bar_length else ' '
+                frac_bar = chr(48 + frac_bar_length) if frac_bar_length \
+                                else ' '
 
             else:
                 bar_length, frac_bar_length = divmod(int(frac * N_BARS * 8), 8)
@@ -128,21 +138,23 @@ def format_meter(n, total, elapsed, ncols=None, prefix='', \
 
         if bar_length < N_BARS:
             full_bar = bar + frac_bar + \
-                ' ' * max(N_BARS - bar_length - 1, 0) # spacing
+                ' ' * max(N_BARS - bar_length - 1, 0)  # spacing
         else:
             full_bar = bar + \
-            ' ' * max(N_BARS - bar_length, 0) # spacing
+                ' ' * max(N_BARS - bar_length, 0)  # spacing
 
         return l_bar + full_bar + r_bar
 
-    else: # no progressbar nor ETA, just progress statistics (number of iterations spent, time spent)
-        return '{0}{1} [{2}, {3} {4}/s]'.format(n_fmt, unit, elapsed_str, rate, rate_unit)
+    else: # no progressbar nor ETA, just progress statistics
+        return '{0}{1} [{2}, {3} {4}/s]'.format( \
+            n_fmt, unit, elapsed_str, rate, rate_unit)
 
 
 class StatusPrinter(object):
     """
     Manage the printing and in-place updating of a line of characters.
-    Note that if the string is longer than a line, then in-place updating may not work (it will print a new line at each refresh).
+    Note that if the string is longer than a line, then in-place updating
+    may not work (it will print a new line at each refresh).
     """
     def __init__(self, file):
         self.file = file
@@ -206,9 +218,9 @@ class tqdm(object):
     out  : decorated iterator.
     """
 
-    def __init__(self, iterable=None, desc=None, total=None, leave=False, file=sys.stderr,
-         ncols=None, mininterval=0.1, miniters=None, unit=None, unit_scale=False,
-         ascii=None, disable=False):
+    def __init__(self, iterable=None, desc=None, total=None, leave=False,
+                      file=sys.stderr, ncols=None, mininterval=0.1, miniters=None,
+                      unit=None, unit_scale=False, ascii=None, disable=False):
 
         # Preprocess the arguments
         if total is None and iterable is not None:
@@ -246,7 +258,9 @@ class tqdm(object):
 
         # Initialize the screen printer
         self.sp = StatusPrinter(self.file)
-        if not disable: self.sp.print_status(format_meter(0, total, 0, ncols, self.prefix, unit, unit_scale, ascii))
+        if not disable:
+            self.sp.print_status(format_meter(
+                0, total, 0, ncols, self.prefix, unit, unit_scale, ascii))
 
         # Init the time/iterations counters
         self.start_t = self.last_print_t = time.time()
@@ -255,19 +269,27 @@ class tqdm(object):
 
     def __iter__(self):
         ''' For backward-compatibility to use: for x in tqdm(iterable) '''
-        if self.disable: # if the bar is disabled, then just walk the iterable (note that we keep this condition above the loop for performance, so that we don't have to repeatedly check the condition inside the loop)
+        # if the bar is disabled, then just walk the iterable
+        # (note that we keep this condition above the loop for performance,
+        # so that we don't have to repeatedly check the condition inside
+        # the loop)
+        if self.disable:
             for obj in self.iterable:
                 yield obj
         else:
             for obj in self.iterable:
                 yield obj
-                # Now the object was created and processed, so we can print the meter.
+                # Now that the iterable object was created and processed,
+                # we can print the progress meter.
                 self.update(1)
             self.close()
 
     def update(self, n=1):
         """
-        Manually update the progress bar, useful for streams such as reading files (set init(total=filesize) and then in the reading loop, use update(len(current_buffer)) )
+        Manually update the progress bar, useful for streams
+        such as reading files.
+        Eg, initialize tqdm(total=filesize), and then in the reading loop,
+        use update(len(current_buffer)).
 
         Parameters
         ----------
@@ -278,26 +300,33 @@ class tqdm(object):
             n = 1
         self.n += n
 
-        if self.disable: return
+        if self.disable:
+            return
 
         delta_it = self.n - self.last_print_n
         if delta_it >= self.miniters:
             # We check the counter first, to reduce the overhead of time.time()
             cur_t = time.time()
             if cur_t - self.last_print_t >= self.mininterval:
-                self.sp.print_status(format_meter(self.n, self.total, cur_t-self.start_t, self.ncols, self.prefix, self.unit, self.unit_scale, self.ascii))
-                if self.dynamic_miniters: self.miniters = max(self.miniters, delta_it)
+                self.sp.print_status(format_meter(
+                    self.n, self.total, cur_t-self.start_t, self.ncols,
+                    self.prefix, self.unit, self.unit_scale, self.ascii))
+                if self.dynamic_miniters:
+                    self.miniters = max(self.miniters, delta_it)
                 self.last_print_n = self.n
                 self.last_print_t = cur_t
 
     def close(self):
         """
-        Call this method to force print the last progress bar update based on the latest n value
+        Call this method to force print the last progress bar update
+        based on the latest n value
         """
         if self.leave:
             if self.last_print_n < self.n:
                 cur_t = time.time()
-                self.sp.print_status(format_meter(self.n, self.total, cur_t-self.start_t, self.ncols, self.prefix, self.unit, self.unit_scale, self.ascii))
+                self.sp.print_status(format_meter(
+                    self.n, self.total, cur_t-self.start_t, self.ncols,
+                    self.prefix, self.unit, self.unit_scale, self.ascii))
             self.file.write('\n')
         else:
             self.sp.print_status('')
