@@ -149,9 +149,10 @@ class StatusPrinter(object):
         self.last_printed_len = 0
 
     def print_status(self, s):
-        self.file.write('\r'+s+' '*max(self.last_printed_len-len(s), 0))
+        len_s = len(s)
+        self.file.write('\r'+s+' '*max(self.last_printed_len-len_s, 0))
         self.file.flush()
-        self.last_printed_len = len(s)
+        self.last_printed_len = len_s
 
 
 class tqdm(object):
