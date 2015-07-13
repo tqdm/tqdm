@@ -23,9 +23,9 @@ def format_sizeof(num, suffix='bytes'):
     """
     for unit in ['', 'K', 'M', 'G', 'T', 'P', 'E', 'Z']:
         if abs(num) < 1000.0:
-            return "%3.1f%s%s" % (num, unit, suffix)
+            return '{0:3.1f}{1}{2}'.format(num, unit, suffix)
         num /= 1000.0
-    return "%.1f%s%s" % (num, 'Y', suffix)
+    return '{0:.1f}Y{1}'.format(num, suffix)
 
 
 def format_interval(t):
@@ -117,7 +117,7 @@ def format_meter(n, total, elapsed, ncols=None, prefix='', \
                 bar_length, frac_bar_length = divmod(int(frac * N_BARS * 10), 10)
 
                 bar = '#'*bar_length
-                frac_bar = chr(48 + frac_bar_length) if frac_bar_length else '0'
+                frac_bar = chr(48 + frac_bar_length) if frac_bar_length else ' '
 
             else:
                 bar_length, frac_bar_length = divmod(int(frac * N_BARS * 8), 8)
@@ -128,15 +128,15 @@ def format_meter(n, total, elapsed, ncols=None, prefix='', \
 
         if bar_length < N_BARS:
             full_bar = bar + frac_bar + \
-                '-' * max(N_BARS - bar_length - 1, 0) # spacing
+                ' ' * max(N_BARS - bar_length - 1, 0) # spacing
         else:
             full_bar = bar + \
-            '-' * max(N_BARS - bar_length, 0) # spacing
+            ' ' * max(N_BARS - bar_length, 0) # spacing
 
-        return "%s%s%s" % (l_bar,  full_bar, r_bar)
+        return l_bar + full_bar + r_bar
 
-    else:
-        return '{0:d}{1} [{2}, {3} {4}/s]'.format(n_fmt, unit, elapsed_str, rate, rate_unit)
+    else: # no progressbar nor ETA, just progress statistics (number of iterations spent, time spent)
+        return '{0}{1} [{2}, {3} {4}/s]'.format(n_fmt, unit, elapsed_str, rate, rate_unit)
 
 
 class StatusPrinter(object):
@@ -150,7 +150,7 @@ class StatusPrinter(object):
 
     def print_status(self, s):
         len_s = len(s)
-        self.file.write('\r'+s+' '*max(self.last_printed_len-len_s, 0))
+        self.file.write('\r'+s+' '*max(self.last_printed_len - len_s, 0))
         self.file.flush()
         self.last_printed_len = len_s
 
