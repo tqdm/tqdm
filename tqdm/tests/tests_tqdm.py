@@ -139,3 +139,12 @@ def test_disable():
         pass
     our_file.seek(0)
     assert our_file.read() == ""
+
+
+def test_unit():
+    our_file = StringIO()
+    for i in tqdm(range(3), file=our_file, mininterval=1e-10, unit="bytes"):
+        pass
+    our_file.seek(0)
+    assert "bytes/s" in our_file.read()
+    our_file.close()
