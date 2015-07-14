@@ -275,16 +275,63 @@ class tqdm(object):
         # (note that we keep this condition above the loop for performance,
         # so that we don't have to repeatedly check the condition inside
         # the loop)
+
+        # Inline all instance variables as locals (big speed optimization)
+        iterable = self.iterable
+        total = self.total
+        prefix = self.prefix
+        leave = self.leave
+        file = self.file
+        ncols = self.ncols
+        mininterval = self.mininterval
+        miniters = self.miniters
+        dynamic_miniters = self.dynamic_miniters
+        unit = self.unit
+        unit_scale = self.unit_scale
+        ascii = self.ascii
+        disable = self.disable
+        sp = self.sp
+        start_t = self.start_t
+        last_print_t = self.last_print_t
+        last_print_n = self.last_print_n
+        n = self.n
+
         if self.disable:
-            for obj in self.iterable:
+            for obj in iterable:
                 yield obj
         else:
-            for obj in self.iterable:
+            for obj in iterable:
                 yield obj
+                # UPDATE
                 # Now that the iterable object was created and processed,
-                # we can print the progress meter.
-                self.update(1)
-            self.close()
+                # we can update and print the progress meter
+                # Note: this is an optimization, we could call self.update(1)
+                # but it would be way slower (because of method call)
+                n += 1
+                delta_it = n - last_print_n
+                if delta_it >= miniters:
+                    # We check the counter first, to reduce the overhead of time.time()
+                    cur_t = time.time()
+                    if cur_t - last_print_t >= mininterval:
+                        sp.print_status(format_meter(
+                            n, total, cur_t-start_t, ncols,
+                            prefix, unit, unit_scale, ascii))
+                        if dynamic_miniters:
+                            miniters = max(miniters, delta_it)
+                        last_print_n = n
+                        last_print_t = cur_t
+            # CLOSE
+            # Closing the progress bar
+            if leave:
+                if last_print_n < n:
+                    cur_t = time.time()
+                    sp.print_status(format_meter(
+                        n, total, cur_t-start_t, ncols,
+                        prefix, unit, unit_scale, ascii))
+                file.write('\n')
+            else:
+                sp.print_status('')
+                file.write('\r')
 
     def update(self, n=1):
         """
