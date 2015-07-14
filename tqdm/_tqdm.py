@@ -13,8 +13,8 @@ import sys
 import time
 
 
-__author__ = {"github.com/": ["noamraph", "JackMc", "arkottke", "obiwanus",
-                              "fordhurley", "kmike", "hadim", "casperdcl"]}
+__author__ = {"github.com/": ["noamraph", "obiwanus", "kmike", "hadim",
+                              "casperdcl"]}
 __all__ = ['tqdm', 'trange', 'format_interval', 'format_meter']
 
 

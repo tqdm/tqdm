@@ -104,10 +104,7 @@ $ make coverage
 ## Authors
 
 - noamraph (original author)
-- JackMc
-- arkottke
 - obiwanus
-- fordhurley
 - kmike
 - hadim
 - casperdcl
