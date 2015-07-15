@@ -13,7 +13,7 @@ from __future__ import division, absolute_import
 # import compatibility functions and utilities
 from ._utils import _supports_unicode, _environ_cols, _range, _unich
 import sys
-import time
+from time import time
 
 
 __author__ = {"github.com/": ["noamraph", "JackMc", "arkottke", "obiwanus",
@@ -42,7 +42,7 @@ def format_interval(t):
 
 
 def format_meter(n, total, elapsed, ncols=None, prefix='',
-         unit=None, unit_scale=False, ascii=False):
+                 unit=None, unit_scale=False, ascii=False):
     """
     Return a string-based progress bar given some parameters
 
@@ -120,7 +120,7 @@ def format_meter(n, total, elapsed, ncols=None, prefix='',
             bar = ''
         else:
             N_BARS = max(1, ncols - len(l_bar) - len(r_bar)) if ncols \
-                             else 10
+                         else 10
 
             if ascii:
                 bar_length, frac_bar_length = divmod(
@@ -128,7 +128,7 @@ def format_meter(n, total, elapsed, ncols=None, prefix='',
 
                 bar = '#'*bar_length
                 frac_bar = chr(48 + frac_bar_length) if frac_bar_length \
-                                else ' '
+                    else ' '
 
             else:
                 bar_length, frac_bar_length = divmod(int(frac * N_BARS * 8), 8)
@@ -220,9 +220,9 @@ class tqdm(object):
     """
 
     def __init__(self, iterable=None, desc=None, total=None, leave=False,
-                      file=sys.stderr, ncols=None, mininterval=0.1,
-                      miniters=None, unit=None, unit_scale=False, ascii=None,
-                      disable=False):
+                 file=sys.stderr, ncols=None, mininterval=0.1,
+                 miniters=None, unit=None, unit_scale=False, ascii=None,
+                 disable=False):
 
         # Preprocess the arguments
         if total is None and iterable is not None:
@@ -265,7 +265,7 @@ class tqdm(object):
                 0, total, 0, ncols, self.prefix, unit, unit_scale, ascii))
 
         # Init the time/iterations counters
-        self.start_t = self.last_print_t = time.time()
+        self.start_t = self.last_print_t = time()
         self.last_print_n = 0
         self.n = 0
 
@@ -296,7 +296,7 @@ class tqdm(object):
         last_print_n = self.last_print_n
         n = self.n
 
-        if self.disable:
+        if disable:
             for obj in iterable:
                 yield obj
         else:
@@ -309,9 +309,9 @@ class tqdm(object):
                 # but it would be way slower (because of method call)
                 n += 1
                 delta_it = n - last_print_n
+                # check the counter first (avoid calls to time())
                 if delta_it >= miniters:
-                    # We check the counter first, to reduce the overhead of time.time()
-                    cur_t = time.time()
+                    cur_t = time()
                     if cur_t - last_print_t >= mininterval:
                         sp.print_status(format_meter(
                             n, total, cur_t-start_t, ncols,
@@ -324,7 +324,7 @@ class tqdm(object):
             # Closing the progress bar
             if leave:
                 if last_print_n < n:
-                    cur_t = time.time()
+                    cur_t = time()
                     sp.print_status(format_meter(
                         n, total, cur_t-start_t, ncols,
                         prefix, unit, unit_scale, ascii))
@@ -354,8 +354,8 @@ class tqdm(object):
 
         delta_it = self.n - self.last_print_n
         if delta_it >= self.miniters:
-            # We check the counter first, to reduce the overhead of time.time()
-            cur_t = time.time()
+            # We check the counter first, to reduce the overhead of time()
+            cur_t = time()
             if cur_t - self.last_print_t >= self.mininterval:
                 self.sp.print_status(format_meter(
                     self.n, self.total, cur_t-self.start_t, self.ncols,
@@ -372,7 +372,7 @@ class tqdm(object):
         """
         if self.leave:
             if self.last_print_n < self.n:
-                cur_t = time.time()
+                cur_t = time()
                 self.sp.print_status(format_meter(
                     self.n, self.total, cur_t-self.start_t, self.ncols,
                     self.prefix, self.unit, self.unit_scale, self.ascii))
