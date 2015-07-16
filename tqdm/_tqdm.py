@@ -168,21 +168,20 @@ def format_meter(n, total, elapsed, ncols=None, prefix='', ascii=False,
             n_fmt, unit, elapsed_str, rate_fmt)
 
 
-class StatusPrinter(object):
+def StatusPrinter(file):
     """
     Manage the printing and in-place updating of a line of characters.
     Note that if the string is longer than a line, then in-place updating
     may not work (it will print a new line at each refresh).
     """
-    def __init__(self, file):
-        self.file = file
-        self.last_printed_len = 0
-
-    def print_status(self, s):
+    fp = file
+    last_printed_len = [0]
+    def print_status(s):
         len_s = len(s)
-        self.file.write('\r' + s + ' '*max(self.last_printed_len - len_s, 0))
-        self.file.flush()
-        self.last_printed_len = len_s
+        fp.write('\r' + s + ' '*max(last_printed_len[0] - len_s, 0))
+        fp.flush()
+        last_printed_len[0] = len_s
+    return print_status
 
 
 class tqdm(object):
@@ -278,7 +277,7 @@ class tqdm(object):
         # Initialize the screen printer
         self.sp = StatusPrinter(self.file)
         if not disable:
-            self.sp.print_status(format_meter(
+            self.sp(format_meter(
                 0, total, 0, ncols, self.prefix, ascii, unit, unit_scale))
 
         # Init the time/iterations counters
@@ -332,7 +331,7 @@ class tqdm(object):
                 if delta_it >= miniters:
                     cur_t = time()
                     if cur_t - last_print_t >= mininterval:
-                        sp.print_status(format_meter(
+                        sp(format_meter(
                             n, total, cur_t-start_t, ncols,
                             prefix, ascii, unit, unit_scale))
                         if dynamic_miniters:
@@ -344,12 +343,12 @@ class tqdm(object):
             if leave:
                 if last_print_n < n:
                     cur_t = time()
-                    sp.print_status(format_meter(
+                    sp(format_meter(
                         n, total, cur_t-start_t, ncols,
                         prefix, ascii, unit, unit_scale))
                 file.write('\n')
             else:
-                sp.print_status('')
+                sp('')
                 file.write('\r')
 
     def update(self, n=1):
@@ -376,7 +375,7 @@ class tqdm(object):
             # We check the counter first, to reduce the overhead of time()
             cur_t = time()
             if cur_t - self.last_print_t >= self.mininterval:
-                self.sp.print_status(format_meter(
+                self.sp(format_meter(
                     self.n, self.total, cur_t-self.start_t, self.ncols,
                     self.prefix, self.ascii, self.unit, self.unit_scale))
                 if self.dynamic_miniters:
@@ -392,12 +391,12 @@ class tqdm(object):
         if self.leave:
             if self.last_print_n < self.n:
                 cur_t = time()
-                self.sp.print_status(format_meter(
+                self.sp(format_meter(
                     self.n, self.total, cur_t-self.start_t, self.ncols,
                     self.prefix, self.ascii, self.unit, self.unit_scale))
             self.file.write('\n')
         else:
-            self.sp.print_status('')
+            self.sp('')
             self.file.write('\r')
 
 
