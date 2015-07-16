@@ -21,18 +21,46 @@ __author__ = {"github.com/": ["noamraph", "JackMc", "arkottke", "obiwanus",
 __all__ = ['tqdm', 'trange', 'format_interval', 'format_meter']
 
 
-def format_sizeof(num, suffix='bytes'):
+def format_sizeof(num, suffix=''):
     """
-    Readable size format, courtesy of Sridhar Ratnakumar
+    Formats a number (greater than unity) with SI Order of Magnitude prefixes.
+
+    Parameters
+    ----------
+    num  : float
+        Number ( >= 1) to format.
+    suffix  : str, optional
+        Post-postfix.
+
+    Returns
+    -------
+    out  : str
+        Number with Order of Magnitude SI unit postfix.
     """
     for unit in ['', 'K', 'M', 'G', 'T', 'P', 'E', 'Z']:
         if abs(num) < 1000.0:
-            return '{0:3.1f}{1}{2}'.format(num, unit, suffix)
+            if abs(num) < 100.0:
+                if abs(num) < 10.0:
+                    return '{0:1.2f}'.format(num) + unit + suffix
+                return '{0:2.1f}'.format(num) + unit + suffix
+            return '{0:3.0f}'.format(num) + unit + suffix
         num /= 1000.0
-    return '{0:.1f}Y{1}'.format(num, suffix)
+    return '{0:3.1f}Y'.format(num) + suffix
 
 
 def format_interval(t):
+    """
+    Formats a number of seconds as a clock time, [H:]MM:SS
+
+    Parameters
+    ----------
+    t  : int
+        Number of seconds
+    Returns
+    -------
+    out  : str
+        [H:]MM:SS
+    """
     mins, s = divmod(int(t), 60)
     h, m = divmod(mins, 60)
     if h:
@@ -41,8 +69,8 @@ def format_interval(t):
         return '{0:02d}:{1:02d}'.format(m, s)
 
 
-def format_meter(n, total, elapsed, ncols=None, prefix='',
-                 unit=None, unit_scale=False, ascii=False):
+def format_meter(n, total, elapsed, ncols=None, prefix='', ascii=False,
+                 unit='it', unit_scale=False):
     """
     Return a string-based progress bar given some parameters
 
@@ -51,8 +79,8 @@ def format_meter(n, total, elapsed, ncols=None, prefix='',
     n  : int
         Number of finished iterations.
     total  : int
-        The expected total number of iterations. If None, only basic progress
-        statistics are displayed (no ETA).
+        The expected total number of iterations. If meaningless (), only basic
+        progress statistics are displayed (no ETA).
     elapsed  : float
         Number of seconds passed since start.
     ncols  : int, optional
@@ -61,17 +89,14 @@ def format_meter(n, total, elapsed, ncols=None, prefix='',
         width is 10.
     prefix  : str, optional
         Prefix message (included in total width).
-    unit  : str, optional
-        String that will be used to define the unit of each iteration.
-        [default: "it"]
-    unit_scale  : bool, optional
-        If set, the number of iterations will be reduced/scaled
-        automatically and a metric prefix following the
-        International System of Units standard will be added
-        (kilo, mega, etc.). [default: False]
     ascii  : bool, optional
         If not set, use unicode (smooth blocks) to fill the meter
         [default: False]. The fallback is to use ASCII characters (1-9 #).
+    unit  : str, optional
+        The iteration unit [default: 'it'].
+    unit_scale  : bool, optional
+        If set, the number of iterations will printed with an appropriate
+        SI metric prefix (K = 10^3, M = 10^6, etc.) [default: False].
 
     Returns
     -------
@@ -85,24 +110,18 @@ def format_meter(n, total, elapsed, ncols=None, prefix='',
         total = None
 
     elapsed_str = format_interval(elapsed)
-    if elapsed:
-        if unit_scale:
-            rate = format_sizeof(n / elapsed, suffix='')
-        else:
-            rate = '{0:5.2f}'.format(n / elapsed)
-    else:
-        rate = '?'
 
-    rate_unit = unit if unit else 'it'
-    if not unit:
-        unit = ''
+    rate_fmt = ((format_sizeof(n / elapsed) if unit_scale else
+                 '{0:5.2f}'.format(n / elapsed)) if elapsed else
+                '?') \
+               + unit + '/s'
 
-    n_fmt = str(n)
-    total_fmt = str(total)
     if unit_scale:
-        n_fmt = format_sizeof(n, suffix='')
-        if total:
-            total_fmt = format_sizeof(total, suffix='')
+        n_fmt = format_sizeof(n)
+        total_fmt = format_sizeof(total) if total else None
+    else:
+        n_fmt = str(n)
+        total_fmt = str(total)
 
     if total:
         frac = n / total
@@ -110,11 +129,9 @@ def format_meter(n, total, elapsed, ncols=None, prefix='',
 
         remaining_str = format_interval(elapsed * (total-n) / n) if n else '?'
 
-        l_bar = '{1}{0:.0f}%|'.format(percentage, prefix) if prefix else \
-                '{0:3.0f}%|'.format(percentage)
-        r_bar = '| {0}/{1}{2} [{3}<{4}, {5} {6}/s]'.format(
-                n_fmt, total_fmt, unit, elapsed_str, remaining_str,
-                rate, rate_unit)
+        l_bar = (prefix if prefix else '') + '{0:3.0f}%|'.format(percentage)
+        r_bar = '| {0}/{1} [{2}<{3}, {4}]'.format(
+                n_fmt, total_fmt, elapsed_str, remaining_str, rate_fmt)
 
         if ncols == 0:
             bar = ''
@@ -139,16 +156,16 @@ def format_meter(n, total, elapsed, ncols=None, prefix='',
 
         if bar_length < N_BARS:
             full_bar = bar + frac_bar + \
-                ' ' * max(N_BARS - bar_length - 1, 0)  # spacing
+                ' ' * max(N_BARS - bar_length - 1, 0)  # bar end padding
         else:
             full_bar = bar + \
-                ' ' * max(N_BARS - bar_length, 0)  # spacing
+                ' ' * max(N_BARS - bar_length, 0)  # bar end padding
 
         return l_bar + full_bar + r_bar
 
     else:  # no progressbar nor ETA, just progress statistics
-        return '{0}{1} [{2}, {3} {4}/s]'.format(
-            n_fmt, unit, elapsed_str, rate, rate_unit)
+        return '{0}{1} [{2}, {3}]'.format(
+            n_fmt, unit, elapsed_str, rate_fmt)
 
 
 class StatusPrinter(object):
@@ -163,7 +180,7 @@ class StatusPrinter(object):
 
     def print_status(self, s):
         len_s = len(s)
-        self.file.write('\r'+s+' '*max(self.last_printed_len - len_s, 0))
+        self.file.write('\r' + s + ' '*max(self.last_printed_len - len_s, 0))
         self.file.flush()
         self.last_printed_len = len_s
 
@@ -201,8 +218,8 @@ class tqdm(object):
     miniters  : int, optional
         Minimum progress update interval, in iterations [default: None].
     unit  : str, optional
-        String that will be used to define the unit of each iteration.
-        [default: "it"]
+        String that will be used to define the unit of each iteration
+        [default: 'it'].
     unit_scale  : bool, optional
         If set, the number of iterations will be reduced/scaled
         automatically and a metric prefix following the
@@ -221,8 +238,8 @@ class tqdm(object):
 
     def __init__(self, iterable=None, desc=None, total=None, leave=False,
                  file=sys.stderr, ncols=None, mininterval=0.1,
-                 miniters=None, unit=None, unit_scale=False, ascii=None,
-                 disable=False):
+                 miniters=None, ascii=None, disable=False,
+                 unit='it', unit_scale=False):
 
         # Preprocess the arguments
         if total is None and iterable is not None:
@@ -253,53 +270,55 @@ class tqdm(object):
         self.mininterval = mininterval
         self.miniters = miniters
         self.dynamic_miniters = dynamic_miniters
+        self.ascii = ascii
         self.unit = unit
         self.unit_scale = unit_scale
-        self.ascii = ascii
         self.disable = disable
 
         # Initialize the screen printer
         self.sp = StatusPrinter(self.file)
         if not disable:
             self.sp.print_status(format_meter(
-                0, total, 0, ncols, self.prefix, unit, unit_scale, ascii))
+                0, total, 0, ncols, self.prefix, ascii, unit, unit_scale))
 
         # Init the time/iterations counters
         self.start_t = self.last_print_t = time()
         self.last_print_n = 0
         self.n = 0
 
+    def __len__(self):
+        return self.iterable.__len__()
+
     def __iter__(self):
         ''' For backward-compatibility to use: for x in tqdm(iterable) '''
+
+        # Inlining instance variables as locals (speed optimisation)
+        iterable = self.iterable
+
         # if the bar is disabled, then just walk the iterable
         # (note that we keep this condition above the loop for performance,
         # so that we don't have to repeatedly check the condition inside
         # the loop)
-
-        # Inline all instance variables as locals (big speed optimization)
-        iterable = self.iterable
-        total = self.total
-        prefix = self.prefix
-        leave = self.leave
-        file = self.file
-        ncols = self.ncols
-        mininterval = self.mininterval
-        miniters = self.miniters
-        dynamic_miniters = self.dynamic_miniters
-        unit = self.unit
-        unit_scale = self.unit_scale
-        ascii = self.ascii
-        disable = self.disable
-        sp = self.sp
-        start_t = self.start_t
-        last_print_t = self.last_print_t
-        last_print_n = self.last_print_n
-        n = self.n
-
-        if disable:
+        if self.disable:
             for obj in iterable:
                 yield obj
         else:
+            total = self.total
+            prefix = self.prefix
+            leave = self.leave
+            file = self.file
+            ncols = self.ncols
+            mininterval = self.mininterval
+            miniters = self.miniters
+            dynamic_miniters = self.dynamic_miniters
+            unit = self.unit
+            unit_scale = self.unit_scale
+            ascii = self.ascii
+            sp = self.sp
+            start_t = self.start_t
+            last_print_t = self.last_print_t
+            last_print_n = self.last_print_n
+            n = self.n
             for obj in iterable:
                 yield obj
                 # UPDATE
@@ -315,7 +334,7 @@ class tqdm(object):
                     if cur_t - last_print_t >= mininterval:
                         sp.print_status(format_meter(
                             n, total, cur_t-start_t, ncols,
-                            prefix, unit, unit_scale, ascii))
+                            prefix, ascii, unit, unit_scale))
                         if dynamic_miniters:
                             miniters = max(miniters, delta_it)
                         last_print_n = n
@@ -327,7 +346,7 @@ class tqdm(object):
                     cur_t = time()
                     sp.print_status(format_meter(
                         n, total, cur_t-start_t, ncols,
-                        prefix, unit, unit_scale, ascii))
+                        prefix, ascii, unit, unit_scale))
                 file.write('\n')
             else:
                 sp.print_status('')
@@ -359,7 +378,7 @@ class tqdm(object):
             if cur_t - self.last_print_t >= self.mininterval:
                 self.sp.print_status(format_meter(
                     self.n, self.total, cur_t-self.start_t, self.ncols,
-                    self.prefix, self.unit, self.unit_scale, self.ascii))
+                    self.prefix, self.ascii, self.unit, self.unit_scale))
                 if self.dynamic_miniters:
                     self.miniters = max(self.miniters, delta_it)
                 self.last_print_n = self.n
@@ -375,7 +394,7 @@ class tqdm(object):
                 cur_t = time()
                 self.sp.print_status(format_meter(
                     self.n, self.total, cur_t-self.start_t, self.ncols,
-                    self.prefix, self.unit, self.unit_scale, self.ascii))
+                    self.prefix, self.ascii, self.unit, self.unit_scale))
             self.file.write('\n')
         else:
             self.sp.print_status('')

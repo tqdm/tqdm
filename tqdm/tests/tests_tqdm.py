@@ -26,17 +26,19 @@ def test_format_meter():
         unich = chr
 
     assert format_meter(0, 1000, 13) == \
-        "  0%|          | 0/1000 [00:13<?,  0.00 it/s]"
+        "  0%|          | 0/1000 [00:13<?,  0.00it/s]"
     assert format_meter(0, 1000, 13, ncols=68, prefix='desc: ') == \
-        "desc: 0%|                             | 0/1000 [00:13<?,  0.00 it/s]"
+        "desc:   0%|                            | 0/1000 [00:13<?,  0.00it/s]"
     assert format_meter(231, 1000, 392) == \
         " 23%|" + unich(0x2588)*2 + unich(0x258e) + \
-        "       | 231/1000 [06:32<21:44,  0.59 it/s]"
+        "       | 231/1000 [06:32<21:44,  0.59it/s]"
     assert format_meter(10000, 1000, 13) == \
-        "10000 [00:13, 769.23 it/s]"
+        "10000it [00:13, 769.23it/s]"
     assert format_meter(231, 1000, 392, ncols=56, ascii=True) == \
-        " 23%|" + '#'*3 + '4' + \
-        "           | 231/1000 [06:32<21:44,  0.59 it/s]"
+        " 23%|" + '#'*3 + '6' + \
+        "            | 231/1000 [06:32<21:44,  0.59it/s]"
+    assert format_meter(100000, 1000, 13, unit_scale=True, unit='iB') == \
+        "100KiB [00:13, 7.69KiB/s]"
 
 
 def test_all_defaults():
