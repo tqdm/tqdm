@@ -65,7 +65,7 @@ def test_iterate_over_csv_rows():
 
 
 def test_file_output():
-    """ Tests that output to arbitrary file-like objects works """
+    """ Test output to arbitrary file-like objects """
     our_file = StringIO()
     for i in tqdm(range(3), file=our_file):
         if i == 1:
@@ -74,15 +74,19 @@ def test_file_output():
 
 
 def test_leave_option():
-    """
-    Tests that if leave=True, tqdm will leave the info
-    about the last iteration on the screen
-    """
+    """ Test `leave=True` always prints info about the last iteration. """
     our_file = StringIO()
     for i in tqdm(range(3), file=our_file, leave=True):
         pass
     our_file.seek(0)
-    assert '| 3/3 ' in our_file.read()
+    try:
+        assert '| 3/3 ' in our_file.read()
+    except:
+        our_file.seek(0)
+        print our_file.read()
+        raise
+    our_file.seek(0)
+    assert '\n' == our_file.read()[-1]  # not '\r'
     our_file.close()
 
     our_file2 = StringIO()
@@ -130,8 +134,8 @@ def test_min_iters():
     for i in tqdm(range(3), file=our_file2, leave=True, miniters=1):
         our_file2.write('blank\n')
     our_file2.seek(0)
-    # assume mininterval = 0.1 means no intermediate output
-    assert '\nblank\nblank\n' in our_file2.read()
+    # assume automatic mininterval = 0 means intermediate output
+    assert '| 3/3 ' in our_file2.read()
     our_file2.close()
 
 
@@ -145,8 +149,43 @@ def test_disable():
 
 def test_unit():
     our_file = StringIO()
-    for i in tqdm(range(3), file=our_file, mininterval=1e-10, unit="bytes"):
+    for i in tqdm(range(3), file=our_file, miniters=1, unit="bytes"):
         pass
     our_file.seek(0)
     assert "bytes/s" in our_file.read()
     our_file.close()
+
+
+def test_update():
+    """ Test manual creation and updates """
+    our_file = StringIO()
+    progressbar = tqdm(total=3, file=our_file, miniters=1)
+    # make 3 increments in total
+    progressbar.update(2)
+    progressbar.update(1)
+    our_file.seek(0)
+    assert '| 2/3 ' in our_file.read()
+    our_file.close()
+
+
+def test_close():
+    """ Test manual creation and closure """
+    # With `leave` option
+    our_file = StringIO()
+    progressbar = tqdm(total=3, file=our_file, miniters=10, leave=True)
+    progressbar.update(3)
+    our_file.seek(0)
+    assert '| 3/3 ' not in our_file.read()  # Should be blank
+    progressbar.close()
+    our_file.seek(0)
+    assert '| 3/3 ' in our_file.read()
+    our_file.close()
+
+    # Without `leave` option
+    our_file2 = StringIO()
+    progressbar2 = tqdm(total=3, file=our_file2, miniters=10)
+    progressbar2.update(3)
+    progressbar2.close()
+    our_file2.seek(0)
+    assert '| 3/3 ' not in our_file2.read()  # Should be blank
+    our_file2.close()
