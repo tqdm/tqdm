@@ -24,9 +24,10 @@ version is much more visually appealing.
 ## Installation
 
 ```sh
+# newer, faster, prettier, stable version
+pip install -e git+https://github.com/tqdm/tqdm.git@master#egg=tqdm
+# or (old version on pypi)
 pip install tqdm
-# or
-pip install -e git+https://github.com/tqdm/tqdm.git#egg=master
 ```
 
 ## Documentation
