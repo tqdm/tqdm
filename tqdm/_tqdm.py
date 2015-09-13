@@ -306,8 +306,6 @@ class tqdm(object):
         else:
             total = self.total
             prefix = self.prefix
-            leave = self.leave
-            file = self.file
             ncols = self.ncols
             mininterval = self.mininterval
             miniters = self.miniters
@@ -337,18 +335,11 @@ class tqdm(object):
                             miniters = max(miniters, delta_it)
                         last_print_n = n
                         last_print_t = cur_t
-            # Closing the progress bar
-            # Note: does not call self.close() for speed optimisation.
-            if leave:
-                if last_print_n < n:
-                    cur_t = time()
-                    sp(format_meter(
-                        n, total, cur_t-start_t, ncols,
-                        prefix, ascii, unit, unit_scale))
-                file.write('\n')
-            else:
-                sp('')
-                file.write('\r')
+            # Closing the progress bar.
+            # Update some internal variables for close().
+            self.last_print_n = last_print_n
+            self.n = n
+            self.close()
 
     def update(self, n=1):
         """
