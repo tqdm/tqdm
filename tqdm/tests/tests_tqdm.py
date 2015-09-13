@@ -79,12 +79,7 @@ def test_leave_option():
     for i in tqdm(range(3), file=our_file, leave=True):
         pass
     our_file.seek(0)
-    try:
-        assert '| 3/3 ' in our_file.read()
-    except:
-        our_file.seek(0)
-        print our_file.read()
-        raise
+    assert '| 3/3 ' in our_file.read()
     our_file.seek(0)
     assert '\n' == our_file.read()[-1]  # not '\r'
     our_file.close()

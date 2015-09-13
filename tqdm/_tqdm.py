@@ -137,7 +137,7 @@ def format_meter(n, total, elapsed, ncols=None, prefix='', ascii=False,
             bar = ''
         else:
             N_BARS = max(1, ncols - len(l_bar) - len(r_bar)) if ncols \
-                         else 10
+                else 10
 
             if ascii:
                 bar_length, frac_bar_length = divmod(
