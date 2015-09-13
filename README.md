@@ -33,47 +33,90 @@ pip install tqdm
 ## Documentation
 
 ```python
-def tqdm(iterable, desc=None, total=None, leave=False, file=sys.stderr,
-         ncols=None, mininterval=0.1, miniters=None, ascii=None, disable=False):
+class tqdm:
     """
     Decorate an iterable object, returning an iterator which acts exactly
     like the orignal iterable, but prints a dynamically updating
-    progressbar.
-
-    Parameters
-    ----------
-    iterable  : iterable
-        Iterable to decorate with a progressbar.
-    desc  : str, optional
-        Prefix for the progressbar.
-    total  : int, optional
-        The number of expected iterations. If not given, len(iterable) is
-        used if possible. As a last resort, only basic progress statistics
-        are displayed.
-    file  : `io.TextIOWrapper` or `io.StringIO`, optional
-        Specifies where to output the progress messages.
-        Uses file.write(str) and file.flush() methods.
-    leave  : bool, optional
-        if unset, removes all traces of the progressbar upon termination of
-        iteration [default: False].
-    ncols  : int, optional
-        The width of the entire output message. If sepcified, dynamically
-        resizes the progress meter [default: None]. The fallback meter
-        width is 10.
-    mininterval  : float, optional
-        Minimum progress update interval, in seconds [default: 0.1].
-    miniters  : int, optional
-        Minimum progress update interval, in iterations [default: None].
-    ascii  : bool, optional
-        If not set, use unicode (▏▎▋█ █) to fill the meter
-        [default: False]. The fallback is to use ASCII characters (1-9 #).
-    disable : bool
-        Disable the progress bar if True [default: False].
-
-    Returns
-    -------
-    out  : decorated iterator.
+    progressbar every time a value is requested.
     """
+    def __init__(self, iterable=None, desc=None, total=None, leave=False,
+                 file=sys.stderr, ncols=None, mininterval=0.1,
+                 miniters=None, ascii=None, disable=False,
+                 unit='it', unit_scale=False):
+        """
+        Parameters
+        ----------
+        iterable  : iterable, optional
+            Iterable to decorate with a progressbar.
+            Leave blank [default: None] to manually manage the updates.
+        desc  : str, optional
+            Prefix for the progressbar [default: None].
+        total  : int, optional
+            The number of expected iterations. If not given, len(iterable) is
+            used if possible. As a last resort, only basic progress
+            statistics are displayed (no ETA, no progressbar).
+        leave  : bool, optional
+            If [default: False], removes all traces of the progressbar
+            upon termination of iteration.
+        file  : `io.TextIOWrapper` or `io.StringIO`, optional
+            Specifies where to output the progress messages
+            [default: sys.stderr]. Uses `file.write(str)` and `file.flush()`
+            methods.
+        ncols  : int, optional
+            The width of the entire output message. If specified, dynamically
+            resizes the progress meter to stay within this bound
+            [default: None]. The fallback meter width is 10 for the progress
+            bar + no limit for the iterations counter and statistics.
+        mininterval  : float, optional
+            Minimum progress update interval, in seconds [default: 0.1].
+        miniters  : int, optional
+            Minimum progress update interval, in iterations [default: None].
+            If specified, will set `mininterval` to 0.
+        ascii  : bool, optional
+            If [default: None] or false, use unicode (▏▎▋█ █) to fill
+            the meter. The fallback is to use ASCII characters `1-9 #`.
+        disable : bool
+            Whether to disable the entire progressbar wrapper [default: False].
+        unit  : str, optional
+            String that will be used to define the unit of each iteration
+            [default: 'it'].
+        unit_scale  : bool, optional
+            If set, the number of iterations will be reduced/scaled
+            automatically and a metric prefix following the
+            International System of Units standard will be added
+            (kilo, mega, etc.) [default: False].
+
+        Returns
+        -------
+        out  : decorated iterator.
+        """
+
+    def update(self, n=1):
+        """
+        Manually update the progress bar, useful for streams
+        such as reading files.
+        E.g.:
+        >>> t = tqdm(total=filesize) # Initialise
+        >>> for current_buffer in stream:
+        >>>    ...
+        >>>    t.update(len(current_buffer)).
+        >>> t.close()
+        The last line is highly recommended, but possibly not necessary if
+        `t.update()` will be called in such a was that `filesize` will be
+        exactly reached and printed.
+
+        Parameters
+        ----------
+        n  : int
+            Increment to add to the internal counter of iterations
+            [default: 1].
+        """
+
+    def close(self):
+        """
+        Call this method to force print the last progress bar update
+        based on the latest n value
+        """
 
 def trange(*args, **kwargs):
     """
@@ -108,3 +151,5 @@ $ make coverage
 - kmike
 - hadim
 - casperdcl
+- lrq3000
+
