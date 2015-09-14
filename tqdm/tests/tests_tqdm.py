@@ -157,7 +157,7 @@ def test_update():
     progressbar = tqdm(total=3, file=our_file, miniters=1)
     # make 3 increments in total
     progressbar.update(2)
-    progressbar.update(1)
+    progressbar.update(-10)  # should default to +1
     our_file.seek(0)
     assert '| 2/3 ' in our_file.read()
     our_file.close()

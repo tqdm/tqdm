@@ -164,7 +164,7 @@ def format_meter(n, total, elapsed, ncols=None, prefix='', ascii=False,
         return l_bar + full_bar + r_bar
 
     else:  # no progressbar nor ETA, just progress statistics
-        return '{0}{1} [{2}, {3}]'.format(
+        return (prefix if prefix else '') + '{0}{1} [{2}, {3}]'.format(
             n_fmt, unit, elapsed_str, rate_fmt)
 
 
