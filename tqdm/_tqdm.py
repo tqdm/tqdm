@@ -195,7 +195,7 @@ class tqdm(object):
     def __init__(self, iterable=None, desc=None, total=None, leave=False,
                  file=sys.stderr, ncols=None, mininterval=0.1,
                  miniters=None, ascii=None, disable=False,
-                 unit='it', unit_scale=False):
+                 unit='it', unit_scale=False, gui=False):
         """
         Parameters
         ----------
@@ -238,6 +238,9 @@ class tqdm(object):
             automatically and a metric prefix following the
             International System of Units standard will be added
             (kilo, mega, etc.) [default: False].
+        gui  : bool, optional
+            If set, will attempt to use matplotlib animations for a
+            graphical output [default: false].
 
         Returns
         -------
@@ -263,6 +266,14 @@ class tqdm(object):
         if ascii is None:
             ascii = not _supports_unicode(file)
 
+        if gui:
+            try:
+                import matplotlib.pyplot as plt
+            except ImportError:
+                gui = False
+            else:
+                self.plt = plt
+
         # Store the arguments
         self.iterable = iterable
         self.prefix = desc+': ' if desc else ''
@@ -277,12 +288,39 @@ class tqdm(object):
         self.disable = disable
         self.unit = unit
         self.unit_scale = unit_scale
+        self.gui = gui
 
-        # Initialize the screen printer
-        self.sp = StatusPrinter(self.file)
-        if not disable:
-            self.sp(format_meter(
-                0, total, 0, ncols, self.prefix, ascii, unit, unit_scale))
+        if gui:
+            # Initialize the GUI display
+            if not disable:
+                file.write('Warning: GUI is experimental/alpha\n')
+
+                self.mininterval = max(mininterval, 0.5)
+                self.fig, ax = plt.subplots(figsize=(10, 3))
+                self.xdata, self.ydata, self.zdata = [], [], []
+                self.line1, = ax.plot(self.xdata, self.ydata)
+                self.line2, = ax.plot(self.xdata, self.zdata)
+                ax.set_ylim(0, 1)
+                ax.set_xlim(-60, 0)
+                ax.grid()
+                # ax.set_xlabel('seconds')
+                ax.set_ylabel((unit if unit else 'it') + '/s')
+                ax.legend(('cur', 'est'), loc='lower left')
+                if unit_scale:
+                    plt.ticklabel_format(style='sci', axis='y',
+                                         scilimits=(0, 0))
+
+                # Remember if external environment is interactive
+                self.wasion = plt.isinteractive()
+                plt.ion()
+                self.fig.show()
+                self.ax = ax
+        else:
+            # Initialize the screen printer
+            self.sp = StatusPrinter(self.file)
+            if not disable:
+                self.sp(format_meter(
+                    0, total, 0, ncols, self.prefix, ascii, unit, unit_scale))
 
         # Init the time/iterations counters
         self.start_t = self.last_print_t = time()
@@ -313,11 +351,22 @@ class tqdm(object):
             unit = self.unit
             unit_scale = self.unit_scale
             ascii = self.ascii
-            sp = self.sp
             start_t = self.start_t
             last_print_t = self.last_print_t
             last_print_n = self.last_print_n
             n = self.n
+            gui = self.gui
+            if gui:
+                plt = self.plt
+                ax = self.ax
+                xdata = self.xdata
+                ydata = self.ydata
+                zdata = self.zdata
+                line1 = self.line1
+                line2 = self.line2
+            else:
+                sp = self.sp
+
             for obj in iterable:
                 yield obj
                 # Update and print the progressbar.
@@ -327,10 +376,36 @@ class tqdm(object):
                 # check the counter first (avoid calls to time())
                 if delta_it >= miniters:
                     cur_t = time()
-                    if cur_t - last_print_t >= mininterval:
-                        sp(format_meter(
-                            n, total, cur_t-start_t, ncols,
-                            prefix, ascii, unit, unit_scale))
+                    delta_t = cur_t - last_print_t
+                    if delta_t >= mininterval:
+                        elapsed = cur_t - start_t
+                        if gui:
+                            # instantaneous rate
+                            y = delta_it / delta_t
+                            # smoothed rate
+                            z = n / elapsed
+                            # update line data
+                            xdata.append(elapsed)
+                            ydata.append(y)
+                            zdata.append(z)
+
+                            ymin, ymax = ax.get_ylim()
+                            if y > ymax or z > ymax:
+                                ax.set_ylim(ymin, 1.1 * y)
+                                ax.figure.canvas.draw()
+
+                            line1.set_data([-i for i in xdata], ydata[-1::-1])
+                            line2.set_data([-i for i in xdata], zdata[-1::-1])
+                            ax.set_title(format_meter(
+                                n, total, elapsed, ncols,
+                                prefix, True, unit, unit_scale),
+                                         fontname="DejaVu Sans Mono")
+                            plt.pause(1e-9)
+                        else:
+                            sp(format_meter(
+                                n, total, elapsed, ncols,
+                                prefix, ascii, unit, unit_scale))
+
                         if dynamic_miniters:
                             miniters = max(miniters, delta_it)
                         last_print_n = n
@@ -368,14 +443,43 @@ class tqdm(object):
         if self.disable:
             return
 
-        delta_it = self.n - self.last_print_n
+        delta_it = self.n - self.last_print_n  # should be n?
         if delta_it >= self.miniters:
             # We check the counter first, to reduce the overhead of time()
             cur_t = time()
-            if cur_t - self.last_print_t >= self.mininterval:
-                self.sp(format_meter(
-                    self.n, self.total, cur_t-self.start_t, self.ncols,
-                    self.prefix, self.ascii, self.unit, self.unit_scale))
+            delta_t = cur_t - self.last_print_t
+            if delta_t >= self.mininterval:
+                elapsed = cur_t - self.start_t
+                if self.gui:
+                    ax = self.ax  # Inline due to multiple calls
+
+                    # instantaneous rate
+                    y = delta_it / delta_t
+                    # smoothed rate
+                    z = self.n / elapsed
+                    # update line data
+                    self.xdata.append(elapsed)
+                    self.ydata.append(y)
+                    self.zdata.append(z)
+
+                    ymin, ymax = ax.get_ylim()
+                    if y > ymax or z > ymax:
+                        ax.set_ylim(ymin, 1.1 * y)
+                        ax.figure.canvas.draw()
+
+                    self.line1.set_data([-i for i in self.xdata],
+                                        self.ydata[-1::-1])
+                    self.line2.set_data([-i for i in self.xdata],
+                                        self.zdata[-1::-1])
+                    ax.set_title(format_meter(
+                        self.n, self.total, elapsed, self.ncols,
+                        self.prefix, True, self.unit, self.unit_scale),
+                                 fontname="DejaVu Sans Mono")
+                    self.plt.pause(1e-9)
+                else:
+                    self.sp(format_meter(
+                        self.n, self.total, elapsed, self.ncols,
+                        self.prefix, self.ascii, self.unit, self.unit_scale))
                 if self.dynamic_miniters:
                     self.miniters = max(self.miniters, delta_it)
                 self.last_print_n = self.n
@@ -386,16 +490,21 @@ class tqdm(object):
         Call this method to force print the last progress bar update
         based on the latest n value
         """
-        if self.leave:
-            if self.last_print_n < self.n:
-                cur_t = time()
-                self.sp(format_meter(
-                    self.n, self.total, cur_t-self.start_t, self.ncols,
-                    self.prefix, self.ascii, self.unit, self.unit_scale))
-            self.file.write('\n')
+        if self.gui:
+            # Return to non-interactive mode
+            if not self.wasion:
+                self.plt.ioff()
         else:
-            self.sp('')
-            self.file.write('\r')
+            if self.leave:
+                if self.last_print_n < self.n:
+                    cur_t = time()
+                    self.sp(format_meter(
+                        self.n, self.total, cur_t-self.start_t, self.ncols,
+                        self.prefix, self.ascii, self.unit, self.unit_scale))
+                self.file.write('\n')
+            else:
+                self.sp('')
+                self.file.write('\r')
 
 
 def trange(*args, **kwargs):

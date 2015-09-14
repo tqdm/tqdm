@@ -42,7 +42,7 @@ class tqdm:
     def __init__(self, iterable=None, desc=None, total=None, leave=False,
                  file=sys.stderr, ncols=None, mininterval=0.1,
                  miniters=None, ascii=None, disable=False,
-                 unit='it', unit_scale=False):
+                 unit='it', unit_scale=False, gui=False):
         """
         Parameters
         ----------
@@ -85,6 +85,9 @@ class tqdm:
             automatically and a metric prefix following the
             International System of Units standard will be added
             (kilo, mega, etc.) [default: False].
+        gui  : bool, optional
+            If set, will attempt to use matplotlib animations for a
+            graphical output [default: false].
 
         Returns
         -------
