@@ -98,8 +98,8 @@ class tqdm:
         E.g.:
         >>> t = tqdm(total=filesize) # Initialise
         >>> for current_buffer in stream:
-        >>>    ...
-        >>>    t.update(len(current_buffer)).
+        ...    ...
+        ...    t.update(len(current_buffer))
         >>> t.close()
         The last line is highly recommended, but possibly not necessary if
         `t.update()` will be called in such a was that `filesize` will be
@@ -125,7 +125,9 @@ def trange(*args, **kwargs):
     """
 ```
 
-### Advanced Usage
+### Examples and Advanced Usage
+
+See the `examples` folder.
 
 `tqdm` can easily support callbacks/hooks and manual updates. Here's an
 example with `urllib`:
@@ -140,31 +142,28 @@ example with `urllib`:
 > [...]
 
 ```python
-from tqdm import tqdm
+import tqdm
 import urllib
 
 def my_hook(**kwargs):
-    t = tqdm(**kwargs)
+    t = tqdm.tqdm(**kwargs)
     last_b = [0]
-    def inner(b, bsize, tsize):
+
+    def inner(b=1, bsize=1, tsize=None, close=False):
+        if close:
+            t.close()
+            return
         t.total = tsize
         t.update((b - last_b[0]) * bsize)
         last_b[0] = b
     return inner
 
-'''
-urllib.urlretrieve documentation:
-If present, the hook function will be called once 
-on establishment of the network connection and once after each block read 
-thereafter. The hook will be passed three arguments; a count of blocks 
-transferred so far, a block size in bytes, and the total size of the file.
-'''
-
 eg_link = 'http://www.doc.ic.ac.uk/~cod11/matryoshka.zip'
 eg_hook = my_hook(unit='B', unit_scale=True, leave=True, miniters=1, 
                   desc=eg_link.split('/')[-1]) # all optional kwargs
 urllib.urlretrieve(eg_link,
-    filename='/dev/null', reporthook=eg_hook, data=None)
+                   filename='/dev/null', reporthook=eg_hook, data=None)
+eg_hook(close=True)
 ```
 
 It is recommend to use `miniters=1` whenever there is potentially large 
@@ -192,9 +191,19 @@ $ make coverage
 
 ## Authors
 
-- noamraph (original author)
-- obiwanus
-- kmike
-- hadim
-- casperdcl
-- lrq3000
+```
+Total number of files: 18
+Total number of lines: 1,073
+Total number of commits: 111
++----------------------+-----+---------+-------+--------------------+----+----+
+| name                 | loc | commits | files | distribution       | md | py |
++----------------------+-----+---------+-------+--------------------+----+----+
+| Casper da Costa-Luis | 591 | 45      | 8     | 55.1 / 40.5 / 44.4 |150 |436 |
+| Stephen L            | 163 | 9       | 3     | 15.2 / 8.1 / 16.7  | 13 |150 |
+| Hadrien Mary         | 115 | 18      | 8     | 10.7 / 16.2 / 44.4 | 32 | 56 |
+| Noam Yorav-Raphael*  | 86  | 11      | 5     | 8.0 / 9.9 / 27.8   | 10 | 21 |
+| Mikhail Korobov      | 58  | 11      | 8     | 5.4 / 9.9 / 44.4   | 2  | 25 |
+| Ivan Ivanov          | 58  | 11      | 4     | 5.4 / 9.9 / 22.2   | 2  | 53 |
++----------------------+-----+---------+-------+--------------------+----+----+
+* Original Author
+```

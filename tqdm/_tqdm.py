@@ -3,9 +3,9 @@ Customisable progressbar decorator for iterators.
 Includes a default (x)range iterator printing to stderr.
 
 Usage:
-  from tqdm import trange[, tqdm]
-  for i in trange(10): #same as: for i in tqdm(xrange(10))
-    ...
+  >>> from tqdm import trange[, tqdm]
+  >>> for i in trange(10): #same as: for i in tqdm(xrange(10))
+  ...     ...
 """
 # future division is important to divide integers and get as
 # a result precise floating numbers (instead of truncated int)
@@ -348,8 +348,8 @@ class tqdm(object):
         E.g.:
         >>> t = tqdm(total=filesize) # Initialise
         >>> for current_buffer in stream:
-        >>>    ...
-        >>>    t.update(len(current_buffer)).
+        ...    ...
+        ...    t.update(len(current_buffer))
         >>> t.close()
         The last line is highly recommended, but possibly not necessary if
         `t.update()` will be called in such a was that `filesize` will be
