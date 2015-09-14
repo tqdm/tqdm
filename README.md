@@ -125,6 +125,41 @@ def trange(*args, **kwargs):
     """
 ```
 
+### Advanced Usage
+
+`tqdm` can easily support callbacks/hooks and manual updates. Here's an
+example with `urllib`:
+
+**urllib.urlretrieve documentation**
+
+> [...]  
+> If present, the hook function will be called once 
+> on establishment of the network connection and once after each block read 
+> thereafter. The hook will be passed three arguments; a count of blocks 
+> transferred so far, a block size in bytes, and the total size of the file.  
+> [...]
+
+```python
+from tqdm import tqdm
+import urllib
+
+def my_hook(tsize=None):
+    t = tqdm(total=tsize, unit='B', unit_scale=True, leave=True, miniters=1)
+    last_b = [0]
+    def inner(b, bsize, tsize):
+        t.total = tsize
+        t.update((b - last_b[0]) * bsize)
+        last_b[0] = b
+    return inner
+
+urllib.urlretrieve('http://www.doc.ic.ac.uk/~cod11/matryoshka.zip',
+    filename='/dev/null', reporthook=my_hook(), data=None)
+```
+
+It is recommend to use `miniters=1` whenever there is potentially large 
+differences in iteration speed (e.g. downloading a file over a patchy 
+connection).
+
 ## Contributions
 
 To run the testing suite please make sure tox (http://tox.testrun.org/)
@@ -152,4 +187,3 @@ $ make coverage
 - hadim
 - casperdcl
 - lrq3000
-
