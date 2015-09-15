@@ -269,6 +269,7 @@ class tqdm(object):
         if gui:
             try:
                 import matplotlib.pyplot as plt
+                from collections import deque
             except ImportError:
                 gui = False
             else:
@@ -297,11 +298,16 @@ class tqdm(object):
 
                 self.mininterval = max(mininterval, 0.5)
                 self.fig, ax = plt.subplots(figsize=(10, 3))
-                self.xdata, self.ydata, self.zdata = [], [], []
+                # self.fig.subplots_adjust(bottom=0.2)
+                self.xdata = deque([])
+                self.ydata = deque([])
+                self.zdata = deque([])
                 self.line1, = ax.plot(self.xdata, self.ydata)
                 self.line2, = ax.plot(self.xdata, self.zdata)
-                ax.set_ylim(0, 1)
-                ax.set_xlim(-60, 0)
+                ax.set_ylim(0, 0.001)
+                # ax.set_xlim(-60, 0)
+                ax.set_xlim(0, 60)
+                ax.invert_xaxis()
                 ax.grid()
                 # ax.set_xlabel('seconds')
                 ax.set_ylabel((unit if unit else 'it') + '/s')
@@ -385,21 +391,30 @@ class tqdm(object):
                             # smoothed rate
                             z = n / elapsed
                             # update line data
-                            xdata.append(elapsed)
+                            xdata.append(cur_t)
                             ydata.append(y)
                             zdata.append(z)
+
+                            # Discard old values
+                            # xmin, xmax = ax.get_xlim()
+                            # if elapsed > xmin:
+                            if elapsed > 60:
+                                xdata.popleft()
+                                ydata.popleft()
+                                zdata.popleft()
 
                             ymin, ymax = ax.get_ylim()
                             if y > ymax or z > ymax:
                                 ax.set_ylim(ymin, 1.1 * y)
                                 ax.figure.canvas.draw()
 
-                            line1.set_data([-i for i in xdata], ydata[-1::-1])
-                            line2.set_data([-i for i in xdata], zdata[-1::-1])
+                            t_ago = [cur_t - i for i in xdata]
+                            line1.set_data(t_ago, ydata)
+                            line2.set_data(t_ago, zdata)
                             ax.set_title(format_meter(
                                 n, total, elapsed, ncols,
                                 prefix, True, unit, unit_scale),
-                                         fontname="DejaVu Sans Mono")
+                                fontname="DejaVu Sans Mono")
                             plt.pause(1e-9)
                         else:
                             sp(format_meter(
@@ -458,23 +473,28 @@ class tqdm(object):
                     # smoothed rate
                     z = self.n / elapsed
                     # update line data
-                    self.xdata.append(elapsed)
+                    self.xdata.append(cur_t)
                     self.ydata.append(y)
                     self.zdata.append(z)
+
+                    # Discard old values
+                    if elapsed > 60:
+                        self.xdata.popleft()
+                        self.ydata.popleft()
+                        self.zdata.popleft()
 
                     ymin, ymax = ax.get_ylim()
                     if y > ymax or z > ymax:
                         ax.set_ylim(ymin, 1.1 * y)
                         ax.figure.canvas.draw()
 
-                    self.line1.set_data([-i for i in self.xdata],
-                                        self.ydata[-1::-1])
-                    self.line2.set_data([-i for i in self.xdata],
-                                        self.zdata[-1::-1])
+                    t_ago = [cur_t - i for i in self.xdata]
+                    self.line1.set_data(t_ago, self.ydata)
+                    self.line2.set_data(t_ago, self.zdata)
                     ax.set_title(format_meter(
                         self.n, self.total, elapsed, self.ncols,
                         self.prefix, True, self.unit, self.unit_scale),
-                                 fontname="DejaVu Sans Mono")
+                        fontname="DejaVu Sans Mono")
                     self.plt.pause(1e-9)
                 else:
                     self.sp(format_meter(

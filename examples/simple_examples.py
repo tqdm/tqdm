@@ -10,6 +10,10 @@ from tqdm import trange
 for i in trange(16, leave=True):
     sleep(0.1)
 
+# Experimental GUI demo
+for i in trange(int(1e8), gui=True, unit_scale=True):
+    pass
+
 # Profiling/overhead tests
 stmts = ('[i for i in xrange(int(1e8))]',
          'import tqdm; [i for i in tqdm.trange(int(1e8))]',
