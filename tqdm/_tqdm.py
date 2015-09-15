@@ -268,11 +268,13 @@ class tqdm(object):
 
         if gui:
             try:
+                import matplotlib as mpl
                 import matplotlib.pyplot as plt
                 from collections import deque
             except ImportError:
                 gui = False
             else:
+                self.mpl = mpl
                 self.plt = plt
 
         # Store the arguments
@@ -296,6 +298,10 @@ class tqdm(object):
             if not disable:
                 file.write('Warning: GUI is experimental/alpha\n')
 
+                # Remember if external environment uses toolbars
+                self.toolbar = self.mpl.rcParams['toolbar']
+                self.mpl.rcParams['toolbar'] = 'None'
+
                 self.mininterval = max(mininterval, 0.5)
                 self.fig, ax = plt.subplots(figsize=(10, 3))
                 # self.fig.subplots_adjust(bottom=0.2)
@@ -315,11 +321,11 @@ class tqdm(object):
                 if unit_scale:
                     plt.ticklabel_format(style='sci', axis='y',
                                          scilimits=(0, 0))
+                    ax.yaxis.get_offset_text().set_x(-0.15)
 
                 # Remember if external environment is interactive
                 self.wasion = plt.isinteractive()
                 plt.ion()
-                self.fig.show()
                 self.ax = ax
         else:
             # Initialize the screen printer
@@ -511,9 +517,13 @@ class tqdm(object):
         based on the latest n value
         """
         if self.gui:
+            # Restore toolbars
+            self.mpl.rcParams['toolbar'] = self.toolbar
             # Return to non-interactive mode
             if not self.wasion:
                 self.plt.ioff()
+            if not self.leave:
+                self.plt.close(self.fig)
         else:
             if self.leave:
                 if self.last_print_n < self.n:
