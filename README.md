@@ -55,7 +55,9 @@ class tqdm:
         total  : int, optional
             The number of expected iterations. If not given, len(iterable) is
             used if possible. As a last resort, only basic progress
-            statistics are displayed (no ETA, no progressbar).
+            statistics are displayed (no ETA, no progressbar). If `gui` is
+            True and this parameter needs subsequent updating, specify an
+            initial arbitrary large positive integer, e.g. int(9e9).
         leave  : bool, optional
             If [default: False], removes all traces of the progressbar
             upon termination of iteration.
@@ -65,9 +67,10 @@ class tqdm:
             methods.
         ncols  : int, optional
             The width of the entire output message. If specified, dynamically
-            resizes the progress meter to stay within this bound
-            [default: None]. The fallback meter width is 10 for the progress
-            bar + no limit for the iterations counter and statistics.
+            resizes the progressbar to stay within this bound
+            [default: None]. The fallback is a meter width of 10 and no
+            limit for the counter and statistics. If 0, will not print any
+            meter (only stats).
         mininterval  : float, optional
             Minimum progress update interval, in seconds [default: 0.1].
         miniters  : int, optional
@@ -118,8 +121,7 @@ class tqdm:
 
     def close(self):
         """
-        Call this method to force print the last progress bar update
-        based on the latest n value
+        Cleanup and (if leave=False) close the progressbar.
         """
 
 def trange(*args, **kwargs):

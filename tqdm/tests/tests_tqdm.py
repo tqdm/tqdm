@@ -156,12 +156,17 @@ def test_unit():
 def test_update():
     """ Test manual creation and updates """
     our_file = StringIO()
-    progressbar = tqdm(total=3, file=our_file, miniters=1)
-    # make 3 increments in total
+    progressbar = tqdm(total=2, file=our_file, miniters=1)
     progressbar.update(2)
+    our_file.seek(0)
+    assert '| 2/2' in our_file.read()
+    progressbar.desc = 'dynamically notify of 4 increments in total'
+    progressbar.total = 4
     progressbar.update(-10)  # should default to +1
     our_file.seek(0)
-    assert '| 2/3 ' in our_file.read()
+    assert '| 3/4 ' in our_file.read()
+    our_file.seek(0)
+    assert 'dynamically notify of 4 increments in total' in our_file.read()
     our_file.close()
 
 

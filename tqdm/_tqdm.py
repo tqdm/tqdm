@@ -209,7 +209,9 @@ class tqdm(object):
         total  : int, optional
             The number of expected iterations. If not given, len(iterable) is
             used if possible. As a last resort, only basic progress
-            statistics are displayed (no ETA, no progressbar).
+            statistics are displayed (no ETA, no progressbar). If `gui` is
+            True and this parameter needs subsequent updating, specify an
+            initial arbitrary large positive integer, e.g. int(9e9).
         leave  : bool, optional
             If [default: False], removes all traces of the progressbar
             upon termination of iteration.
@@ -219,10 +221,10 @@ class tqdm(object):
             methods.
         ncols  : int, optional
             The width of the entire output message. If specified, dynamically
-            resizes the progress meter to stay within this bound
-            [default: None]. The fallback meter width is 10 for the progress
-            bar + no limit for the iterations counter and statistics. If 0,
-            will not print any meter (only stats).
+            resizes the progressbar to stay within this bound
+            [default: None]. The fallback is a meter width of 10 and no
+            limit for the counter and statistics. If 0, will not print any
+            meter (only stats).
         mininterval  : float, optional
             Minimum progress update interval, in seconds [default: 0.1].
         miniters  : int, optional
@@ -282,7 +284,7 @@ class tqdm(object):
 
         # Store the arguments
         self.iterable = iterable
-        self.prefix = desc+': ' if desc else ''
+        self.desc = desc+': ' if desc else ''
         self.total = total
         self.leave = leave
         self.file = file
@@ -322,15 +324,17 @@ class tqdm(object):
                 if total:
                     ax.set_xlim(0, 100)
                     ax.set_xlabel('percent')
+                    self.fig.legend((self.line1, self.line2), ('cur', 'est'),
+                                    loc='center right')
                 else:
                     # ax.set_xlim(-60, 0)
                     ax.set_xlim(0, 60)
                     ax.invert_xaxis()
                     ax.set_xlabel('seconds')
+                    ax.legend(('cur', 'est'), loc='lower left')
                 ax.grid()
                 # ax.set_xlabel('seconds')
                 ax.set_ylabel((unit if unit else 'it') + '/s')
-                ax.legend(('cur', 'est'), loc='lower left')
                 if unit_scale:
                     plt.ticklabel_format(style='sci', axis='y',
                                          scilimits=(0, 0))
@@ -345,7 +349,7 @@ class tqdm(object):
             self.sp = StatusPrinter(self.file)
             if not disable:
                 self.sp(format_meter(
-                    0, total, 0, ncols, self.prefix, ascii, unit, unit_scale))
+                    0, total, 0, ncols, self.desc, ascii, unit, unit_scale))
 
         # Init the time/iterations counters
         self.start_t = self.last_print_t = time()
@@ -367,8 +371,6 @@ class tqdm(object):
             for obj in iterable:
                 yield obj
         else:
-            total = self.total
-            prefix = self.prefix
             ncols = self.ncols
             mininterval = self.mininterval
             miniters = self.miniters
@@ -405,6 +407,8 @@ class tqdm(object):
                     if delta_t >= mininterval:
                         elapsed = cur_t - start_t
                         if gui:
+                            # Inline due to multiple calls
+                            total = self.total
                             # instantaneous rate
                             y = delta_it / delta_t
                             # smoothed rate
@@ -437,14 +441,14 @@ class tqdm(object):
 
                             ax.set_title(format_meter(
                                 n, total, elapsed, 0,
-                                prefix, ascii, unit, unit_scale),
+                                self.desc, ascii, unit, unit_scale),
                                 fontname="DejaVu Sans Mono",
                                 fontsize=11)
                             plt.pause(1e-9)
                         else:
                             sp(format_meter(
-                                n, total, elapsed, ncols,
-                                prefix, ascii, unit, unit_scale))
+                                n, self.total, elapsed, ncols,
+                                self.desc, ascii, unit, unit_scale))
 
                         if dynamic_miniters:
                             miniters = max(miniters, delta_it)
@@ -467,7 +471,7 @@ class tqdm(object):
         ...    t.update(len(current_buffer))
         >>> t.close()
         The last line is highly recommended, but possibly not necessary if
-        `t.update()` will be called in such a was that `filesize` will be
+        `t.update()` will be called in such a way that `filesize` will be
         exactly reached and printed.
 
         Parameters
@@ -476,12 +480,12 @@ class tqdm(object):
             Increment to add to the internal counter of iterations
             [default: 1].
         """
+        if self.disable:
+            return
+
         if n < 1:
             n = 1
         self.n += n
-
-        if self.disable:
-            return
 
         delta_it = self.n - self.last_print_n  # should be n?
         if delta_it >= self.miniters:
@@ -492,8 +496,8 @@ class tqdm(object):
                 elapsed = cur_t - self.start_t
                 if self.gui:
                     # Inline due to multiple calls
-                    ax = self.ax
                     total = self.total
+                    ax = self.ax
 
                     # instantaneous rate
                     y = delta_it / delta_t
@@ -526,14 +530,14 @@ class tqdm(object):
 
                     ax.set_title(format_meter(
                         self.n, total, elapsed, 0,
-                        self.prefix, self.ascii, self.unit, self.unit_scale),
+                        self.desc, self.ascii, self.unit, self.unit_scale),
                         fontname="DejaVu Sans Mono",
                         fontsize=11)
                     self.plt.pause(1e-9)
                 else:
                     self.sp(format_meter(
                         self.n, self.total, elapsed, self.ncols,
-                        self.prefix, self.ascii, self.unit, self.unit_scale))
+                        self.desc, self.ascii, self.unit, self.unit_scale))
                 if self.dynamic_miniters:
                     self.miniters = max(self.miniters, delta_it)
                 self.last_print_n = self.n
@@ -541,9 +545,11 @@ class tqdm(object):
 
     def close(self):
         """
-        Call this method to force print the last progress bar update
-        based on the latest n value
+        Cleanup and (if leave=False) close the progressbar.
         """
+        if self.disable:
+            return
+
         if self.gui:
             # Restore toolbars
             self.mpl.rcParams['toolbar'] = self.toolbar
@@ -558,7 +564,7 @@ class tqdm(object):
                     cur_t = time()
                     self.sp(format_meter(
                         self.n, self.total, cur_t-self.start_t, self.ncols,
-                        self.prefix, self.ascii, self.unit, self.unit_scale))
+                        self.desc, self.ascii, self.unit, self.unit_scale))
                 self.file.write('\n')
             else:
                 self.sp('')
