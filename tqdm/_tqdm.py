@@ -84,9 +84,11 @@ def format_meter(n, total, elapsed, ncols=None, prefix='', ascii=False,
     elapsed  : float
         Number of seconds passed since start.
     ncols  : int, optional
-        The width of the entire output message. If sepcified, dynamically
-        resizes the progress meter [default: None]. The fallback meter
-        width is 10.
+        The width of the entire output message. If specified, dynamically
+        resizes the progress meter to stay within this bound
+        [default: None]. The fallback meter width is 10 for the progress bar
+        + no limit for the iterations counter and statistics. If 0, will not
+        print any meter (only stats).
     prefix  : str, optional
         Prefix message (included in total width) [default: ''].
     ascii  : bool, optional
@@ -134,25 +136,25 @@ def format_meter(n, total, elapsed, ncols=None, prefix='', ascii=False,
                 n_fmt, total_fmt, elapsed_str, remaining_str, rate_fmt)
 
         if ncols == 0:
-            bar = ''
+            return l_bar[:-1] + r_bar[1:]
+
+        N_BARS = max(1, ncols - len(l_bar) - len(r_bar)) if ncols \
+            else 10
+
+        if ascii:
+            bar_length, frac_bar_length = divmod(
+                int(frac * N_BARS * 10), 10)
+
+            bar = '#'*bar_length
+            frac_bar = chr(48 + frac_bar_length) if frac_bar_length \
+                else ' '
+
         else:
-            N_BARS = max(1, ncols - len(l_bar) - len(r_bar)) if ncols \
-                else 10
+            bar_length, frac_bar_length = divmod(int(frac * N_BARS * 8), 8)
 
-            if ascii:
-                bar_length, frac_bar_length = divmod(
-                    int(frac * N_BARS * 10), 10)
-
-                bar = '#'*bar_length
-                frac_bar = chr(48 + frac_bar_length) if frac_bar_length \
-                    else ' '
-
-            else:
-                bar_length, frac_bar_length = divmod(int(frac * N_BARS * 8), 8)
-
-                bar = _unich(0x2588)*bar_length
-                frac_bar = _unich(0x2590 - frac_bar_length) \
-                    if frac_bar_length else ' '
+            bar = _unich(0x2588)*bar_length
+            frac_bar = _unich(0x2590 - frac_bar_length) \
+                if frac_bar_length else ' '
 
         if bar_length < N_BARS:
             full_bar = bar + frac_bar + \
@@ -219,7 +221,8 @@ class tqdm(object):
             The width of the entire output message. If specified, dynamically
             resizes the progress meter to stay within this bound
             [default: None]. The fallback meter width is 10 for the progress
-            bar + no limit for the iterations counter and statistics.
+            bar + no limit for the iterations counter and statistics. If 0,
+            will not print any meter (only stats).
         mininterval  : float, optional
             Minimum progress update interval, in seconds [default: 0.1].
         miniters  : int, optional
@@ -303,17 +306,27 @@ class tqdm(object):
                 self.mpl.rcParams['toolbar'] = 'None'
 
                 self.mininterval = max(mininterval, 0.5)
-                self.fig, ax = plt.subplots(figsize=(10, 3))
+                self.fig, ax = plt.subplots(figsize=(9, 2.2))
                 # self.fig.subplots_adjust(bottom=0.2)
-                self.xdata = deque([])
-                self.ydata = deque([])
-                self.zdata = deque([])
+                if total:
+                    self.xdata = []
+                    self.ydata = []
+                    self.zdata = []
+                else:
+                    self.xdata = deque([])
+                    self.ydata = deque([])
+                    self.zdata = deque([])
                 self.line1, = ax.plot(self.xdata, self.ydata)
                 self.line2, = ax.plot(self.xdata, self.zdata)
                 ax.set_ylim(0, 0.001)
-                # ax.set_xlim(-60, 0)
-                ax.set_xlim(0, 60)
-                ax.invert_xaxis()
+                if total:
+                    ax.set_xlim(0, 100)
+                    ax.set_xlabel('percent')
+                else:
+                    # ax.set_xlim(-60, 0)
+                    ax.set_xlim(0, 60)
+                    ax.invert_xaxis()
+                    ax.set_xlabel('seconds')
                 ax.grid()
                 # ax.set_xlabel('seconds')
                 ax.set_ylabel((unit if unit else 'it') + '/s')
@@ -397,14 +410,14 @@ class tqdm(object):
                             # smoothed rate
                             z = n / elapsed
                             # update line data
-                            xdata.append(cur_t)
+                            xdata.append(n * 100.0 / total if total else cur_t)
                             ydata.append(y)
                             zdata.append(z)
 
                             # Discard old values
                             # xmin, xmax = ax.get_xlim()
-                            # if elapsed > xmin:
-                            if elapsed > 60:
+                            # if (not total) and elapsed > xmin * 1.1:
+                            if (not total) and elapsed > 66:
                                 xdata.popleft()
                                 ydata.popleft()
                                 zdata.popleft()
@@ -414,13 +427,19 @@ class tqdm(object):
                                 ax.set_ylim(ymin, 1.1 * y)
                                 ax.figure.canvas.draw()
 
-                            t_ago = [cur_t - i for i in xdata]
-                            line1.set_data(t_ago, ydata)
-                            line2.set_data(t_ago, zdata)
+                            if total:
+                                line1.set_data(xdata, ydata)
+                                line2.set_data(xdata, zdata)
+                            else:
+                                t_ago = [cur_t - i for i in xdata]
+                                line1.set_data(t_ago, ydata)
+                                line2.set_data(t_ago, zdata)
+
                             ax.set_title(format_meter(
-                                n, total, elapsed, ncols,
-                                prefix, True, unit, unit_scale),
-                                fontname="DejaVu Sans Mono")
+                                n, total, elapsed, 0,
+                                prefix, ascii, unit, unit_scale),
+                                fontname="DejaVu Sans Mono",
+                                fontsize=11)
                             plt.pause(1e-9)
                         else:
                             sp(format_meter(
@@ -472,19 +491,22 @@ class tqdm(object):
             if delta_t >= self.mininterval:
                 elapsed = cur_t - self.start_t
                 if self.gui:
-                    ax = self.ax  # Inline due to multiple calls
+                    # Inline due to multiple calls
+                    ax = self.ax
+                    total = self.total
 
                     # instantaneous rate
                     y = delta_it / delta_t
                     # smoothed rate
                     z = self.n / elapsed
                     # update line data
-                    self.xdata.append(cur_t)
+                    self.xdata.append(self.n * 100.0 / total
+                                      if total else cur_t)
                     self.ydata.append(y)
                     self.zdata.append(z)
 
                     # Discard old values
-                    if elapsed > 60:
+                    if (not total) and elapsed > 66:
                         self.xdata.popleft()
                         self.ydata.popleft()
                         self.zdata.popleft()
@@ -494,13 +516,19 @@ class tqdm(object):
                         ax.set_ylim(ymin, 1.1 * y)
                         ax.figure.canvas.draw()
 
-                    t_ago = [cur_t - i for i in self.xdata]
-                    self.line1.set_data(t_ago, self.ydata)
-                    self.line2.set_data(t_ago, self.zdata)
+                    if total:
+                        self.line1.set_data(self.xdata, self.ydata)
+                        self.line2.set_data(self.xdata, self.zdata)
+                    else:
+                        t_ago = [cur_t - i for i in self.xdata]
+                        self.line1.set_data(t_ago, self.ydata)
+                        self.line2.set_data(t_ago, self.zdata)
+
                     ax.set_title(format_meter(
-                        self.n, self.total, elapsed, self.ncols,
-                        self.prefix, True, self.unit, self.unit_scale),
-                        fontname="DejaVu Sans Mono")
+                        self.n, total, elapsed, 0,
+                        self.prefix, self.ascii, self.unit, self.unit_scale),
+                        fontname="DejaVu Sans Mono",
+                        fontsize=11)
                     self.plt.pause(1e-9)
                 else:
                     self.sp(format_meter(

@@ -16,9 +16,10 @@ You can also use `trange(N)` as a shortcut for `tqdm(xrange(N))`
 
 ![Screenshot](tqdm.gif)
 
-Overhead is low -- about 55ns per iteration. By comparison, our esteemed
-competition, [ProgressBar](https://code.google.com/p/python-progressbar/), has
-an 878ns/iter overhead. It's a matter of taste, but we also like to think our
+Overhead is low -- about 60ns per iteration (80ns with `gui=True`).
+By comparison, our esteemed
+competition [ProgressBar](https://code.google.com/p/python-progressbar/) has
+an 800ns/iter overhead. It's a matter of taste, but we also like to think our
 version is much more visually appealing.
 
 ## Installation
@@ -105,7 +106,7 @@ class tqdm:
         ...    t.update(len(current_buffer))
         >>> t.close()
         The last line is highly recommended, but possibly not necessary if
-        `t.update()` will be called in such a was that `filesize` will be
+        `t.update()` will be called in such a way that `filesize` will be
         exactly reached and printed.
 
         Parameters
