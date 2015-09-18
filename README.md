@@ -135,9 +135,9 @@ example with `urllib`:
 **urllib.urlretrieve documentation**
 
 > [...]  
-> If present, the hook function will be called once 
-> on establishment of the network connection and once after each block read 
-> thereafter. The hook will be passed three arguments; a count of blocks 
+> If present, the hook function will be called once
+> on establishment of the network connection and once after each block read
+> thereafter. The hook will be passed three arguments; a count of blocks
 > transferred so far, a block size in bytes, and the total size of the file.  
 > [...]
 
@@ -159,15 +159,15 @@ def my_hook(**kwargs):
     return inner
 
 eg_link = 'http://www.doc.ic.ac.uk/~cod11/matryoshka.zip'
-eg_hook = my_hook(unit='B', unit_scale=True, leave=True, miniters=1, 
+eg_hook = my_hook(unit='B', unit_scale=True, leave=True, miniters=1,
                   desc=eg_link.split('/')[-1]) # all optional kwargs
 urllib.urlretrieve(eg_link,
                    filename='/dev/null', reporthook=eg_hook, data=None)
 eg_hook(close=True)
 ```
 
-It is recommend to use `miniters=1` whenever there is potentially large 
-differences in iteration speed (e.g. downloading a file over a patchy 
+It is recommend to use `miniters=1` whenever there is potentially large
+differences in iteration speed (e.g. downloading a file over a patchy
 connection).
 
 ## Contributions
@@ -191,19 +191,9 @@ $ make coverage
 
 ## Authors
 
-```
-Total number of files: 18
-Total number of lines: 1,073
-Total number of commits: 111
-+----------------------+-----+---------+-------+--------------------+----+----+
-| name                 | loc | commits | files | distribution       | md | py |
-+----------------------+-----+---------+-------+--------------------+----+----+
-| Casper da Costa-Luis | 591 | 45      | 8     | 55.1 / 40.5 / 44.4 |150 |436 |
-| Stephen L            | 163 | 9       | 3     | 15.2 / 8.1 / 16.7  | 13 |150 |
-| Hadrien Mary         | 115 | 18      | 8     | 10.7 / 16.2 / 44.4 | 32 | 56 |
-| Noam Yorav-Raphael*  | 86  | 11      | 5     | 8.0 / 9.9 / 27.8   | 10 | 21 |
-| Mikhail Korobov      | 58  | 11      | 8     | 5.4 / 9.9 / 44.4   | 2  | 25 |
-| Ivan Ivanov          | 58  | 11      | 4     | 5.4 / 9.9 / 22.2   | 2  | 53 |
-+----------------------+-----+---------+-------+--------------------+----+----+
-* Original Author
-```
+- Noam Yorav-Raphael (noamraph, Original Author)
+- Ivan Ivanov (obiwanus)
+- Mikhail Korobov (kmike)
+- Hadrien Mary (hadim)
+- Casper da Costa-Luis (casperdcl)
+- Stephen L (lrq3000)
