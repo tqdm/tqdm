@@ -143,6 +143,13 @@ def test_disable():
     our_file.seek(0)
     assert our_file.read() == ""
 
+    our_file2 = StringIO()
+    progressbar = tqdm(total=3, file=our_file2, miniters=1, disable=True)
+    progressbar.update(3)
+    progressbar.close()
+    our_file2.seek(0)
+    assert our_file2.read() == ""
+
 
 def test_unit():
     our_file = StringIO()

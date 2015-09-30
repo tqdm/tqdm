@@ -318,14 +318,17 @@ class tqdm(object):
                     self.xdata = deque([])
                     self.ydata = deque([])
                     self.zdata = deque([])
-                self.line1, = ax.plot(self.xdata, self.ydata)
-                self.line2, = ax.plot(self.xdata, self.zdata)
+                self.line1, = ax.plot(self.xdata, self.ydata, color='b')
+                self.line2, = ax.plot(self.xdata, self.zdata, color='k')
                 ax.set_ylim(0, 0.001)
                 if total:
                     ax.set_xlim(0, 100)
                     ax.set_xlabel('percent')
                     self.fig.legend((self.line1, self.line2), ('cur', 'est'),
                                     loc='center right')
+                    # progressbar
+                    self.hspan = plt.axhspan(0, 0.001,
+                                             xmin=0, xmax=0, color='g')
                 else:
                     # ax.set_xlim(-60, 0)
                     ax.set_xlim(0, 60)
@@ -428,12 +431,26 @@ class tqdm(object):
 
                             ymin, ymax = ax.get_ylim()
                             if y > ymax or z > ymax:
-                                ax.set_ylim(ymin, 1.1 * y)
+                                ymax = 1.1 * y
+                                ax.set_ylim(ymin, ymax)
                                 ax.figure.canvas.draw()
 
                             if total:
                                 line1.set_data(xdata, ydata)
                                 line2.set_data(xdata, zdata)
+                                try:
+                                    poly_lims = self.hspan.get_xy()
+                                except AttributeError:
+                                    self.hspan = plt.axhspan(0, 0.001, xmin=0,
+                                                             xmax=0, color='g')
+                                    poly_lims = self.hspan.get_xy()
+                                poly_lims[0, 1] = ymin
+                                poly_lims[1, 1] = ymax
+                                poly_lims[2] = [n / total, ymax]
+                                poly_lims[3] = [poly_lims[2, 0], ymin]
+                                if len(poly_lims) > 4:
+                                    poly_lims[4, 1] = ymin
+                                self.hspan.set_xy(poly_lims)
                             else:
                                 t_ago = [cur_t - i for i in xdata]
                                 line1.set_data(t_ago, ydata)
@@ -517,12 +534,26 @@ class tqdm(object):
 
                     ymin, ymax = ax.get_ylim()
                     if y > ymax or z > ymax:
-                        ax.set_ylim(ymin, 1.1 * y)
+                        ymax = 1.1 * y
+                        ax.set_ylim(ymin, ymax)
                         ax.figure.canvas.draw()
 
                     if total:
                         self.line1.set_data(self.xdata, self.ydata)
                         self.line2.set_data(self.xdata, self.zdata)
+                        try:
+                            poly_lims = self.hspan.get_xy()
+                        except AttributeError:
+                            self.hspan = self.plt.axhspan(0, 0.001, xmin=0,
+                                                          xmax=0, color='g')
+                            poly_lims = self.hspan.get_xy()
+                        poly_lims[0, 1] = ymin
+                        poly_lims[1, 1] = ymax
+                        poly_lims[2] = [self.n / total, ymax]
+                        poly_lims[3] = [poly_lims[2, 0], ymin]
+                        if len(poly_lims) > 4:
+                            poly_lims[4, 1] = ymin
+                        self.hspan.set_xy(poly_lims)
                     else:
                         t_ago = [cur_t - i for i in self.xdata]
                         self.line1.set_data(t_ago, self.ydata)
