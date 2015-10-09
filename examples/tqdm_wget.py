@@ -35,6 +35,8 @@ def my_hook(**kwargs):
             Size of each block (in tqdm units) [default: 1].
         tsize  : int, optional
             Total size (in tqdm units). If [default: None] remains unchanged.
+        close  : bool, optional
+            Whether to cleanly terminate the progressbar [default: False].
         '''
         if close:
             t.close()

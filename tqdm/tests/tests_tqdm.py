@@ -39,6 +39,8 @@ def test_format_meter():
         "            | 231/1000 [06:32<21:44,  0.59it/s]"
     assert format_meter(100000, 1000, 13, unit_scale=True, unit='iB') == \
         "100KiB [00:13, 7.69KiB/s]"
+    assert format_meter(100, 1000, 12, ncols=0) == \
+        " 10% 100/1000 [00:12<01:48,  8.33it/s]"
 
 
 def test_all_defaults():
@@ -141,6 +143,13 @@ def test_disable():
     our_file.seek(0)
     assert our_file.read() == ""
 
+    our_file2 = StringIO()
+    progressbar = tqdm(total=3, file=our_file2, miniters=1, disable=True)
+    progressbar.update(3)
+    progressbar.close()
+    our_file2.seek(0)
+    assert our_file2.read() == ""
+
 
 def test_unit():
     our_file = StringIO()
@@ -154,12 +163,17 @@ def test_unit():
 def test_update():
     """ Test manual creation and updates """
     our_file = StringIO()
-    progressbar = tqdm(total=3, file=our_file, miniters=1)
-    # make 3 increments in total
+    progressbar = tqdm(total=2, file=our_file, miniters=1)
     progressbar.update(2)
+    our_file.seek(0)
+    assert '| 2/2' in our_file.read()
+    progressbar.desc = 'dynamically notify of 4 increments in total'
+    progressbar.total = 4
     progressbar.update(-10)  # should default to +1
     our_file.seek(0)
-    assert '| 2/3 ' in our_file.read()
+    assert '| 3/4 ' in our_file.read()
+    our_file.seek(0)
+    assert 'dynamically notify of 4 increments in total' in our_file.read()
     our_file.close()
 
 

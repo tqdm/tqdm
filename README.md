@@ -16,9 +16,10 @@ You can also use `trange(N)` as a shortcut for `tqdm(xrange(N))`
 
 ![Screenshot](tqdm.gif)
 
-Overhead is low -- about 55ns per iteration. By comparison, our esteemed
-competition, [ProgressBar](https://code.google.com/p/python-progressbar/), has
-an 878ns/iter overhead. It's a matter of taste, but we also like to think our
+Overhead is low -- about 60ns per iteration (80ns with `gui=True`).
+By comparison, our esteemed
+competition [ProgressBar](https://code.google.com/p/python-progressbar/) has
+an 800ns/iter overhead. It's a matter of taste, but we also like to think our
 version is much more visually appealing.
 
 ## Installation
@@ -42,7 +43,7 @@ class tqdm:
     def __init__(self, iterable=None, desc=None, total=None, leave=False,
                  file=sys.stderr, ncols=None, mininterval=0.1,
                  miniters=None, ascii=None, disable=False,
-                 unit='it', unit_scale=False):
+                 unit='it', unit_scale=False, gui=False):
         """
         Parameters
         ----------
@@ -54,7 +55,9 @@ class tqdm:
         total  : int, optional
             The number of expected iterations. If not given, len(iterable) is
             used if possible. As a last resort, only basic progress
-            statistics are displayed (no ETA, no progressbar).
+            statistics are displayed (no ETA, no progressbar). If `gui` is
+            True and this parameter needs subsequent updating, specify an
+            initial arbitrary large positive integer, e.g. int(9e9).
         leave  : bool, optional
             If [default: False], removes all traces of the progressbar
             upon termination of iteration.
@@ -64,9 +67,10 @@ class tqdm:
             methods.
         ncols  : int, optional
             The width of the entire output message. If specified, dynamically
-            resizes the progress meter to stay within this bound
-            [default: None]. The fallback meter width is 10 for the progress
-            bar + no limit for the iterations counter and statistics.
+            resizes the progressbar to stay within this bound
+            [default: None]. The fallback is a meter width of 10 and no
+            limit for the counter and statistics. If 0, will not print any
+            meter (only stats).
         mininterval  : float, optional
             Minimum progress update interval, in seconds [default: 0.1].
         miniters  : int, optional
@@ -85,6 +89,9 @@ class tqdm:
             automatically and a metric prefix following the
             International System of Units standard will be added
             (kilo, mega, etc.) [default: False].
+        gui  : bool, optional
+            If set, will attempt to use matplotlib animations for a
+            graphical output [default: false].
 
         Returns
         -------
@@ -102,7 +109,7 @@ class tqdm:
         ...    t.update(len(current_buffer))
         >>> t.close()
         The last line is highly recommended, but possibly not necessary if
-        `t.update()` will be called in such a was that `filesize` will be
+        `t.update()` will be called in such a way that `filesize` will be
         exactly reached and printed.
 
         Parameters
@@ -114,8 +121,7 @@ class tqdm:
 
     def close(self):
         """
-        Call this method to force print the last progress bar update
-        based on the latest n value
+        Cleanup and (if leave=False) close the progressbar.
         """
 
 def trange(*args, **kwargs):
