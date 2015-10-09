@@ -11,6 +11,7 @@ env:
   - TOXENV=pypy3
   - TOXENV=flake8
 install:
+  - pip install 'coverage<4'
   - pip install tox coveralls
 script:
   - tox
