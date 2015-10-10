@@ -43,8 +43,36 @@ def test_format_meter():
         " 10% 100/1000 [00:12<01:48,  8.33it/s]"
 
 
+def test_si_format():
+    """ Test SI unit prefixes """
+    assert '9.00 ' in format_meter(1, 9, 1, unit_scale=True, unit='B')
+    assert '99.0 ' in format_meter(1, 99, 1, unit_scale=True)
+    assert '999 ' in format_meter(1, 999, 1, unit_scale=True)
+    assert '9.99K ' in format_meter(1, 9994, 1, unit_scale=True)
+    assert '10.0K ' in format_meter(1, 9999, 1, unit_scale=True)
+    assert '99.5K ' in format_meter(1, 99499, 1, unit_scale=True)
+    assert '100K ' in format_meter(1, 99999, 1, unit_scale=True)
+    assert '1.00M ' in format_meter(1, 999999, 1, unit_scale=True)
+    assert '1.00G ' in format_meter(1, 999999999, 1, unit_scale=True)
+    assert '1.00T ' in format_meter(1, 999999999999, 1, unit_scale=True)
+    assert '1.00P ' in format_meter(1, 999999999999999, 1, unit_scale=True)
+    assert '1.00E ' in format_meter(1, 999999999999999999, 1, unit_scale=True)
+    assert '1.00Z ' in format_meter(1, 999999999999999999999, 1,
+                                    unit_scale=True)
+    assert '1.0Y ' in format_meter(1, 999999999999999999999999, 1,
+                                   unit_scale=True)
+    assert '10.0Y ' in format_meter(1, 9999999999999999999999999, 1,
+                                    unit_scale=True)
+    assert '100.0Y ' in format_meter(1, 99999999999999999999999999, 1,
+                                     unit_scale=True)
+    assert '1000.0Y ' in format_meter(1, 999999999999999999999999999, 1,
+                                      unit_scale=True)
+
+
 def test_all_defaults():
-    for i in tqdm(range(10)):
+    progressbar = tqdm(range(10))
+    assert len(progressbar) == 10
+    for i in progressbar:
         pass
     import sys
     sys.stderr.write('tests_tqdm.test_all_defaults ... ')
@@ -164,6 +192,7 @@ def test_update():
     """ Test manual creation and updates """
     our_file = StringIO()
     progressbar = tqdm(total=2, file=our_file, miniters=1)
+    assert len(progressbar) == 2
     progressbar.update(2)
     our_file.seek(0)
     assert '| 2/2' in our_file.read()
