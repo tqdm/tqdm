@@ -38,9 +38,9 @@ def format_sizeof(num, suffix=''):
         Number with Order of Magnitude SI unit postfix.
     """
     for unit in ['', 'K', 'M', 'G', 'T', 'P', 'E', 'Z']:
-        if abs(num) < 1000.0:
-            if abs(num) < 100.0:
-                if abs(num) < 10.0:
+        if abs(num) < 999.95:
+            if abs(num) < 99.95:
+                if abs(num) < 9.995:
                     return '{0:1.2f}'.format(num) + unit + suffix
                 return '{0:2.1f}'.format(num) + unit + suffix
             return '{0:3.0f}'.format(num) + unit + suffix
@@ -271,7 +271,7 @@ class tqdm(object):
         if ascii is None:
             ascii = not _supports_unicode(file)
 
-        if gui:
+        if gui:  # pragma: no cover
             try:
                 import matplotlib as mpl
                 import matplotlib.pyplot as plt
@@ -298,7 +298,7 @@ class tqdm(object):
         self.unit_scale = unit_scale
         self.gui = gui
 
-        if gui:
+        if gui:  # pragma: no cover
             # Initialize the GUI display
             if not disable:
                 file.write('Warning: GUI is experimental/alpha\n')
@@ -360,7 +360,7 @@ class tqdm(object):
         self.n = 0
 
     def __len__(self):
-        return len(self.iterable)
+        return len(self.iterable) if self.iterable else self.total
 
     def __iter__(self):
         ''' Backward-compatibility to use: for x in tqdm(iterable) '''
@@ -386,7 +386,7 @@ class tqdm(object):
             last_print_n = self.last_print_n
             n = self.n
             gui = self.gui
-            if gui:
+            if gui:  # pragma: no cover
                 plt = self.plt
                 ax = self.ax
                 xdata = self.xdata
@@ -409,7 +409,7 @@ class tqdm(object):
                     delta_t = cur_t - last_print_t
                     if delta_t >= mininterval:
                         elapsed = cur_t - start_t
-                        if gui:
+                        if gui:  # pragma: no cover
                             # Inline due to multiple calls
                             total = self.total
                             # instantaneous rate
@@ -511,7 +511,7 @@ class tqdm(object):
             delta_t = cur_t - self.last_print_t
             if delta_t >= self.mininterval:
                 elapsed = cur_t - self.start_t
-                if self.gui:
+                if self.gui:  # pragma: no cover
                     # Inline due to multiple calls
                     total = self.total
                     ax = self.ax
@@ -581,7 +581,7 @@ class tqdm(object):
         if self.disable:
             return
 
-        if self.gui:
+        if self.gui:  # pragma: no cover
             # Restore toolbars
             self.mpl.rcParams['toolbar'] = self.toolbar
             # Return to non-interactive mode
