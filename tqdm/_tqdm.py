@@ -271,7 +271,7 @@ class tqdm(object):
         if ascii is None:
             ascii = not _supports_unicode(file)
 
-        if gui:
+        if gui: # pragma: no cover
             try:
                 import matplotlib as mpl
                 import matplotlib.pyplot as plt
@@ -298,7 +298,7 @@ class tqdm(object):
         self.unit_scale = unit_scale
         self.gui = gui
 
-        if gui:
+        if gui: # pragma: no cover
             # Initialize the GUI display
             if not disable:
                 file.write('Warning: GUI is experimental/alpha\n')
@@ -386,7 +386,7 @@ class tqdm(object):
             last_print_n = self.last_print_n
             n = self.n
             gui = self.gui
-            if gui:
+            if gui: # pragma: no cover
                 plt = self.plt
                 ax = self.ax
                 xdata = self.xdata
@@ -409,7 +409,7 @@ class tqdm(object):
                     delta_t = cur_t - last_print_t
                     if delta_t >= mininterval:
                         elapsed = cur_t - start_t
-                        if gui:
+                        if gui: # pragma: no cover
                             # Inline due to multiple calls
                             total = self.total
                             # instantaneous rate
@@ -511,7 +511,7 @@ class tqdm(object):
             delta_t = cur_t - self.last_print_t
             if delta_t >= self.mininterval:
                 elapsed = cur_t - self.start_t
-                if self.gui:
+                if self.gui:  # pragma: no cover
                     # Inline due to multiple calls
                     total = self.total
                     ax = self.ax
@@ -581,7 +581,7 @@ class tqdm(object):
         if self.disable:
             return
 
-        if self.gui:
+        if self.gui:  # pragma: no cover
             # Restore toolbars
             self.mpl.rcParams['toolbar'] = self.toolbar
             # Return to non-interactive mode
