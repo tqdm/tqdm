@@ -22,8 +22,8 @@ setup(
     maintainer_email='python.tqdm@gmail.com',
     platforms = ["any"],
     packages=['tqdm'],
-    long_description = open("README.md", "r").read(),
-    classifiers=[ # Trove classifiers, see https://pypi.python.org/pypi?%3Aaction=list_classifiers
+    long_description = open("README.rst", "r").read(),
+    classifiers=[  # Trove classifiers, see https://pypi.python.org/pypi?%3Aaction=list_classifiers
         'Development Status :: 5 - Production/Stable',
         'License :: OSI Approved :: MIT License',
         'Environment :: Console',
