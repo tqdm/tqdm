@@ -8,7 +8,15 @@
 tqdm (read ta<i>qa</i>dum, تقدّم) means "progress" in arabic.
 
 Instantly make your loops show a progress meter - just wrap any iterable with
-"tqdm(iterable)", and you're done! Here's what the output looks like:
+"tqdm(iterable)", and you're done!
+
+```python
+from tqdm import tqdm
+for i in tqdm(range(16)):
+    ...
+```
+
+Here's what the output looks like:
 
  76%|████████████████████` ` ` ` ` ` | 7641/10000 [00:34<00:10, 222.22 it/s]
 
@@ -22,14 +30,23 @@ competition [ProgressBar](https://code.google.com/p/python-progressbar/) has
 an 800ns/iter overhead. It's a matter of taste, but we also like to think our
 version is much more visually appealing.
 
+
 ## Installation
 
+### Latest pypi stable release
+
 ```sh
-# Latest stable release on pypi
 pip install tqdm
-# Latest development release on github
+```
+
+### Latest development release on github
+
+Pull and install in the current directory:
+
+```
 pip install -e git+https://github.com/tqdm/tqdm.git@master#egg=tqdm
 ```
+
 
 ## Documentation
 
@@ -176,6 +193,7 @@ It is recommend to use `miniters=1` whenever there is potentially large
 differences in iteration speed (e.g. downloading a file over a patchy
 connection).
 
+
 ## Contributions
 
 To run the testing suite please make sure tox (http://tox.testrun.org/)
@@ -190,7 +208,8 @@ $ make test
 $ make coverage
 ```
 
-See also the CONTRIBUTE file for more information.
+See the [CONTRIBUTE](CONTRIBUTE) file for more information.
+
 
 ## License
 

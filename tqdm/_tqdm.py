@@ -470,10 +470,15 @@ class tqdm(object):
                                 n, self.total, elapsed, ncols,
                                 self.desc, ascii, unit, unit_scale))
 
+                        # If no `miniters` was specified, adjust automatically
+                        # to the maximum iteration rate seen so far.
                         if dynamic_miniters:
                             miniters = max(miniters, delta_it)
+
+                        # Store old values for next call
                         last_print_n = n
                         last_print_t = cur_t
+
             # Closing the progress bar.
             # Update some internal variables for close().
             self.last_print_n = last_print_n
@@ -573,15 +578,15 @@ class tqdm(object):
                         self.n, self.total, elapsed, self.ncols,
                         self.desc, self.ascii, self.unit, self.unit_scale))
 
-                # If no miniters was specified, adjust automatically to the
-                # maximum iteration increase we have seen yet
-                # eg, if you do tqdm.update(5), then the subsequent
-                # calls to tqdm.update() won't update the progress bar
-                # until it reach 5 more iterations.
+                # If no `miniters` was specified, adjust automatically to the
+                # maximum iteration rate seen so far.
+                # e.g.: After running `tqdm.update(5)`, subsequent
+                # calls to `tqdm.update()` will only cause an update after
+                # at least 5 more iterations.
                 if self.dynamic_miniters:
                     self.miniters = max(self.miniters, delta_it)
 
-                # Update the memorization vars
+                # Store old values for next call
                 self.last_print_n = self.n
                 self.last_print_t = cur_t
 

@@ -1,41 +1,40 @@
 HOW TO CONTRIBUTE TO TQDM
-===========================
+=========================
 
-This file describes how to contribute changes to the project, and how to 
-upload to the pypi repository. 
+This file describes how to contribute changes to the project, and how to
+upload to the pypi repository.
 
 
-HOW TO COMMIT YOUR CONTRIBUTIONS 
------------------------------------------------------------ 
+HOW TO COMMIT YOUR CONTRIBUTIONS
+--------------------------------
 
-Contributions to the project is made using the `Fork & Pull` model. 
-Here's a quickstart on how to do that (your mileage may vary depending 
-on your git config): 
+Contributions to the project is made using the "Fork & Pull" model. Here's a
+quickstart on how to do that (your mileage may vary depending on your git
+config):
 
-- first create an account on github.
-- then go on the tqdm page `https://github.com/tqdm/tqdm` and fork it
-(click on the fork button).
-- now make a local clone of the project:
-`git clone https://github.com/your_account/tqdm.git`
-- do your changes on your local copy.
+- create an account on [github](https://github.com)
+- fork [tqdm](https://github.com/tqdm/tqdm)
+- make a local clone: `git clone https://github.com/your_account/tqdm.git`
+- make your changes on your local copy
 - commit your changes `git commit -m "my message"`
-- TEST YOUR CHANGES (see below).
-- push to your github account `git push origin`
-- and now you can make a `Pull Request` from your github fork by 
-going to the webpage and clicking on `Pull Request`. You can then add a 
-message to describe your proposal.
-- Your changes will then be reviewed and integrated into the project if OK. 
+- TEST YOUR CHANGES (see below)
+- `push` to your github account: `git push origin`
+- finally, create a Pull Request (PR) from your github fork
+(go to your fork's webpage and click on "Pull Request."
+You can then add a message to describe your proposal.)
 
 
 TESTING
-------------- 
+-------
 
-Before submitting a Pull Request, you need to make sure that all the 
-unit tests pass. This will ensure that your changes did not introduce 
-any regression in the features that already working. 
+To test functionality on your machine (such as before submitting a Pull
+Request), there are a number of unit tests.
 
-To run the test, cd to the root of the tqdm folder (in the same folder 
-as this file), and then type the following (you need to install `tox`):
+To run the tests,
+
+- install `tox`
+- `cd` to the root of the `tqdm` directory (in the same folder as this file)
+- run the following commands:
 
 ```
 make test
@@ -43,12 +42,12 @@ make coverage
 make flake8
 ```
 
-Alternatively, if you can't use the Makefile, you can use the following to run
-the tests (you need to install the `nosetest` python module before):
+Alternatively (if you can't use `make`)
+
+- install `nosetest`
+- run the following commands:
 
 ```
 nosetests --with-coverage --cover-package=tqdm -v tqdm/
 python -m flake8 tqdm/_tqdm.py
 ```
-
-If all the tests pass, then everything's good, you can submit a Pull Request.

@@ -1,12 +1,19 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from tqdm._version import __version__
+import os
 from setuptools import setup
+
+# Get version from tqdm/_version.py
+__version__ = None
+version_file = os.path.join(os.path.dirname(__file__), 'tqdm', '_version.py')
+for line in open(version_file).readlines():
+    if (line.startswith('version_info') or line.startswith('__version__')):
+        exec(line.strip())
 
 setup(
     name='tqdm',
     version=__version__,
-    description='A Simple And Fast Python Progress Meter',
+    description='A Fast, Extensible Progress Meter',
     license='MIT License',
     author='Noam Yorav-Raphael',
     author_email='noamraph@gmail.com',
