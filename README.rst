@@ -3,8 +3,7 @@
 tqdm
 ====
 
-| |Build Status|
-| |Coverage Status|
+|Build Status| |Coverage Status|
 
 tqdm (read taqadum, تقدّم) means "progress" in arabic.
 
