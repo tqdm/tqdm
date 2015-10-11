@@ -30,11 +30,8 @@ TESTING
 To test functionality on your machine (such as before submitting a Pull
 Request), there are a number of unit tests.
 
-To run the tests,
-
-- install `tox`
-- `cd` to the root of the `tqdm` directory (in the same folder as this file)
-- run the following commands:
+To run the test, cd to the root of the tqdm folder (in the same folder 
+as this file), and then type the following (you need to install `tox`):
 
 ```
 make test
