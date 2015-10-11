@@ -47,7 +47,7 @@ Latest development release on github
 
 Pull and install in the current directory:
 
-::
+.. code:: sh
     pip install -e git+https://github.com/tqdm/tqdm.git@master#egg=tqdm
 
 Documentation
