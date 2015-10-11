@@ -232,9 +232,9 @@ Authors
 -  Casper da Costa-Luis (casperdcl)
 -  Stephen Larroque (lrq3000)
 
-.. |Logo| image:: logo.png
+.. |Logo| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/logo.png
 .. |Build Status| image:: https://travis-ci.org/tqdm/tqdm.svg?branch=master
    :target: https://travis-ci.org/tqdm/tqdm
 .. |Coverage Status| image:: https://coveralls.io/repos/tqdm/tqdm/badge.svg
    :target: https://coveralls.io/r/tqdm/tqdm
-.. |Screenshot| image:: tqdm.gif
+.. |Screenshot| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/tqdm.gif
