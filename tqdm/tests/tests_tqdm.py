@@ -188,7 +188,7 @@ def test_dynamic_min_iters():
     assert "70%" in out
 
     our_file = StringIO()
-    t = tqdm(range(10), file=our_file, miniters=None, mininterval=0)
+    t = tqdm(range(10), file=our_file, miniters=None, mininterval=None)
     for i in t:
         pass
     assert t.dynamic_miniters
