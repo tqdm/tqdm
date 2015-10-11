@@ -2,4 +2,3 @@
 branch = True
 omit =
     tqdm/tests/*
-    tqdm/_version.py
