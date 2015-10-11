@@ -268,6 +268,9 @@ class tqdm(object):
             dynamic_miniters = False
             mininterval = 0
 
+        if mininterval is None:
+            mininterval = 0
+
         if ascii is None:
             ascii = not _supports_unicode(file)
 
@@ -569,8 +572,16 @@ class tqdm(object):
                     self.sp(format_meter(
                         self.n, self.total, elapsed, self.ncols,
                         self.desc, self.ascii, self.unit, self.unit_scale))
+
+                # If no miniters was specified, adjust automatically to the
+                # maximum iteration increase we have seen yet
+                # eg, if you do tqdm.update(5), then the subsequent
+                # calls to tqdm.update() won't update the progress bar
+                # until it reach 5 more iterations.
                 if self.dynamic_miniters:
                     self.miniters = max(self.miniters, delta_it)
+
+                # Update the memorization vars
                 self.last_print_n = self.n
                 self.last_print_t = cur_t
 
