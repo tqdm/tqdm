@@ -19,7 +19,7 @@ iterable with "tqdm(iterable)", and you're done!
 
 Here's what the output looks like:
 
-76%\|████████████████████\ ``_`` ``_`` \| 7641/10000 [00:34<00:10,
+76%\|████████████████████\ ``_`` ``_`` ``_`` \| 7641/10000 [00:34<00:10,
 222.22 it/s]
 
 You can also use ``trange(N)`` as a shortcut for ``tqdm(xrange(N))``
@@ -47,7 +47,7 @@ Latest development release on github
 
 Pull and install in the current directory:
 
-::
+.. code:: sh
     pip install -e git+https://github.com/tqdm/tqdm.git@master#egg=tqdm
 
 Documentation
