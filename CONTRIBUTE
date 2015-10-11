@@ -1,5 +1,5 @@
-CONTRIBUTING TO TQDM
-===================== 
+HOW TO CONTRIBUTE TO TQDM
+===========================
 
 This file describes how to contribute changes to the project, and how to 
 upload to the pypi repository. 
@@ -86,9 +86,8 @@ python setup.py develop
 Secondly, we need to build tqdm into a distributable python package: 
 
 ```
-python setup.py sdist --formats=gztar,zip bdist_wininst 
---plat-name=win32 python setup.py sdist bdist_egg bdist_wheel 
---plat-name=win32
+python setup.py sdist --formats=gztar,zip bdist_wininst --plat-name=win32
+python setup.py sdist bdist_wheel --plat-name=win32
 ``` 
 
 This will generate several builds in the dist/ folder. 
@@ -99,6 +98,11 @@ easily using the [twine](https://github.com/pypa/twine) module:
 ```
 twine upload dist/*
 ```
+
+NOTE: you can also test on the pypi test servers `testpypi.python.org/pypi`
+before the real deployment. Note also that in case of a mistake, you can delete
+an uploaded release on pypi, but you cannot re-upload another with the same
+version number!
 
 Also, the new release can be added to the Github by creating a new release from
 the web interface.
