@@ -1,0 +1,69 @@
+CONTRIBUTING TO TQDM
+=====================
+
+This file describes how to contribute changes to the project, and how to upload to the pypi repository.
+
+HOW TO COMMIT YOUR CONTRIBUTIONS
+-----------------------------------------------------------
+
+Contributions to the project is made using the `Fork & Pull` model. Here's a quickstart on how to do that (your mileage may vary depending on your git config):
+
+- first create an account on github.
+- then go on the tqdm page `https://github.com/tqdm/tqdm` and fork it (click on the fork button).
+- now make a local clone of the project: `git clone https://github.com/your_account/tqdm.git`
+- do your changes on your local copy.
+- commit your changes `git commit -m "my message"`
+- TEST YOUR CHANGES (see below).
+- push to your github account `git push origin`
+- and now you can make a `Pull Request` from your github fork by going to the webpage and clicking on `Pull Request`. You can then add a message to describe your proposal.
+- Your changes will then be reviewed and integrated into the project if OK.
+
+TESTING
+-------------
+
+Before submitting a Pull Request, you need to make sure that all the unit tests pass. This will ensure that your changes did not introduce any regression in the features that already working.
+
+To run the test, cd to the root of the tqdm folder (in the same folder as this file), and then type the following (you need to install the `nosetest` python module before):
+
+```
+nosetests --with-coverage --cover-package=tqdm -v tqdm/
+python -m flake8 tqdm/_tqdm.py
+```
+
+If all the tests pass, then everything is good, you can submit a Pull Request.
+
+SEMANTIC VERSIONING
+----------------------------------
+
+The tqdm repository managers should regularly bump the version number in the VERSION file to follow the [Semantic Versioning](http://semver.org/) convention.
+
+Tools can be used to automate this process, such as [bumpversion](https://github.com/peritus/bumpversion) or [python-semanticversion](https://github.com/rbarrois/python-semanticversion/) to automate this task.
+
+The managers should take care of this instead of users to avoid PR conflicts solely due to the VERSION file bumping.
+
+UPLOADING TO PYPI
+------------------------------
+
+First, we need to check the setup.py and MANIFEST.in files, which define the packaging process and the infos that will be uploaded to pypi.
+
+You can check the result easily by using the following commands:
+
+```
+python setup.py develop --uninstall
+python setup.py develop
+```
+
+Secondly, we need to build tqdm into a distributable python package:
+
+```
+python setup.py sdist --formats=gztar,zip bdist_wininst --plat-name=win32
+python setup.py sdist bdist_egg bdist_wheel --plat-name=win32
+```
+
+This will generate several builds in the dist/ folder.
+
+Finally, we can upload everything to pypi. Uploading to pypi can be done easily using the [twine](https://github.com/pypa/twine) module:
+
+```
+twine upload dist/*
+```
