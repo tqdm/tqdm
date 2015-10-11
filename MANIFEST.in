@@ -4,7 +4,8 @@ include CONTRIBUTE
 include LICENSE
 include logo.png
 include Makefile
-include README.md
+include README.rst
+include RELEASE
 include tox.ini
 include tqdm.gif
 
