@@ -21,6 +21,22 @@ The managers should take care of this instead of users to avoid PR conflicts
 solely due to the VERSION file bumping.
 
 
+CHECKING SETUP.PY
+------------------------------------
+
+To check that the setup.py is OK for PyPi (eg, version number,
+reStructuredText in README.rst intelligible for PyPi, which uses a
+awkward RST lib, etc.) you can use the following command to make
+sure everything's ok:
+
+```
+python setup.py check --restructuredtext --strict
+```
+
+Also, if you happen to mistakenly upload a broken release to PyPi,
+you can fix the metadata by using: `python setup.py register`.
+
+
 BUILDING A RELEASE AND UPLOADING TO PYPI
 ----------------------------------------
 
@@ -56,6 +72,9 @@ NOTE:
 before the real deployment
 - in case of a mistake, you can delete an uploaded release on pypi, but you
 cannot re-upload another with the same version number!
+- in case of a mistake in the metadata on pypi (like the long description README
+getting garbled because of a silent error), you can use the following
+command to update the metadata: `python setup.py register`
 
 Also, the new release can be added to the Github by creating a new release
 from the web interface.
