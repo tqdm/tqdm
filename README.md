@@ -25,10 +25,10 @@ version is much more visually appealing.
 ## Installation
 
 ```sh
-# newer, faster, prettier, stable version
-pip install -e git+https://github.com/tqdm/tqdm.git@master#egg=tqdm
-# or (old version on pypi)
+# Latest stable release on pypi
 pip install tqdm
+# Latest development release on github
+pip install -e git+https://github.com/tqdm/tqdm.git@master#egg=tqdm
 ```
 
 ## Documentation
@@ -160,7 +160,7 @@ def my_hook(**kwargs):
             t.close()
             return
         t.total = tsize
-        t.update((b - last_b[0]) * bsize)
+        t.update((b - last_b[0]) * bsize) # manually update the progressbar
         last_b[0] = b
     return inner
 
@@ -190,6 +190,8 @@ $ make test
 $ make coverage
 ```
 
+See also the CONTRIBUTE file for more information.
+
 ## License
 
 [MIT LICENSE](LICENSE).
@@ -202,4 +204,4 @@ $ make coverage
 - Mikhail Korobov (kmike)
 - Hadrien Mary (hadim)
 - Casper da Costa-Luis (casperdcl)
-- Stephen L (lrq3000)
+- Stephen Larroque (lrq3000)

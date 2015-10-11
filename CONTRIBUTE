@@ -34,7 +34,7 @@ unit tests pass. This will ensure that your changes did not introduce
 any regression in the features that already working. 
 
 To run the test, cd to the root of the tqdm folder (in the same folder 
-as this file), and then type the following:
+as this file), and then type the following (you need to install `tox`):
 
 ```
 make test
