@@ -1,8 +1,9 @@
-CONTRIBUTING TO TQDM
-===================== 
+HOW TO CONTRIBUTE TO TQDM
+===========================
 
 This file describes how to contribute changes to the project, and how to 
 upload to the pypi repository. 
+
 
 HOW TO COMMIT YOUR CONTRIBUTIONS 
 ----------------------------------------------------------- 
@@ -26,8 +27,8 @@ message to describe your proposal.
 - Your changes will then be reviewed and integrated into the project if OK. 
 
 
-
-TESTING ------------- 
+TESTING
+------------- 
 
 Before submitting a Pull Request, you need to make sure that all the 
 unit tests pass. This will ensure that your changes did not introduce 
@@ -52,6 +53,7 @@ python -m flake8 tqdm/_tqdm.py
 
 If all the tests pass, then everything's good, you can submit a Pull Request.
 
+
 SEMANTIC VERSIONING
 ---------------------------------- 
 
@@ -67,8 +69,9 @@ ion/) to automate this task.
 The managers should take care of this instead of users to avoid PR 
 conflicts solely due to the VERSION file bumping. 
 
-UPLOADING TO PYPI
------------------------------- 
+
+BUILDING A RELEASE AND UPLOADING TO PYPI
+---------------------------------------------------------------------
 
 First, we need to check the setup.py and MANIFEST.in files, which define 
 the packaging process and the infos that will be uploaded to pypi. 
@@ -83,9 +86,8 @@ python setup.py develop
 Secondly, we need to build tqdm into a distributable python package: 
 
 ```
-python setup.py sdist --formats=gztar,zip bdist_wininst 
---plat-name=win32 python setup.py sdist bdist_egg bdist_wheel 
---plat-name=win32
+python setup.py sdist --formats=gztar,zip bdist_wininst --plat-name=win32
+python setup.py sdist bdist_wheel --plat-name=win32
 ``` 
 
 This will generate several builds in the dist/ folder. 
@@ -95,5 +97,13 @@ easily using the [twine](https://github.com/pypa/twine) module:
 
 ```
 twine upload dist/*
-``` 
+```
+
+NOTE: you can also test on the pypi test servers `testpypi.python.org/pypi`
+before the real deployment. Note also that in case of a mistake, you can delete
+an uploaded release on pypi, but you cannot re-upload another with the same
+version number!
+
+Also, the new release can be added to the Github by creating a new release from
+the web interface.
 
