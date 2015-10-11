@@ -12,4 +12,4 @@ include tqdm.gif
 recursive-include tqdm/tests *.py
 
 # Examples/Documentation
-#recursive-include examples/ *
+recursive-include examples *

@@ -11,7 +11,9 @@ setup(
     author='Noam Yorav-Raphael, Casper da Costa-Luis, Hadrien Mary, Mikhail Korobov, Ivan Ivanov, Stephen Larroque',
     author_email='python.tqdm@gmail.com',
     url='https://github.com/tqdm/tqdm',
+    platforms = ["any"],
     packages=['tqdm'],
+    long_description = open("README.md", "r").read(),
     classifiers=[ # Trove classifiers, see https://pypi.python.org/pypi?%3Aaction=list_classifiers
         'Development Status :: 5 - Production/Stable',
         'License :: OSI Approved :: MIT License',
@@ -37,4 +39,5 @@ setup(
         'Topic :: Utilities',
         'Intended Audience :: Developers',
     ],
+    keywords = 'progressbar progressmeter progress bar meter rate eta console terminal time',
 )
