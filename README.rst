@@ -11,6 +11,12 @@ tqdm (read taqadum, تقدّم) means "progress" in arabic.
 Instantly make your loops show a progress meter - just wrap any
 iterable with "tqdm(iterable)", and you're done!
 
+.. code:: python
+
+    from tqdm import tqdm
+    for i in tqdm(range(16)):
+        ...
+
 Here's what the output looks like:
 
 76%\|████████████████████\ ````` ````` \| 7641/10000 [00:34<00:10,
@@ -29,11 +35,19 @@ version is much more visually appealing.
 Installation
 ------------
 
+Latest pypi stable release
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 .. code:: sh
 
-    # Latest stable release on pypi
     pip install tqdm
-    # Latest development release on github
+
+Latest development release on github
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Pull and install in the current directory:
+
+::
     pip install -e git+https://github.com/tqdm/tqdm.git@master#egg=tqdm
 
 Documentation
@@ -201,7 +215,7 @@ with the following command:
     $ make test
     $ make coverage
 
-See also the CONTRIBUTE file for more information.
+See the `CONTRIBUTE <CONTRIBUTE>`__ file for more information.
 
 License
 -------
