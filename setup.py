@@ -6,7 +6,7 @@ from setuptools import setup
 setup(
     name='tqdm',
     version=__version__,
-    description='A Simple And Fast Python Progress Meter',
+    description='A Fast, Extensible Progress Meter',
     license='MIT License',
     author='Noam Yorav-Raphael',
     author_email='noamraph@gmail.com',
