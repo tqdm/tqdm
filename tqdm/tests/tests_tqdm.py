@@ -164,6 +164,55 @@ def test_min_iters():
     our_file2.close()
 
 
+def test_dynamic_min_iters():
+    our_file = StringIO()
+    total = 10
+    t = tqdm(total=total, file=our_file, miniters=None, mininterval=0)
+
+    t.update()
+    # Increase 3 iterations
+    t.update(3)
+    # The next two iterations should be skipped because of dynamic_miniters
+    t.update()
+    t.update()
+    # The third iteration should be displayed
+    t.update()
+
+    our_file.seek(0)
+    out = our_file.read()
+    assert t.dynamic_miniters
+    assert "  0%|          | 0/10 [00:00<" in out
+    assert "40%" in out
+    assert "50%" not in out
+    assert "60%" not in out
+    assert "70%" in out
+
+    our_file = StringIO()
+    t = tqdm(range(10), file=our_file, miniters=None, mininterval=None)
+    for i in t:
+        pass
+    assert t.dynamic_miniters
+
+    our_file.close()
+
+
+def test_big_min_interval():
+    our_file = StringIO()
+    for i in tqdm(range(2), file=our_file, mininterval=1E10):
+        pass
+    our_file.seek(0)
+    assert "50%" not in our_file.read()
+
+    our_file = StringIO()
+    t = tqdm(range(2), file=our_file, mininterval=1E10)
+    t.update()
+    t.update()
+    our_file.seek(0)
+    assert "50%" not in our_file.read()
+
+    our_file.close()
+
+
 def test_disable():
     our_file = StringIO()
     for i in tqdm(range(3), file=our_file, disable=True):

@@ -1,0 +1,53 @@
+HOW TO CONTRIBUTE TO TQDM
+=========================
+
+This file describes how to contribute changes to the project, and how to
+upload to the pypi repository.
+
+
+HOW TO COMMIT YOUR CONTRIBUTIONS
+--------------------------------
+
+Contributions to the project is made using the "Fork & Pull" model. Here's a
+quickstart on how to do that (your mileage may vary depending on your git
+config):
+
+- create an account on [github](https://github.com)
+- fork [tqdm](https://github.com/tqdm/tqdm)
+- make a local clone: `git clone https://github.com/your_account/tqdm.git`
+- make your changes on your local copy
+- commit your changes `git commit -m "my message"`
+- TEST YOUR CHANGES (see below)
+- `push` to your github account: `git push origin`
+- finally, create a Pull Request (PR) from your github fork
+(go to your fork's webpage and click on "Pull Request."
+You can then add a message to describe your proposal.)
+
+
+TESTING
+-------
+
+To test functionality on your machine (such as before submitting a Pull
+Request), there are a number of unit tests.
+
+To run the tests,
+
+- install `tox`
+- `cd` to the root of the `tqdm` directory (in the same folder as this file)
+- run the following commands:
+
+```
+make test
+make coverage
+make flake8
+```
+
+Alternatively (if you can't use `make`)
+
+- install `nosetest`
+- run the following commands:
+
+```
+nosetests --with-coverage --cover-package=tqdm -v tqdm/
+python -m flake8 tqdm/_tqdm.py
+```
