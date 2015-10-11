@@ -19,7 +19,7 @@ iterable with "tqdm(iterable)", and you're done!
 
 Here's what the output looks like:
 
-76%\|████████████████████\ ````` ````` \| 7641/10000 [00:34<00:10,
+76%\|████████████████████\ ``_`` ``_`` \| 7641/10000 [00:34<00:10,
 222.22 it/s]
 
 You can also use ``trange(N)`` as a shortcut for ``tqdm(xrange(N))``
