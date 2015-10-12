@@ -238,5 +238,7 @@ Authors
 .. |Coverage Status| image:: https://coveralls.io/repos/tqdm/tqdm/badge.svg
    :target: https://coveralls.io/r/tqdm/tqdm
 .. |PyPi Status| image:: https://img.shields.io/pypi/v/tqdm.svg
+   :target: https://pypi.python.org/pypi/tqdm
 .. |PyPi Downloads| image:: https://img.shields.io/pypi/dm/tqdm.svg
+   :target: https://pypi.python.org/pypi/tqdm
 .. |Screenshot| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/tqdm.gif
