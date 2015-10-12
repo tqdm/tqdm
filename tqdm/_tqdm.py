@@ -266,7 +266,6 @@ class tqdm(object):
             dynamic_miniters = True
         else:
             dynamic_miniters = False
-            mininterval = 0
 
         if mininterval is None:
             mininterval = 0
