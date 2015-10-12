@@ -10,6 +10,8 @@ env:
   - TOXENV=pypy
   - TOXENV=pypy3
   - TOXENV=flake8
+before_install:
+  - pip install codecov
 install:
   - pip install 'coverage<4'
   - pip install tox coveralls
@@ -17,3 +19,4 @@ script:
   - tox
 after_success:
   - coveralls
+  - codecov
