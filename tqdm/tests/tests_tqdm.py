@@ -188,10 +188,17 @@ def test_dynamic_min_iters():
     assert "70%" in out
 
     our_file = StringIO()
-    t = tqdm(range(10), file=our_file, miniters=None, mininterval=None)
+    t = tqdm(range(10), file=our_file, miniters=None, mininterval=None,
+             leave=True)
     for i in t:
         pass
     assert t.dynamic_miniters
+
+    our_file = StringIO()
+    t = tqdm(range(10), file=our_file, miniters=1, mininterval=None)
+    for i in t:
+        pass
+    assert not t.dynamic_miniters
 
     our_file.close()
 
@@ -240,7 +247,7 @@ def test_unit():
 def test_update():
     """ Test manual creation and updates """
     our_file = StringIO()
-    progressbar = tqdm(total=2, file=our_file, miniters=1)
+    progressbar = tqdm(total=2, file=our_file, miniters=1, mininterval=0)
     assert len(progressbar) == 2
     progressbar.update(2)
     our_file.seek(0)
