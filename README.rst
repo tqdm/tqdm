@@ -13,7 +13,7 @@ iterable with "tqdm(iterable)", and you're done!
 .. code:: python
 
     from tqdm import tqdm
-    for i in tqdm(range(16)):
+    for i in tqdm(range(9)):
         ...
 
 Here's what the output looks like:
@@ -30,6 +30,7 @@ By comparison, the well established
 `ProgressBar <https://code.google.com/p/python-progressbar/>`__ has
 an 800ns/iter overhead. It's a matter of taste, but we also like to think our
 version is much more visually appealing.
+
 
 Installation
 ------------
@@ -49,6 +50,7 @@ Pull and install in the current directory:
 .. code:: sh
 
     pip install -e git+https://github.com/tqdm/tqdm.git@master#egg=tqdm
+
 
 Documentation
 -------------
@@ -200,6 +202,7 @@ It is recommend to use ``miniters=1`` whenever there is potentially
 large differences in iteration speed (e.g. downloading a file over
 a patchy connection).
 
+
 Contributions
 -------------
 
@@ -217,10 +220,12 @@ with the following command:
 
 See the `CONTRIBUTE <CONTRIBUTE>`__ file for more information.
 
+
 License
 -------
 
 `MIT LICENSE <LICENSE>`__.
+
 
 Authors
 -------

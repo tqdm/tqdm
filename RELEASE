@@ -1,5 +1,5 @@
 HOW TO MANAGE A NEW RELEASE
-=============================
+===========================
 
 This file is intended for the project's maintainers and it describes
 how to update, build and upload a new release.
@@ -22,7 +22,7 @@ solely due to the VERSION file bumping.
 
 
 CHECKING SETUP.PY
-------------------------------------
+-----------------
 
 To check that the setup.py is OK for PyPi (eg, version number,
 reStructuredText in README.rst intelligible for PyPi, which uses a
