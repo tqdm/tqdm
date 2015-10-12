@@ -3,7 +3,7 @@
 tqdm
 ====
 
-|Build Status| |Coverage Status|
+|Build Status| |Coverage Status| |PyPi Status| |PyPi Downloads|
 
 tqdm (read taqadum, تقدّم) means "progress" in arabic.
 
@@ -237,4 +237,6 @@ Authors
    :target: https://travis-ci.org/tqdm/tqdm
 .. |Coverage Status| image:: https://coveralls.io/repos/tqdm/tqdm/badge.svg
    :target: https://coveralls.io/r/tqdm/tqdm
+.. |PyPi Status| image:: https://img.shields.io/pypi/v/tqdm.svg
+.. |PyPi Downloads| image:: https://img.shields.io/pypi/dm/tqdm.svg
 .. |Screenshot| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/tqdm.gif
