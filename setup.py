@@ -49,4 +49,6 @@ setup(
         'Intended Audience :: Developers',
     ],
     keywords = 'progressbar progressmeter progress bar meter rate eta console terminal time',
+    test_suite='nose.collector',
+    tests_require=['nose', 'flake8', 'coverage'],
 )
