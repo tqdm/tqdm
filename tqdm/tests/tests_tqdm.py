@@ -282,3 +282,16 @@ def test_close():
     our_file2.seek(0)
     assert '| 3/3 ' not in our_file2.read()  # Should be blank
     our_file2.close()
+
+    # With all updates
+    our_file3 = StringIO()
+    progressbar = tqdm(total=3, file=our_file3, miniters=0, mininterval=0,
+                       leave=True)
+    progressbar.update(3)
+    our_file3.seek(0)
+    out3 = our_file3.read()
+    assert '| 3/3 ' in out3  # Should be blank
+    progressbar.close()
+    our_file3.seek(0)
+    assert out3 + '\n' == our_file3.read()
+    our_file3.close()
