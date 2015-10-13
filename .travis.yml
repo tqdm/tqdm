@@ -1,6 +1,10 @@
 sudo: false
 language: python
 python: 3.4
+branches:
+  only:
+    - master
+    - /^\d\.\d+$/
 env:
   - TOXENV=py26
   - TOXENV=py27
