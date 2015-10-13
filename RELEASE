@@ -4,6 +4,12 @@ HOW TO MANAGE A NEW RELEASE
 This file is intended for the project's maintainers and it describes
 how to update, build and upload a new release.
 
+Most of the management commands have been directly placed inside
+the Makefile, so you just have to run `make [alias]`.
+
+Note: to use the Makefile on Windows, you need to install make.exe,
+for example by installing [MinGW MSYS](http://www.mingw.org/wiki/msys).
+
 
 SEMANTIC VERSIONING
 -------------------
@@ -34,7 +40,7 @@ python setup.py check --restructuredtext --strict
 ```
 
 Also, if you happen to mistakenly upload a broken release to PyPi,
-you can fix the metadata by using: `python setup.py register`.
+you can fix the metadata by using: `make pypimeta` or `python setup.py register`
 
 
 BUILDING A RELEASE AND UPLOADING TO PYPI
@@ -46,15 +52,13 @@ process and info that will be uploaded to [pypi](pypi.python.org).
 Check the result by using the following commands:
 
 ```
-python setup.py develop --uninstall
-python setup.py develop
+make installdev
 ```
 
 Secondly, build tqdm into a distributable python package:
 
 ```
-python setup.py sdist --formats=gztar,zip bdist_wininst --plat-name=win32
-python setup.py sdist bdist_wheel --plat-name=win32
+make build
 ```
 
 This will generate several builds in the `dist/` folder.
@@ -63,7 +67,7 @@ Finally, we can upload everything to pypi. Uploading to pypi can be done
 easily using the [twine](https://github.com/pypa/twine) module:
 
 ```
-twine upload dist/*
+make pypi
 ```
 
 NOTE:
@@ -74,7 +78,7 @@ before the real deployment
 cannot re-upload another with the same version number!
 - in case of a mistake in the metadata on pypi (like the long description README
 getting garbled because of a silent error), you can use the following
-command to update the metadata: `python setup.py register`
+command to update the metadata: `make pypimeta` or `python setup.py register`
 
 Also, the new release can be added to the Github by creating a new release
 from the web interface.

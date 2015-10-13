@@ -1,6 +1,8 @@
 .PHONY: all flake8 test coverage
 
-all: flake8 coverage
+alltests: testcoverage flake8 testsetup
+all: alltests build
+
 flake8:
 	flake8 --max-line-length=80 --count --statistics --exit-zero tqdm/
 	flake8 --max-line-length=80 --count --statistics --exit-zero examples/
@@ -8,5 +10,27 @@ flake8:
 test:
 	nosetests tqdm -v
 
-coverage:
+testsetup:
+	python setup.py check --restructuredtext --strict
+
+testcoverage:
 	nosetests tqdm --with-coverage --cover-package=tqdm -v
+
+allenvtests: tox
+
+installdev:
+	python setup.py develop --uninstall
+	python setup.py develop
+
+install:
+	python setup.py install
+
+build:
+	python setup.py sdist --formats=gztar,zip bdist_wininst
+	python setup.py sdist bdist_wheel
+
+pypimeta:
+	python setup.py register
+
+pypi:
+	twine upload dist/*
