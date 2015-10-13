@@ -1,6 +1,6 @@
 .PHONY: all flake8 test coverage
 
-alltests: test coverage flake8 testsetup
+alltests: testcoverage flake8 testsetup
 all: alltests build
 
 flake8:
@@ -13,7 +13,7 @@ test:
 testsetup:
 	python setup.py check --restructuredtext --strict
 
-coverage:
+testcoverage:
 	nosetests tqdm --with-coverage --cover-package=tqdm -v
 
 installdev:
