@@ -16,6 +16,8 @@ testsetup:
 testcoverage:
 	nosetests tqdm --with-coverage --cover-package=tqdm -v
 
+allenvtests: tox
+
 installdev:
 	python setup.py develop --uninstall
 	python setup.py develop
