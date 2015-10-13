@@ -4,6 +4,9 @@ HOW TO CONTRIBUTE TO TQDM
 This file describes how to contribute changes to the project, and how to
 upload to the pypi repository.
 
+Most of the management commands have been directly placed inside
+the Makefile, so you just have to run `make [alias]`.
+
 
 HOW TO COMMIT YOUR CONTRIBUTIONS
 --------------------------------
@@ -34,12 +37,10 @@ To run the tests,
 
 - install `tox`
 - `cd` to the root of the `tqdm` directory (in the same folder as this file)
-- run the following commands:
+- run the following command:
 
 ```
-make test
-make coverage
-make flake8
+make alltests
 ```
 
 Alternatively (if you can't use `make`)
@@ -51,3 +52,6 @@ Alternatively (if you can't use `make`)
 nosetests --with-coverage --cover-package=tqdm -v tqdm/
 python -m flake8 tqdm/_tqdm.py
 ```
+
+Then wait for the tests to finish, and check your console to see if there's
+any issue.
