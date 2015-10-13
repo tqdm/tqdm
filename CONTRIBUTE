@@ -7,6 +7,9 @@ upload to the pypi repository.
 Most of the management commands have been directly placed inside
 the Makefile, so you just have to run `make [alias]`.
 
+Note: to use the Makefile on Windows, you need to install make.exe,
+for example by installing [MinGW MSYS](http://www.mingw.org/wiki/msys).
+
 
 HOW TO COMMIT YOUR CONTRIBUTIONS
 --------------------------------

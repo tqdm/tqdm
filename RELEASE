@@ -7,6 +7,9 @@ how to update, build and upload a new release.
 Most of the management commands have been directly placed inside
 the Makefile, so you just have to run `make [alias]`.
 
+Note: to use the Makefile on Windows, you need to install make.exe,
+for example by installing [MinGW MSYS](http://www.mingw.org/wiki/msys).
+
 
 SEMANTIC VERSIONING
 -------------------
