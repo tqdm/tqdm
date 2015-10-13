@@ -193,7 +193,6 @@ class tqdm(object):
     like the orignal iterable, but prints a dynamically updating
     progressbar every time a value is requested.
     """
-
     def __init__(self, iterable=None, desc=None, total=None, leave=False,
                  file=sys.stderr, ncols=None, mininterval=0.1,
                  miniters=None, ascii=None, disable=False,
@@ -229,7 +228,6 @@ class tqdm(object):
             Minimum progress update interval, in seconds [default: 0.1].
         miniters  : int, optional
             Minimum progress update interval, in iterations [default: None].
-            If specified, will set `mininterval` to 0.
         ascii  : bool, optional
             If [default: None] or false, use unicode (smooth blocks) to fill
             the meter. The fallback is to use ASCII characters `1-9 #`.

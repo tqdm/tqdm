@@ -18,7 +18,7 @@ iterable with "tqdm(iterable)", and you're done!
 
 Here's what the output looks like:
 
-76%\|████████████████████\ ``_`` ``_`` ``_`` \| 7641/10000 [00:34<00:10,
+76%\|████████████████████\             \| 7641/10000 [00:34<00:10,
 222.22 it/s]
 
 You can also use ``trange(N)`` as a shortcut for ``tqdm(xrange(N))``
@@ -57,7 +57,7 @@ Documentation
 
 .. code:: python
 
-    class tqdm:
+    class tqdm(object):
         """
         Decorate an iterable object, returning an iterator which acts exactly
         like the orignal iterable, but prints a dynamically updating
@@ -98,7 +98,6 @@ Documentation
                 Minimum progress update interval, in seconds [default: 0.1].
             miniters  : int, optional
                 Minimum progress update interval, in iterations [default: None].
-                If specified, will set `mininterval` to 0.
             ascii  : bool, optional
                 If [default: None] or false, use unicode (▏▎▋█ █) to fill
                 the meter. The fallback is to use ASCII characters `1-9 #`.
