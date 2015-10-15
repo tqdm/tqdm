@@ -4,8 +4,13 @@ import os
 from setuptools import setup
 
 # For Makefile parsing
-import ConfigParser
-import StringIO
+try:    # pragma: no cover
+    import ConfigParser
+    import StringIO
+except NameError:    # pragma: no cover
+    # Python 3 compatibility
+    import configparser as ConfigParser
+    import io as StringIO
 import sys, subprocess
 
 
