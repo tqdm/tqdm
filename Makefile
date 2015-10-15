@@ -36,7 +36,7 @@ testnose:
 
 testsetup:
 	python setup.py check --restructuredtext --strict
-    python setup.py make none
+	python setup.py make none
 
 testcoverage:
 	nosetests tqdm --with-coverage --cover-package=tqdm -v
