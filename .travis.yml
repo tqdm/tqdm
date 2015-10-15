@@ -1,7 +1,7 @@
 sudo: false
 language: python
 python: 3.4
-branches:
+branches:  # remove travis double-check on pull requests in main repo
   only:
     - master
     - /^\d\.\d+$/
