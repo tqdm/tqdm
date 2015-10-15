@@ -122,16 +122,27 @@ for line in open(version_file).readlines():
         exec(line.strip())
 
 # Executing makefile commands if specified
-if len(sys.argv) >= 3 and sys.argv[1].lower().strip() == 'make':
-    arg = sys.argv[-1]
+if sys.argv[1].lower().strip() == 'make':
+    # Filename of the makefile
     fpath = 'Makefile'
+    # Parse the makefile, substitute the aliases and extract the commands
     commands = parse_makefile_aliases(fpath)
-    if arg == 'none': # unit testing, we do nothing (we just checked the makefile parsing)
-        sys.exit(0)
-    elif arg in commands.keys(): # else if the alias exists, we execute its commands
-        execute_makefile_commands(commands, arg, verbose=True)
-    else: # else the alias cannot be found
-        raise Exception("Provided argument cannot be found: make %s" % (arg))
+
+    # If no alias (only `python setup.py make`), print the list of aliases
+    if len(sys.argv) < 3 or sys.argv[-1] == '--help':
+        print("Shortcut to use commands via aliases. List of aliases:")
+        for alias in sorted(commands.keys()):
+            print("- "+alias)
+
+    # Else process the commands for this alias
+    else:
+        arg = sys.argv[-1]
+        if arg == 'none': # unit testing, we do nothing (we just checked the makefile parsing)
+            sys.exit(0)
+        elif arg in commands.keys(): # else if the alias exists, we execute its commands
+            execute_makefile_commands(commands, arg, verbose=True)
+        else: # else the alias cannot be found
+            raise Exception("Provided alias cannot be found: make %s" % (arg))
     # Stop the processing of setup.py here
     sys.exit(0) # Important to avoid setup.py to spit an error because of the command not being standard
 
