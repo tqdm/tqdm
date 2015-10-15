@@ -7,7 +7,7 @@ from setuptools import setup
 try:    # pragma: no cover
     import ConfigParser
     import StringIO
-except NameError:    # pragma: no cover
+except ImportError:    # pragma: no cover
     # Python 3 compatibility
     import configparser as ConfigParser
     import io as StringIO
