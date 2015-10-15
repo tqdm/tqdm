@@ -5,7 +5,8 @@ This file describes how to contribute changes to the project, and how to
 upload to the pypi repository.
 
 Most of the management commands have been directly placed inside
-the Makefile, so you just have to run `make [alias]`.
+the Makefile, so you just have to run `python setup.py make [alias]`, which
+is equivalent to using `make [alias]` but without requiring `make`.
 
 Note: to use the Makefile on Windows, you need to install make.exe,
 for example by installing [MinGW MSYS](http://www.mingw.org/wiki/msys).
@@ -47,6 +48,12 @@ The standard way to run the tests:
 - run the following command:
 
 ```
+python setup.py make test
+```
+
+or
+
+```
 make test
 ```
 
@@ -78,10 +85,10 @@ Alternatively, you can use `nose` to run the tests just for your Python version:
 - run the following commands:
 
 ```
-make alltests
+python setup.py make alltests
 ```
 
-Or if you don't have `make`:
+Or if it doesn't work, you can do:
 
 ```
 nosetests --with-coverage --cover-package=tqdm -v tqdm/

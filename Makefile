@@ -1,7 +1,28 @@
-.PHONY: all flake8 test coverage
+# IMPORTANT: to be compatible with `python setup.py make alias`, you must make
+# sure that you only put one command per line, and ALWAYS put a line return
+# after an alias and before a command, eg:
+#
+#```
+#all:
+#	test
+#	install
+#test:
+#	nosetest
+#install:
+#	python setup.py install
+#    ```
 
-alltests: testcoverage flake8 testsetup
-all: alltests build
+.PHONY:
+	alltests
+
+alltests:
+	testcoverage
+	flake8
+	testsetup
+
+all:
+	alltests
+	build
 
 flake8:
 	flake8 --max-line-length=80 --count --statistics --exit-zero tqdm/
@@ -15,6 +36,7 @@ testnose:
 
 testsetup:
 	python setup.py check --restructuredtext --strict
+    python setup.py make none
 
 testcoverage:
 	nosetests tqdm --with-coverage --cover-package=tqdm -v
@@ -35,3 +57,6 @@ pypimeta:
 
 pypi:
 	twine upload dist/*
+
+none:
+	none # used for unit testing
