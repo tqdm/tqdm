@@ -25,5 +25,5 @@ stmts = (
     'from progressbar.progressbar import ProgressBar;'
     '    [i for i in ProgressBar()(xrange(int(1e8)))]')
 for s in stmts:
-    print s
-    print timeit(stmt=s, number=1), 'seconds'
+    print(s)
+    print(timeit(stmt=s, number=1), 'seconds')
