@@ -31,6 +31,9 @@ By comparison, the well established
 an 800ns/iter overhead. It's a matter of taste, but we also like to think our
 version is much more visually appealing.
 
+tqdm works on any platform, in any console or in a GUI, and is also
+friendly with IPython/Jupyter notebooks.
+
 
 Installation
 ------------
