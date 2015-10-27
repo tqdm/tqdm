@@ -263,7 +263,7 @@ class tqdm(object):
 
         if ((ncols is None) and (file in (sys.stderr, sys.stdout))) or \
                 dynamic_ncols:
-            if dynamic_ncols:
+            if dynamic_ncols:  # pragma: no cover
                 dynamic_ncols = _environ_cols_wrapper()
                 ncols = dynamic_ncols(file)
             else:
@@ -298,7 +298,7 @@ class tqdm(object):
         self.desc = desc+': ' if desc else ''
         self.total = total
         self.leave = leave
-        self.file = file
+        self.fp = file
         self.ncols = ncols
         self.mininterval = mininterval
         self.miniters = miniters
@@ -361,7 +361,7 @@ class tqdm(object):
                 self.ax = ax
         else:
             # Initialize the screen printer
-            self.sp = StatusPrinter(self.file)
+            self.sp = StatusPrinter(self.fp)
             if not disable:
                 self.sp(format_meter(0, total, 0,
                         (dynamic_ncols(file) if dynamic_ncols else ncols),
@@ -479,7 +479,7 @@ class tqdm(object):
                         else:
                             sp(format_meter(
                                 n, self.total, elapsed,
-                                (dynamic_ncols(self.file) if dynamic_ncols
+                                (dynamic_ncols(self.fp) if dynamic_ncols
                                  else ncols),
                                 self.desc, ascii, unit, unit_scale))
 
@@ -589,7 +589,7 @@ class tqdm(object):
                 else:
                     self.sp(format_meter(
                         self.n, self.total, elapsed,
-                        (self.dynamic_ncols(self.file) if self.dynamic_ncols
+                        (self.dynamic_ncols(self.fp) if self.dynamic_ncols
                          else self.ncols),
                         self.desc, self.ascii, self.unit, self.unit_scale))
 
@@ -626,13 +626,13 @@ class tqdm(object):
                     cur_t = time()
                     self.sp(format_meter(
                         self.n, self.total, cur_t-self.start_t,
-                        (self.dynamic_ncols(self.file) if self.dynamic_ncols
+                        (self.dynamic_ncols(self.fp) if self.dynamic_ncols
                          else self.ncols),
                         self.desc, self.ascii, self.unit, self.unit_scale))
-                self.file.write('\n')
+                self.fp.write('\n')
             else:
                 self.sp('')
-                self.file.write('\r')
+                self.fp.write('\r')
 
 
 def trange(*args, **kwargs):
