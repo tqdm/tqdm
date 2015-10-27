@@ -11,7 +11,7 @@ Usage:
 # a result precise floating numbers (instead of truncated int)
 from __future__ import division, absolute_import
 # import compatibility functions and utilities
-from ._utils import _supports_unicode, _environ_cols, _range, _unich
+from ._utils import _supports_unicode, _environ_cols_wrapper, _range, _unich
 import sys
 from time import time
 
@@ -263,7 +263,11 @@ class tqdm(object):
 
         if ((ncols is None) and (file in (sys.stderr, sys.stdout))) or \
                 dynamic_ncols:
-            ncols = _environ_cols(file)
+            if dynamic_ncols:
+                dynamic_ncols = _environ_cols_wrapper()
+                ncols = dynamic_ncols(file)
+            else:
+                ncols = _environ_cols_wrapper()(file)
 
         if miniters is None:
             miniters = 0
@@ -359,8 +363,9 @@ class tqdm(object):
             # Initialize the screen printer
             self.sp = StatusPrinter(self.file)
             if not disable:
-                self.sp(format_meter(
-                    0, total, 0, ncols, self.desc, ascii, unit, unit_scale))
+                self.sp(format_meter(0, total, 0,
+                        (dynamic_ncols(file) if dynamic_ncols else ncols),
+                        self.desc, ascii, unit, unit_scale))
 
         # Init the time/iterations counters
         self.start_t = self.last_print_t = time()
@@ -474,7 +479,7 @@ class tqdm(object):
                         else:
                             sp(format_meter(
                                 n, self.total, elapsed,
-                                (_environ_cols(self.file) if dynamic_ncols
+                                (dynamic_ncols(self.file) if dynamic_ncols
                                  else ncols),
                                 self.desc, ascii, unit, unit_scale))
 
@@ -584,7 +589,7 @@ class tqdm(object):
                 else:
                     self.sp(format_meter(
                         self.n, self.total, elapsed,
-                        (_environ_cols(self.file) if self.dynamic_ncols
+                        (self.dynamic_ncols(self.file) if self.dynamic_ncols
                          else self.ncols),
                         self.desc, self.ascii, self.unit, self.unit_scale))
 
@@ -621,7 +626,7 @@ class tqdm(object):
                     cur_t = time()
                     self.sp(format_meter(
                         self.n, self.total, cur_t-self.start_t,
-                        (_environ_cols(self.file) if self.dynamic_ncols
+                        (self.dynamic_ncols(self.file) if self.dynamic_ncols
                          else self.ncols),
                         self.desc, self.ascii, self.unit, self.unit_scale))
                 self.file.write('\n')
