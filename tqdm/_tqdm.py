@@ -11,7 +11,7 @@ Usage:
 # a result precise floating numbers (instead of truncated int)
 from __future__ import division, absolute_import
 # import compatibility functions and utilities
-from ._utils import _supports_unicode, _environ_cols, _range, _unich
+from ._utils import _supports_unicode, _environ_cols_wrapper, _range, _unich
 import sys
 from time import time
 
@@ -196,7 +196,7 @@ class tqdm(object):
     def __init__(self, iterable=None, desc=None, total=None, leave=False,
                  file=sys.stderr, ncols=None, mininterval=0.1,
                  miniters=None, ascii=None, disable=False,
-                 unit='it', unit_scale=False, gui=False):
+                 unit='it', unit_scale=False, gui=False, dynamic_ncols=False):
         """
         Parameters
         ----------
@@ -220,10 +220,10 @@ class tqdm(object):
             methods.
         ncols  : int, optional
             The width of the entire output message. If specified, dynamically
-            resizes the progressbar to stay within this bound
-            [default: None]. The fallback is a meter width of 10 and no
-            limit for the counter and statistics. If 0, will not print any
-            meter (only stats).
+            resizes the progressbar to stay within this bound. If
+            [default: None], attempts to use environment width. The fallback
+            is a meter width of 10 and no limit for the counter and
+            statistics. If 0, will not print any meter (only stats).
         mininterval  : float, optional
             Minimum progress update interval, in seconds [default: 0.1].
         miniters  : int, optional
@@ -244,6 +244,9 @@ class tqdm(object):
         gui  : bool, optional
             If set, will attempt to use matplotlib animations for a
             graphical output [default: false].
+        dynamic_ncols  : bool, optional
+            If set, constantly alters `ncols` to the environment (allowing
+            for window resizes) [default: False].
 
         Returns
         -------
@@ -256,8 +259,13 @@ class tqdm(object):
             except (TypeError, AttributeError):
                 total = None
 
-        if (ncols is None) and (file in (sys.stderr, sys.stdout)):
-            ncols = _environ_cols(file)
+        if ((ncols is None) and (file in (sys.stderr, sys.stdout))) or \
+                dynamic_ncols:
+            if dynamic_ncols:  # pragma: no cover
+                dynamic_ncols = _environ_cols_wrapper()
+                ncols = dynamic_ncols(file)
+            else:
+                ncols = _environ_cols_wrapper()(file)
 
         if miniters is None:
             miniters = 0
@@ -287,7 +295,7 @@ class tqdm(object):
         self.desc = desc+': ' if desc else ''
         self.total = total
         self.leave = leave
-        self.file = file
+        self.fp = file
         self.ncols = ncols
         self.mininterval = mininterval
         self.miniters = miniters
@@ -297,6 +305,7 @@ class tqdm(object):
         self.unit = unit
         self.unit_scale = unit_scale
         self.gui = gui
+        self.dynamic_ncols = dynamic_ncols
 
         if gui:  # pragma: no cover
             # Initialize the GUI display
@@ -349,10 +358,11 @@ class tqdm(object):
                 self.ax = ax
         else:
             # Initialize the screen printer
-            self.sp = StatusPrinter(self.file)
+            self.sp = StatusPrinter(self.fp)
             if not disable:
-                self.sp(format_meter(
-                    0, total, 0, ncols, self.desc, ascii, unit, unit_scale))
+                self.sp(format_meter(0, total, 0,
+                        (dynamic_ncols(file) if dynamic_ncols else ncols),
+                        self.desc, ascii, unit, unit_scale))
 
         # Init the time/iterations counters
         self.start_t = self.last_print_t = time()
@@ -386,6 +396,7 @@ class tqdm(object):
             last_print_n = self.last_print_n
             n = self.n
             gui = self.gui
+            dynamic_ncols = self.dynamic_ncols
             if gui:  # pragma: no cover
                 plt = self.plt
                 ax = self.ax
@@ -464,7 +475,9 @@ class tqdm(object):
                             plt.pause(1e-9)
                         else:
                             sp(format_meter(
-                                n, self.total, elapsed, ncols,
+                                n, self.total, elapsed,
+                                (dynamic_ncols(self.fp) if dynamic_ncols
+                                 else ncols),
                                 self.desc, ascii, unit, unit_scale))
 
                         # If no `miniters` was specified, adjust automatically
@@ -572,7 +585,9 @@ class tqdm(object):
                     self.plt.pause(1e-9)
                 else:
                     self.sp(format_meter(
-                        self.n, self.total, elapsed, self.ncols,
+                        self.n, self.total, elapsed,
+                        (self.dynamic_ncols(self.fp) if self.dynamic_ncols
+                         else self.ncols),
                         self.desc, self.ascii, self.unit, self.unit_scale))
 
                 # If no `miniters` was specified, adjust automatically to the
@@ -607,12 +622,14 @@ class tqdm(object):
                 if self.last_print_n < self.n:
                     cur_t = time()
                     self.sp(format_meter(
-                        self.n, self.total, cur_t-self.start_t, self.ncols,
+                        self.n, self.total, cur_t-self.start_t,
+                        (self.dynamic_ncols(self.fp) if self.dynamic_ncols
+                         else self.ncols),
                         self.desc, self.ascii, self.unit, self.unit_scale))
-                self.file.write('\n')
+                self.fp.write('\n')
             else:
                 self.sp('')
-                self.file.write('\r')
+                self.fp.write('\r')
 
 
 def trange(*args, **kwargs):

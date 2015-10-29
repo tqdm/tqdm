@@ -9,4 +9,5 @@ test:
 	nosetests tqdm -v
 
 coverage:
+	rm -f .coverage  # coverage erase
 	nosetests tqdm --with-coverage --cover-package=tqdm -v
