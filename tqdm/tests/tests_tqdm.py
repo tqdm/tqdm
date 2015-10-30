@@ -193,6 +193,12 @@ def test_dynamic_min_iters():
         pass
     assert t.dynamic_miniters
 
+    our_file = StringIO()
+    t = tqdm(range(10), file=our_file, miniters=1, mininterval=None)
+    for i in t:
+        pass
+    assert not t.dynamic_miniters
+
     our_file.close()
 
 
@@ -240,7 +246,7 @@ def test_unit():
 def test_update():
     """ Test manual creation and updates """
     our_file = StringIO()
-    progressbar = tqdm(total=2, file=our_file, miniters=1)
+    progressbar = tqdm(total=2, file=our_file, miniters=1, mininterval=0)
     assert len(progressbar) == 2
     progressbar.update(2)
     our_file.seek(0)
@@ -276,3 +282,16 @@ def test_close():
     our_file2.seek(0)
     assert '| 3/3 ' not in our_file2.read()  # Should be blank
     our_file2.close()
+
+    # With all updates
+    our_file3 = StringIO()
+    progressbar = tqdm(total=3, file=our_file3, miniters=0, mininterval=0,
+                       leave=True)
+    progressbar.update(3)
+    our_file3.seek(0)
+    out3 = our_file3.read()
+    assert '| 3/3 ' in out3  # Should be blank
+    progressbar.close()
+    our_file3.seek(0)
+    assert out3 + '\n' == our_file3.read()
+    our_file3.close()

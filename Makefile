@@ -39,6 +39,7 @@ testsetup:
 	python setup.py make none
 
 testcoverage:
+	rm -f .coverage  # coverage erase
 	nosetests tqdm --with-coverage --cover-package=tqdm -v
 
 installdev:
