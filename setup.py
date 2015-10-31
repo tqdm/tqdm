@@ -40,7 +40,7 @@ def parse_makefile_aliases(filepath):
     # -- Parsing the Makefile using ConfigParser
     # Adding a fake section to make the Makefile a valid Ini file
     ini_str = '[root]\n' + open(filepath, 'r').read()
-    ini_fp = StringIO.StringIO(ini_str)
+    ini_fp = StringIO.StringIO(ini_str.replace('@make ',''))
     # Parse it using ConfigParser
     config = ConfigParser.RawConfigParser()
     config.readfp(ini_fp)
