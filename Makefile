@@ -14,15 +14,27 @@
 
 .PHONY:
 	alltests
+	all
+	flake8
+	test
+	testnose
+	testsetup
+	testcoverage
+	installdev
+	install
+	build
+	pypimeta
+	pypi
+	none
 
 alltests:
-	testcoverage
-	flake8
-	testsetup
+	@make testcoverage
+	@make flake8
+	@make testsetup
 
 all:
-	alltests
-	build
+	@make alltests
+	@make build
 
 flake8:
 	flake8 --max-line-length=80 --count --statistics --exit-zero tqdm/
@@ -60,4 +72,4 @@ pypi:
 	twine upload dist/*
 
 none:
-	none # used for unit testing
+	# used for unit testing
