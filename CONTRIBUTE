@@ -4,9 +4,9 @@ HOW TO CONTRIBUTE TO TQDM
 This file describes how to contribute changes to the project, and how to
 upload to the pypi repository.
 
-Most of the management commands have been directly placed inside
-the Makefile, so you just have to run `python setup.py make [alias]`, which
-is equivalent to using `make [alias]` but without requiring `make`.
+Most of the management commands have been directly placed inside the
+Makefile: `python setup.py make [alias]`, (or simply `make [alias]` in
+UNIX-like environments).
 
 Note: to use the Makefile on Windows, you need to install make.exe,
 for example by installing [MinGW MSYS](http://www.mingw.org/wiki/msys).
@@ -15,15 +15,14 @@ for example by installing [MinGW MSYS](http://www.mingw.org/wiki/msys).
 HOW TO COMMIT YOUR CONTRIBUTIONS
 --------------------------------
 
-Contributions to the project is made using the "Fork & Pull" model. Here's a
-quickstart on how to do that (your mileage may vary depending on your git
-config):
+Contributions to the project are made using the "Fork & Pull" model. The
+typical steps would be:
 
 - create an account on [github](https://github.com)
 - fork [tqdm](https://github.com/tqdm/tqdm)
 - make a local clone: `git clone https://github.com/your_account/tqdm.git`
 - make your changes on your local copy
-- commit your changes `git commit -m "my message"`
+- commit your changes `git commit -a -m "my message"`
 - TEST YOUR CHANGES (see below)
 - `push` to your github account: `git push origin`
 - finally, create a Pull Request (PR) from your github fork
@@ -39,7 +38,7 @@ Request), there are a number of unit tests.
 
 
 Standard unit testing
-~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
 
 The standard way to run the tests:
 
@@ -63,32 +62,31 @@ or
 tox --skip-missing-interpreters
 ```
 
-This will build the module and run the tests in a virtualized environment.
-Wait a bit for tests to complete, and check the console/log for any error and
-also check the coverage rate. Do not care about missing interpreters errors,
-this is because tox tries to run the tests on several versions of Python and you
-don't have them installed.
+This will build the module and run the tests in a virtual environment.
+Errors and coverage rates will be output to the console/log. (Ignore missing
+interpreters errors - these are due to the local machine missing certain
+versions of Python.)
 
-Note: to install all versions of the Python interpreter that are specified in
-[tox.ini](tox.ini), you can use MiniConda to install a minimal setup.
-You must also make sure that each distribution has an alias to call
-the Python interpreter: python27 for Python 2.7's interpreter,
-python32 for Python 3.2's, etc.
+Note: to install all versions of the Python interpreter that are specified
+in [tox.ini](https://raw.githubusercontent.com/tqdm/tqdm/master/tox.ini),
+you can use `MiniConda` to install a minimal setup. You must also make sure
+that each distribution has an alias to call the Python interpreter:
+`python27` for Python 2.7's interpreter, `python32` for Python 3.2's, etc.
 
 
 Alternative unit testing with Nose
-~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Alternatively, you can use `nose` to run the tests just for your Python version:
+Alternatively, use `nose` to run the tests just for your Python version:
 
 - install `nose` and `flake8`
-- run the following commands:
+- run the following command:
 
 ```
 python setup.py make alltests
 ```
 
-Or if it doesn't work, you can do:
+or
 
 ```
 nosetests --with-coverage --cover-package=tqdm -v tqdm/

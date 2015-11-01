@@ -1,15 +1,15 @@
-# IMPORTANT: to be compatible with `python setup.py make alias`, you must make
-# sure that you only put one command per line, and ALWAYS put a line return
-# after an alias and before a command, eg:
-#
-#```
-#all:
-#	test
-#	install
-#test:
-#	nosetest
-#install:
-#	python setup.py install
+# IMPORTANT: for compatibility with `python setup.py make [alias]`, ensure:
+# 1. A line return after every alias
+# 2. One command per line
+# E.g.:
+#    ```
+#    all:
+#    	@make test
+#    	@make install
+#    test:
+#    	nosetest
+#    install:
+#    	python setup.py install
 #    ```
 
 .PHONY:
@@ -39,6 +39,7 @@ all:
 flake8:
 	flake8 --max-line-length=80 --count --statistics --exit-zero tqdm/
 	flake8 --max-line-length=80 --count --statistics --exit-zero examples/
+	flake8 --max-line-length=80 --count --statistics --exit-zero .
 
 test:
 	tox --skip-missing-interpreters
