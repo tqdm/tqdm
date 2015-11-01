@@ -225,13 +225,14 @@ with the following command:
     $ make test
     $ make coverage
 
-See the `CONTRIBUTE <CONTRIBUTE>`__ file for more information.
+See the `CONTRIBUTE <https://raw.githubusercontent.com/tqdm/tqdm/master/CONTRIBUTE>`__
+file for more information.
 
 
 License
 -------
 
-`MIT LICENSE <LICENSE>`__.
+`MIT LICENSE <https://raw.githubusercontent.com/tqdm/tqdm/master/LICENSE>`__.
 
 
 Authors
