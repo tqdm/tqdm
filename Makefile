@@ -68,6 +68,7 @@ install:
 build:
 	python -c "import shutil; shutil.rmtree('build', True)"
 	python -c "import shutil; shutil.rmtree('dist', True)"
+    python -c "import shutil; shutil.rmtree('tqdm.egg-info', True)"
 	python setup.py sdist --formats=gztar,zip bdist_wininst
 	python setup.py sdist bdist_wheel
 
