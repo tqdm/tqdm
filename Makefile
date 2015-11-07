@@ -1,16 +1,19 @@
 # IMPORTANT: for compatibility with `python setup.py make [alias]`, ensure:
-# 1. A line return after every alias
-# 2. One command per line
-# E.g.:
-#    ```
-#    all:
-#    	@make test
-#    	@make install
-#    test:
-#    	nosetest
-#    install:
-#    	python setup.py install
-#    ```
+# 1. Every alias is preceded by @make (eg: @make alias)
+# 2. Add a line return after every @make alias (ie, cannot put multiple alias calls on one line)
+# 3. One command per line
+# 4. Every line shifts is using TABs and not SPACEs
+#
+# Sample makefile compatible with `python setup.py make`:
+#```
+#all:
+#	@make test
+#	@make install
+#test:
+#	nosetest
+#install:
+#	python setup.py install
+#```
 
 .PHONY:
 	alltests
@@ -63,6 +66,8 @@ install:
 	python setup.py install
 
 build:
+	python -c "import shutil; shutil.rmtree('build', True)"
+	python -c "import shutil; shutil.rmtree('dist', True)"
 	python setup.py sdist --formats=gztar,zip bdist_wininst
 	python setup.py sdist bdist_wheel
 
@@ -71,6 +76,11 @@ pypimeta:
 
 pypi:
 	twine upload dist/*
+
+buildupload:
+	@make build
+	@make pypimeta
+	@make pypi
 
 none:
 	# used for unit testing

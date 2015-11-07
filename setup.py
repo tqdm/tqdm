@@ -6,6 +6,7 @@ from setuptools import setup
 import sys
 import subprocess
 # For Makefile parsing
+import shlex
 try:    # pragma: no cover
     import ConfigParser
     import StringIO
@@ -105,9 +106,14 @@ def parse_makefile_aliases(filepath):
 def execute_makefile_commands(commands, alias, verbose=False):
     cmds = commands[alias]
     for cmd in cmds:
-        if verbose:
-            print("Running command: " + cmd)
-        subprocess.check_call(cmd.split())
+        # Parse string in a shell-like fashion using shlex (allows to easily parse quoted strings and comments)
+        parsed_cmd = shlex.split(cmd, comments=True)
+        # Execute command if not empty (ie, not just a comment)
+        if parsed_cmd:
+            if verbose:
+                print("Running command: " + cmd)
+            # Launch the command and wait to finish (synchronized call)
+            subprocess.check_call(parsed_cmd)
 
 
 """ Main setup.py config """
