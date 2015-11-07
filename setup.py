@@ -22,17 +22,7 @@ except ImportError:    # pragma: no cover
 def parse_makefile_aliases(filepath):
     '''
     Parse a makefile to find commands and substitute variables. Expects a
-    makefile with only aliases and a line return between each command, i.e.:
-
-    ```
-    all:
-        test
-        install
-    test:
-        nosetest
-    install:
-        python setup.py install
-    ```
+    makefile with only aliases and a line return between each command.
 
     Returns a dict, with a list of commands for each alias.
     '''
@@ -106,7 +96,8 @@ def parse_makefile_aliases(filepath):
 def execute_makefile_commands(commands, alias, verbose=False):
     cmds = commands[alias]
     for cmd in cmds:
-        # Parse string in a shell-like fashion using shlex (allows to easily parse quoted strings and comments)
+        # Parse string in a shell-like fashion
+        # (incl quoted strings and comments)
         parsed_cmd = shlex.split(cmd, comments=True)
         # Execute command if not empty (ie, not just a comment)
         if parsed_cmd:

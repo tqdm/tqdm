@@ -1,8 +1,6 @@
 # IMPORTANT: for compatibility with `python setup.py make [alias]`, ensure:
 # 1. Every alias is preceded by @make (eg: @make alias)
-# 2. Add a line return after every @make alias (ie, cannot put multiple alias calls on one line)
-# 3. One command per line
-# 4. Every line shifts is using TABs and not SPACEs
+# 2. A maximum of one @make alias or command per line
 #
 # Sample makefile compatible with `python setup.py make`:
 #```
@@ -68,7 +66,7 @@ install:
 build:
 	python -c "import shutil; shutil.rmtree('build', True)"
 	python -c "import shutil; shutil.rmtree('dist', True)"
-    python -c "import shutil; shutil.rmtree('tqdm.egg-info', True)"
+	python -c "import shutil; shutil.rmtree('tqdm.egg-info', True)"
 	python setup.py sdist --formats=gztar,zip bdist_wininst
 	python setup.py sdist bdist_wheel
 
