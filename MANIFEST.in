@@ -7,7 +7,7 @@ include Makefile
 include README.rst
 include RELEASE
 include tox.ini
-include tqdm.gif
+#include tqdm.gif
 
 # Test suite
 recursive-include tqdm/tests *.py
