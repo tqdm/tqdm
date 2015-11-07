@@ -177,6 +177,9 @@ def StatusPrinter(file):
     may not work (it will print a new line at each refresh).
     """
     fp = file
+    if not getattr(fp, 'flush', False):  # pragma: no cover
+        fp.flush = lambda: None
+
     last_printed_len = [0]  # closure over mutable variable (fast)
 
     def print_status(s):
