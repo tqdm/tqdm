@@ -70,7 +70,7 @@ def format_interval(t):
 
 
 def format_meter(n, total, elapsed, ncols=None, prefix='', ascii=False,
-                 unit='it', unit_scale=False):
+                 unit='it', unit_scale=False, rate=None):
     """
     Return a string-based progress bar given some parameters
 
@@ -99,6 +99,8 @@ def format_meter(n, total, elapsed, ncols=None, prefix='', ascii=False,
     unit_scale  : bool, optional
         If set, the number of iterations will printed with an appropriate
         SI metric prefix (K = 10^3, M = 10^6, etc.) [default: False].
+    rate  : float, optional
+        Manual override for iteration rate. If [default: None], uses n/elapsed.
 
     Returns
     -------
@@ -113,8 +115,10 @@ def format_meter(n, total, elapsed, ncols=None, prefix='', ascii=False,
 
     elapsed_str = format_interval(elapsed)
 
-    rate_fmt = ((format_sizeof(n / elapsed) if unit_scale else
-                 '{0:5.2f}'.format(n / elapsed)) if elapsed else
+    if rate is None and elapsed:
+        rate = n / elapsed
+    rate_fmt = ((format_sizeof(rate) if unit_scale else
+                 '{0:5.2f}'.format(rate)) if elapsed else
                 '?') \
         + unit + '/s'
 
@@ -199,7 +203,8 @@ class tqdm(object):
     def __init__(self, iterable=None, desc=None, total=None, leave=False,
                  file=sys.stderr, ncols=None, mininterval=0.1,
                  miniters=None, ascii=None, disable=False,
-                 unit='it', unit_scale=False, gui=False, dynamic_ncols=False):
+                 unit='it', unit_scale=False, gui=False, dynamic_ncols=False,
+                 smoothing=0.7):
         """
         Parameters
         ----------
@@ -250,6 +255,10 @@ class tqdm(object):
         dynamic_ncols  : bool, optional
             If set, constantly alters `ncols` to the environment (allowing
             for window resizes) [default: False].
+        smoothing  : float
+            Exponential moving average smoothing factor for speed estimates
+            (ignored in GUI mode). Ranges from 0 (initial speed) to 1
+            (current/instantaneous speed) [default: 0.7].
 
         Returns
         -------
@@ -293,6 +302,9 @@ class tqdm(object):
                 self.mpl = mpl
                 self.plt = plt
 
+        if smoothing is None:
+            smoothing = 1
+
         # Store the arguments
         self.iterable = iterable
         self.desc = desc+': ' if desc else ''
@@ -309,6 +321,8 @@ class tqdm(object):
         self.unit_scale = unit_scale
         self.gui = gui
         self.dynamic_ncols = dynamic_ncols
+        self.smoothing = smoothing
+        self.ave_rate = None
 
         if gui:  # pragma: no cover
             # Initialize the GUI display
@@ -400,6 +414,8 @@ class tqdm(object):
             n = self.n
             gui = self.gui
             dynamic_ncols = self.dynamic_ncols
+            smoothing = self.smoothing
+            ave_rate = self.ave_rate
             if gui:  # pragma: no cover
                 plt = self.plt
                 ax = self.ax
@@ -428,7 +444,7 @@ class tqdm(object):
                             total = self.total
                             # instantaneous rate
                             y = delta_it / delta_t
-                            # smoothed rate
+                            # overall rate
                             z = n / elapsed
                             # update line data
                             xdata.append(n * 100.0 / total if total else cur_t)
@@ -477,11 +493,14 @@ class tqdm(object):
                                 fontsize=11)
                             plt.pause(1e-9)
                         else:
+                            ave_rate = delta_it / delta_t if ave_rate is None \
+                                else smoothing * delta_it / delta_t + \
+                                (1 - smoothing) * ave_rate
                             sp(format_meter(
                                 n, self.total, elapsed,
                                 (dynamic_ncols(self.fp) if dynamic_ncols
                                  else ncols),
-                                self.desc, ascii, unit, unit_scale))
+                                self.desc, ascii, unit, unit_scale, ave_rate))
 
                         # If no `miniters` was specified, adjust automatically
                         # to the maximum iteration rate seen so far.
@@ -587,11 +606,16 @@ class tqdm(object):
                         fontsize=11)
                     self.plt.pause(1e-9)
                 else:
+                    self.ave_rate = delta_it / delta_t \
+                        if self.ave_rate is None \
+                        else self.smoothing * delta_it / delta_t + \
+                        (1 - self.smoothing) * self.ave_rate
                     self.sp(format_meter(
                         self.n, self.total, elapsed,
                         (self.dynamic_ncols(self.fp) if self.dynamic_ncols
                          else self.ncols),
-                        self.desc, self.ascii, self.unit, self.unit_scale))
+                        self.desc, self.ascii, self.unit, self.unit_scale,
+                        self.ave_rate))
 
                 # If no `miniters` was specified, adjust automatically to the
                 # maximum iteration rate seen so far.
@@ -624,6 +648,7 @@ class tqdm(object):
             if self.leave:
                 if self.last_print_n < self.n:
                     cur_t = time()
+                    # stats for overall rate (no weighted average)
                     self.sp(format_meter(
                         self.n, self.total, cur_t-self.start_t,
                         (self.dynamic_ncols(self.fp) if self.dynamic_ncols

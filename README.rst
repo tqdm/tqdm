@@ -5,7 +5,7 @@ tqdm
 
 |Build Status| |Coverage Status| |PyPi Status| |PyPi Downloads|
 
-tqdm (read taqadum, تقدّم) means "progress" in arabic.
+``tqdm`` (read taqadum, تقدّم) means "progress" in arabic.
 
 Instantly make your loops show a progress meter - just wrap any
 iterable with "tqdm(iterable)", and you're done!
@@ -21,7 +21,8 @@ Here's what the output looks like:
 76%\|████████████████████\             \| 7641/10000 [00:34<00:10,
 222.22 it/s]
 
-You can also use ``trange(N)`` as a shortcut for ``tqdm(xrange(N))``
+``trange(N)`` can be also used as a convenient shortcut for
+``tqdm(xrange(N))``.
 
 |Screenshot|
 
@@ -31,8 +32,8 @@ By comparison, the well established
 an 800ns/iter overhead. It's a matter of taste, but we also like to think our
 version is much more visually appealing.
 
-tqdm works on any platform (Linux/Windows/Mac), in any console or in a GUI,
-and is also friendly with IPython/Jupyter notebooks.
+``tqdm`` works on any platform (Linux/Windows/Mac), in any console or in a
+GUI, and is also friendly with IPython/Jupyter notebooks.
 
 
 Installation
@@ -122,6 +123,10 @@ Documentation
           dynamic_ncols  : bool, optional
               If set, constantly alters `ncols` to the environment (allowing
               for window resizes) [default: False].
+          smoothing  : float
+              Exponential moving average smoothing factor for speed estimates
+              (ignored in GUI mode). Ranges from 0 (initial speed) to 1
+              (current/instantaneous speed) [default: 0.7].
 
           Returns
           -------
