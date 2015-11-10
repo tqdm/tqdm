@@ -211,7 +211,7 @@ class tqdm(object):
                  file=sys.stderr, ncols=None, mininterval=0.1,
                  miniters=None, ascii=None, disable=False,
                  unit='it', unit_scale=False, gui=False, dynamic_ncols=False,
-                 smoothing=0.7):
+                 smoothing=0.05):
         """
         Parameters
         ----------
@@ -265,7 +265,7 @@ class tqdm(object):
         smoothing  : float
             Exponential moving average smoothing factor for speed estimates
             (ignored in GUI mode). Ranges from 0 (average speed) to 1
-            (current/instantaneous speed) [default: 0.7].
+            (current/instantaneous speed) [default: 0.05].
 
         Returns
         -------
