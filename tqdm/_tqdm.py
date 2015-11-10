@@ -70,7 +70,7 @@ def format_interval(t):
 
 
 def format_meter(n, total, elapsed, ncols=None, prefix='', ascii=False,
-                 unit='it', unit_scale=False):
+                 unit='it', unit_scale=False, rate=None):
     """
     Return a string-based progress bar given some parameters
 
@@ -99,22 +99,26 @@ def format_meter(n, total, elapsed, ncols=None, prefix='', ascii=False,
     unit_scale  : bool, optional
         If set, the number of iterations will printed with an appropriate
         SI metric prefix (K = 10^3, M = 10^6, etc.) [default: False].
+    rate  : float, optional
+        Manual override for iteration rate. If [default: None], uses n/elapsed.
 
     Returns
     -------
     out  : Formatted meter and stats, ready to display.
     """
 
-    # in case the total is wrong (n is above the total), then
-    # we switch to the mode without showing the total prediction
-    # (since ETA would be wrong anyway)
+    # sanity check: total
     if total and n > total:
         total = None
 
     elapsed_str = format_interval(elapsed)
 
-    rate_fmt = ((format_sizeof(n / elapsed) if unit_scale else
-                 '{0:5.2f}'.format(n / elapsed)) if elapsed else
+    # if unspecified, attempt to use rate = average speed
+    # (we allow manual override since predicting time is an arcane art)
+    if rate is None and elapsed:
+        rate = n / elapsed
+    rate_fmt = ((format_sizeof(rate) if unit_scale else
+                 '{0:5.2f}'.format(rate)) if elapsed else
                 '?') \
         + unit + '/s'
 
@@ -125,12 +129,15 @@ def format_meter(n, total, elapsed, ncols=None, prefix='', ascii=False,
         n_fmt = str(n)
         total_fmt = str(total)
 
+    # total is known: we can predict some stats
     if total:
+        # fractional and percentage progress
         frac = n / total
         percentage = frac * 100
 
-        remaining_str = format_interval(elapsed * (total-n) / n) if n else '?'
+        remaining_str = format_interval((total-n) / rate) if rate else '?'
 
+        # format the stats displayed to the left and right sides of the bar
         l_bar = (prefix if prefix else '') + '{0:3.0f}%|'.format(percentage)
         r_bar = '| {0}/{1} [{2}<{3}, {4}]'.format(
                 n_fmt, total_fmt, elapsed_str, remaining_str, rate_fmt)
@@ -138,9 +145,11 @@ def format_meter(n, total, elapsed, ncols=None, prefix='', ascii=False,
         if ncols == 0:
             return l_bar[:-1] + r_bar[1:]
 
+        # space available for bar's display
         N_BARS = max(1, ncols - len(l_bar) - len(r_bar)) if ncols \
             else 10
 
+        # format bar depending on availability of unicode/ascii chars
         if ascii:
             bar_length, frac_bar_length = divmod(
                 int(frac * N_BARS * 10), 10)
@@ -156,16 +165,18 @@ def format_meter(n, total, elapsed, ncols=None, prefix='', ascii=False,
             frac_bar = _unich(0x2590 - frac_bar_length) \
                 if frac_bar_length else ' '
 
+        # whitespace padding
         if bar_length < N_BARS:
             full_bar = bar + frac_bar + \
-                ' ' * max(N_BARS - bar_length - 1, 0)  # bar end padding
+                ' ' * max(N_BARS - bar_length - 1, 0)
         else:
             full_bar = bar + \
-                ' ' * max(N_BARS - bar_length, 0)  # bar end padding
+                ' ' * max(N_BARS - bar_length, 0)
 
         return l_bar + full_bar + r_bar
 
-    else:  # no progressbar nor ETA, just progress statistics
+    # no total: no progressbar, ETA, just progress stats
+    else:
         return (prefix if prefix else '') + '{0}{1} [{2}, {3}]'.format(
             n_fmt, unit, elapsed_str, rate_fmt)
 
@@ -199,7 +210,8 @@ class tqdm(object):
     def __init__(self, iterable=None, desc=None, total=None, leave=False,
                  file=sys.stderr, ncols=None, mininterval=0.1,
                  miniters=None, ascii=None, disable=False,
-                 unit='it', unit_scale=False, gui=False, dynamic_ncols=False):
+                 unit='it', unit_scale=False, gui=False, dynamic_ncols=False,
+                 smoothing=0.05):
         """
         Parameters
         ----------
@@ -250,6 +262,10 @@ class tqdm(object):
         dynamic_ncols  : bool, optional
             If set, constantly alters `ncols` to the environment (allowing
             for window resizes) [default: False].
+        smoothing  : float
+            Exponential moving average smoothing factor for speed estimates
+            (ignored in GUI mode). Ranges from 0 (average speed) to 1
+            (current/instantaneous speed) [default: 0.05].
 
         Returns
         -------
@@ -293,6 +309,9 @@ class tqdm(object):
                 self.mpl = mpl
                 self.plt = plt
 
+        if smoothing is None:
+            smoothing = 0
+
         # Store the arguments
         self.iterable = iterable
         self.desc = desc+': ' if desc else ''
@@ -309,6 +328,8 @@ class tqdm(object):
         self.unit_scale = unit_scale
         self.gui = gui
         self.dynamic_ncols = dynamic_ncols
+        self.smoothing = smoothing
+        self.avg_rate = None
 
         if gui:  # pragma: no cover
             # Initialize the GUI display
@@ -400,6 +421,8 @@ class tqdm(object):
             n = self.n
             gui = self.gui
             dynamic_ncols = self.dynamic_ncols
+            smoothing = self.smoothing
+            avg_rate = self.avg_rate
             if gui:  # pragma: no cover
                 plt = self.plt
                 ax = self.ax
@@ -428,7 +451,7 @@ class tqdm(object):
                             total = self.total
                             # instantaneous rate
                             y = delta_it / delta_t
-                            # smoothed rate
+                            # overall rate
                             z = n / elapsed
                             # update line data
                             xdata.append(n * 100.0 / total if total else cur_t)
@@ -477,11 +500,18 @@ class tqdm(object):
                                 fontsize=11)
                             plt.pause(1e-9)
                         else:
+                            # EMA (not just overall average)
+                            if smoothing and delta_t:
+                                avg_rate = delta_it / delta_t \
+                                    if avg_rate is None \
+                                    else smoothing * delta_it / delta_t + \
+                                    (1 - smoothing) * avg_rate
+
                             sp(format_meter(
                                 n, self.total, elapsed,
                                 (dynamic_ncols(self.fp) if dynamic_ncols
                                  else ncols),
-                                self.desc, ascii, unit, unit_scale))
+                                self.desc, ascii, unit, unit_scale, avg_rate))
 
                         # If no `miniters` was specified, adjust automatically
                         # to the maximum iteration rate seen so far.
@@ -587,11 +617,19 @@ class tqdm(object):
                         fontsize=11)
                     self.plt.pause(1e-9)
                 else:
+                    # EMA (not just overall average)
+                    if self.smoothing and delta_t:
+                        self.avg_rate = delta_it / delta_t \
+                            if self.avg_rate is None \
+                            else self.smoothing * delta_it / delta_t + \
+                            (1 - self.smoothing) * self.avg_rate
+
                     self.sp(format_meter(
                         self.n, self.total, elapsed,
                         (self.dynamic_ncols(self.fp) if self.dynamic_ncols
                          else self.ncols),
-                        self.desc, self.ascii, self.unit, self.unit_scale))
+                        self.desc, self.ascii, self.unit, self.unit_scale,
+                        self.avg_rate))
 
                 # If no `miniters` was specified, adjust automatically to the
                 # maximum iteration rate seen so far.
@@ -624,6 +662,7 @@ class tqdm(object):
             if self.leave:
                 if self.last_print_n < self.n:
                     cur_t = time()
+                    # stats for overall rate (no weighted average)
                     self.sp(format_meter(
                         self.n, self.total, cur_t-self.start_t,
                         (self.dynamic_ncols(self.fp) if self.dynamic_ncols
