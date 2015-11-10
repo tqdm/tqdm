@@ -1,6 +1,8 @@
 from __future__ import unicode_literals
 
 import csv
+import re
+from time import sleep
 
 try:
     from StringIO import StringIO
@@ -309,10 +311,97 @@ def test_close():
 
 
 def test_smoothing():
-    """ Test disable exponential weighted average smoothing """
+    """ Test exponential weighted average smoothing """
+
+    # -- Test disabling smoothing
     our_file = StringIO()
     for i in tqdm(range(3), file=our_file, smoothing=None, leave=True):
         pass
     our_file.seek(0)
     assert '| 3/3 ' in our_file.read()
     our_file.close()
+
+    # -- Test smoothing
+    # Compile the regex to find the rate
+    iterpattern = re.compile(r'(\d+\.\d+)it/s')
+    # 1st case: no smoothing (only use average)
+    our_file = StringIO()
+    our_file2 = StringIO()
+    t = tqdm(range(3), file=our_file2, smoothing=None, leave=True, miniters=1,
+             mininterval=0)
+    for i in tqdm(range(3), file=our_file, smoothing=None, leave=True,
+                  miniters=1, mininterval=0):
+        # Sleep more for first iteration and see how quickly rate is updated
+        if i == 0:
+            sleep(0.01)
+        else:
+            # Need to sleep in all iterations to calculate smoothed rate
+            # (else delta_t is 0!)
+            sleep(0.001)
+        t.update()
+    # Get result for iter-based bar
+    our_file.seek(0)
+    res = our_file.read().strip('\r').split('\r')
+    m = iterpattern.search(res[3])
+    a = float(m.group(1))
+    our_file.close()
+    # Get result for manually updated bar
+    our_file2.seek(0)
+    res = our_file2.read().strip('\r').split('\r')
+    m = iterpattern.search(res[3])
+    a2 = float(m.group(1))
+    our_file2.close()
+
+    # 2nd case: use max smoothing (= instant rate)
+    our_file = StringIO()
+    our_file2 = StringIO()
+    t = tqdm(range(3), file=our_file2, smoothing=1, leave=True, miniters=1,
+             mininterval=0)
+    for i in tqdm(range(3), file=our_file, smoothing=1, leave=True,
+                  miniters=1, mininterval=0):
+        if i == 0:
+            sleep(0.01)
+        else:
+            sleep(0.001)
+        t.update()
+    # Get result for iter-based bar
+    our_file.seek(0)
+    res = our_file.read().strip('\r').split('\r')
+    m = iterpattern.search(res[3])
+    b = float(m.group(1))
+    our_file.close()
+    # Get result for manually updated bar
+    our_file2.seek(0)
+    res = our_file2.read().strip('\r').split('\r')
+    m = iterpattern.search(res[3])
+    b2 = float(m.group(1))
+    our_file2.close()
+
+    # 3rd case: use medium smoothing
+    our_file = StringIO()
+    our_file2 = StringIO()
+    t = tqdm(range(3), file=our_file2, smoothing=0.5, leave=True, miniters=1,
+             mininterval=0)
+    for i in tqdm(range(3), file=our_file, smoothing=0.5, leave=True,
+                  miniters=1, mininterval=0):
+        if i == 0:
+            sleep(0.01)
+        else:
+            sleep(0.001)
+        t.update()
+    # Get result for iter-based bar
+    our_file.seek(0)
+    res = our_file.read().strip('\r').split('\r')
+    m = iterpattern.search(res[3])
+    c = float(m.group(1))
+    our_file.close()
+    # Get result for manually updated bar
+    our_file2.seek(0)
+    res = our_file2.read().strip('\r').split('\r')
+    m = iterpattern.search(res[3])
+    c2 = float(m.group(1))
+    our_file2.close()
+
+    # Check that medium smoothing's rate is between no and max smoothing rates
+    assert a < c < b
+    assert a2 < c2 < b2

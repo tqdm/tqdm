@@ -500,8 +500,10 @@ class tqdm(object):
                                 fontsize=11)
                             plt.pause(1e-9)
                         else:
-                            if smoothing:  # EMA (not just overall average)
-                                avg_rate = delta_it / delta_t if avg_rate is None \
+                            # EMA (not just overall average)
+                            if smoothing and delta_t:
+                                avg_rate = delta_it / delta_t \
+                                    if avg_rate is None \
                                     else smoothing * delta_it / delta_t + \
                                     (1 - smoothing) * avg_rate
 
@@ -615,7 +617,8 @@ class tqdm(object):
                         fontsize=11)
                     self.plt.pause(1e-9)
                 else:
-                    if self.smoothing:  # EMA (not just overall average)
+                    # EMA (not just overall average)
+                    if self.smoothing and delta_t:
                         self.avg_rate = delta_it / delta_t \
                             if self.avg_rate is None \
                             else self.smoothing * delta_it / delta_t + \
