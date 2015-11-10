@@ -133,7 +133,7 @@ def format_meter(n, total, elapsed, ncols=None, prefix='', ascii=False,
         frac = n / total
         percentage = frac * 100
 
-        remaining_str = format_interval(elapsed * (total-n) / n) if n else '?'
+        remaining_str = format_interval( (total-n) * (1/rate) ) if n else '?'
 
         l_bar = (prefix if prefix else '') + '{0:3.0f}%|'.format(percentage)
         r_bar = '| {0}/{1} [{2}<{3}, {4}]'.format(
