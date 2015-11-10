@@ -107,26 +107,21 @@ def format_meter(n, total, elapsed, ncols=None, prefix='', ascii=False,
     out  : Formatted meter and stats, ready to display.
     """
 
-    # in case the total is wrong (n is above the total), then
-    # we switch to the mode without showing the total prediction
-    # (since ETA would be wrong anyway)
+    # sanity check: total
     if total and n > total:
         total = None
 
     elapsed_str = format_interval(elapsed)
 
-    # Default rate calculation: average time
-    # Else, the rate can be manually overriden because
-    # predicting time is a non-linear and non perfectly solvable problem
+    # if unspecified, attempt to use rate = average speed
+    # (we allow manual override since predicting time is an arcane art)
     if rate is None and elapsed:
         rate = n / elapsed
-    # Format the rate display
     rate_fmt = ((format_sizeof(rate) if unit_scale else
                  '{0:5.2f}'.format(rate)) if elapsed else
                 '?') \
         + unit + '/s'
 
-    # Format n and total displays
     if unit_scale:
         n_fmt = format_sizeof(n)
         total_fmt = format_sizeof(total) if total else None
@@ -134,16 +129,15 @@ def format_meter(n, total, elapsed, ncols=None, prefix='', ascii=False,
         n_fmt = str(n)
         total_fmt = str(total)
 
-    # Total number of iterations is known, we can predict some stats
+    # total is known: we can predict some stats
     if total:
-        # Compute the bar's fraction and percentage over the total
+        # fractional and percentage progress
         frac = n / total
         percentage = frac * 100
 
-        # Compute remaining time given the rate
-        remaining_str = format_interval( (total-n) * (1/rate) ) if n else '?'
+        remaining_str = format_interval((total-n) / rate) if rate else '?'
 
-        # Format the stats displays at the sides of the bar
+        # format the stats displayed to the left and right sides of the bar
         l_bar = (prefix if prefix else '') + '{0:3.0f}%|'.format(percentage)
         r_bar = '| {0}/{1} [{2}<{3}, {4}]'.format(
                 n_fmt, total_fmt, elapsed_str, remaining_str, rate_fmt)
@@ -151,12 +145,12 @@ def format_meter(n, total, elapsed, ncols=None, prefix='', ascii=False,
         if ncols == 0:
             return l_bar[:-1] + r_bar[1:]
 
-        # Compute the available space for bar's display
+        # space available for bar's display
         N_BARS = max(1, ncols - len(l_bar) - len(r_bar)) if ncols \
             else 10
 
-        # Format progress bar display
-        if ascii:  # only use ascii characters
+        # format bar depending on availability of unicode/ascii chars
+        if ascii:
             bar_length, frac_bar_length = divmod(
                 int(frac * N_BARS * 10), 10)
 
@@ -164,26 +158,25 @@ def format_meter(n, total, elapsed, ncols=None, prefix='', ascii=False,
             frac_bar = chr(48 + frac_bar_length) if frac_bar_length \
                 else ' '
 
-        else:  # unicode available: show smooth bar (with smaller blocks)
+        else:
             bar_length, frac_bar_length = divmod(int(frac * N_BARS * 8), 8)
 
             bar = _unich(0x2588)*bar_length
             frac_bar = _unich(0x2590 - frac_bar_length) \
                 if frac_bar_length else ' '
 
-        # Fill remaining empty space if necessary
+        # whitespace padding
         if bar_length < N_BARS:
             full_bar = bar + frac_bar + \
-                ' ' * max(N_BARS - bar_length - 1, 0)  # bar end padding
+                ' ' * max(N_BARS - bar_length - 1, 0)
         else:
             full_bar = bar + \
-                ' ' * max(N_BARS - bar_length, 0)  # bar end padding
+                ' ' * max(N_BARS - bar_length, 0)
 
-        # Format the full bar with stats display
         return l_bar + full_bar + r_bar
 
-    # Else we don't know the total number of iterations, no forecast
-    else:  # no progressbar nor ETA, just progress statistics
+    # no total: no progressbar, ETA, just progress stats
+    else:
         return (prefix if prefix else '') + '{0}{1} [{2}, {3}]'.format(
             n_fmt, unit, elapsed_str, rate_fmt)
 
@@ -218,7 +211,7 @@ class tqdm(object):
                  file=sys.stderr, ncols=None, mininterval=0.1,
                  miniters=None, ascii=None, disable=False,
                  unit='it', unit_scale=False, gui=False, dynamic_ncols=False,
-                 smoothing=0.05):
+                 smoothing=0.7):
         """
         Parameters
         ----------
@@ -271,7 +264,7 @@ class tqdm(object):
             for window resizes) [default: False].
         smoothing  : float
             Exponential moving average smoothing factor for speed estimates
-            (ignored in GUI mode). Ranges from 0 (only use average time) to 1
+            (ignored in GUI mode). Ranges from 0 (average speed) to 1
             (current/instantaneous speed) [default: 0.7].
 
         Returns
@@ -507,7 +500,7 @@ class tqdm(object):
                                 fontsize=11)
                             plt.pause(1e-9)
                         else:
-                            if smoothing:  # if not smoothing: just use average time
+                            if smoothing:  # EMA (not just overall average)
                                 avg_rate = delta_it / delta_t if avg_rate is None \
                                     else smoothing * delta_it / delta_t + \
                                     (1 - smoothing) * avg_rate
@@ -622,7 +615,7 @@ class tqdm(object):
                         fontsize=11)
                     self.plt.pause(1e-9)
                 else:
-                    if self.smoothing:  # if not smoothing: just use average time
+                    if self.smoothing:  # EMA (not just overall average)
                         self.avg_rate = delta_it / delta_t \
                             if self.avg_rate is None \
                             else self.smoothing * delta_it / delta_t + \

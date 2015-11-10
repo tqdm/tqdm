@@ -42,7 +42,7 @@ def test_format_meter():
     assert format_meter(100000, 1000, 13, unit_scale=True, unit='iB') == \
         "100KiB [00:13, 7.69KiB/s]"
     assert format_meter(100, 1000, 12, ncols=0, rate=7.33) == \
-        " 10% 100/1000 [00:12<01:48,  7.33it/s]"
+        " 10% 100/1000 [00:12<02:02,  7.33it/s]"
 
 
 def test_si_format():
