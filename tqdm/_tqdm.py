@@ -218,7 +218,7 @@ class tqdm(object):
                  file=sys.stderr, ncols=None, mininterval=0.1,
                  miniters=None, ascii=None, disable=False,
                  unit='it', unit_scale=False, gui=False, dynamic_ncols=False,
-                 smoothing=0.7):
+                 smoothing=0.05):
         """
         Parameters
         ----------
@@ -271,7 +271,7 @@ class tqdm(object):
             for window resizes) [default: False].
         smoothing  : float
             Exponential moving average smoothing factor for speed estimates
-            (ignored in GUI mode). Ranges from 0 (initial speed) to 1
+            (ignored in GUI mode). Ranges from 0 (only use average time) to 1
             (current/instantaneous speed) [default: 0.7].
 
         Returns
@@ -317,7 +317,7 @@ class tqdm(object):
                 self.plt = plt
 
         if smoothing is None:
-            smoothing = 1
+            smoothing = 0
 
         # Store the arguments
         self.iterable = iterable
@@ -336,7 +336,7 @@ class tqdm(object):
         self.gui = gui
         self.dynamic_ncols = dynamic_ncols
         self.smoothing = smoothing
-        self.ave_rate = None
+        self.avg_rate = None
 
         if gui:  # pragma: no cover
             # Initialize the GUI display
@@ -429,7 +429,7 @@ class tqdm(object):
             gui = self.gui
             dynamic_ncols = self.dynamic_ncols
             smoothing = self.smoothing
-            ave_rate = self.ave_rate
+            avg_rate = self.avg_rate
             if gui:  # pragma: no cover
                 plt = self.plt
                 ax = self.ax
@@ -507,14 +507,16 @@ class tqdm(object):
                                 fontsize=11)
                             plt.pause(1e-9)
                         else:
-                            ave_rate = delta_it / delta_t if ave_rate is None \
-                                else smoothing * delta_it / delta_t + \
-                                (1 - smoothing) * ave_rate
+                            if smoothing:  # if not smoothing: just use average time
+                                avg_rate = delta_it / delta_t if avg_rate is None \
+                                    else smoothing * delta_it / delta_t + \
+                                    (1 - smoothing) * avg_rate
+
                             sp(format_meter(
                                 n, self.total, elapsed,
                                 (dynamic_ncols(self.fp) if dynamic_ncols
                                  else ncols),
-                                self.desc, ascii, unit, unit_scale, ave_rate))
+                                self.desc, ascii, unit, unit_scale, avg_rate))
 
                         # If no `miniters` was specified, adjust automatically
                         # to the maximum iteration rate seen so far.
@@ -620,16 +622,18 @@ class tqdm(object):
                         fontsize=11)
                     self.plt.pause(1e-9)
                 else:
-                    self.ave_rate = delta_it / delta_t \
-                        if self.ave_rate is None \
-                        else self.smoothing * delta_it / delta_t + \
-                        (1 - self.smoothing) * self.ave_rate
+                    if self.smoothing:  # if not smoothing: just use average time
+                        self.avg_rate = delta_it / delta_t \
+                            if self.avg_rate is None \
+                            else self.smoothing * delta_it / delta_t + \
+                            (1 - self.smoothing) * self.avg_rate
+
                     self.sp(format_meter(
                         self.n, self.total, elapsed,
                         (self.dynamic_ncols(self.fp) if self.dynamic_ncols
                          else self.ncols),
                         self.desc, self.ascii, self.unit, self.unit_scale,
-                        self.ave_rate))
+                        self.avg_rate))
 
                 # If no `miniters` was specified, adjust automatically to the
                 # maximum iteration rate seen so far.
