@@ -69,10 +69,9 @@ Documentation
       """
 
       def __init__(self, iterable=None, desc=None, total=None, leave=False,
-                   file=sys.stderr, ncols=None, mininterval=0.1,
-                   miniters=None, ascii=None, disable=False,
-                   unit='it', unit_scale=False, gui=False, dynamic_ncols=False,
-                   smoothing=0.05):
+                   file=sys.stderr, ncols=None, mininterval=0.1, miniters=None,
+                   ascii=None, disable=False, unit='it', unit_scale=False,
+                   dynamic_ncols=False, smoothing=0.05):
 
 Parameters
 ~~~~~~~~~~
@@ -119,9 +118,6 @@ Parameters
     automatically and a metric prefix following the
     International System of Units standard will be added
     (kilo, mega, etc.) [default: False].
-* gui  : bool, optional  
-    If set, will attempt to use matplotlib animations for a
-    graphical output [default: false].
 * dynamic_ncols  : bool, optional  
     If set, constantly alters `ncols` to the environment (allowing
     for window resizes) [default: False].
@@ -162,6 +158,11 @@ Returns
           """
           Cleanup and (if leave=False) close the progressbar.
           """
+
+    class tqdm_gui(tqdm):
+        """
+        Experimental GUI version of tqdm!
+        """
 
     def trange(*args, **kwargs):
         """
