@@ -116,7 +116,7 @@ def test_file_output():
 
 
 def test_leave_option():
-    """ Test `leave=True` always prints info about the last iteration. """
+    """ Test `leave=True` always prints info about the last iteration """
     our_file = StringIO()
     for i in tqdm(_range(3), file=our_file, leave=True):
         pass
