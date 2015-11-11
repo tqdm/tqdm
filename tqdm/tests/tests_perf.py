@@ -29,7 +29,7 @@ def test_iter_overhead():
     our_file = StringIO()
     a = 0
     tic()
-    for i in trange(total, file=our_file):  # pragma: no cover
+    for i in trange(total, file=our_file):
         a = a + i
     time_tqdm = toc()
     our_file.close()
@@ -42,10 +42,11 @@ def test_iter_overhead():
 
     # Compute relative overhead of tqdm against native range()
     try:
-        assert(time_tqdm < 5 * time_bench)
+        assert(time_tqdm < 25 * time_bench)
     except AssertionError:
         raise AssertionError('trange(%g): %f, range(%g): %f' %
                              (total, time_tqdm, total, time_bench))
+
 
 def test_manual_overhead():
     """ Test overhead of manual tqdm """
@@ -69,7 +70,7 @@ def test_manual_overhead():
 
     # Compute relative overhead of tqdm against native range()
     try:
-        assert(time_tqdm < 12 * time_bench)
+        assert(time_tqdm < 25 * time_bench)
     except AssertionError:
         raise AssertionError('tqdm(%g): %f, range(%g): %f' %
                              (total, time_tqdm, total, time_bench))
