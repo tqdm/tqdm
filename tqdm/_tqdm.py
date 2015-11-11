@@ -18,7 +18,7 @@ from time import time
 
 __author__ = {"github.com/": ["noamraph", "obiwanus", "kmike", "hadim",
                               "casperdcl", "lrq3000"]}
-__all__ = ['tqdm', 'trange', 'format_interval', 'format_meter']
+__all__ = ['tqdm', 'tqdm_gui', 'trange', 'format_interval', 'format_meter']
 
 
 def format_sizeof(num, suffix=''):
@@ -135,7 +135,7 @@ def format_meter(n, total, elapsed, ncols=None, prefix='', ascii=False,
         frac = n / total
         percentage = frac * 100
 
-        remaining_str = format_interval((total-n) / rate) if rate else '?'
+        remaining_str = format_interval((total - n) / rate) if rate else '?'
 
         # format the stats displayed to the left and right sides of the bar
         l_bar = (prefix if prefix else '') + '{0:3.0f}%|'.format(percentage)
@@ -154,14 +154,14 @@ def format_meter(n, total, elapsed, ncols=None, prefix='', ascii=False,
             bar_length, frac_bar_length = divmod(
                 int(frac * N_BARS * 10), 10)
 
-            bar = '#'*bar_length
+            bar = '#' * bar_length
             frac_bar = chr(48 + frac_bar_length) if frac_bar_length \
                 else ' '
 
         else:
             bar_length, frac_bar_length = divmod(int(frac * N_BARS * 8), 8)
 
-            bar = _unich(0x2588)*bar_length
+            bar = _unich(0x2588) * bar_length
             frac_bar = _unich(0x2590 - frac_bar_length) \
                 if frac_bar_length else ' '
 
@@ -195,7 +195,7 @@ def StatusPrinter(file):
 
     def print_status(s):
         len_s = len(s)
-        fp.write('\r' + s + ' '*max(last_printed_len[0] - len_s, 0))
+        fp.write('\r' + s + ' ' * max(last_printed_len[0] - len_s, 0))
         fp.flush()
         last_printed_len[0] = len_s
     return print_status
@@ -298,23 +298,12 @@ class tqdm(object):
         if ascii is None:
             ascii = not _supports_unicode(file)
 
-        if gui:  # pragma: no cover
-            try:
-                import matplotlib as mpl
-                import matplotlib.pyplot as plt
-                from collections import deque
-            except ImportError:
-                gui = False
-            else:
-                self.mpl = mpl
-                self.plt = plt
-
         if smoothing is None:
             smoothing = 0
 
         # Store the arguments
         self.iterable = iterable
-        self.desc = desc+': ' if desc else ''
+        self.desc = desc + ': ' if desc else ''
         self.total = total
         self.leave = leave
         self.fp = file
@@ -331,56 +320,7 @@ class tqdm(object):
         self.smoothing = smoothing
         self.avg_rate = None
 
-        if gui:  # pragma: no cover
-            # Initialize the GUI display
-            if not disable:
-                file.write('Warning: GUI is experimental/alpha\n')
-
-                # Remember if external environment uses toolbars
-                self.toolbar = self.mpl.rcParams['toolbar']
-                self.mpl.rcParams['toolbar'] = 'None'
-
-                self.mininterval = max(mininterval, 0.5)
-                self.fig, ax = plt.subplots(figsize=(9, 2.2))
-                # self.fig.subplots_adjust(bottom=0.2)
-                if total:
-                    self.xdata = []
-                    self.ydata = []
-                    self.zdata = []
-                else:
-                    self.xdata = deque([])
-                    self.ydata = deque([])
-                    self.zdata = deque([])
-                self.line1, = ax.plot(self.xdata, self.ydata, color='b')
-                self.line2, = ax.plot(self.xdata, self.zdata, color='k')
-                ax.set_ylim(0, 0.001)
-                if total:
-                    ax.set_xlim(0, 100)
-                    ax.set_xlabel('percent')
-                    self.fig.legend((self.line1, self.line2), ('cur', 'est'),
-                                    loc='center right')
-                    # progressbar
-                    self.hspan = plt.axhspan(0, 0.001,
-                                             xmin=0, xmax=0, color='g')
-                else:
-                    # ax.set_xlim(-60, 0)
-                    ax.set_xlim(0, 60)
-                    ax.invert_xaxis()
-                    ax.set_xlabel('seconds')
-                    ax.legend(('cur', 'est'), loc='lower left')
-                ax.grid()
-                # ax.set_xlabel('seconds')
-                ax.set_ylabel((unit if unit else 'it') + '/s')
-                if unit_scale:
-                    plt.ticklabel_format(style='sci', axis='y',
-                                         scilimits=(0, 0))
-                    ax.yaxis.get_offset_text().set_x(-0.15)
-
-                # Remember if external environment is interactive
-                self.wasion = plt.isinteractive()
-                plt.ion()
-                self.ax = ax
-        else:
+        if not gui:
             # Initialize the screen printer
             self.sp = StatusPrinter(self.fp)
             if not disable:
@@ -419,20 +359,11 @@ class tqdm(object):
             last_print_t = self.last_print_t
             last_print_n = self.last_print_n
             n = self.n
-            gui = self.gui
             dynamic_ncols = self.dynamic_ncols
             smoothing = self.smoothing
             avg_rate = self.avg_rate
-            if gui:  # pragma: no cover
-                plt = self.plt
-                ax = self.ax
-                xdata = self.xdata
-                ydata = self.ydata
-                zdata = self.zdata
-                line1 = self.line1
-                line2 = self.line2
-            else:
-                sp = self.sp
+
+            sp = self.sp
 
             for obj in iterable:
                 yield obj
@@ -446,72 +377,18 @@ class tqdm(object):
                     delta_t = cur_t - last_print_t
                     if delta_t >= mininterval:
                         elapsed = cur_t - start_t
-                        if gui:  # pragma: no cover
-                            # Inline due to multiple calls
-                            total = self.total
-                            # instantaneous rate
-                            y = delta_it / delta_t
-                            # overall rate
-                            z = n / elapsed
-                            # update line data
-                            xdata.append(n * 100.0 / total if total else cur_t)
-                            ydata.append(y)
-                            zdata.append(z)
+                        # EMA (not just overall average)
+                        if smoothing and delta_t:
+                            avg_rate = delta_it / delta_t \
+                                if avg_rate is None \
+                                else smoothing * delta_it / delta_t + \
+                                (1 - smoothing) * avg_rate
 
-                            # Discard old values
-                            # xmin, xmax = ax.get_xlim()
-                            # if (not total) and elapsed > xmin * 1.1:
-                            if (not total) and elapsed > 66:
-                                xdata.popleft()
-                                ydata.popleft()
-                                zdata.popleft()
-
-                            ymin, ymax = ax.get_ylim()
-                            if y > ymax or z > ymax:
-                                ymax = 1.1 * y
-                                ax.set_ylim(ymin, ymax)
-                                ax.figure.canvas.draw()
-
-                            if total:
-                                line1.set_data(xdata, ydata)
-                                line2.set_data(xdata, zdata)
-                                try:
-                                    poly_lims = self.hspan.get_xy()
-                                except AttributeError:
-                                    self.hspan = plt.axhspan(0, 0.001, xmin=0,
-                                                             xmax=0, color='g')
-                                    poly_lims = self.hspan.get_xy()
-                                poly_lims[0, 1] = ymin
-                                poly_lims[1, 1] = ymax
-                                poly_lims[2] = [n / total, ymax]
-                                poly_lims[3] = [poly_lims[2, 0], ymin]
-                                if len(poly_lims) > 4:
-                                    poly_lims[4, 1] = ymin
-                                self.hspan.set_xy(poly_lims)
-                            else:
-                                t_ago = [cur_t - i for i in xdata]
-                                line1.set_data(t_ago, ydata)
-                                line2.set_data(t_ago, zdata)
-
-                            ax.set_title(format_meter(
-                                n, total, elapsed, 0,
-                                self.desc, ascii, unit, unit_scale),
-                                fontname="DejaVu Sans Mono",
-                                fontsize=11)
-                            plt.pause(1e-9)
-                        else:
-                            # EMA (not just overall average)
-                            if smoothing and delta_t:
-                                avg_rate = delta_it / delta_t \
-                                    if avg_rate is None \
-                                    else smoothing * delta_it / delta_t + \
-                                    (1 - smoothing) * avg_rate
-
-                            sp(format_meter(
-                                n, self.total, elapsed,
-                                (dynamic_ncols(self.fp) if dynamic_ncols
-                                 else ncols),
-                                self.desc, ascii, unit, unit_scale, avg_rate))
+                        sp(format_meter(
+                            n, self.total, elapsed,
+                            (dynamic_ncols(self.fp) if dynamic_ncols
+                             else ncols),
+                            self.desc, ascii, unit, unit_scale, avg_rate))
 
                         # If no `miniters` was specified, adjust automatically
                         # to the maximum iteration rate seen so far.
@@ -562,74 +439,19 @@ class tqdm(object):
             delta_t = cur_t - self.last_print_t
             if delta_t >= self.mininterval:
                 elapsed = cur_t - self.start_t
-                if self.gui:  # pragma: no cover
-                    # Inline due to multiple calls
-                    total = self.total
-                    ax = self.ax
+                # EMA (not just overall average)
+                if self.smoothing and delta_t:
+                    self.avg_rate = delta_it / delta_t \
+                        if self.avg_rate is None \
+                        else self.smoothing * delta_it / delta_t + \
+                        (1 - self.smoothing) * self.avg_rate
 
-                    # instantaneous rate
-                    y = delta_it / delta_t
-                    # smoothed rate
-                    z = self.n / elapsed
-                    # update line data
-                    self.xdata.append(self.n * 100.0 / total
-                                      if total else cur_t)
-                    self.ydata.append(y)
-                    self.zdata.append(z)
-
-                    # Discard old values
-                    if (not total) and elapsed > 66:
-                        self.xdata.popleft()
-                        self.ydata.popleft()
-                        self.zdata.popleft()
-
-                    ymin, ymax = ax.get_ylim()
-                    if y > ymax or z > ymax:
-                        ymax = 1.1 * y
-                        ax.set_ylim(ymin, ymax)
-                        ax.figure.canvas.draw()
-
-                    if total:
-                        self.line1.set_data(self.xdata, self.ydata)
-                        self.line2.set_data(self.xdata, self.zdata)
-                        try:
-                            poly_lims = self.hspan.get_xy()
-                        except AttributeError:
-                            self.hspan = self.plt.axhspan(0, 0.001, xmin=0,
-                                                          xmax=0, color='g')
-                            poly_lims = self.hspan.get_xy()
-                        poly_lims[0, 1] = ymin
-                        poly_lims[1, 1] = ymax
-                        poly_lims[2] = [self.n / total, ymax]
-                        poly_lims[3] = [poly_lims[2, 0], ymin]
-                        if len(poly_lims) > 4:
-                            poly_lims[4, 1] = ymin
-                        self.hspan.set_xy(poly_lims)
-                    else:
-                        t_ago = [cur_t - i for i in self.xdata]
-                        self.line1.set_data(t_ago, self.ydata)
-                        self.line2.set_data(t_ago, self.zdata)
-
-                    ax.set_title(format_meter(
-                        self.n, total, elapsed, 0,
-                        self.desc, self.ascii, self.unit, self.unit_scale),
-                        fontname="DejaVu Sans Mono",
-                        fontsize=11)
-                    self.plt.pause(1e-9)
-                else:
-                    # EMA (not just overall average)
-                    if self.smoothing and delta_t:
-                        self.avg_rate = delta_it / delta_t \
-                            if self.avg_rate is None \
-                            else self.smoothing * delta_it / delta_t + \
-                            (1 - self.smoothing) * self.avg_rate
-
-                    self.sp(format_meter(
-                        self.n, self.total, elapsed,
-                        (self.dynamic_ncols(self.fp) if self.dynamic_ncols
-                         else self.ncols),
-                        self.desc, self.ascii, self.unit, self.unit_scale,
-                        self.avg_rate))
+                self.sp(format_meter(
+                    self.n, self.total, elapsed,
+                    (self.dynamic_ncols(self.fp) if self.dynamic_ncols
+                     else self.ncols),
+                    self.desc, self.ascii, self.unit, self.unit_scale,
+                    self.avg_rate))
 
                 # If no `miniters` was specified, adjust automatically to the
                 # maximum iteration rate seen so far.
@@ -650,28 +472,295 @@ class tqdm(object):
         if self.disable:
             return
 
-        if self.gui:  # pragma: no cover
-            # Restore toolbars
-            self.mpl.rcParams['toolbar'] = self.toolbar
-            # Return to non-interactive mode
-            if not self.wasion:
-                self.plt.ioff()
-            if not self.leave:
-                self.plt.close(self.fig)
+        if self.leave:
+            if self.last_print_n < self.n:
+                cur_t = time()
+                # stats for overall rate (no weighted average)
+                self.sp(format_meter(
+                    self.n, self.total, cur_t - self.start_t,
+                    (self.dynamic_ncols(self.fp) if self.dynamic_ncols
+                     else self.ncols),
+                    self.desc, self.ascii, self.unit, self.unit_scale))
+            self.fp.write('\n')
         else:
-            if self.leave:
-                if self.last_print_n < self.n:
-                    cur_t = time()
-                    # stats for overall rate (no weighted average)
-                    self.sp(format_meter(
-                        self.n, self.total, cur_t-self.start_t,
-                        (self.dynamic_ncols(self.fp) if self.dynamic_ncols
-                         else self.ncols),
-                        self.desc, self.ascii, self.unit, self.unit_scale))
-                self.fp.write('\n')
-            else:
-                self.sp('')
-                self.fp.write('\r')
+            self.sp('')
+            self.fp.write('\r')
+
+
+class tqdm_gui(tqdm):  # pragma: no cover
+    def __init__(self, *args, **kwargs):
+
+        # try:  # pragma: no cover
+        import matplotlib as mpl
+        import matplotlib.pyplot as plt
+        from collections import deque
+        # except ImportError:  # gui not available
+        #   kwargs['gui'] = False
+        # else:
+        kwargs['gui'] = True
+
+        super(tqdm_gui, self).__init__(*args, **kwargs)
+
+        # Initialize the GUI display
+        if self.disable or not kwargs['gui']:
+            return
+
+        self.fp.write('Warning: GUI is experimental/alpha\n')
+        self.mpl = mpl
+        self.plt = plt
+        self.sp = None
+
+        # Remember if external environment uses toolbars
+        self.toolbar = self.mpl.rcParams['toolbar']
+        self.mpl.rcParams['toolbar'] = 'None'
+
+        self.mininterval = max(self.mininterval, 0.5)
+        self.fig, ax = plt.subplots(figsize=(9, 2.2))
+        # self.fig.subplots_adjust(bottom=0.2)
+        if self.total:
+            self.xdata = []
+            self.ydata = []
+            self.zdata = []
+        else:
+            self.xdata = deque([])
+            self.ydata = deque([])
+            self.zdata = deque([])
+        self.line1, = ax.plot(self.xdata, self.ydata, color='b')
+        self.line2, = ax.plot(self.xdata, self.zdata, color='k')
+        ax.set_ylim(0, 0.001)
+        if self.total:
+            ax.set_xlim(0, 100)
+            ax.set_xlabel('percent')
+            self.fig.legend((self.line1, self.line2), ('cur', 'est'),
+                            loc='center right')
+            # progressbar
+            self.hspan = plt.axhspan(0, 0.001,
+                                     xmin=0, xmax=0, color='g')
+        else:
+            # ax.set_xlim(-60, 0)
+            ax.set_xlim(0, 60)
+            ax.invert_xaxis()
+            ax.set_xlabel('seconds')
+            ax.legend(('cur', 'est'), loc='lower left')
+        ax.grid()
+        # ax.set_xlabel('seconds')
+        ax.set_ylabel((self.unit if self.unit else 'it') + '/s')
+        if self.unit_scale:
+            plt.ticklabel_format(style='sci', axis='y',
+                                 scilimits=(0, 0))
+            ax.yaxis.get_offset_text().set_x(-0.15)
+
+        # Remember if external environment is interactive
+        self.wasion = plt.isinteractive()
+        plt.ion()
+        self.ax = ax
+
+    def __iter__(self):
+        # TODO: somehow allow the following:
+        # if not self.gui:
+        #   return super(tqdm_gui, self).__iter__()
+        iterable = self.iterable
+        if self.disable:
+            for obj in iterable:
+                yield obj
+            return
+
+        # ncols = self.ncols
+        mininterval = self.mininterval
+        miniters = self.miniters
+        dynamic_miniters = self.dynamic_miniters
+        unit = self.unit
+        unit_scale = self.unit_scale
+        ascii = self.ascii
+        start_t = self.start_t
+        last_print_t = self.last_print_t
+        last_print_n = self.last_print_n
+        n = self.n
+        # dynamic_ncols = self.dynamic_ncols
+        # smoothing = self.smoothing
+        # avg_rate = self.avg_rate
+
+        plt = self.plt
+        ax = self.ax
+        xdata = self.xdata
+        ydata = self.ydata
+        zdata = self.zdata
+        line1 = self.line1
+        line2 = self.line2
+
+        for obj in iterable:
+            yield obj
+            # Update and print the progressbar.
+            # Note: does not call self.update(1) for speed optimisation.
+            n += 1
+            delta_it = n - last_print_n
+            # check the counter first (avoid calls to time())
+            if delta_it >= miniters:
+                cur_t = time()
+                delta_t = cur_t - last_print_t
+                if delta_t >= mininterval:  # pragma: no cover
+                    elapsed = cur_t - start_t
+                    # Inline due to multiple calls
+                    total = self.total
+                    # instantaneous rate
+                    y = delta_it / delta_t
+                    # overall rate
+                    z = n / elapsed
+                    # update line data
+                    xdata.append(n * 100.0 / total if total else cur_t)
+                    ydata.append(y)
+                    zdata.append(z)
+
+                    # Discard old values
+                    # xmin, xmax = ax.get_xlim()
+                    # if (not total) and elapsed > xmin * 1.1:
+                    if (not total) and elapsed > 66:
+                        xdata.popleft()
+                        ydata.popleft()
+                        zdata.popleft()
+
+                    ymin, ymax = ax.get_ylim()
+                    if y > ymax or z > ymax:
+                        ymax = 1.1 * y
+                        ax.set_ylim(ymin, ymax)
+                        ax.figure.canvas.draw()
+
+                    if total:
+                        line1.set_data(xdata, ydata)
+                        line2.set_data(xdata, zdata)
+                        try:
+                            poly_lims = self.hspan.get_xy()
+                        except AttributeError:
+                            self.hspan = plt.axhspan(0, 0.001, xmin=0,
+                                                     xmax=0, color='g')
+                            poly_lims = self.hspan.get_xy()
+                        poly_lims[0, 1] = ymin
+                        poly_lims[1, 1] = ymax
+                        poly_lims[2] = [n / total, ymax]
+                        poly_lims[3] = [poly_lims[2, 0], ymin]
+                        if len(poly_lims) > 4:
+                            poly_lims[4, 1] = ymin
+                        self.hspan.set_xy(poly_lims)
+                    else:
+                        t_ago = [cur_t - i for i in xdata]
+                        line1.set_data(t_ago, ydata)
+                        line2.set_data(t_ago, zdata)
+
+                    ax.set_title(format_meter(
+                        n, total, elapsed, 0,
+                        self.desc, ascii, unit, unit_scale),
+                        fontname="DejaVu Sans Mono",
+                        fontsize=11)
+                    plt.pause(1e-9)
+
+                    # If no `miniters` was specified, adjust automatically
+                    # to the maximum iteration rate seen so far.
+                    if dynamic_miniters:
+                        miniters = max(miniters, delta_it)
+
+                    # Store old values for next call
+                    last_print_n = n
+                    last_print_t = cur_t
+
+        # Closing the progress bar.
+        # Update some internal variables for close().
+        self.last_print_n = last_print_n
+        self.n = n
+        self.close()
+
+    def update(self, n=1):
+        # if not self.gui:
+        #   return super(tqdm_gui, self).close()
+        if self.disable:
+            return
+
+        if n < 1:
+            n = 1
+        self.n += n
+
+        delta_it = self.n - self.last_print_n  # should be n?
+        if delta_it >= self.miniters:
+            # We check the counter first, to reduce the overhead of time()
+            cur_t = time()
+            delta_t = cur_t - self.last_print_t
+            if delta_t >= self.mininterval:
+                elapsed = cur_t - self.start_t
+                # Inline due to multiple calls
+                total = self.total
+                ax = self.ax
+
+                # instantaneous rate
+                y = delta_it / delta_t
+                # smoothed rate
+                z = self.n / elapsed
+                # update line data
+                self.xdata.append(self.n * 100.0 / total
+                                  if total else cur_t)
+                self.ydata.append(y)
+                self.zdata.append(z)
+
+                # Discard old values
+                if (not total) and elapsed > 66:
+                    self.xdata.popleft()
+                    self.ydata.popleft()
+                    self.zdata.popleft()
+
+                ymin, ymax = ax.get_ylim()
+                if y > ymax or z > ymax:
+                    ymax = 1.1 * y
+                    ax.set_ylim(ymin, ymax)
+                    ax.figure.canvas.draw()
+
+                if total:
+                    self.line1.set_data(self.xdata, self.ydata)
+                    self.line2.set_data(self.xdata, self.zdata)
+                    try:
+                        poly_lims = self.hspan.get_xy()
+                    except AttributeError:
+                        self.hspan = self.plt.axhspan(0, 0.001, xmin=0,
+                                                      xmax=0, color='g')
+                        poly_lims = self.hspan.get_xy()
+                    poly_lims[0, 1] = ymin
+                    poly_lims[1, 1] = ymax
+                    poly_lims[2] = [self.n / total, ymax]
+                    poly_lims[3] = [poly_lims[2, 0], ymin]
+                    if len(poly_lims) > 4:
+                        poly_lims[4, 1] = ymin
+                    self.hspan.set_xy(poly_lims)
+                else:
+                    t_ago = [cur_t - i for i in self.xdata]
+                    self.line1.set_data(t_ago, self.ydata)
+                    self.line2.set_data(t_ago, self.zdata)
+
+                ax.set_title(format_meter(
+                    self.n, total, elapsed, 0,
+                    self.desc, self.ascii, self.unit, self.unit_scale),
+                    fontname="DejaVu Sans Mono",
+                    fontsize=11)
+                self.plt.pause(1e-9)
+
+                # If no `miniters` was specified, adjust automatically to the
+                # maximum iteration rate seen so far.
+                if self.dynamic_miniters:
+                    self.miniters = max(self.miniters, delta_it)
+
+                # Store old values for next call
+                self.last_print_n = self.n
+                self.last_print_t = cur_t
+
+    def close(self):
+        # if not self.gui:
+        #   return super(tqdm_gui, self).close()
+        if self.disable:
+            return
+
+        # Restore toolbars
+        self.mpl.rcParams['toolbar'] = self.toolbar
+        # Return to non-interactive mode
+        if not self.wasion:
+            self.plt.ioff()
+        if not self.leave:
+            self.plt.close(self.fig)
 
 
 def trange(*args, **kwargs):
