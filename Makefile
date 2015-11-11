@@ -1,5 +1,5 @@
 # IMPORTANT: for compatibility with `python setup.py make [alias]`, ensure:
-# 1. Every alias is preceded by @make (eg: @make alias)
+# 1. Every alias is preceded by @[+]make (eg: @make alias)
 # 2. A maximum of one @make alias or command per line
 #
 # Sample makefile compatible with `python setup.py make`:
@@ -21,6 +21,7 @@
 	testnose
 	testsetup
 	testcoverage
+	testperf
 	installdev
 	install
 	build
@@ -29,25 +30,26 @@
 	none
 
 alltests:
-	@make testcoverage
-	@make flake8
-	@make testsetup
+	@+make testcoverage
+	@+make testperf
+	@+make flake8
+	@+make testsetup
 
 all:
-	@make alltests
-	@make build
+	@+make alltests
+	@+make build
 
 flake8:
-	flake8 --max-line-length=80 --count --statistics --exit-zero tqdm/
-	flake8 --max-line-length=80 --count --statistics --exit-zero examples/
-	flake8 --max-line-length=80 --count --statistics --exit-zero .
-	flake8 --max-line-length=80 --count --statistics --exit-zero tqdm/tests/
+	@+flake8 --max-line-length=80 --count --statistics --exit-zero tqdm/
+	@+flake8 --max-line-length=80 --count --statistics --exit-zero examples/
+	@+flake8 --max-line-length=80 --count --statistics --exit-zero .
+	@+flake8 --max-line-length=80 --count --statistics --exit-zero tqdm/tests/
 
 test:
 	tox --skip-missing-interpreters
 
 testnose:
-	nosetests tqdm -v
+	nosetests tqdm --ignore-files="tests_perf\.py" -v
 
 testsetup:
 	python setup.py check --restructuredtext --strict
@@ -55,7 +57,10 @@ testsetup:
 
 testcoverage:
 	rm -f .coverage  # coverage erase
-	nosetests tqdm --with-coverage --cover-package=tqdm -v
+	nosetests tqdm --with-coverage --cover-package=tqdm --cover-erase --cover-min-percentage=80 --ignore-files="tests_perf\.py" -v
+
+testperf:  # do not use coverage, slows down the perf test and fail
+	nosetests tqdm/tests/tests_perf.py -v
 
 installdev:
 	python setup.py develop --uninstall
