@@ -5,9 +5,15 @@ import re
 from time import sleep
 
 try:
+    _range = xrange
+except NameError:
+    _range = range
+
+try:
     from StringIO import StringIO
 except:
     from io import StringIO
+from io import StringIO as uIO  # supports unicode strings
 
 from tqdm import format_interval
 from tqdm import format_meter
@@ -34,12 +40,12 @@ def test_format_meter():
     assert format_meter(0, 1000, 13, ncols=68, prefix='desc: ') == \
         "desc:   0%|                            | 0/1000 [00:13<?,  0.00it/s]"
     assert format_meter(231, 1000, 392) == \
-        " 23%|" + unich(0x2588)*2 + unich(0x258e) + \
+        " 23%|" + unich(0x2588) * 2 + unich(0x258e) + \
         "       | 231/1000 [06:32<21:44,  0.59it/s]"
     assert format_meter(10000, 1000, 13) == \
         "10000it [00:13, 769.23it/s]"
     assert format_meter(231, 1000, 392, ncols=56, ascii=True) == \
-        " 23%|" + '#'*3 + '6' + \
+        " 23%|" + '#' * 3 + '6' + \
         "            | 231/1000 [06:32<21:44,  0.59it/s]"
     assert format_meter(100000, 1000, 13, unit_scale=True, unit='iB') == \
         "100KiB [00:13, 7.69KiB/s]"
@@ -88,7 +94,7 @@ def test_iterate_over_csv_rows():
     # Create a test csv pseudo file
     test_csv_file = StringIO()
     writer = csv.writer(test_csv_file)
-    for i in range(3):
+    for i in _range(3):
         writer.writerow(['test'] * 3)
     test_csv_file.seek(0)
 
@@ -103,7 +109,7 @@ def test_iterate_over_csv_rows():
 def test_file_output():
     """ Test output to arbitrary file-like objects """
     our_file = StringIO()
-    for i in tqdm(range(3), file=our_file):
+    for i in tqdm(_range(3), file=our_file):
         if i == 1:
             our_file.seek(0)
             assert '0/3' in our_file.read()
@@ -112,7 +118,7 @@ def test_file_output():
 def test_leave_option():
     """ Test `leave=True` always prints info about the last iteration. """
     our_file = StringIO()
-    for i in tqdm(range(3), file=our_file, leave=True):
+    for i in tqdm(_range(3), file=our_file, leave=True):
         pass
     our_file.seek(0)
     assert '| 3/3 ' in our_file.read()
@@ -121,7 +127,7 @@ def test_leave_option():
     our_file.close()
 
     our_file2 = StringIO()
-    for i in tqdm(range(3), file=our_file2, leave=False):
+    for i in tqdm(_range(3), file=our_file2, leave=False):
         pass
     our_file2.seek(0)
     assert '| 3/3 ' not in our_file2.read()
@@ -148,7 +154,7 @@ def test_trange():
 def test_min_interval():
     """ Test mininterval """
     our_file = StringIO()
-    for i in tqdm(range(3), file=our_file, mininterval=1e-10):
+    for i in tqdm(_range(3), file=our_file, mininterval=1e-10):
         pass
     our_file.seek(0)
     assert "  0%|          | 0/3 [00:00<" in our_file.read()
@@ -158,14 +164,14 @@ def test_min_interval():
 def test_min_iters():
     """ Test miniters """
     our_file = StringIO()
-    for i in tqdm(range(3), file=our_file, leave=True, miniters=4):
+    for i in tqdm(_range(3), file=our_file, leave=True, miniters=4):
         our_file.write('blank\n')
     our_file.seek(0)
     assert '\nblank\nblank\n' in our_file.read()
     our_file.close()
 
     our_file2 = StringIO()
-    for i in tqdm(range(3), file=our_file2, leave=True, miniters=1):
+    for i in tqdm(_range(3), file=our_file2, leave=True, miniters=1):
         our_file2.write('blank\n')
     our_file2.seek(0)
     # assume automatic mininterval = 0 means intermediate output
@@ -198,13 +204,13 @@ def test_dynamic_min_iters():
     assert '70%' in out
 
     our_file = StringIO()
-    t = tqdm(range(10), file=our_file, miniters=None, mininterval=None)
+    t = tqdm(_range(10), file=our_file, miniters=None, mininterval=None)
     for i in t:
         pass
     assert t.dynamic_miniters
 
     our_file = StringIO()
-    t = tqdm(range(10), file=our_file, miniters=1, mininterval=None)
+    t = tqdm(_range(10), file=our_file, miniters=1, mininterval=None)
     for i in t:
         pass
     assert not t.dynamic_miniters
@@ -215,13 +221,13 @@ def test_dynamic_min_iters():
 def test_big_min_interval():
     """ Test large mininterval """
     our_file = StringIO()
-    for i in tqdm(range(2), file=our_file, mininterval=1E10):
+    for i in tqdm(_range(2), file=our_file, mininterval=1E10):
         pass
     our_file.seek(0)
     assert '50%' not in our_file.read()
 
     our_file = StringIO()
-    t = tqdm(range(2), file=our_file, mininterval=1E10)
+    t = tqdm(_range(2), file=our_file, mininterval=1E10)
     t.update()
     t.update()
     our_file.seek(0)
@@ -233,7 +239,7 @@ def test_big_min_interval():
 def test_disable():
     """ Test disable """
     our_file = StringIO()
-    for i in tqdm(range(3), file=our_file, disable=True):
+    for i in tqdm(_range(3), file=our_file, disable=True):
         pass
     our_file.seek(0)
     assert our_file.read() == ''
@@ -249,11 +255,44 @@ def test_disable():
 def test_unit():
     """ Test SI unit prefix """
     our_file = StringIO()
-    for i in tqdm(range(3), file=our_file, miniters=1, unit="bytes"):
+    for i in tqdm(_range(3), file=our_file, miniters=1, unit="bytes"):
         pass
     our_file.seek(0)
     assert 'bytes/s' in our_file.read()
     our_file.close()
+
+
+def test_ascii():
+    """ Test ascii/unicode bar """
+    # Test ascii autodetection
+    our_file = StringIO()
+    t = tqdm(total=10, file=our_file, ascii=None)
+    assert t.ascii  # TODO: this may fail in the future
+    our_file.close()
+
+    # Test ascii bar
+    our_file = StringIO()
+    for i in tqdm(_range(3), total=15, file=our_file, miniters=1, mininterval=0,
+                  ascii=True):
+        pass
+    our_file.seek(0)
+    res = our_file.read().strip("\r").split("\r")
+    our_file.close()
+    assert '7%|6' in res[1]
+    assert '13%|#3' in res[2]
+    assert '20%|##' in res[3]
+
+    # Test unicode bar
+    our_file = uIO()
+    t = tqdm(total=15, file=our_file, ascii=False, mininterval=0)
+    for i in _range(3):
+        t.update()
+    our_file.seek(0)
+    res = our_file.read().strip("\r").split("\r")
+    our_file.close()
+    assert "7%|\u258b" in res[1]
+    assert "13%|\u2588\u258e" in res[2]
+    assert "20%|\u2588\u2588" in res[3]
 
 
 def test_update():
@@ -312,10 +351,9 @@ def test_close():
 
 def test_smoothing():
     """ Test exponential weighted average smoothing """
-
     # -- Test disabling smoothing
     our_file = StringIO()
-    for i in tqdm(range(3), file=our_file, smoothing=None, leave=True):
+    for i in tqdm(_range(3), file=our_file, smoothing=None, leave=True):
         pass
     our_file.seek(0)
     assert '| 3/3 ' in our_file.read()
@@ -327,9 +365,9 @@ def test_smoothing():
     # 1st case: no smoothing (only use average)
     our_file = StringIO()
     our_file2 = StringIO()
-    t = tqdm(range(3), file=our_file2, smoothing=None, leave=True, miniters=1,
+    t = tqdm(_range(3), file=our_file2, smoothing=None, leave=True, miniters=1,
              mininterval=0)
-    for i in tqdm(range(3), file=our_file, smoothing=None, leave=True,
+    for i in tqdm(_range(3), file=our_file, smoothing=None, leave=True,
                   miniters=1, mininterval=0):
         # Sleep more for first iteration and see how quickly rate is updated
         if i == 0:
@@ -355,9 +393,9 @@ def test_smoothing():
     # 2nd case: use max smoothing (= instant rate)
     our_file = StringIO()
     our_file2 = StringIO()
-    t = tqdm(range(3), file=our_file2, smoothing=1, leave=True, miniters=1,
+    t = tqdm(_range(3), file=our_file2, smoothing=1, leave=True, miniters=1,
              mininterval=0)
-    for i in tqdm(range(3), file=our_file, smoothing=1, leave=True,
+    for i in tqdm(_range(3), file=our_file, smoothing=1, leave=True,
                   miniters=1, mininterval=0):
         if i == 0:
             sleep(0.01)
@@ -380,9 +418,9 @@ def test_smoothing():
     # 3rd case: use medium smoothing
     our_file = StringIO()
     our_file2 = StringIO()
-    t = tqdm(range(3), file=our_file2, smoothing=0.5, leave=True, miniters=1,
+    t = tqdm(_range(3), file=our_file2, smoothing=0.5, leave=True, miniters=1,
              mininterval=0)
-    for i in tqdm(range(3), file=our_file, smoothing=0.5, leave=True,
+    for i in tqdm(_range(3), file=our_file, smoothing=0.5, leave=True,
                   miniters=1, mininterval=0):
         if i == 0:
             sleep(0.01)
@@ -405,3 +443,14 @@ def test_smoothing():
     # Check that medium smoothing's rate is between no and max smoothing rates
     assert a < c < b
     assert a2 < c2 < b2
+
+
+def test_no_gui():
+    """ Test internal GUI properties """
+    # Check: StatusPrinter iff gui is disabled
+    our_file = StringIO()
+    t = tqdm(total=1, gui=True, file=our_file)
+    assert not hasattr(t, "sp")
+    t = tqdm(total=1, gui=False, file=our_file)
+    assert hasattr(t, "sp")
+    our_file.close()
