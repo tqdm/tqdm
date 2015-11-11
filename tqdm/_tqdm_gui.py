@@ -12,7 +12,6 @@ Usage:
 from __future__ import division, absolute_import
 # import compatibility functions and utilities
 from ._utils import _range
-import sys
 from time import time
 # to inherit from the tqdm class
 from ._tqdm import tqdm, format_meter

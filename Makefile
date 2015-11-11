@@ -46,7 +46,7 @@ test:
 	tox --skip-missing-interpreters
 
 testnose:
-	nosetests tqdm -v
+	nosetests tqdm -d -v
 
 testsetup:
 	python setup.py check --restructuredtext --strict
@@ -54,7 +54,7 @@ testsetup:
 
 testcoverage:
 	rm -f .coverage  # coverage erase
-	nosetests tqdm --with-coverage --cover-package=tqdm -v
+	nosetests tqdm --with-coverage --cover-package=tqdm -d -v
 
 installdev:
 	python setup.py develop --uninstall

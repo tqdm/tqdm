@@ -18,7 +18,7 @@ from time import time
 
 __author__ = {"github.com/": ["noamraph", "obiwanus", "kmike", "hadim",
                               "casperdcl", "lrq3000"]}
-__all__ = ['tqdm', 'tqdm_gui', 'trange', 'format_interval', 'format_meter']
+__all__ = ['tqdm', 'trange', 'format_interval', 'format_meter']
 
 
 def format_sizeof(num, suffix=''):

@@ -9,6 +9,8 @@ try:
 except:
     from io import StringIO
 
+from io import StringIO as uIO  # supports unicode strings
+
 from tqdm import format_interval
 from tqdm import format_meter
 from tqdm import tqdm
@@ -256,6 +258,39 @@ def test_unit():
     our_file.close()
 
 
+def test_ascii():
+    """ Test ascii/unicode bar """
+    # Test ascii autodetection
+    our_file = StringIO()
+    t = tqdm(total=10, file=our_file, ascii=None)
+    assert t.ascii  # TODO: this may fail in the future
+    our_file.close()
+
+    # Test ascii bar
+    our_file = StringIO()
+    for i in tqdm(range(3), total=15, file=our_file, miniters=1, mininterval=0,
+                  ascii=True):
+        pass
+    our_file.seek(0)
+    res = our_file.read().strip("\r").split("\r")
+    our_file.close()
+    assert '7%|6' in res[1]
+    assert '13%|#3' in res[2]
+    assert '20%|##' in res[3]
+
+    # Test unicode bar
+    our_file = uIO()
+    t = tqdm(total=15, file=our_file, ascii=False, mininterval=0)
+    for i in range(3):
+        t.update()
+    our_file.seek(0)
+    res = our_file.read().strip("\r").split("\r")
+    our_file.close()
+    assert "7%|\u258b" in res[1]
+    assert "13%|\u2588\u258e" in res[2]
+    assert "20%|\u2588\u2588" in res[3]
+
+
 def test_update():
     """ Test manual creation and updates """
     our_file = StringIO()
@@ -405,3 +440,13 @@ def test_smoothing():
     # Check that medium smoothing's rate is between no and max smoothing rates
     assert a < c < b
     assert a2 < c2 < b2
+
+
+def test_no_gui():
+    """ Test no gui properties (internal variable """
+    # Check: no StatusPrinter when gui is enabled
+    t = tqdm(total=1, gui=True)
+    assert not hasattr(t, "sp")
+    # Check: StatusPrinter loaded when no gui
+    t = tqdm(total=1, gui=False)
+    assert hasattr(t, "sp")
