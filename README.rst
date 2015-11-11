@@ -159,15 +159,20 @@ Returns
           Cleanup and (if leave=False) close the progressbar.
           """
 
+    def trange(*args, **kwargs):
+        """
+        A shortcut for tqdm(xrange(*args), **kwargs).
+        On Python3+ range is used instead of xrange.
+        """
+
     class tqdm_gui(tqdm):
         """
         Experimental GUI version of tqdm!
         """
 
-    def trange(*args, **kwargs):
+    def tgrange(*args, **kwargs):
         """
-        A shortcut for tqdm(xrange(*args), **kwargs).
-        On Python3+ range is used instead of xrange.
+        Experimental GUI version of trange!
         """
 
 Examples and Advanced Usage
