@@ -363,7 +363,11 @@ class tqdm(object):
             smoothing = self.smoothing
             avg_rate = self.avg_rate
 
-            sp = self.sp
+            try:
+                sp = self.sp
+            except AttributeError:
+                raise DeprecationWarning('Please use tqdm_gui(...)'
+                                         ' instead of tqdm(..., gui=True)')
 
             for obj in iterable:
                 yield obj
@@ -445,6 +449,10 @@ class tqdm(object):
                         if self.avg_rate is None \
                         else self.smoothing * delta_it / delta_t + \
                         (1 - self.smoothing) * self.avg_rate
+
+                if not hasattr(self, "sp"):
+                    raise DeprecationWarning('Please use tqdm_gui(...)'
+                                             ' instead of tqdm(..., gui=True)')
 
                 self.sp(format_meter(
                     self.n, self.total, elapsed,
