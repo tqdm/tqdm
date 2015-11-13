@@ -13,17 +13,17 @@ for i in trange(16, leave=True):
 # Profiling/overhead tests
 stmts = (
     # Benchmark
-    '[i for i in xrange(int(1e8))]',
+    '[0 for i in xrange(int(1e8))]',
     # Basic demo
-    'import tqdm; [i for i in tqdm.trange(int(1e8))]',
+    'import tqdm; [0 for i in tqdm.trange(int(1e8))]',
     # Some decorations
-    'import tqdm; [i for i in tqdm.trange(int(1e8), miniters=int(1e6),'
+    'import tqdm; [0 for i in tqdm.trange(int(1e8), miniters=int(1e6),'
     '    ascii=True, desc="cool", dynamic_ncols=True)]',
     # Experimental GUI demo
-    'import tqdm; [i for i in tqdm.trange(int(1e8), gui=True)]',
+    'import tqdm; [0 for i in tqdm.tgrange(int(1e8))]',
     # Comparison to https://code.google.com/p/python-progressbar/
     'from progressbar.progressbar import ProgressBar;'
-    '    [i for i in ProgressBar()(xrange(int(1e8)))]')
+    '    [0 for i in ProgressBar()(xrange(int(1e8)))]')
 
 for s in stmts:
     print(s)
