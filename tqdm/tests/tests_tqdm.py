@@ -449,8 +449,26 @@ def test_no_gui():
     """ Test internal GUI properties """
     # Check: StatusPrinter iff gui is disabled
     our_file = StringIO()
-    t = tqdm(total=1, gui=True, file=our_file)
+    t = tqdm(total=2, gui=True, file=our_file, miniters=1, mininterval=0)
     assert not hasattr(t, "sp")
+    try:
+        t.update(1)
+    except DeprecationWarning:
+        pass
+    else:
+        raise DeprecationWarning('Should not allow manual gui=True without'
+                                 ' overriding __iter__() and update()')
+
+    try:
+        for i in tqdm(_range(3), gui=True, file=our_file,
+                      miniters=1, mininterval=0):
+            pass
+    except DeprecationWarning:
+        pass
+    else:
+        raise DeprecationWarning('Should not allow manual gui=True without'
+                                 ' overriding __iter__() and update()')
+
     t = tqdm(total=1, gui=False, file=our_file)
     assert hasattr(t, "sp")
     our_file.close()
