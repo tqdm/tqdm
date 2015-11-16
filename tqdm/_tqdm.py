@@ -210,7 +210,7 @@ class tqdm(object):
     def __init__(self, iterable=None, desc=None, total=None, leave=False,
                  file=sys.stderr, ncols=None, mininterval=0.1, miniters=None,
                  ascii=None, disable=False, unit='it', unit_scale=False,
-                 dynamic_ncols=False, smoothing=0.05, gui=False):
+                 dynamic_ncols=False, smoothing=0.3, gui=False):
         """
         Parameters
         ----------
@@ -261,7 +261,7 @@ class tqdm(object):
         smoothing  : float
             Exponential moving average smoothing factor for speed estimates
             (ignored in GUI mode). Ranges from 0 (average speed) to 1
-            (current/instantaneous speed) [default: 0.05].
+            (current/instantaneous speed) [default: 0.3].
         gui  : bool, optional
             WARNING: internal paramer - do not use. Use tqdm_gui(...) instead.
             If set, will attempt to use matplotlib animations for a
@@ -397,7 +397,8 @@ class tqdm(object):
                         # If no `miniters` was specified, adjust automatically
                         # to the maximum iteration rate seen so far.
                         if dynamic_miniters:
-                            miniters = max(miniters, delta_it)
+                            miniters = smoothing * delta_it + \
+                                (1 - smoothing) * miniters
 
                         # Store old values for next call
                         last_print_n = n
@@ -467,7 +468,8 @@ class tqdm(object):
                 # calls to `tqdm.update()` will only cause an update after
                 # at least 5 more iterations.
                 if self.dynamic_miniters:
-                    self.miniters = max(self.miniters, delta_it)
+                    self.miniters = self.smoothing * delta_it + \
+                        (1 - self.smoothing) * self.miniters
 
                 # Store old values for next call
                 self.last_print_n = self.n
