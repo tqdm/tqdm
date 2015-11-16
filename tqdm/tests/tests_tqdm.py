@@ -183,7 +183,7 @@ def test_dynamic_min_iters():
     """ Test purely dynamic miniters """
     our_file = StringIO()
     total = 10
-    t = tqdm(total=total, file=our_file, miniters=None, mininterval=0)
+    t = tqdm(total=total, file=our_file, miniters=None, mininterval=0, smoothing=1)
 
     t.update()
     # Increase 3 iterations
