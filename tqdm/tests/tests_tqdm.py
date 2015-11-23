@@ -1,3 +1,6 @@
+# Advice: use repr(our_file.read()) to print the full output of tqdm
+# (else '\r' will replace the previous lines and you'll see only the latest.
+
 from __future__ import unicode_literals
 
 import csv
@@ -183,7 +186,8 @@ def test_dynamic_min_iters():
     """ Test purely dynamic miniters """
     our_file = StringIO()
     total = 10
-    t = tqdm(total=total, file=our_file, miniters=None, mininterval=0, smoothing=1)
+    t = tqdm(total=total, file=our_file, miniters=None, mininterval=0,
+             smoothing=1)
 
     t.update()
     # Increase 3 iterations
@@ -234,6 +238,34 @@ def test_big_min_interval():
     assert '50%' not in our_file.read()
 
     our_file.close()
+
+
+def test_smoothed_dynamic_min_iters():
+    """ Test smoothed dynamic miniters """
+    our_file = StringIO()
+    total = 100
+    t = tqdm(total=total, file=our_file, miniters=None, mininterval=0,
+             smoothing=0.5)
+
+    # Increase 10 iterations at once
+    t.update(10)
+    # The next iterations should be partially skipped
+    for _ in range(2):
+        t.update(4)
+    for _ in range(20):
+        t.update()
+
+    our_file.seek(0)
+    out = our_file.read()
+    assert t.dynamic_miniters
+    assert '  0%|          | 0/100 [00:00<' in out
+    assert '10%' in out
+    assert '14%' not in out
+    assert '18%' in out
+    assert '20%' not in out
+    assert '25%' in out
+    assert '30%' not in out
+    assert '32%' in out
 
 
 def test_disable():
