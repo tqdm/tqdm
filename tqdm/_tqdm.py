@@ -396,9 +396,13 @@ class tqdm(object):
 
                         # If no `miniters` was specified, adjust automatically
                         # to the maximum iteration rate seen so far.
-                        if dynamic_miniters:
-                            miniters = smoothing * delta_it + \
-                                (1 - smoothing) * miniters
+                        if dynamic_miniters and delta_t:
+                            if mininterval:
+                                miniters = smoothing * delta_it * mininterval \
+                                    / delta_t + (1 - smoothing) * miniters
+                            else:
+                                miniters = smoothing * delta_it + \
+                                    (1 - self.smoothing) * self.miniters
 
                         # Store old values for next call
                         last_print_n = n
@@ -467,9 +471,14 @@ class tqdm(object):
                 # e.g.: After running `tqdm.update(5)`, subsequent
                 # calls to `tqdm.update()` will only cause an update after
                 # at least 5 more iterations.
-                if self.dynamic_miniters:
-                    self.miniters = self.smoothing * delta_it + \
-                        (1 - self.smoothing) * self.miniters
+                if self.dynamic_miniters and delta_t:
+                    if self.mininterval:
+                        self.miniters = self.smoothing * delta_it \
+                            * self.mininterval / delta_t + \
+                            (1 - self.smoothing) * self.miniters
+                    else:
+                        self.miniters = self.smoothing * delta_it + \
+                            (1 - self.smoothing) * self.miniters
 
                 # Store old values for next call
                 self.last_print_n = self.n
