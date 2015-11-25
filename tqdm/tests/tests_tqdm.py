@@ -383,6 +383,7 @@ def test_close():
 
 def test_smoothing():
     """ Test exponential weighted average smoothing """
+
     # -- Test disabling smoothing
     our_file = StringIO()
     for i in tqdm(_range(3), file=our_file, smoothing=None, leave=True):

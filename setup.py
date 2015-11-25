@@ -7,10 +7,10 @@ import sys
 import subprocess
 # For Makefile parsing
 import shlex
-try:    # pragma: no cover
+try:  # pragma: no cover
     import ConfigParser
     import StringIO
-except ImportError:    # pragma: no cover
+except ImportError:  # pragma: no cover
     # Python 3 compatibility
     import configparser as ConfigParser
     import io as StringIO
@@ -31,7 +31,8 @@ def parse_makefile_aliases(filepath):
     # Adding a fake section to make the Makefile a valid Ini file
     ini_str = '[root]\n'
     with open(filepath, 'r') as fd:
-        ini_str = ini_str + fd.read().replace('@make ', '')
+        ini_str = ini_str + fd.read().replace('\t@', '\t').\
+            replace('\t+', '\t').replace('\tmake ', '\t')
     ini_fp = StringIO.StringIO(ini_str)
     # Parse using ConfigParser
     config = ConfigParser.RawConfigParser()
