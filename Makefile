@@ -22,6 +22,7 @@
 	testsetup
 	testcoverage
 	testperf
+	testtimer
 	installdev
 	install
 	build
@@ -49,7 +50,7 @@ test:
 	tox --skip-missing-interpreters
 
 testnose:
-	nosetests tqdm --ignore-files="tests_perf\.py" -d -v
+	nosetests tqdm -d -v
 
 testsetup:
 	python setup.py check --restructuredtext --strict
@@ -59,8 +60,11 @@ testcoverage:
 	rm -f .coverage  # coverage erase
 	nosetests tqdm --with-coverage --cover-package=tqdm --cover-erase --cover-min-percentage=80 --ignore-files="tests_perf\.py" -d -v
 
-testperf:  # do not use coverage, slows down the perf test and fail
+testperf:  # do not use coverage (which is extremely slow)
 	nosetests tqdm/tests/tests_perf.py -d -v
+
+testtimer:
+	nosetests tqdm --with-timer -d -v
 
 installdev:
 	python setup.py develop --uninstall
