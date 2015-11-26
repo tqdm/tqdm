@@ -13,18 +13,20 @@ for i in trange(16, leave=True):
 # Profiling/overhead tests
 stmts = (
     # Benchmark
-    '[0 for i in xrange(int(1e8))]',
+    'for i in _range(int(1e8)):\n\tpass',
     # Basic demo
-    'import tqdm; [0 for i in tqdm.trange(int(1e8))]',
+    'import tqdm\nfor i in tqdm.trange(int(1e8)):\n\tpass',
     # Some decorations
-    'import tqdm; [0 for i in tqdm.trange(int(1e8), miniters=int(1e6),'
-    '    ascii=True, desc="cool", dynamic_ncols=True)]',
+    'import tqdm\nfor i in tqdm.trange(int(1e8), miniters=int(1e6),'
+    ' ascii=True, desc="cool", dynamic_ncols=True):\n\tpass',
     # Experimental GUI demo
-    'import tqdm; [0 for i in tqdm.tgrange(int(1e8))]',
+    'import tqdm\nfor i in tqdm.tgrange(int(1e8)):\n\tpass',
     # Comparison to https://code.google.com/p/python-progressbar/
-    'from progressbar.progressbar import ProgressBar;'
-    '    [0 for i in ProgressBar()(xrange(int(1e8)))]')
+    'from progressbar.progressbar import ProgressBar\n'
+    'for i in ProgressBar()(_range(int(1e8))):\n\tpass')
 
 for s in stmts:
-    print(s)
-    print(timeit(stmt=s, number=1), 'seconds')
+    print(s.replace('import tqdm\n', ''))
+    print(timeit(stmt='try:\n\t_range = xrange'
+                      '\nexcept:\n\t_range = range\n' + s, number=1),
+          'seconds')
