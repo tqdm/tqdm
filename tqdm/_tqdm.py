@@ -406,12 +406,11 @@ class tqdm(object):
                         # to the maximum iteration rate seen so far.
                         if dynamic_miniters:
                             if maxinterval and delta_t > maxinterval:
-                                # analytically compute miniters so that it gets
-                                # exactly equal to the time to meet maxinterval
-                                miniters = maxinterval * miniters / delta_t
+                                # Set miniters to correspond to maxinterval
+                                miniters =  delta_it * maxinterval / delta_t
                             elif mininterval and delta_t:
-                                # weight delta_it with ema to try to converge
-                                # miniters towards the timeframe of mininterval
+                                # EMA-weight miniters to converge
+                                # towards the timeframe of mininterval
                                 miniters = smoothing * delta_it * mininterval \
                                     / delta_t + (1 - smoothing) * miniters
                             else:
@@ -487,7 +486,7 @@ class tqdm(object):
                 # at least 5 more iterations.
                 if self.dynamic_miniters:
                     if self.maxinterval and delta_t > self.maxinterval:
-                        self.miniters = self.maxinterval * self.miniters \
+                        self.miniters = self.miniters * self.maxinterval \
                             / delta_t
                     elif self.mininterval and delta_t:
                         self.miniters = self.smoothing * delta_it \
