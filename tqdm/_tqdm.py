@@ -208,7 +208,8 @@ class tqdm(object):
     progressbar every time a value is requested.
     """
     def __init__(self, iterable=None, desc=None, total=None, leave=False,
-                 file=sys.stderr, ncols=None, mininterval=0.1, miniters=None,
+                 file=sys.stderr, ncols=None, mininterval=0.1, maxinterval=10.0,
+                 miniters=None,
                  ascii=None, disable=False, unit='it', unit_scale=False,
                  dynamic_ncols=False, smoothing=0.3, gui=False):
         """
@@ -240,6 +241,8 @@ class tqdm(object):
             statistics. If 0, will not print any meter (only stats).
         mininterval  : float, optional
             Minimum progress update interval, in seconds [default: 0.1].
+        maxinterval  : float, optional
+            Maximum progress update interval, in seconds [default: 10.0].
         miniters  : int, optional
             Minimum progress update interval, in iterations [default: None].
         ascii  : bool, optional
@@ -295,6 +298,9 @@ class tqdm(object):
         if mininterval is None:
             mininterval = 0
 
+        if maxinterval is None:
+            maxinterval = 0
+
         if ascii is None:
             ascii = not _supports_unicode(file)
 
@@ -309,6 +315,7 @@ class tqdm(object):
         self.fp = file
         self.ncols = ncols
         self.mininterval = mininterval
+        self.maxinterval = maxinterval
         self.miniters = miniters
         self.dynamic_miniters = dynamic_miniters
         self.ascii = ascii
@@ -350,6 +357,7 @@ class tqdm(object):
         else:
             ncols = self.ncols
             mininterval = self.mininterval
+            maxinterval = self.maxinterval
             miniters = self.miniters
             dynamic_miniters = self.dynamic_miniters
             unit = self.unit
@@ -396,8 +404,12 @@ class tqdm(object):
 
                         # If no `miniters` was specified, adjust automatically
                         # to the maximum iteration rate seen so far.
-                        if dynamic_miniters and delta_t:
-                            if mininterval:
+                        if dynamic_miniters:
+                            if maxinterval and delta_t > maxinterval:
+                                # analytically compute miniters so that it gets
+                                # exactly equal to the time to meet maxinterval
+                                miniters = maxinterval * miniters / delta_t
+                            elif mininterval and delta_t:
                                 # weight delta_it with ema to try to converge
                                 # miniters towards the timeframe of mininterval
                                 miniters = smoothing * delta_it * mininterval \
@@ -473,8 +485,11 @@ class tqdm(object):
                 # e.g.: After running `tqdm.update(5)`, subsequent
                 # calls to `tqdm.update()` will only cause an update after
                 # at least 5 more iterations.
-                if self.dynamic_miniters and delta_t:
-                    if self.mininterval:
+                if self.dynamic_miniters:
+                    if self.maxinterval and delta_t > self.maxinterval:
+                        self.miniters = self.maxinterval * self.miniters \
+                            / delta_t
+                    elif self.mininterval and delta_t:
                         self.miniters = self.smoothing * delta_it \
                             * self.mininterval / delta_t + \
                             (1 - self.smoothing) * self.miniters
