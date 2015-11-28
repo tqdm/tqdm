@@ -69,7 +69,7 @@ Documentation
       """
 
       def __init__(self, iterable=None, desc=None, total=None, leave=False,
-                   file=sys.stderr, ncols=None, mininterval=0.1, miniters=None,
+                   file=sys.stderr, ncols=None, mininterval=0.1, maxinterval=10.0, miniters=None,
                    ascii=None, disable=False, unit='it', unit_scale=False,
                    dynamic_ncols=False, smoothing=0.3):
 
@@ -102,6 +102,8 @@ Parameters
     statistics. If 0, will not print any meter (only stats).
 * mininterval  : float, optional  
     Minimum progress update interval, in seconds [default: 0.1].
+* maxinterval  : float, optional
+    Maximum progress update interval, in seconds [default: 10.0].
 * miniters  : int, optional  
     Minimum progress update interval, in iterations [default: None].
     If specified, will set `mininterval` to 0.
