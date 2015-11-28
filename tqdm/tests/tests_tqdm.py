@@ -4,24 +4,36 @@
 from __future__ import unicode_literals
 
 import csv
-import re
 from time import sleep
+import re
+
+from tqdm import format_interval
+from tqdm import format_meter
+from tqdm import tqdm
+from tqdm import trange
+
+try:
+    from StringIO import StringIO
+except:
+    from io import StringIO
+# Ensure we can use `with closing(...) as ... :` syntax
+if getattr(StringIO, '__exit__', False) and \
+   getattr(StringIO, '__enter__', False):
+    def closing(arg):
+        return arg
+else:
+    from contextlib import closing
 
 try:
     _range = xrange
 except NameError:
     _range = range
 
-try:
-    from StringIO import StringIO
-except:
-    from io import StringIO
-from io import StringIO as uIO  # supports unicode strings
+RE_rate = re.compile(r'(\d+\.\d+)it/s')
 
-from tqdm import format_interval
-from tqdm import format_meter
-from tqdm import tqdm
-from tqdm import trange
+
+def progressbar_rate(bar_str):
+    return float(RE_rate.search(bar_str).group(1))
 
 
 def test_format_interval():
@@ -86,7 +98,7 @@ def test_all_defaults():
     """ Test default kwargs """
     progressbar = tqdm(range(10))
     assert len(progressbar) == 10
-    for i in progressbar:
+    for _ in progressbar:
         pass
     import sys
     sys.stderr.write('tests_tqdm.test_all_defaults ... ')
@@ -95,73 +107,68 @@ def test_all_defaults():
 def test_iterate_over_csv_rows():
     """ Test csv iterator """
     # Create a test csv pseudo file
-    test_csv_file = StringIO()
-    writer = csv.writer(test_csv_file)
-    for i in _range(3):
-        writer.writerow(['test'] * 3)
-    test_csv_file.seek(0)
+    with closing(StringIO()) as test_csv_file:
+        writer = csv.writer(test_csv_file)
+        for _ in _range(3):
+            writer.writerow(['test'] * 3)
+        test_csv_file.seek(0)
 
-    # Test that nothing fails if we iterate over rows
-    reader = csv.DictReader(test_csv_file, fieldnames=('row1', 'row2', 'row3'))
-    our_file = StringIO()
-    for row in tqdm(reader, file=our_file):
-        pass
-    our_file.close()
+        # Test that nothing fails if we iterate over rows
+        reader = csv.DictReader(test_csv_file,
+                                fieldnames=('row1', 'row2', 'row3'))
+        with closing(StringIO()) as our_file:
+            for row in tqdm(reader, file=our_file):
+                pass
 
 
 def test_file_output():
     """ Test output to arbitrary file-like objects """
-    our_file = StringIO()
-    for i in tqdm(_range(3), file=our_file):
-        if i == 1:
-            our_file.seek(0)
-            assert '0/3' in our_file.read()
+    with closing(StringIO()) as our_file:
+        for i in tqdm(_range(3), file=our_file):
+            if i == 1:
+                our_file.seek(0)
+                assert '0/3' in our_file.read()
 
 
 def test_leave_option():
     """ Test `leave=True` always prints info about the last iteration """
-    our_file = StringIO()
-    for i in tqdm(_range(3), file=our_file, leave=True):
-        pass
-    our_file.seek(0)
-    assert '| 3/3 ' in our_file.read()
-    our_file.seek(0)
-    assert '\n' == our_file.read()[-1]  # not '\r'
-    our_file.close()
+    with closing(StringIO()) as our_file:
+        for _ in tqdm(_range(3), file=our_file, leave=True):
+            pass
+        our_file.seek(0)
+        assert '| 3/3 ' in our_file.read()
+        our_file.seek(0)
+        assert '\n' == our_file.read()[-1]  # not '\r'
 
-    our_file2 = StringIO()
-    for i in tqdm(_range(3), file=our_file2, leave=False):
-        pass
-    our_file2.seek(0)
-    assert '| 3/3 ' not in our_file2.read()
-    our_file2.close()
+    with closing(StringIO()) as our_file2:
+        for _ in tqdm(_range(3), file=our_file2, leave=False):
+            pass
+        our_file2.seek(0)
+        assert '| 3/3 ' not in our_file2.read()
 
 
 def test_trange():
     """ Test trange """
-    our_file = StringIO()
-    for i in trange(3, file=our_file, leave=True):
-        pass
-    our_file.seek(0)
-    assert '| 3/3 ' in our_file.read()
-    our_file.close()
+    with closing(StringIO()) as our_file:
+        for _ in trange(3, file=our_file, leave=True):
+            pass
+        our_file.seek(0)
+        assert '| 3/3 ' in our_file.read()
 
-    our_file2 = StringIO()
-    for i in trange(3, file=our_file2, leave=False):
-        pass
-    our_file2.seek(0)
-    assert '| 3/3 ' not in our_file2.read()
-    our_file2.close()
+    with closing(StringIO()) as our_file2:
+        for _ in trange(3, file=our_file2, leave=False):
+            pass
+        our_file2.seek(0)
+        assert '| 3/3 ' not in our_file2.read()
 
 
 def test_min_interval():
     """ Test mininterval """
-    our_file = StringIO()
-    for i in tqdm(_range(3), file=our_file, mininterval=1e-10):
-        pass
-    our_file.seek(0)
-    assert "  0%|          | 0/3 [00:00<" in our_file.read()
-    our_file.close()
+    with closing(StringIO()) as our_file:
+        for _ in tqdm(_range(3), file=our_file, mininterval=1e-10):
+            pass
+        our_file.seek(0)
+        assert "  0%|          | 0/3 [00:00<" in our_file.read()
 
 
 def test_max_interval():
@@ -171,203 +178,189 @@ def test_max_interval():
     smallstep = 5
 
     # Test without maxinterval
-    our_file = StringIO()
-    our_file2 = StringIO()
-    # with maxinterval but higher than loop sleep time
-    t = tqdm(total=total, file=our_file, miniters=None, mininterval=0,
-             smoothing=1, maxinterval=1e-2)
-    # without maxinterval
-    t2 = tqdm(total=total, file=our_file2, miniters=None, mininterval=0,
-              smoothing=1, maxinterval=None)
+    with closing(StringIO()) as our_file:
+        with closing(StringIO()) as our_file2:
+            # with maxinterval but higher than loop sleep time
+            t = tqdm(total=total, file=our_file, miniters=None, mininterval=0,
+                     smoothing=1, maxinterval=1e-2)
+            # without maxinterval
+            t2 = tqdm(total=total, file=our_file2, miniters=None, mininterval=0,
+                      smoothing=1, maxinterval=None)
 
-    assert t.dynamic_miniters
-    assert t2.dynamic_miniters
+            assert t.dynamic_miniters
+            assert t2.dynamic_miniters
 
-    # Increase 10 iterations at once
-    t.update(bigstep)
-    t2.update(bigstep)
-    # The next iterations should not trigger maxinterval (step 10)
-    for _ in _range(4):
-        t.update(smallstep)
-        t2.update(smallstep)
-        sleep(1e-5)
+            # Increase 10 iterations at once
+            t.update(bigstep)
+            t2.update(bigstep)
+            # The next iterations should not trigger maxinterval (step 10)
+            for _ in _range(4):
+                t.update(smallstep)
+                t2.update(smallstep)
+                sleep(1e-5)
 
-    our_file.seek(0)
-    our_file2.seek(0)
-    out = our_file.read()
-    out2 = our_file2.read()
-    assert "25%" not in out
-    assert "25%" not in out2
-    our_file.close()
-    our_file2.close()
+            our_file.seek(0)
+            our_file2.seek(0)
+            out = our_file.read()
+            out2 = our_file2.read()
+            assert "25%" not in out
+            assert "25%" not in out2
 
     # Test with maxinterval effect
-    our_file = StringIO()
-    t = tqdm(total=total, file=our_file, miniters=None, mininterval=0,
-             smoothing=1, maxinterval=1e-4)
+    with closing(StringIO()) as our_file:
+        t = tqdm(total=total, file=our_file, miniters=None, mininterval=0,
+                 smoothing=1, maxinterval=1e-4)
 
-    # Increase 10 iterations at once
-    t.update(bigstep)
-    # The next iterations should trigger maxinterval (step 5)
-    for _ in _range(4):
-        t.update(smallstep)
-        sleep(1e-2)
+        # Increase 10 iterations at once
+        t.update(bigstep)
+        # The next iterations should trigger maxinterval (step 5)
+        for _ in _range(4):
+            t.update(smallstep)
+            sleep(1e-2)
 
-    our_file.seek(0)
-    out = our_file.read()
-    assert "25%" in out
-    our_file.close()
-    our_file2.close()
+        our_file.seek(0)
+        out = our_file.read()
+        assert "25%" in out
 
     # Test iteration based tqdm with maxinterval effect
-    our_file = StringIO()
-    for i in tqdm(_range(total), file=our_file, miniters=None, mininterval=1e-5,
-                  smoothing=1, maxinterval=1e-4):
-        if i >= (bigstep-1) and ((i-(bigstep-1)) % smallstep) == 0:
-            sleep(1e-2)
-        if i >= 3*bigstep:
-            break
+    with closing(StringIO()) as our_file:
+        for i in tqdm(_range(total), file=our_file, miniters=None,
+                      mininterval=1e-5, smoothing=1, maxinterval=1e-4):
+            if i >= (bigstep - 1) and ((i - (bigstep - 1)) % smallstep) == 0:
+                sleep(1e-2)
+            if i >= 3 * bigstep:
+                break
 
-    our_file.seek(0)
-    out = our_file.read()
-    assert "15%" in out
-    our_file.close()
-    our_file2.close()
+        our_file.seek(0)
+        out = our_file.read()
+        assert "15%" in out
 
 
 def test_min_iters():
     """ Test miniters """
-    our_file = StringIO()
-    for i in tqdm(_range(3), file=our_file, leave=True, miniters=4):
-        our_file.write('blank\n')
-    our_file.seek(0)
-    assert '\nblank\nblank\n' in our_file.read()
-    our_file.close()
+    with closing(StringIO()) as our_file:
+        for _ in tqdm(_range(3), file=our_file, leave=True, miniters=4):
+            our_file.write('blank\n')
+        our_file.seek(0)
+        assert '\nblank\nblank\n' in our_file.read()
 
-    our_file2 = StringIO()
-    for i in tqdm(_range(3), file=our_file2, leave=True, miniters=1):
-        our_file2.write('blank\n')
-    our_file2.seek(0)
-    # assume automatic mininterval = 0 means intermediate output
-    assert '| 3/3 ' in our_file2.read()
-    our_file2.close()
+    with closing(StringIO()) as our_file:
+        for _ in tqdm(_range(3), file=our_file, leave=True, miniters=1):
+            our_file.write('blank\n')
+        our_file.seek(0)
+        # assume automatic mininterval = 0 means intermediate output
+        assert '| 3/3 ' in our_file.read()
 
 
 def test_dynamic_min_iters():
     """ Test purely dynamic miniters """
-    our_file = StringIO()
-    total = 10
-    t = tqdm(total=total, file=our_file, miniters=None, mininterval=0,
-             smoothing=1)
+    with closing(StringIO()) as our_file:
+        total = 10
+        t = tqdm(total=total, file=our_file, miniters=None, mininterval=0,
+                 smoothing=1)
 
-    t.update()
-    # Increase 3 iterations
-    t.update(3)
-    # The next two iterations should be skipped because of dynamic_miniters
-    t.update()
-    t.update()
-    # The third iteration should be displayed
-    t.update()
+        t.update()
+        # Increase 3 iterations
+        t.update(3)
+        # The next two iterations should be skipped because of dynamic_miniters
+        t.update()
+        t.update()
+        # The third iteration should be displayed
+        t.update()
 
-    our_file.seek(0)
-    out = our_file.read()
-    assert t.dynamic_miniters
-    assert '  0%|          | 0/10 [00:00<' in out
-    assert '40%' in out
-    assert '50%' not in out
-    assert '60%' not in out
-    assert '70%' in out
+        our_file.seek(0)
+        out = our_file.read()
+        assert t.dynamic_miniters
+        assert '  0%|          | 0/10 [00:00<' in out
+        assert '40%' in out
+        assert '50%' not in out
+        assert '60%' not in out
+        assert '70%' in out
 
-    our_file = StringIO()
-    t = tqdm(_range(10), file=our_file, miniters=None, mininterval=None)
-    for i in t:
-        pass
-    assert t.dynamic_miniters
+    with closing(StringIO()) as our_file:
+        t = tqdm(_range(10), file=our_file, miniters=None, mininterval=None)
+        for _ in t:
+            pass
+        assert t.dynamic_miniters
 
-    our_file = StringIO()
-    t = tqdm(_range(10), file=our_file, miniters=1, mininterval=None)
-    for i in t:
-        pass
-    assert not t.dynamic_miniters
-
-    our_file.close()
+    with closing(StringIO()) as our_file:
+        t = tqdm(_range(10), file=our_file, miniters=1, mininterval=None)
+        for _ in t:
+            pass
+        assert not t.dynamic_miniters
 
 
 def test_big_min_interval():
     """ Test large mininterval """
-    our_file = StringIO()
-    for i in tqdm(_range(2), file=our_file, mininterval=1E10):
-        pass
-    our_file.seek(0)
-    assert '50%' not in our_file.read()
+    with closing(StringIO()) as our_file:
+        for _ in tqdm(_range(2), file=our_file, mininterval=1E10):
+            pass
+        our_file.seek(0)
+        assert '50%' not in our_file.read()
 
-    our_file = StringIO()
-    t = tqdm(_range(2), file=our_file, mininterval=1E10)
-    t.update()
-    t.update()
-    our_file.seek(0)
-    assert '50%' not in our_file.read()
-
-    our_file.close()
+    with closing(StringIO()) as our_file:
+        t = tqdm(_range(2), file=our_file, mininterval=1E10)
+        t.update()
+        t.update()
+        our_file.seek(0)
+        assert '50%' not in our_file.read()
 
 
 def test_smoothed_dynamic_min_iters():
     """ Test smoothed dynamic miniters """
-    our_file = StringIO()
-    total = 100
-    t = tqdm(total=total, file=our_file, miniters=None, mininterval=0,
-             smoothing=0.5, maxinterval=0)
+    with closing(StringIO()) as our_file:
+        total = 100
+        t = tqdm(total=total, file=our_file, miniters=None, mininterval=0,
+                 smoothing=0.5, maxinterval=0)
 
-    # Increase 10 iterations at once
-    t.update(10)
-    # The next iterations should be partially skipped
-    for _ in _range(2):
-        t.update(4)
-    for _ in _range(20):
-        t.update()
+        # Increase 10 iterations at once
+        t.update(10)
+        # The next iterations should be partially skipped
+        for _ in _range(2):
+            t.update(4)
+        for _ in _range(20):
+            t.update()
 
-    our_file.seek(0)
-    out = our_file.read()
-    assert t.dynamic_miniters
-    assert '  0%|          | 0/100 [00:00<' in out
-    assert '10%' in out
-    assert '14%' not in out
-    assert '18%' in out
-    assert '20%' not in out
-    assert '25%' in out
-    assert '30%' not in out
-    assert '32%' in out
+        our_file.seek(0)
+        out = our_file.read()
+        assert t.dynamic_miniters
+        assert '  0%|          | 0/100 [00:00<' in out
+        assert '10%' in out
+        assert '14%' not in out
+        assert '18%' in out
+        assert '20%' not in out
+        assert '25%' in out
+        assert '30%' not in out
+        assert '32%' in out
 
 
 def test_smoothed_dynamic_min_iters_with_min_interval():
     """ Test smoothed dynamic miniters with mininterval """
     # Basically in this test, miniters should gradually decline
-    our_file = StringIO()
-    our_file2 = StringIO()
-    total = 100
+    with closing(StringIO()) as our_file:
+        total = 100
 
-    # Test manual updating tqdm
-    t = tqdm(total=total, file=our_file, miniters=None, mininterval=1e-3,
-             smoothing=1, maxinterval=0)
-    t.update(10)
-    sleep(1e-2)
-    for _ in _range(4):
-        t.update()
+        # Test manual updating tqdm
+        t = tqdm(total=total, file=our_file, miniters=None, mininterval=1e-3,
+                 smoothing=1, maxinterval=0)
+        t.update(10)
         sleep(1e-2)
-    our_file.seek(0)
-    out = our_file.read()
-    our_file.close()
+        for _ in _range(4):
+            t.update()
+            sleep(1e-2)
+        our_file.seek(0)
+        out = our_file.read()
 
-    # Test iteration-based tqdm
-    for i in tqdm(_range(total), file=our_file2, miniters=None,
-                  mininterval=0.01, smoothing=1, maxinterval=0):
-        if i >= 10:
-            sleep(0.1)
-        if i >= 14:
-            break
-    our_file2.seek(0)
-    out2 = our_file2.read()
-    our_file2.close()
+    with closing(StringIO()) as our_file:
+        # Test iteration-based tqdm
+        for i in tqdm(_range(total), file=our_file, miniters=None,
+                      mininterval=0.01, smoothing=1, maxinterval=0):
+            if i >= 10:
+                sleep(0.1)
+            if i >= 14:
+                break
+        our_file.seek(0)
+        out2 = our_file.read()
 
     assert t.dynamic_miniters
     assert '  0%|          | 0/100 [00:00<' in out
@@ -379,208 +372,188 @@ def test_smoothed_dynamic_min_iters_with_min_interval():
 
 def test_disable():
     """ Test disable """
-    our_file = StringIO()
-    for i in tqdm(_range(3), file=our_file, disable=True):
-        pass
-    our_file.seek(0)
-    assert our_file.read() == ''
+    with closing(StringIO()) as our_file:
+        for _ in tqdm(_range(3), file=our_file, disable=True):
+            pass
+        our_file.seek(0)
+        assert our_file.read() == ''
 
-    our_file2 = StringIO()
-    progressbar = tqdm(total=3, file=our_file2, miniters=1, disable=True)
-    progressbar.update(3)
-    progressbar.close()
-    our_file2.seek(0)
-    assert our_file2.read() == ''
+    with closing(StringIO()) as our_file:
+        progressbar = tqdm(total=3, file=our_file, miniters=1, disable=True)
+        progressbar.update(3)
+        progressbar.close()
+        our_file.seek(0)
+        assert our_file.read() == ''
 
 
 def test_unit():
     """ Test SI unit prefix """
-    our_file = StringIO()
-    for i in tqdm(_range(3), file=our_file, miniters=1, unit="bytes"):
-        pass
-    our_file.seek(0)
-    assert 'bytes/s' in our_file.read()
-    our_file.close()
+    with closing(StringIO()) as our_file:
+        for _ in tqdm(_range(3), file=our_file, miniters=1, unit="bytes"):
+            pass
+        our_file.seek(0)
+        assert 'bytes/s' in our_file.read()
 
 
 def test_ascii():
     """ Test ascii/unicode bar """
     # Test ascii autodetection
-    our_file = StringIO()
-    t = tqdm(total=10, file=our_file, ascii=None)
-    assert t.ascii  # TODO: this may fail in the future
-    our_file.close()
+    with closing(StringIO()) as our_file:
+        t = tqdm(total=10, file=our_file, ascii=None)
+        assert t.ascii  # TODO: this may fail in the future
 
     # Test ascii bar
-    our_file = StringIO()
-    for i in tqdm(_range(3), total=15, file=our_file, miniters=1, mininterval=0,
-                  ascii=True):
-        pass
-    our_file.seek(0)
-    res = our_file.read().strip("\r").split("\r")
-    our_file.close()
-    assert '7%|6' in res[1]
-    assert '13%|#3' in res[2]
-    assert '20%|##' in res[3]
+    with closing(StringIO()) as our_file:
+        for _ in tqdm(_range(3), total=15, file=our_file, miniters=1,
+                      mininterval=0, ascii=True):
+            pass
+        our_file.seek(0)
+        res = our_file.read().strip("\r").split("\r")
+        assert '7%|6' in res[1]
+        assert '13%|#3' in res[2]
+        assert '20%|##' in res[3]
 
     # Test unicode bar
-    our_file = uIO()
-    t = tqdm(total=15, file=our_file, ascii=False, mininterval=0)
-    for i in _range(3):
-        t.update()
-    our_file.seek(0)
-    res = our_file.read().strip("\r").split("\r")
-    our_file.close()
-    assert "7%|\u258b" in res[1]
-    assert "13%|\u2588\u258e" in res[2]
-    assert "20%|\u2588\u2588" in res[3]
+    from io import StringIO as uIO  # supports unicode strings
+    with closing(uIO()) as our_file:
+        t = tqdm(total=15, file=our_file, ascii=False, mininterval=0)
+        for _ in _range(3):
+            t.update()
+        our_file.seek(0)
+        res = our_file.read().strip("\r").split("\r")
+        assert "7%|\u258b" in res[1]
+        assert "13%|\u2588\u258e" in res[2]
+        assert "20%|\u2588\u2588" in res[3]
 
 
 def test_update():
     """ Test manual creation and updates """
-    our_file = StringIO()
-    progressbar = tqdm(total=2, file=our_file, miniters=1, mininterval=0)
-    assert len(progressbar) == 2
-    progressbar.update(2)
-    our_file.seek(0)
-    assert '| 2/2' in our_file.read()
-    progressbar.desc = 'dynamically notify of 4 increments in total'
-    progressbar.total = 4
-    progressbar.update(-10)  # should default to +1
-    our_file.seek(0)
-    assert '| 3/4 ' in our_file.read()
-    our_file.seek(0)
-    assert 'dynamically notify of 4 increments in total' in our_file.read()
-    our_file.close()
+    with closing(StringIO()) as our_file:
+        progressbar = tqdm(total=2, file=our_file, miniters=1, mininterval=0)
+        assert len(progressbar) == 2
+        progressbar.update(2)
+        our_file.seek(0)
+        assert '| 2/2' in our_file.read()
+        progressbar.desc = 'dynamically notify of 4 increments in total'
+        progressbar.total = 4
+        progressbar.update(-10)  # should default to +1
+        our_file.seek(0)
+        assert '| 3/4 ' in our_file.read()
+        our_file.seek(0)
+        assert 'dynamically notify of 4 increments in total' in our_file.read()
 
 
 def test_close():
     """ Test manual creation and closure """
     # With `leave` option
-    our_file = StringIO()
-    progressbar = tqdm(total=3, file=our_file, miniters=10, leave=True)
-    progressbar.update(3)
-    our_file.seek(0)
-    assert '| 3/3 ' not in our_file.read()  # Should be blank
-    progressbar.close()
-    our_file.seek(0)
-    assert '| 3/3 ' in our_file.read()
-    our_file.close()
+    with closing(StringIO()) as our_file:
+        progressbar = tqdm(total=3, file=our_file, miniters=10, leave=True)
+        progressbar.update(3)
+        our_file.seek(0)
+        assert '| 3/3 ' not in our_file.read()  # Should be blank
+        progressbar.close()
+        our_file.seek(0)
+        assert '| 3/3 ' in our_file.read()
 
     # Without `leave` option
-    our_file2 = StringIO()
-    progressbar2 = tqdm(total=3, file=our_file2, miniters=10)
-    progressbar2.update(3)
-    progressbar2.close()
-    our_file2.seek(0)
-    assert '| 3/3 ' not in our_file2.read()  # Should be blank
-    our_file2.close()
+    with closing(StringIO()) as our_file:
+        progressbar = tqdm(total=3, file=our_file, miniters=10)
+        progressbar.update(3)
+        progressbar.close()
+        our_file.seek(0)
+        assert '| 3/3 ' not in our_file.read()  # Should be blank
 
     # With all updates
-    our_file3 = StringIO()
-    progressbar = tqdm(total=3, file=our_file3, miniters=0, mininterval=0,
-                       leave=True)
-    progressbar.update(3)
-    our_file3.seek(0)
-    out3 = our_file3.read()
-    assert '| 3/3 ' in out3  # Should be blank
-    progressbar.close()
-    our_file3.seek(0)
-    assert out3 + '\n' == our_file3.read()
-    our_file3.close()
+    with closing(StringIO()) as our_file:
+        with tqdm(total=3, file=our_file, miniters=0, mininterval=0,
+                  leave=True) as progressbar:
+            progressbar.update(3)
+            our_file.seek(0)
+            res = our_file.read()
+            assert '| 3/3 ' in res  # Should be blank
+        # close() called
+        our_file.seek(0)
+        try:
+            assert res + '\n' == our_file.read()
+        except AssertionError:
+            our_file.seek(0)
+            raise AssertionError('\n'.join(
+                ('expected extra line (\\n) after `close`:',
+                 'before:', res, 'closed:', our_file.read(), 'end debug\n')))
 
 
 def test_smoothing():
     """ Test exponential weighted average smoothing """
 
     # -- Test disabling smoothing
-    our_file = StringIO()
-    for i in tqdm(_range(3), file=our_file, smoothing=None, leave=True):
-        pass
-    our_file.seek(0)
-    assert '| 3/3 ' in our_file.read()
-    our_file.close()
+    with closing(StringIO()) as our_file:
+        for _ in tqdm(_range(3), file=our_file, smoothing=None, leave=True):
+            pass
+        our_file.seek(0)
+        assert '| 3/3 ' in our_file.read()
 
     # -- Test smoothing
     # Compile the regex to find the rate
-    iterpattern = re.compile(r'(\d+\.\d+)it/s')
     # 1st case: no smoothing (only use average)
-    our_file = StringIO()
-    our_file2 = StringIO()
-    t = tqdm(_range(3), file=our_file2, smoothing=None, leave=True, miniters=1,
-             mininterval=0)
-    for i in tqdm(_range(3), file=our_file, smoothing=None, leave=True,
-                  miniters=1, mininterval=0):
-        # Sleep more for first iteration and see how quickly rate is updated
-        if i == 0:
-            sleep(0.01)
-        else:
-            # Need to sleep in all iterations to calculate smoothed rate
-            # (else delta_t is 0!)
-            sleep(0.001)
-        t.update()
-    # Get result for iter-based bar
-    our_file.seek(0)
-    res = our_file.read().strip('\r').split('\r')
-    m = iterpattern.search(res[3])
-    a = float(m.group(1))
-    our_file.close()
-    # Get result for manually updated bar
-    our_file2.seek(0)
-    res = our_file2.read().strip('\r').split('\r')
-    m = iterpattern.search(res[3])
-    a2 = float(m.group(1))
-    our_file2.close()
+    with closing(StringIO()) as our_file2:
+        with closing(StringIO()) as our_file:
+            t = tqdm(_range(3), file=our_file2, smoothing=None, leave=True,
+                     miniters=1, mininterval=0)
+            for i in tqdm(_range(3), file=our_file, smoothing=None, leave=True,
+                          miniters=1, mininterval=0):
+                # Sleep more for first iteration and
+                # see how quickly rate is updated
+                if i == 0:
+                    sleep(0.01)
+                else:
+                    # Need to sleep in all iterations to calculate smoothed rate
+                    # (else delta_t is 0!)
+                    sleep(0.001)
+                t.update()
+            # Get result for iter-based bar
+            our_file.seek(0)
+            a = progressbar_rate(our_file.read().strip('\r').split('\r')[3])
+        # Get result for manually updated bar
+        our_file2.seek(0)
+        a2 = progressbar_rate(our_file2.read().strip('\r').split('\r')[3])
 
     # 2nd case: use max smoothing (= instant rate)
-    our_file = StringIO()
-    our_file2 = StringIO()
-    t = tqdm(_range(3), file=our_file2, smoothing=1, leave=True, miniters=1,
-             mininterval=0)
-    for i in tqdm(_range(3), file=our_file, smoothing=1, leave=True,
-                  miniters=1, mininterval=0):
-        if i == 0:
-            sleep(0.01)
-        else:
-            sleep(0.001)
-        t.update()
-    # Get result for iter-based bar
-    our_file.seek(0)
-    res = our_file.read().strip('\r').split('\r')
-    m = iterpattern.search(res[3])
-    b = float(m.group(1))
-    our_file.close()
-    # Get result for manually updated bar
-    our_file2.seek(0)
-    res = our_file2.read().strip('\r').split('\r')
-    m = iterpattern.search(res[3])
-    b2 = float(m.group(1))
-    our_file2.close()
+    with closing(StringIO()) as our_file2:
+        with closing(StringIO()) as our_file:
+            t = tqdm(_range(3), file=our_file2, smoothing=1, leave=True,
+                     miniters=1, mininterval=0)
+            for i in tqdm(_range(3), file=our_file, smoothing=1, leave=True,
+                          miniters=1, mininterval=0):
+                if i == 0:
+                    sleep(0.01)
+                else:
+                    sleep(0.001)
+                t.update()
+            # Get result for iter-based bar
+            our_file.seek(0)
+            b = progressbar_rate(our_file.read().strip('\r').split('\r')[3])
+        # Get result for manually updated bar
+        our_file2.seek(0)
+        b2 = progressbar_rate(our_file2.read().strip('\r').split('\r')[3])
 
     # 3rd case: use medium smoothing
-    our_file = StringIO()
-    our_file2 = StringIO()
-    t = tqdm(_range(3), file=our_file2, smoothing=0.5, leave=True, miniters=1,
-             mininterval=0)
-    for i in tqdm(_range(3), file=our_file, smoothing=0.5, leave=True,
-                  miniters=1, mininterval=0):
-        if i == 0:
-            sleep(0.01)
-        else:
-            sleep(0.001)
-        t.update()
-    # Get result for iter-based bar
-    our_file.seek(0)
-    res = our_file.read().strip('\r').split('\r')
-    m = iterpattern.search(res[3])
-    c = float(m.group(1))
-    our_file.close()
-    # Get result for manually updated bar
-    our_file2.seek(0)
-    res = our_file2.read().strip('\r').split('\r')
-    m = iterpattern.search(res[3])
-    c2 = float(m.group(1))
-    our_file2.close()
+    with closing(StringIO()) as our_file2:
+        with closing(StringIO()) as our_file:
+            t = tqdm(_range(3), file=our_file2, smoothing=0.5, leave=True,
+                     miniters=1, mininterval=0)
+            for i in tqdm(_range(3), file=our_file, smoothing=0.5, leave=True,
+                          miniters=1, mininterval=0):
+                if i == 0:
+                    sleep(0.01)
+                else:
+                    sleep(0.001)
+                t.update()
+            # Get result for iter-based bar
+            our_file.seek(0)
+            c = progressbar_rate(our_file.read().strip('\r').split('\r')[3])
+        # Get result for manually updated bar
+        our_file2.seek(0)
+        c2 = progressbar_rate(our_file2.read().strip('\r').split('\r')[3])
 
     # Check that medium smoothing's rate is between no and max smoothing rates
     assert a < c < b
@@ -590,27 +563,26 @@ def test_smoothing():
 def test_no_gui():
     """ Test internal GUI properties """
     # Check: StatusPrinter iff gui is disabled
-    our_file = StringIO()
-    t = tqdm(total=2, gui=True, file=our_file, miniters=1, mininterval=0)
-    assert not hasattr(t, "sp")
-    try:
-        t.update(1)
-    except DeprecationWarning:
-        pass
-    else:
-        raise DeprecationWarning('Should not allow manual gui=True without'
-                                 ' overriding __iter__() and update()')
-
-    try:
-        for i in tqdm(_range(3), gui=True, file=our_file,
-                      miniters=1, mininterval=0):
+    with closing(StringIO()) as our_file:
+        t = tqdm(total=2, gui=True, file=our_file, miniters=1, mininterval=0)
+        assert not hasattr(t, "sp")
+        try:
+            t.update(1)
+        except DeprecationWarning:
             pass
-    except DeprecationWarning:
-        pass
-    else:
-        raise DeprecationWarning('Should not allow manual gui=True without'
-                                 ' overriding __iter__() and update()')
+        else:
+            raise DeprecationWarning('Should not allow manual gui=True without'
+                                     ' overriding __iter__() and update()')
 
-    t = tqdm(total=1, gui=False, file=our_file)
-    assert hasattr(t, "sp")
-    our_file.close()
+        try:
+            for _ in tqdm(_range(3), gui=True, file=our_file,
+                          miniters=1, mininterval=0):
+                pass
+        except DeprecationWarning:
+            pass
+        else:
+            raise DeprecationWarning('Should not allow manual gui=True without'
+                                     ' overriding __iter__() and update()')
+
+        t = tqdm(total=1, gui=False, file=our_file)
+        assert hasattr(t, "sp")

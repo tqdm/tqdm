@@ -1,14 +1,24 @@
 from time import time
 
-try:
-    from StringIO import StringIO
-    _range = xrange
-except:
-    from io import StringIO
-    _range = range
-
 from tqdm import trange
 from tqdm import tqdm
+
+try:
+    from StringIO import StringIO
+except:
+    from io import StringIO
+# Ensure we can use `with closing(...) as ... :` syntax
+if getattr(StringIO, '__exit__', False) and \
+   getattr(StringIO, '__enter__', False):
+    def closing(arg):
+        return arg
+else:
+    from contextlib import closing
+
+try:
+    _range = xrange
+except:
+    _range = range
 
 
 _tic_toc = [None]
@@ -26,18 +36,18 @@ def test_iter_overhead():
     """ Test overhead of iteration based tqdm """
     total = int(1e6)
 
-    our_file = StringIO()
-    a = 0
-    tic()
-    for i in trange(total, file=our_file):
-        a = a + i
-    time_tqdm = toc()
-    our_file.close()
+    with closing(StringIO()) as our_file:
+        a = 0
+        tic()
+        for i in trange(total, file=our_file):
+            a += i
+        time_tqdm = toc()
+        assert(a == (total * total - total) / 2.0)
 
     a = 0
     tic()
     for i in _range(total):
-        a = a + i
+        a += i
     time_bench = toc()
 
     # Compute relative overhead of tqdm against native range()
@@ -52,20 +62,19 @@ def test_manual_overhead():
     """ Test overhead of manual tqdm """
     total = int(1e6)
 
-    our_file = StringIO()
-    t = tqdm(total=total*10, file=our_file, leave=True)
-    a = 0
-    tic()
-    for i in _range(total):
-        a = a + i
-        t.update(10)
-    time_tqdm = toc()
-    our_file.close()
+    with closing(StringIO()) as our_file:
+        t = tqdm(total=total * 10, file=our_file, leave=True)
+        a = 0
+        tic()
+        for i in _range(total):
+            a += i
+            t.update(10)
+        time_tqdm = toc()
 
     a = 0
     tic()
     for i in _range(total):
-        a = a + i
+        a += i
     time_bench = toc()
 
     # Compute relative overhead of tqdm against native range()
