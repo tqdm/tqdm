@@ -187,7 +187,7 @@ def test_max_interval():
     t.update(bigstep)
     t2.update(bigstep)
     # The next iterations should not trigger maxinterval (step 10)
-    for _ in range(4):
+    for _ in _range(4):
         t.update(smallstep)
         t2.update(smallstep)
         sleep(1e-5)
@@ -209,7 +209,7 @@ def test_max_interval():
     # Increase 10 iterations at once
     t.update(bigstep)
     # The next iterations should trigger maxinterval (step 5)
-    for _ in range(4):
+    for _ in _range(4):
         t.update(smallstep)
         sleep(1e-2)
 
@@ -221,7 +221,7 @@ def test_max_interval():
 
     # Test iteration based tqdm with maxinterval effect
     our_file = StringIO()
-    for i in tqdm(range(total), file=our_file, miniters=None, mininterval=1e-5,
+    for i in tqdm(_range(total), file=our_file, miniters=None, mininterval=1e-5,
                   smoothing=1, maxinterval=1e-4):
         if i >= (bigstep-1) and ((i-(bigstep-1)) % smallstep) == 0:
             print i
@@ -322,9 +322,9 @@ def test_smoothed_dynamic_min_iters():
     # Increase 10 iterations at once
     t.update(10)
     # The next iterations should be partially skipped
-    for _ in range(2):
+    for _ in _range(2):
         t.update(4)
-    for _ in range(20):
+    for _ in _range(20):
         t.update()
 
     our_file.seek(0)
@@ -352,7 +352,7 @@ def test_smoothed_dynamic_min_iters_with_min_interval():
              smoothing=1, maxinterval=0)
     t.update(10)
     sleep(1e-2)
-    for _ in range(4):
+    for _ in _range(4):
         t.update()
         sleep(1e-2)
     our_file.seek(0)
@@ -360,8 +360,8 @@ def test_smoothed_dynamic_min_iters_with_min_interval():
     our_file.close()
 
     # Test iteration-based tqdm
-    for i in tqdm(range(total), file=our_file2, miniters=None, mininterval=1e-3,
-                  smoothing=1, maxinterval=0):
+    for i in tqdm(_range(total), file=our_file2, miniters=None,
+                  mininterval=1e-3, smoothing=1, maxinterval=0):
         if i >= 10:
             sleep(1e-2)
         if i >= 14:
@@ -373,7 +373,7 @@ def test_smoothed_dynamic_min_iters_with_min_interval():
     assert t.dynamic_miniters
     assert '  0%|          | 0/100 [00:00<' in out
     assert '11%' in out and '11%' in out2
-    #assert '12%' not in out and '12%' not in out2
+    # assert '12%' not in out and '12%' not in out2
     assert '13%' in out and '13%' in out2
     assert '14%' in out and '14%' in out2
 
