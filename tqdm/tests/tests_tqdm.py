@@ -371,10 +371,12 @@ def test_smoothed_dynamic_min_iters_with_min_interval():
 
     assert t.dynamic_miniters
     assert '  0%|          | 0/100 [00:00<' in out
-    assert '11%' in out and '11%' in out2
-    # assert '12%' not in out and '12%' not in out2
-    assert '13%' in out and '13%' in out2
-    assert '14%' in out and '14%' in out2
+    assert '11%' in out
+    # assert '12%' not in out
+    assert '13%' in out
+    assert '14%' in out
+    # TODO: need to reliably unittest iteration-based tqdm
+    # (fails on pypy because it's too slow...)
 
 
 def test_disable():
