@@ -224,7 +224,6 @@ def test_max_interval():
     for i in tqdm(_range(total), file=our_file, miniters=None, mininterval=1e-5,
                   smoothing=1, maxinterval=1e-4):
         if i >= (bigstep-1) and ((i-(bigstep-1)) % smallstep) == 0:
-            print i
             sleep(1e-2)
         if i >= 3*bigstep:
             break
