@@ -343,6 +343,13 @@ class tqdm(object):
     def __len__(self):
         return len(self.iterable) if self.iterable else self.total
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        self.close()
+        return False
+
     def __iter__(self):
         ''' Backward-compatibility to use: for x in tqdm(iterable) '''
 

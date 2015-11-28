@@ -465,15 +465,21 @@ def test_close():
 
     # With all updates
     with closing(StringIO()) as our_file:
-        with closing(tqdm(total=3, file=our_file, miniters=0, mininterval=0,
-                          leave=True)) as progressbar:
+        with tqdm(total=3, file=our_file, miniters=0, mininterval=0,
+                  leave=True) as progressbar:
             progressbar.update(3)
             our_file.seek(0)
             res = our_file.read()
             assert '| 3/3 ' in res  # Should be blank
         # close() called
         our_file.seek(0)
-        assert res + '\n' == our_file.read()
+        try:
+            assert res + '\n' == our_file.read()
+        except AssertionError:
+            our_file.seek(0)
+            raise AssertionError('\n'.join(
+                ('expected extra line (\\n) after `close`:',
+                 'before:', res, 'closed:', our_file.read(), 'end debug\n')))
 
 
 def test_smoothing():
