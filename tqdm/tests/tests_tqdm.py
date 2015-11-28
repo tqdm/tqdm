@@ -360,9 +360,9 @@ def test_smoothed_dynamic_min_iters_with_min_interval():
 
     # Test iteration-based tqdm
     for i in tqdm(_range(total), file=our_file2, miniters=None,
-                  mininterval=1e-3, smoothing=1, maxinterval=0):
+                  mininterval=0.01, smoothing=1, maxinterval=0):
         if i >= 10:
-            sleep(1e-2)
+            sleep(0.1)
         if i >= 14:
             break
     our_file2.seek(0)
@@ -371,12 +371,10 @@ def test_smoothed_dynamic_min_iters_with_min_interval():
 
     assert t.dynamic_miniters
     assert '  0%|          | 0/100 [00:00<' in out
-    assert '11%' in out
-    # assert '12%' not in out
-    assert '13%' in out
-    assert '14%' in out
-    # TODO: need to reliably unittest iteration-based tqdm
-    # (fails on pypy because it's too slow...)
+    assert '11%' in out and '11%' in out2
+    # assert '12%' not in out and '12%' in out2
+    assert '13%' in out and '13%' in out2
+    assert '14%' in out and '14%' in out2
 
 
 def test_disable():
