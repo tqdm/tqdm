@@ -84,8 +84,8 @@ Parameters
 * desc  : str, optional  
     Prefix for the progressbar [default: None].
 * total  : int, optional  
-    The number of expected iterations. If not given, len(iterable) is
-    used if possible. As a last resort, only basic progress
+    The number of expected iterations. If not given, len(iterable)
+    is used if possible. As a last resort, only basic progress
     statistics are displayed (no ETA, no progressbar). If `gui` is
     True and this parameter needs subsequent updating, specify an
     initial arbitrary large positive integer, e.g. int(9e9).
@@ -97,10 +97,10 @@ Parameters
     [default: sys.stderr]. Uses `file.write(str)` and `file.flush()`
     methods.
 * ncols  : int, optional  
-    The width of the entire output message. If specified, dynamically
-    resizes the progressbar to stay within this bound. If
-    [default: None], attempts to use environment width. The fallback
-    is a meter width of 10 and no limit for the counter and
+    The width of the entire output message. If specified,
+    dynamically resizes the progressbar to stay within this bound.
+    If [default: None], attempts to use environment width. The
+    fallback is a meter width of 10 and no limit for the counter and
     statistics. If 0, will not print any meter (only stats).
 * mininterval  : float, optional  
     Minimum progress update interval, in seconds [default: 0.1].
@@ -113,7 +113,8 @@ Parameters
     If [default: None] or false, use unicode (smooth blocks) to fill
     the meter. The fallback is to use ASCII characters `1-9 #`.
 * disable : bool  
-    Whether to disable the entire progressbar wrapper [default: False].
+    Whether to disable the entire progressbar wrapper
+    [default: False].
 * unit  : str, optional  
     String that will be used to define the unit of each iteration
     [default: 'it'].

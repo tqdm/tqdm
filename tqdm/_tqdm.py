@@ -79,8 +79,8 @@ def format_meter(n, total, elapsed, ncols=None, prefix='', ascii=False,
     n  : int
         Number of finished iterations.
     total  : int
-        The expected total number of iterations. If meaningless (), only basic
-        progress statistics are displayed (no ETA).
+        The expected total number of iterations. If meaningless (), only
+        basic progress statistics are displayed (no ETA).
     elapsed  : float
         Number of seconds passed since start.
     ncols  : int, optional
@@ -100,7 +100,8 @@ def format_meter(n, total, elapsed, ncols=None, prefix='', ascii=False,
         If set, the number of iterations will printed with an appropriate
         SI metric prefix (K = 10^3, M = 10^6, etc.) [default: False].
     rate  : float, optional
-        Manual override for iteration rate. If [default: None], uses n/elapsed.
+        Manual override for iteration rate.
+        If [default: None], uses n/elapsed.
 
     Returns
     -------
@@ -221,8 +222,8 @@ class tqdm(object):
         desc  : str, optional
             Prefix for the progressbar [default: None].
         total  : int, optional
-            The number of expected iterations. If not given, len(iterable) is
-            used if possible. As a last resort, only basic progress
+            The number of expected iterations. If not given, len(iterable)
+            is used if possible. As a last resort, only basic progress
             statistics are displayed (no ETA, no progressbar). If `gui` is
             True and this parameter needs subsequent updating, specify an
             initial arbitrary large positive integer, e.g. int(9e9).
@@ -234,10 +235,10 @@ class tqdm(object):
             [default: sys.stderr]. Uses `file.write(str)` and `file.flush()`
             methods.
         ncols  : int, optional
-            The width of the entire output message. If specified, dynamically
-            resizes the progressbar to stay within this bound. If
-            [default: None], attempts to use environment width. The fallback
-            is a meter width of 10 and no limit for the counter and
+            The width of the entire output message. If specified,
+            dynamically resizes the progressbar to stay within this bound.
+            If [default: None], attempts to use environment width. The
+            fallback is a meter width of 10 and no limit for the counter and
             statistics. If 0, will not print any meter (only stats).
         mininterval  : float, optional
             Minimum progress update interval, in seconds [default: 0.1].
@@ -249,7 +250,8 @@ class tqdm(object):
             If [default: None] or false, use unicode (smooth blocks) to fill
             the meter. The fallback is to use ASCII characters `1-9 #`.
         disable : bool
-            Whether to disable the entire progressbar wrapper [default: False].
+            Whether to disable the entire progressbar wrapper
+            [default: False].
         unit  : str, optional
             String that will be used to define the unit of each iteration
             [default: 'it'].
@@ -266,9 +268,9 @@ class tqdm(object):
             (ignored in GUI mode). Ranges from 0 (average speed) to 1
             (current/instantaneous speed) [default: 0.3].
         gui  : bool, optional
-            WARNING: internal paramer - do not use. Use tqdm_gui(...) instead.
-            If set, will attempt to use matplotlib animations for a
-            graphical output [default: false].
+            WARNING: internal paramer - do not use.
+            Use tqdm_gui(...) instead. If set, will attempt to use
+            matplotlib animations for a graphical output [default: false].
 
         Returns
         -------
