@@ -3,7 +3,8 @@
 tqdm
 ====
 
-|Build Status| |Coverage Status| |Branch Coverage Status| |PyPi Status| |PyPi Downloads|
+|PyPi Status| |PyPi Downloads|
+|Build Status| |Coverage Status| |Branch Coverage Status|
 
 ``tqdm`` (read taqadum, تقدّم) means "progress" in arabic.
 
@@ -69,9 +70,10 @@ Documentation
       """
 
       def __init__(self, iterable=None, desc=None, total=None, leave=False,
-                   file=sys.stderr, ncols=None, mininterval=0.1, maxinterval=10.0, miniters=None,
-                   ascii=None, disable=False, unit='it', unit_scale=False,
-                   dynamic_ncols=False, smoothing=0.3):
+                   file=sys.stderr, ncols=None, mininterval=0.1,
+                   maxinterval=10.0, miniters=None, ascii=None, disable=False,
+                   unit='it', unit_scale=False, dynamic_ncols=False,
+                   smoothing=0.3, gui=False):
 
 Parameters
 ~~~~~~~~~~

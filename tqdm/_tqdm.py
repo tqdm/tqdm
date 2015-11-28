@@ -208,10 +208,10 @@ class tqdm(object):
     progressbar every time a value is requested.
     """
     def __init__(self, iterable=None, desc=None, total=None, leave=False,
-                 file=sys.stderr, ncols=None, mininterval=0.1, maxinterval=10.0,
-                 miniters=None,
-                 ascii=None, disable=False, unit='it', unit_scale=False,
-                 dynamic_ncols=False, smoothing=0.3, gui=False):
+                 file=sys.stderr, ncols=None, mininterval=0.1,
+                 maxinterval=10.0, miniters=None, ascii=None, disable=False,
+                 unit='it', unit_scale=False, dynamic_ncols=False,
+                 smoothing=0.3, gui=False):
         """
         Parameters
         ----------
@@ -407,7 +407,7 @@ class tqdm(object):
                         if dynamic_miniters:
                             if maxinterval and delta_t > maxinterval:
                                 # Set miniters to correspond to maxinterval
-                                miniters =  delta_it * maxinterval / delta_t
+                                miniters = delta_it * maxinterval / delta_t
                             elif mininterval and delta_t:
                                 # EMA-weight miniters to converge
                                 # towards the timeframe of mininterval
