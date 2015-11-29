@@ -2,16 +2,14 @@
 # a result precise floating numbers (instead of truncated int)
 from __future__ import division, absolute_import
 
-from tqdm import tqdm
-
 
 __author__ = "github.com/casperdcl"
 __all__ = ['tqdm_pandas']
 
 
-def tqdm_pandas(**kwargs):
+def tqdm_pandas(t):  # pragma: no cover
     """
-    Creates a `tqdm` instance with the given kwargs and registers it with
+    Registers the given `tqdm` instance with
     `pandas.core.groupby.DataFrameGroupBy.progress_apply`.
     It will even close() the `tqdm` instance upon completion.
 
@@ -22,7 +20,7 @@ def tqdm_pandas(**kwargs):
     >>> from tqdm import tqdm, tqdm_pandas
     >>>
     >>> df = pd.DataFrame(np.random.randint(0, 100, (100000, 6)))
-    >>> tqdm_pandas()  # can specify any optional kwargs (same as for `tqdm`)
+    >>> tqdm_pandas(tqdm())  # can use tqdm_gui, optional kwargs, etc
     >>> # Now you can use `progress_apply` instead of `apply`
     >>> df.groupby(0).progress_apply(lambda x: x**2)
 
@@ -31,7 +29,6 @@ def tqdm_pandas(**kwargs):
     https://stackoverflow.com/questions/18603270/
     progress-indicator-during-pandas-operations-python
     """
-    t = tqdm(**kwargs)
     from pandas.core.groupby import DataFrameGroupBy
 
     def inner(groups, func, *args, **kwargs):

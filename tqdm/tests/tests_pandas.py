@@ -1,5 +1,6 @@
-from __future__ import unicode_literals
 from nose.plugins.skip import SkipTest
+
+from tqdm import tqdm
 
 try:
     from StringIO import StringIO
@@ -15,16 +16,16 @@ else:
 
 
 def test_pandas():
-    import pandas as pd
-    import numpy as np
     try:
+        from numpy.random import randint
         from tqdm import tqdm_pandas
+        import pandas as pd
     except:
         raise SkipTest
 
     with closing(StringIO()) as our_file:
-        df = pd.DataFrame(np.random.randint(0, 100, (1000, 6)))
-        tqdm_pandas(file=our_file, leave=False)
+        df = pd.DataFrame(randint(0, 100, (1000, 6)))
+        tqdm_pandas(tqdm(file=our_file, leave=False, ascii=True))
         df.groupby(0).progress_apply(lambda x: None)
 
         our_file.seek(0)
@@ -38,16 +39,16 @@ def test_pandas():
 
 
 def test_pandas_leave():
-    import pandas as pd
-    import numpy as np
     try:
+        from numpy.random import randint
         from tqdm import tqdm_pandas
+        import pandas as pd
     except:
         raise SkipTest
 
     with closing(StringIO()) as our_file:
-        df = pd.DataFrame(np.random.randint(0, 100, (1000, 6)))
-        tqdm_pandas(file=our_file, leave=True)
+        df = pd.DataFrame(randint(0, 100, (1000, 6)))
+        tqdm_pandas(tqdm(file=our_file, leave=True, ascii=True))
         df.groupby(0).progress_apply(lambda x: None)
 
         our_file.seek(0)
