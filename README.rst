@@ -202,28 +202,44 @@ Here's an example with ``urllib``:
 
 .. code:: python
 
-    import tqdm
     import urllib
+    from tqdm import tqdm
 
-    def my_hook(**kwargs):
-        t = tqdm.tqdm(**kwargs)
-        last_b = [0]
+    def my_hook(t):
+      """
+      Wraps tqdm instance. Don't forget to close() or __exit__()
+      the tqdm instance once you're done with it (easiest using `with` syntax).
 
-        def inner(b=1, bsize=1, tsize=None, close=False):
-            if close:
-                t.close()
-                return
+      Example
+      -------
+
+      >>> with tqdm(...) as t:
+      ...     reporthook = my_hook(t)
+      ...     urllib.urlretrieve(..., reporthook=reporthook)
+
+      """
+      last_b = [0]
+
+      def inner(b=1, bsize=1, tsize=None):
+        """
+        b  : int, optional
+            Number of blocks just transferred [default: 1].
+        bsize  : int, optional
+            Size of each block (in tqdm units) [default: 1].
+        tsize  : int, optional
+            Total size (in tqdm units). If [default: None] remains unchanged.
+        """
+        if tsize is not None:
             t.total = tsize
-            t.update((b - last_b[0]) * bsize) # manually update the progressbar
-            last_b[0] = b
-        return inner
+        t.update((b - last_b[0]) * bsize)
+        last_b[0] = b
+      return inner
 
     eg_link = 'http://www.doc.ic.ac.uk/~cod11/matryoshka.zip'
-    eg_hook = my_hook(unit='B', unit_scale=True, leave=True, miniters=1,
-                      desc=eg_link.split('/')[-1]) # all optional kwargs
-    urllib.urlretrieve(eg_link,
-                       filename='/dev/null', reporthook=eg_hook, data=None)
-    eg_hook(close=True)
+    with tqdm(unit='B', unit_scale=True, leave=True, miniters=1,
+              desc=eg_link.split('/')[-1]) as t:  # all optional kwargs
+        urllib.urlretrieve(eg_link, filename='/dev/null',
+                           reporthook=my_hook(t), data=None)
 
 It is recommend to use ``miniters=1`` whenever there is potentially
 large differences in iteration speed (e.g. downloading a file over
