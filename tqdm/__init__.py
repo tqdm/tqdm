@@ -4,8 +4,8 @@ from ._tqdm import format_interval
 from ._tqdm import format_meter
 from ._tqdm_gui import tqdm_gui
 from ._tqdm_gui import tgrange
-from ._pandas import enable_progress_apply
+from ._pandas import tqdm_pandas
 from ._version import __version__  # NOQA
 
 __all__ = ['tqdm', 'tqdm_gui', 'trange', 'tgrange', 'format_interval',
-           'format_meter', 'enable_progress_apply', '__version__']
+           'format_meter', 'tqdm_pandas', '__version__']
