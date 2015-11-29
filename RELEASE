@@ -1,0 +1,84 @@
+HOW TO MANAGE A NEW RELEASE
+===========================
+
+This file is intended for the project's maintainers and it describes
+how to update, build and upload a new release.
+
+Most of the management commands have been directly placed inside the
+Makefile: `python setup.py make [alias]`, (or simply `make [alias]` in
+UNIX-like environments).
+
+Note: to use the Makefile on Windows, you need to install make.exe,
+for example by installing [MinGW MSYS](http://www.mingw.org/wiki/msys).
+
+
+SEMANTIC VERSIONING
+-------------------
+
+The tqdm repository managers should regularly bump the version number in the
+[_version.py](https://raw.githubusercontent.com/tqdm/tqdm/master/tqdm/_version.py)
+file to follow the [Semantic Versioning](http://semver.org/) convention.
+
+Tools can be used to automate this process, such as
+[bumpversion](https://github.com/peritus/bumpversion) or
+[python-semanticversion](https://github.com/rbarrois/python-semanticversion/)
+to automate this task.
+
+The managers should take care of this instead of users to avoid PR conflicts
+solely due to the version file bumping.
+
+
+CHECKING SETUP.PY
+-----------------
+
+To check that the `setup.py` file is compliant with PyPi requirements (e.g.
+version number; reStructuredText in README.rst) use the following command:
+
+```
+python setup.py check --restructuredtext --strict
+```
+
+If you happen to mistakenly upload a broken release to PyPi,
+you can fix the metadata by using: `python setup.py make pypimeta`
+or `python setup.py register`.
+
+
+BUILDING A RELEASE AND UPLOADING TO PYPI
+----------------------------------------
+
+First, check `setup.py` and `MANIFEST.in`, which define the packaging
+process and info that will be uploaded to [pypi](pypi.python.org).
+
+Check the result by using the following commands:
+
+```
+python setup.py make installdev
+```
+
+Secondly, build tqdm into a distributable python package:
+
+```
+python setup.py make build
+```
+
+This will generate several builds in the `dist/` folder.
+
+Finally, upload everything to pypi. This can be done easily using the
+[twine](https://github.com/pypa/twine) module:
+
+```
+python setup.py make pypi
+```
+
+NOTE:
+
+- you can also test on the pypi test servers `testpypi.python.org/pypi`
+before the real deployment
+- in case of a mistake, you can delete an uploaded release on pypi, but you
+cannot re-upload another with the same version number!
+- in case of a mistake in the metadata on pypi (like the long description README
+getting garbled because of a silent error), you can use the following
+command to update the metadata: `make pypimeta` or `python setup.py register`
+
+Also, the new release can be added to github by creating a new release
+from the web interface.
