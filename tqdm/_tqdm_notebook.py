@@ -11,9 +11,8 @@ Usage:
 # a result precise floating numbers (instead of truncated int)
 from __future__ import division, absolute_import
 # import compatibility functions and utilities
-from ._utils import _range
-from time import time
 import sys
+from ._utils import _range
 # import IPython/Jupyter base widget and display utilities
 try:  # pragma: no cover
     # For IPython 4.x using ipywidgets
@@ -23,11 +22,17 @@ except ImportError:  # pragma: no cover
         # For IPython 3.x
         from IPython.html.widgets import IntProgress, HBox, HTML
     except ImportError:  # pragma: no cover
-        # For IPython 2.x
-        from IPython.html.widgets import IntProgressWidget as IntProgress
-        from IPython.html.widgets import ContainerWidget as HBox
-        from IPython.html.widgets import HTML
-from IPython.display import display, clear_output
+        try:  # pragma: no cover
+            # For IPython 2.x
+            from IPython.html.widgets import IntProgressWidget as IntProgress
+            from IPython.html.widgets import ContainerWidget as HBox
+            from IPython.html.widgets import HTML
+        except ImportError:  # pragma: no cover
+            pass
+try:  # pragma: no cover
+    from IPython.display import display, clear_output
+except ImportError:  # pragma: no cover
+    pass
 # to inherit from the tqdm class
 from ._tqdm import tqdm, format_meter, StatusPrinter
 
@@ -40,19 +45,25 @@ def NotebookPrinter(total=None):  # pragma: no cover
     """
     Manage the printing of an IPython/Jupyter Notebook progress bar widget.
     """
+    # Fallback to text bar if there's no total
     if not total:
         return StatusPrinter(sys.stdout)
 
+    # Prepare IPython progress bar
     pbar = IntProgress(min=0, max=total)
+    # Prepare status text
     ptext = HTML()
     # Only way to place text to the right of the bar is to use a container
     container = HBox(children=[pbar, ptext])
     display(container)
+
     def print_status(*args, **kwargs):
         #clear_output(wait=1)
+        # Update progress bar with new values
         if args[0]:
             pbar.value = args[0]
             ptext.value = format_meter(*args, nobar=True, **kwargs)
+        # If n is None, then special signal to close the bar
         elif args[0] is None:
             container.visible = False
     return print_status
@@ -64,10 +75,13 @@ class tqdm_notebook(tqdm):  # pragma: no cover
     """
     def __init__(self, *args, **kwargs):
 
-        kwargs['file'] = sys.stdout
+        kwargs['file'] = sys.stdout  # avoid the red block in IPython
+
         super(tqdm_notebook, self).__init__(*args, **kwargs)
 
+        # Delete the text progress bar display
         self.sp(None)
+        # Replace with IPython progress bar display
         self.sp = NotebookPrinter(self.total)
         if not self.disable:
             self.sp(0, self.total, 0,
