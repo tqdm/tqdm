@@ -181,9 +181,13 @@ Returns
         """
 
 Examples and Advanced Usage
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+---------------------------
 
-See the ``examples`` folder.
+See the `examples <https://github.com/tqdm/tqdm/tree/master/examples>`__ folder or
+import the module and run ``help()``.
+
+Hooks and callbacks
+~~~~~~~~~~~~~~~~~~~
 
 ``tqdm`` can easily support callbacks/hooks and manual updates.
 Here's an example with ``urllib``:
@@ -245,6 +249,30 @@ It is recommend to use ``miniters=1`` whenever there is potentially
 large differences in iteration speed (e.g. downloading a file over
 a patchy connection).
 
+Pandas Integration
+~~~~~~~~~~~~~~~~~~
+
+Due to popular demand we've added support for ``pandas`` -- here's an example
+for ``DataFrameGroupBy.progress_apply``:
+
+.. code:: python
+
+    import pandas as pd
+    import numpy as np
+    from tqdm import tqdm, tqdm_pandas
+
+    df = pd.DataFrame(np.random.randint(0, 100, (100000, 6)))
+
+    # Create and register a new `tqdm` instance with `pandas`
+    # (can use tqdm_gui, optional kwargs, etc.)
+    tqdm_pandas(tqdm())
+
+    # Now you can use `progress_apply` instead of `apply`
+    df.groupby(0).progress_apply(lambda x: x**2)
+
+In case you're interested in how this works (and how to modify it for your
+own callbacks), see the `examples <https://github.com/tqdm/tqdm/tree/master/examples>`__
+folder or import the module and run ``help()``.
 
 Contributions
 -------------
@@ -253,7 +281,7 @@ To run the testing suite please make sure tox (http://tox.testrun.org/)
 is installed, then type ``tox`` from the command line.
 
 Alternatively if you don't want to use ``tox``, a Makefile is provided
-with the following command:
+with the following commands:
 
 .. code:: sh
 

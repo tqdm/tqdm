@@ -11,8 +11,8 @@ Usage:
 # a result precise floating numbers (instead of truncated int)
 from __future__ import division, absolute_import
 # import compatibility functions and utilities
-from ._utils import _range
 from time import time
+from ._utils import _range
 # to inherit from the tqdm class
 from ._tqdm import tqdm, format_meter
 
