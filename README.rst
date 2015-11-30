@@ -183,7 +183,7 @@ Returns
 Examples and Advanced Usage
 ---------------------------
 
-See the ``examples`` folder.
+See the ``examples`` folder or import the module and run ``help()``.
 
 Hooks and callbacks
 ~~~~~~~~~~~~~~~~~~~
@@ -269,22 +269,9 @@ for ``DataFrameGroupBy.progress_apply``:
     # Now you can use `progress_apply` instead of `apply`
     df.groupby(0).progress_apply(lambda x: x**2)
 
-In case you're interested in the internals, the ``tqdm_pandas`` function is
-defined as follows:
-
-.. code:: python
-
-    def tqdm_pandas(t):
-      from pandas.core.groupby import DataFrameGroupBy
-      def inner(groups, func, *args, **kwargs):
-          t.total = len(groups) + 1
-          def wrapper(*args, **kwargs):
-              t.update(1)
-              return func(*args, **kwargs)
-          result = groups.apply(wrapper, *args, **kwargs)
-          t.close()
-          return result
-      DataFrameGroupBy.progress_apply = inner
+In case you're interested in how this works (and how to modify it for your
+own callbacks), see the ``examples`` folder or import the midule and run
+``help()``.
 
 Contributions
 -------------
