@@ -36,6 +36,9 @@ version is much more visually appealing.
 ``tqdm`` works on any platform (Linux/Windows/Mac), in any console or in a
 GUI, and is also friendly with IPython/Jupyter notebooks.
 
+``tqdm`` does not require any library nor curses to run, just a Python
+interpreter.
+
 
 Installation
 ------------
@@ -276,6 +279,22 @@ for ``DataFrameGroupBy.progress_apply``:
 In case you're interested in how this works (and how to modify it for your
 own callbacks), see the `examples <https://github.com/tqdm/tqdm/tree/master/examples>`__
 folder or import the module and run ``help()``.
+
+Nested progress bars
+~~~~~~~~~~~~~~~~~~~~
+
+``tqdm`` supports nested progress bars, you just need to specify the
+`nested=True` argument for all tqdm instanciation except the most outer bar.
+Here's an example:
+
+.. code:: python
+
+    from tqdm import trange
+    from time import sleep
+
+    for i in trange(10, desc='1st loop', leave=True):
+        for j in trange(100, desc='2nd loop', nested=True):
+            sleep(0.01)
 
 Contributions
 -------------
