@@ -70,7 +70,8 @@ def format_interval(t):
 
 
 def format_meter(n, total, elapsed, ncols=None, prefix='', ascii=False,
-                 unit='it', unit_scale=False, rate=None, notebook=False, nobar=False):
+                 unit='it', unit_scale=False, rate=None, notebook=False,
+                 nobar=False):
     """
     Return a string-based progress bar given some parameters
 
@@ -485,10 +486,10 @@ class tqdm(object):
                                              ' instead of tqdm(..., gui=True)')
 
                 self.sp(self.n, self.total, elapsed,
-                    (self.dynamic_ncols(self.fp) if self.dynamic_ncols
-                     else self.ncols),
-                    self.desc, self.ascii, self.unit, self.unit_scale,
-                    self.avg_rate)
+                        (self.dynamic_ncols(self.fp) if self.dynamic_ncols
+                         else self.ncols),
+                        self.desc, self.ascii, self.unit, self.unit_scale,
+                        self.avg_rate)
 
                 # If no `miniters` was specified, adjust automatically to the
                 # maximum iteration rate seen so far.
@@ -523,9 +524,9 @@ class tqdm(object):
                 cur_t = time()
                 # stats for overall rate (no weighted average)
                 self.sp(self.n, self.total, cur_t - self.start_t,
-                    (self.dynamic_ncols(self.fp) if self.dynamic_ncols
-                     else self.ncols),
-                    self.desc, self.ascii, self.unit, self.unit_scale)
+                        (self.dynamic_ncols(self.fp) if self.dynamic_ncols
+                         else self.ncols),
+                        self.desc, self.ascii, self.unit, self.unit_scale)
             self.fp.write('\n')
         else:
             self.sp(None)

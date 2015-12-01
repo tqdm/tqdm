@@ -30,7 +30,7 @@ except ImportError:  # pragma: no cover
         except ImportError:  # pragma: no cover
             pass
 try:  # pragma: no cover
-    from IPython.display import display, clear_output
+    from IPython.display import display  # , clear_output
 except ImportError:  # pragma: no cover
     pass
 # to inherit from the tqdm class
@@ -60,7 +60,7 @@ def NotebookPrinter(total=None, desc=None):  # pragma: no cover
     display(container)
 
     def print_status(*args, **kwargs):
-        #clear_output(wait=1)
+        # clear_output(wait=1)
         # Update progress bar with new values
         if args[0] is not None:
             pbar.value = args[0]
@@ -90,8 +90,9 @@ class tqdm_notebook(tqdm):  # pragma: no cover
         # Print initial bar state
         if not self.disable:
             self.sp(0, self.total, 0,
-                        (dynamic_ncols(self.file) if self.dynamic_ncols else self.ncols),
-                        self.desc, self.ascii, self.unit, self.unit_scale)
+                    (self.dynamic_ncols(self.file) if self.dynamic_ncols
+                     else self.ncols),
+                    self.desc, self.ascii, self.unit, self.unit_scale)
 
 
 def tnrange(*args, **kwargs):  # pragma: no cover
