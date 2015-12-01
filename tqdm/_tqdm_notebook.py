@@ -41,7 +41,7 @@ __author__ = {"github.com/": ["casperdcl", "lrq3000"]}
 __all__ = ['tqdm_notebook', 'tnrange']
 
 
-def NotebookPrinter(total=None):  # pragma: no cover
+def NotebookPrinter(total=None, desc=None):  # pragma: no cover
     """
     Manage the printing of an IPython/Jupyter Notebook progress bar widget.
     """
@@ -51,6 +51,8 @@ def NotebookPrinter(total=None):  # pragma: no cover
 
     # Prepare IPython progress bar
     pbar = IntProgress(min=0, max=total)
+    if desc:
+        pbar.description = desc
     # Prepare status text
     ptext = HTML()
     # Only way to place text to the right of the bar is to use a container
@@ -60,11 +62,11 @@ def NotebookPrinter(total=None):  # pragma: no cover
     def print_status(*args, **kwargs):
         #clear_output(wait=1)
         # Update progress bar with new values
-        if args[0]:
+        if args[0] is not None:
             pbar.value = args[0]
             ptext.value = format_meter(*args, nobar=True, **kwargs)
         # If n is None, then special signal to close the bar
-        elif args[0] is None:
+        else:
             container.visible = False
     return print_status
 
@@ -82,7 +84,10 @@ class tqdm_notebook(tqdm):  # pragma: no cover
         # Delete the text progress bar display
         self.sp(None)
         # Replace with IPython progress bar display
-        self.sp = NotebookPrinter(self.total)
+        self.sp = NotebookPrinter(self.total, self.desc)
+        self.desc = None  # trick to place description before the bar
+
+        # Print initial bar state
         if not self.disable:
             self.sp(0, self.total, 0,
                         (dynamic_ncols(self.file) if self.dynamic_ncols else self.ncols),
