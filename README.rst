@@ -130,6 +130,9 @@ Parameters
     Exponential moving average smoothing factor for speed estimates
     (ignored in GUI mode). Ranges from 0 (average speed) to 1
     (current/instantaneous speed) [default: 0.3].
+* nested  : bool, optional
+    Set this to True if your progress bar is in an inner loop.
+    Allows to display multiple, nested progress bars.
 
 Returns
 ~~~~~~~

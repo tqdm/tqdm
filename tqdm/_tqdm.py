@@ -194,9 +194,9 @@ def StatusPrinter(file):
 
     last_printed_len = [0]  # closure over mutable variable (fast)
 
-    def print_status(s):
+    def print_status(s, clrchar='\r'):
         len_s = len(s)
-        fp.write('\r' + s + ' ' * max(last_printed_len[0] - len_s, 0))
+        fp.write(clrchar + s + ' ' * max(last_printed_len[0] - len_s, 0))
         fp.flush()
         last_printed_len[0] = len_s
     return print_status
@@ -212,7 +212,7 @@ class tqdm(object):
                  file=sys.stderr, ncols=None, mininterval=0.1,
                  maxinterval=10.0, miniters=None, ascii=None, disable=False,
                  unit='it', unit_scale=False, dynamic_ncols=False,
-                 smoothing=0.3, gui=False):
+                 smoothing=0.3, nested=False, gui=False):
         """
         Parameters
         ----------
@@ -267,6 +267,9 @@ class tqdm(object):
             Exponential moving average smoothing factor for speed estimates
             (ignored in GUI mode). Ranges from 0 (average speed) to 1
             (current/instantaneous speed) [default: 0.3].
+        nested  : bool, optional
+            Set this to True if your progress bar is in an inner loop.
+            Allows to display multiple, nested progress bars.
         gui  : bool, optional
             WARNING: internal paramer - do not use.
             Use tqdm_gui(...) instead. If set, will attempt to use
@@ -328,6 +331,9 @@ class tqdm(object):
         self.dynamic_ncols = dynamic_ncols
         self.smoothing = smoothing
         self.avg_rate = None
+        # if nested, at initial sp() call we replace '\r' by '\n' to
+        # not overwrite the outer progress bar
+        self.nested = nested
 
         if not gui:
             # Initialize the screen printer
@@ -335,7 +341,8 @@ class tqdm(object):
             if not disable:
                 self.sp(format_meter(0, total, 0,
                         (dynamic_ncols(file) if dynamic_ncols else ncols),
-                        self.desc, ascii, unit, unit_scale))
+                        self.desc, ascii, unit, unit_scale),
+                        clrchar=('\n' if self.nested else '\r'))
 
         # Init the time/iterations counters
         self.start_t = self.last_print_t = time()

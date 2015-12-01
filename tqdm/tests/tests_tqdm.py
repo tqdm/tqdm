@@ -560,6 +560,33 @@ def test_smoothing():
     assert a2 < c2 < b2
 
 
+def test_nested():
+    """ Test nested progress bars """
+    our_file = StringIO()
+    for i in trange(2, file=our_file, miniters=1, mininterval=0,
+                    maxinterval=0, desc='outer loop', leave=True):
+        for j in trange(4, file=our_file, miniters=1, mininterval=0,
+                        maxinterval=0, desc='inner loop', nested=True):
+            pass
+    our_file.seek(0)
+    out = our_file.read()
+    RE_nested = re.compile(r'((\r|\n)(outer|inner) loop:\s+\d+%)')
+    res = [m[0] for m in RE_nested.findall(out)]
+    assert res == ['\router loop:   0%',
+                   '\ninner loop:   0%',
+                   '\rinner loop:  25%',
+                   '\rinner loop:  50%',
+                   '\rinner loop:  75%',
+                   '\rinner loop: 100%',
+                   '\router loop:  50%',
+                   '\ninner loop:   0%',
+                   '\rinner loop:  25%',
+                   '\rinner loop:  50%',
+                   '\rinner loop:  75%',
+                   '\rinner loop: 100%',
+                   '\router loop: 100%']
+
+
 def test_no_gui():
     """ Test internal GUI properties """
     # Check: StatusPrinter iff gui is disabled
