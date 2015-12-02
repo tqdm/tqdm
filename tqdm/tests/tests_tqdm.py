@@ -686,6 +686,16 @@ def test_nested():
     # TODO: test degradation on windows without colorama?
 
 
+def test_set_description():
+    """ Test set description """
+    t = tqdm(desc='Hello')
+    assert t.desc == 'Hello: '
+    t.set_description('World')
+    assert t.desc == 'World: '
+    t.set_description()
+    assert t.desc == ''
+
+
 def test_no_gui():
     """ Test internal GUI properties """
     # Check: StatusPrinter iff gui is disabled
