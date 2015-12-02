@@ -76,7 +76,7 @@ Documentation
                    file=sys.stderr, ncols=None, mininterval=0.1,
                    maxinterval=10.0, miniters=None, ascii=None, disable=False,
                    unit='it', unit_scale=False, dynamic_ncols=False,
-                   smoothing=0.3, gui=False):
+                   smoothing=0.3, nested=False):
 
 Parameters
 ~~~~~~~~~~
@@ -133,9 +133,10 @@ Parameters
     Exponential moving average smoothing factor for speed estimates
     (ignored in GUI mode). Ranges from 0 (average speed) to 1
     (current/instantaneous speed) [default: 0.3].
-* nested  : bool, optional
-    Set this to True if your progress bar is in an inner loop.
-    Allows to display multiple, nested progress bars.
+* nested  : bool, optional  
+    Whether this iterable is nested in another one also managed by
+    `tqdm` [default: False]. Allows display of multiple, nested
+    progress bars.
 
 Returns
 ~~~~~~~
