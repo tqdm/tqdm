@@ -11,7 +11,8 @@ Usage:
 # a result precise floating numbers (instead of truncated int)
 from __future__ import division, absolute_import
 # import compatibility functions and utilities
-from ._utils import _supports_unicode, _environ_cols_wrapper, _range, _unich
+from ._utils import _supports_unicode, _environ_cols_wrapper, _range, _unich, \
+                                    _term_move_up
 import sys
 from time import time
 
@@ -194,9 +195,9 @@ def StatusPrinter(file):
 
     last_printed_len = [0]  # closure over mutable variable (fast)
 
-    def print_status(s, clrchar='\r'):
+    def print_status(s):
         len_s = len(s)
-        fp.write(clrchar + s + ' ' * max(last_printed_len[0] - len_s, 0))
+        fp.write('\r' + s + (' ' * max(last_printed_len[0] - len_s, 0)))
         fp.flush()
         last_printed_len[0] = len_s
     return print_status
@@ -339,10 +340,11 @@ class tqdm(object):
             # Initialize the screen printer
             self.sp = StatusPrinter(self.fp)
             if not disable:
+                if self.nested:
+                    self.fp.write('\n')
                 self.sp(format_meter(0, total, 0,
                         (dynamic_ncols(file) if dynamic_ncols else ncols),
-                        self.desc, ascii, unit, unit_scale),
-                        clrchar=('\n' if self.nested else '\r'))
+                        self.desc, ascii, unit, unit_scale))
 
         # Init the time/iterations counters
         self.start_t = self.last_print_t = time()
@@ -523,6 +525,10 @@ class tqdm(object):
         if self.disable:
             return
 
+        endchar = '\r'
+        if self.nested:
+            endchar += _term_move_up()
+
         if self.leave:
             if self.last_print_n < self.n:
                 cur_t = time()
@@ -532,10 +538,13 @@ class tqdm(object):
                     (self.dynamic_ncols(self.fp) if self.dynamic_ncols
                      else self.ncols),
                     self.desc, self.ascii, self.unit, self.unit_scale))
-            self.fp.write('\n')
+            if self.nested:
+                self.fp.write(endchar)
+            else:
+                self.fp.write('\n')
         else:
             self.sp('')
-            self.fp.write('\r')
+            self.fp.write(endchar)
 
 
 def trange(*args, **kwargs):
