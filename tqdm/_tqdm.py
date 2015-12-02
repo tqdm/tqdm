@@ -70,8 +70,7 @@ def format_interval(t):
 
 
 def format_meter(n, total, elapsed, ncols=None, prefix='', ascii=False,
-                 unit='it', unit_scale=False, rate=None, notebook=False,
-                 nobar=False):
+                 unit='it', unit_scale=False, rate=None, nobar=False):
     """
     Return a string-based progress bar given some parameters
 
