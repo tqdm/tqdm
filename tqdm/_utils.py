@@ -111,7 +111,7 @@ def _environ_cols_linux(fp):  # pragma: no cover
                 return int(get('COLUMNS', 1)) - 1
 
 
-def _term_move_up():
+def _term_move_up():  # pragma: no cover
     if os.name == 'nt':
         if colorama:
             return '\x1b[A'
