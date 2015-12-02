@@ -70,7 +70,7 @@ def format_interval(t):
 
 
 def format_meter(n, total, elapsed, ncols=None, prefix='', ascii=False,
-                 unit='it', unit_scale=False, rate=None):
+                 unit='it', unit_scale=False, rate=None, nobar=False):
     """
     Return a string-based progress bar given some parameters
 
@@ -174,7 +174,10 @@ def format_meter(n, total, elapsed, ncols=None, prefix='', ascii=False,
             full_bar = bar + \
                 ' ' * max(N_BARS - bar_length, 0)
 
-        return l_bar + full_bar + r_bar
+        if nobar:
+            return l_bar[:-1] + ' ' + r_bar
+        else:
+            return l_bar + full_bar + r_bar
 
     # no total: no progressbar, ETA, just progress stats
     else:
@@ -194,7 +197,8 @@ def StatusPrinter(file):
 
     last_printed_len = [0]  # closure over mutable variable (fast)
 
-    def print_status(s):
+    def print_status(*args, **kwargs):
+        s = '' if args[0] is None else format_meter(*args, **kwargs)
         len_s = len(s)
         fp.write('\r' + s + ' ' * max(last_printed_len[0] - len_s, 0))
         fp.flush()
@@ -333,9 +337,9 @@ class tqdm(object):
             # Initialize the screen printer
             self.sp = StatusPrinter(self.fp)
             if not disable:
-                self.sp(format_meter(0, total, 0,
+                self.sp(0, total, 0,
                         (dynamic_ncols(file) if dynamic_ncols else ncols),
-                        self.desc, ascii, unit, unit_scale))
+                        self.desc, ascii, unit, unit_scale)
 
         # Init the time/iterations counters
         self.start_t = self.last_print_t = time()
@@ -405,11 +409,10 @@ class tqdm(object):
                                 else smoothing * delta_it / delta_t + \
                                 (1 - smoothing) * avg_rate
 
-                        sp(format_meter(
-                            n, self.total, elapsed,
+                        sp(n, self.total, elapsed,
                             (dynamic_ncols(self.fp) if dynamic_ncols
                              else ncols),
-                            self.desc, ascii, unit, unit_scale, avg_rate))
+                            self.desc, ascii, unit, unit_scale, avg_rate)
 
                         # If no `miniters` was specified, adjust automatically
                         # to the maximum iteration rate seen so far.
@@ -481,12 +484,11 @@ class tqdm(object):
                     raise DeprecationWarning('Please use tqdm_gui(...)'
                                              ' instead of tqdm(..., gui=True)')
 
-                self.sp(format_meter(
-                    self.n, self.total, elapsed,
-                    (self.dynamic_ncols(self.fp) if self.dynamic_ncols
-                     else self.ncols),
-                    self.desc, self.ascii, self.unit, self.unit_scale,
-                    self.avg_rate))
+                self.sp(self.n, self.total, elapsed,
+                        (self.dynamic_ncols(self.fp) if self.dynamic_ncols
+                         else self.ncols),
+                        self.desc, self.ascii, self.unit, self.unit_scale,
+                        self.avg_rate)
 
                 # If no `miniters` was specified, adjust automatically to the
                 # maximum iteration rate seen so far.
@@ -520,14 +522,13 @@ class tqdm(object):
             if self.last_print_n < self.n:
                 cur_t = time()
                 # stats for overall rate (no weighted average)
-                self.sp(format_meter(
-                    self.n, self.total, cur_t - self.start_t,
-                    (self.dynamic_ncols(self.fp) if self.dynamic_ncols
-                     else self.ncols),
-                    self.desc, self.ascii, self.unit, self.unit_scale))
+                self.sp(self.n, self.total, cur_t - self.start_t,
+                        (self.dynamic_ncols(self.fp) if self.dynamic_ncols
+                         else self.ncols),
+                        self.desc, self.ascii, self.unit, self.unit_scale)
             self.fp.write('\n')
         else:
-            self.sp('')
+            self.sp(None)
             self.fp.write('\r')
 
 

@@ -66,6 +66,8 @@ def test_format_meter():
         "100KiB [00:13, 7.69KiB/s]"
     assert format_meter(100, 1000, 12, ncols=0, rate=7.33) == \
         " 10% 100/1000 [00:12<02:02,  7.33it/s]"
+    assert format_meter(0, 1000, 13, nobar=True) == \
+        "  0% | 0/1000 [00:13<?,  0.00it/s]"
 
 
 def test_si_format():
