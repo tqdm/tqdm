@@ -293,8 +293,25 @@ Here's an example:
     from time import sleep
 
     for i in trange(10, desc='1st loop', leave=True):
-        for j in trange(100, desc='2nd loop', nested=True):
+        for j in trange(100, desc='2nd loop', leave=True, nested=True):
             sleep(0.01)
+
+You can of course use as many nested loops as you want, get funky:
+
+.. code:: python
+
+    from tqdm import trange
+    from time import sleep
+
+    for i in trange(10, desc='1st loop', leave=True):
+        for j in trange(5, desc='2nd loop', leave=True, nested=True):
+            for k in trange(100, desc='3nd loop', leave=True, nested=True):
+                sleep(0.01)
+
+Note that on Windows, you need `colorama <https://github.com/tartley/colorama>`__
+if you want to have a beautiful nested display. But in case you don't have
+colorama, nested bars will still work without in-place replacement of parent
+bars.
 
 Contributions
 -------------
