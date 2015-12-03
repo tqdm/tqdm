@@ -98,7 +98,7 @@ You can have a manual control on ``tqdm()`` by using a ``with`` statement:
         for i in range(10):
             pbar.update(10)
 
-Note that `total` is optional, but specifying it (or an iterable with len)
+Note that ``total`` is optional, but specifying it (or an iterable with len)
 allows to display predictive stats.
 
 ``with`` is also optional, you can just assign ``tqdm()`` to a variable,
@@ -244,20 +244,21 @@ How to make a good progress bar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 A good progress bar is a useful progress bar. To be useful, ``tqdm`` displays
-statistics and uses smart algorithms to predict that will try to automagically
-adapt to all your use cases with no or minimal configuration.
+statistics and uses smart algorithms to predict and to automagically adapt to
+all your use cases with no or minimal configuration.
 
 However, there is one thing that ``tqdm`` cannot do: choose a pertinent
-progress indicator. This is your job to ensure that you supply ``tqdm`` with the
-most pertinent indicator, which will reflect most accurately the current state
-of your program. Usually, a good way is to preprocess quickly to first evaluate
-the total amount of work to do before beginning the real processing.
+progress indicator. To display a useful progress bar, it is very important that
+you ensure that you supply ``tqdm`` with the most pertinent progress indicator,
+which will reflect most accurately the current state of your program.
+Usually, a good way is to preprocess quickly to first evaluate the total amount
+of work to do before beginning the real processing.
 
 To illustrate the importance of a good progress indicator, let's take the
 following example: you want to walk through all files of a directory and
 process their contents to do your biddings.
 
-Here's the basic code:
+Here is a basic program to do that:
 
 .. code:: python
 
