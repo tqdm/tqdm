@@ -30,8 +30,11 @@ Here's what the output looks like:
 Overhead is low -- about 60ns per iteration (80ns with ``gui=True``).
 By comparison, the well established
 `ProgressBar <https://code.google.com/p/python-progressbar/>`__ has
-an 800ns/iter overhead. It's a matter of taste, but we also like to think our
-version is much more visually appealing.
+an 800ns/iter overhead. In addition to its low overhead, ``tqdm`` uses smart
+algorithms to predict the remaining time and to skip useless iterations
+displays, which allows to make the overhead negligible in most cases.
+It's a matter of taste, but we also like to think our version is much more
+visually appealing.
 
 ``tqdm`` works on any platform (Linux/Windows/Mac), in any console or in a
 GUI, and is also friendly with IPython/Jupyter notebooks.
