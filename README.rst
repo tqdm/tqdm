@@ -36,6 +36,10 @@ version is much more visually appealing.
 ``tqdm`` works on any platform (Linux/Windows/Mac), in any console or in a
 GUI, and is also friendly with IPython/Jupyter notebooks.
 
+------------------------------------------
+
+.. contents:: Table of contents
+   :backlinks: top
 
 Installation
 ------------
@@ -469,14 +473,12 @@ Contributions
 To run the testing suite please make sure tox (http://tox.testrun.org/)
 is installed, then type ``tox`` from the command line.
 
-Alternatively if you don't want to use ``tox``, a Makefile is provided
-with the following commands:
+Alternatively if you don't want to use ``tox``, a Makefile-like setup is
+provided with the following command:
 
 .. code:: sh
 
-    $ make flake8
-    $ make test
-    $ make coverage
+    $ python setup.py make alltests
 
 See the `CONTRIBUTE <https://raw.githubusercontent.com/tqdm/tqdm/master/CONTRIBUTE>`__
 file for more information.
