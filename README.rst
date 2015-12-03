@@ -373,7 +373,7 @@ because ``tqdm`` will work on size, while the for loop works on files paths
                         while (buf):
                             buf = fh.read(blocksize)
                             dosomething(buf)
-                            pbar.update(len(buf))
+                            if buf: pbar.update(len(buf))
 
 And here is the result: a much smoother progress bar with meaningful
 predicted time and statistics:
