@@ -40,6 +40,7 @@ GUI, and is also friendly with IPython/Jupyter notebooks.
 
 .. contents:: Table of contents
    :backlinks: top
+   :local:
 
 Installation
 ------------
