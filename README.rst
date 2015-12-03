@@ -330,7 +330,7 @@ this by ourselves:
 ``process_content_with_progress2()`` is better than the naive approach because
 now we have predictive information:
 
-`` 50%|██████████████████████                      | 2/4 [00:00<00:00,  4.06it/s]``
+50%|██████████████████████\                      \| 2/4 [00:00<00:00,  4.06it/s]
 
 However, the progress is not smooth: it increments in steps, 1 step being
 1 file processed. The problem is that we do not just walk through files tree,
@@ -373,7 +373,7 @@ because ``tqdm`` will work on size, while the for loop works on files paths
 And here is the result: a much smoother progress bar with meaningful
 predicted time and statistics:
 
-`` 47%|██████████████████▍                    | 152K/321K [00:03<00:03, 46.2KB/s]``
+47%|██████████████████▍\                    \| 152K/321K [00:03<00:03, 46.2KB/s]
 
 Hooks and callbacks
 ~~~~~~~~~~~~~~~~~~~
