@@ -316,8 +316,8 @@ no prediction:
 ``4it [00:03,  2.79it/s]``
 
 The way to get predictive information is to know the total amount of work to be
-done. Since os.walkdir() cannot give us this information, we need to precompute
-this by ourselves:
+done. Since ``os.walkdir()`` cannot give us this information, we need to
+precompute this by ourselves:
 
 .. code:: python
 
