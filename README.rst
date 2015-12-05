@@ -8,7 +8,7 @@ tqdm
 
 ``tqdm`` (read taqadum, تقدّم) means "progress" in arabic.
 
-Instantly make your loops show a progress meter - just wrap any
+Instantly make your loops show a smart progress meter - just wrap any
 iterable with "tqdm(iterable)", and you're done!
 
 .. code:: python
@@ -30,11 +30,11 @@ Here's what the output looks like:
 Overhead is low -- about 60ns per iteration (80ns with ``gui=True``).
 By comparison, the well established
 `ProgressBar <https://code.google.com/p/python-progressbar/>`__ has
-an 800ns/iter overhead. In addition to its low overhead, ``tqdm`` uses smart
-algorithms to predict the remaining time and to skip useless iterations
-displays, which allows to make the overhead negligible in most cases.
-It's a matter of taste, but we also like to think our version is much more
-visually appealing.
+an 800ns/iter overhead.
+
+In addition to its low overhead, ``tqdm`` uses smart algorithms to predict
+the remaining time and to skip unneccessary iteration displays, which allows
+for a negligible overhead in most cases.
 
 ``tqdm`` works on any platform (Linux/Windows/Mac), in any console or in a
 GUI, and is also friendly with IPython/Jupyter notebooks.
@@ -65,29 +65,29 @@ Pull and install in the current directory:
     pip install -e git+https://github.com/tqdm/tqdm.git@master#egg=tqdm
 
 Usage
--------------
+-----
 
-There are basically two ways of using ``tqdm``:
+``tqdm`` is very versatile and can be used in a number of ways.
+The two main ones are given below.
 
 Iterable-based
 ~~~~~~~~~~~~~~
 
-If you have an iterable, you can directly wrap ``tqdm()`` around your iterable:
+Wrap ``tqdm()`` around any iterable:
 
 .. code:: python
 
     for char in tqdm(["a", "b", "c", "d"]):
         print char
 
-``trange()`` is a special optimized instance of ``tqdm(range(x))``:
+``trange(i)`` is a special optimised instance of ``tqdm(range(i))``:
 
 .. code:: python
 
     for i in trange(100):
         pass
 
-You can also wrap ``tqdm()`` outside of the loop and assign to a variable,
-this allows you to still get a manual control over your progress bar:
+Instantiation outside of the loop allows for manual control over ``tqdm()``:
 
 .. code:: python
 
@@ -96,9 +96,9 @@ this allows you to still get a manual control over your progress bar:
         pbar.set_description("Processing %s" % char)
 
 Manual
-~~~~~~~
+~~~~~~
 
-You can have a manual control on ``tqdm()`` by using a ``with`` statement:
+Manual control on ``tqdm()`` updates by using a ``with`` statement:
 
 .. code:: python
 
@@ -106,10 +106,10 @@ You can have a manual control on ``tqdm()`` by using a ``with`` statement:
         for i in range(10):
             pbar.update(10)
 
-Note that ``total`` is optional, but specifying it (or an iterable with len)
-allows to display predictive stats.
+If the optional variable ``total`` (or an iterable with ``len()``) is
+provided, predictive stats are displayed.
 
-``with`` is also optional, you can just assign ``tqdm()`` to a variable,
+``with`` is also optional (you can just assign ``tqdm()`` to a variable,
 but in this case don't forget to ``close()`` at the end:
 
 .. code:: python
@@ -477,12 +477,18 @@ Contributions
 To run the testing suite please make sure tox (http://tox.testrun.org/)
 is installed, then type ``tox`` from the command line.
 
-Alternatively if you don't want to use ``tox``, a Makefile-like setup is
+Where ``tox`` is unavailable, a Makefile-like setup is
 provided with the following command:
 
 .. code:: sh
 
     $ python setup.py make alltests
+
+To see all options, run:
+
+.. code:: sh
+
+    $ python setup.py make
 
 See the `CONTRIBUTE <https://raw.githubusercontent.com/tqdm/tqdm/master/CONTRIBUTE>`__
 file for more information.
