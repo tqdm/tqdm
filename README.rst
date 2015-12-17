@@ -36,8 +36,8 @@ version is much more visually appealing.
 ``tqdm`` works on any platform (Linux/Windows/Mac), in any console or in a
 GUI, and is also friendly with IPython/Jupyter notebooks.
 
-``tqdm`` does not require any library nor curses to run, just a Python
-interpreter.
+``tqdm`` does not require any library (not even curses!) to run, just a
+vanilla Python interpreter will do.
 
 
 Installation
@@ -187,6 +187,7 @@ Returns
         Experimental GUI version of trange!
         """
 
+
 Examples and Advanced Usage
 ---------------------------
 
@@ -285,19 +286,8 @@ Nested progress bars
 ~~~~~~~~~~~~~~~~~~~~
 
 ``tqdm`` supports nested progress bars, you just need to specify the
-`nested=True` argument for all tqdm instanciation except the most outer bar.
-Here's an example:
-
-.. code:: python
-
-    from tqdm import trange
-    from time import sleep
-
-    for i in trange(10, desc='1st loop', leave=True):
-        for j in trange(100, desc='2nd loop', leave=True, nested=True):
-            sleep(0.01)
-
-You can of course use as many nested loops as you want, get funky:
+`nested=True` argument for all tqdm instanciation except the **outermost**
+bar. Here's an example:
 
 .. code:: python
 
@@ -309,10 +299,9 @@ You can of course use as many nested loops as you want, get funky:
             for k in trange(100, desc='3nd loop', leave=True, nested=True):
                 sleep(0.01)
 
-Note that on Windows, you need `colorama <https://github.com/tartley/colorama>`__
-if you want to have a beautiful nested display. But in case you don't have
-colorama, nested bars will still work without in-place replacement of parent
-bars.
+On Windows `colorama <https://github.com/tartley/colorama>`__ will be used if
+available to produce a beautiful nested display.
+
 
 Contributions
 -------------

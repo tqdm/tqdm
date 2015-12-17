@@ -12,7 +12,7 @@ Usage:
 from __future__ import division, absolute_import
 # import compatibility functions and utilities
 from ._utils import _supports_unicode, _environ_cols_wrapper, _range, _unich, \
-                                    _term_move_up
+    _term_move_up
 import sys
 from time import time
 

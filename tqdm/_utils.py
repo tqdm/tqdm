@@ -113,9 +113,6 @@ def _environ_cols_linux(fp):  # pragma: no cover
 
 def _term_move_up():  # pragma: no cover
     if os.name == 'nt':
-        if colorama:
-            return '\x1b[A'
-        else:
+        if colorama is None:
             return ''
-    else:
-        return '\x1b[A'
+    return '\x1b[A'
