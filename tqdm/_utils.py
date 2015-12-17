@@ -1,3 +1,5 @@
+import os
+
 try:    # pragma: no cover
     _range = xrange
 except NameError:    # pragma: no cover
@@ -8,6 +10,12 @@ try:    # pragma: no cover
     _unich = unichr
 except NameError:    # pragma: no cover
     _unich = chr
+
+try:  # pragma: no cover
+    import colorama
+    colorama.init()
+except ImportError:  # pragma: no cover
+    colorama = None
 
 
 def _is_utf(encoding):
@@ -101,3 +109,10 @@ def _environ_cols_linux(fp):  # pragma: no cover
                 return None
             else:
                 return int(get('COLUMNS', 1)) - 1
+
+
+def _term_move_up():  # pragma: no cover
+    if os.name == 'nt':
+        if colorama is None:
+            return ''
+    return '\x1b[A'

@@ -11,7 +11,8 @@ Usage:
 # a result precise floating numbers (instead of truncated int)
 from __future__ import division, absolute_import
 # import compatibility functions and utilities
-from ._utils import _supports_unicode, _environ_cols_wrapper, _range, _unich
+from ._utils import _supports_unicode, _environ_cols_wrapper, _range, _unich, \
+    _term_move_up
 import sys
 from time import time
 
@@ -196,7 +197,7 @@ def StatusPrinter(file):
 
     def print_status(s):
         len_s = len(s)
-        fp.write('\r' + s + ' ' * max(last_printed_len[0] - len_s, 0))
+        fp.write('\r' + s + (' ' * max(last_printed_len[0] - len_s, 0)))
         fp.flush()
         last_printed_len[0] = len_s
     return print_status
@@ -212,7 +213,7 @@ class tqdm(object):
                  file=sys.stderr, ncols=None, mininterval=0.1,
                  maxinterval=10.0, miniters=None, ascii=None, disable=False,
                  unit='it', unit_scale=False, dynamic_ncols=False,
-                 smoothing=0.3, gui=False):
+                 smoothing=0.3, nested=False, gui=False):
         """
         Parameters
         ----------
@@ -267,6 +268,10 @@ class tqdm(object):
             Exponential moving average smoothing factor for speed estimates
             (ignored in GUI mode). Ranges from 0 (average speed) to 1
             (current/instantaneous speed) [default: 0.3].
+        nested  : bool, optional
+            Whether this iterable is nested in another one also managed by
+            `tqdm` [default: False]. Allows display of multiple, nested
+            progress bars.
         gui  : bool, optional
             WARNING: internal paramer - do not use.
             Use tqdm_gui(...) instead. If set, will attempt to use
@@ -328,11 +333,16 @@ class tqdm(object):
         self.dynamic_ncols = dynamic_ncols
         self.smoothing = smoothing
         self.avg_rate = None
+        # if nested, at initial sp() call we replace '\r' by '\n' to
+        # not overwrite the outer progress bar
+        self.nested = nested
 
         if not gui:
             # Initialize the screen printer
             self.sp = StatusPrinter(self.fp)
             if not disable:
+                if self.nested:
+                    self.fp.write('\n')
                 self.sp(format_meter(0, total, 0,
                         (dynamic_ncols(file) if dynamic_ncols else ncols),
                         self.desc, ascii, unit, unit_scale))
@@ -516,6 +526,10 @@ class tqdm(object):
         if self.disable:
             return
 
+        endchar = '\r'
+        if self.nested:
+            endchar += _term_move_up()
+
         if self.leave:
             if self.last_print_n < self.n:
                 cur_t = time()
@@ -525,10 +539,19 @@ class tqdm(object):
                     (self.dynamic_ncols(self.fp) if self.dynamic_ncols
                      else self.ncols),
                     self.desc, self.ascii, self.unit, self.unit_scale))
-            self.fp.write('\n')
+            if self.nested:
+                self.fp.write(endchar)
+            else:
+                self.fp.write('\n')
         else:
             self.sp('')
-            self.fp.write('\r')
+            self.fp.write(endchar)
+
+    def set_description(self, desc=None):
+        """
+        Set/modify description of the progress bar.
+        """
+        self.desc = desc + ': ' if desc else ''
 
 
 def trange(*args, **kwargs):

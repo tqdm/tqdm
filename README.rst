@@ -39,11 +39,15 @@ for a negligible overhead in most cases.
 ``tqdm`` works on any platform (Linux/Windows/Mac), in any console or in a
 GUI, and is also friendly with IPython/Jupyter notebooks.
 
+``tqdm`` does not require any library (not even curses!) to run, just a
+vanilla Python interpreter will do.
+
 ------------------------------------------
 
 .. contents:: Table of contents
    :backlinks: top
    :local:
+
 
 Installation
 ------------
@@ -63,6 +67,7 @@ Pull and install in the current directory:
 .. code:: sh
 
     pip install -e git+https://github.com/tqdm/tqdm.git@master#egg=tqdm
+
 
 Usage
 -----
@@ -119,6 +124,7 @@ but in this case don't forget to ``close()`` at the end:
         pbar.update(10)
     pbar.close()
 
+
 Documentation
 -------------
 
@@ -135,7 +141,7 @@ Documentation
                    file=sys.stderr, ncols=None, mininterval=0.1,
                    maxinterval=10.0, miniters=None, ascii=None, disable=False,
                    unit='it', unit_scale=False, dynamic_ncols=False,
-                   smoothing=0.3, gui=False):
+                   smoothing=0.3, nested=False):
 
 Parameters
 ~~~~~~~~~~
@@ -192,6 +198,10 @@ Parameters
     Exponential moving average smoothing factor for speed estimates
     (ignored in GUI mode). Ranges from 0 (average speed) to 1
     (current/instantaneous speed) [default: 0.3].
+* nested  : bool, optional  
+    Whether this iterable is nested in another one also managed by
+    `tqdm` [default: False]. Allows display of multiple, nested
+    progress bars.
 
 Returns
 ~~~~~~~
@@ -241,6 +251,7 @@ Returns
         """
         Experimental GUI version of trange!
         """
+
 
 Examples and Advanced Usage
 ---------------------------
@@ -335,6 +346,27 @@ for ``DataFrameGroupBy.progress_apply``:
 In case you're interested in how this works (and how to modify it for your
 own callbacks), see the `examples <https://github.com/tqdm/tqdm/tree/master/examples>`__
 folder or import the module and run ``help()``.
+
+Nested progress bars
+~~~~~~~~~~~~~~~~~~~~
+
+``tqdm`` supports nested progress bars, you just need to specify the
+`nested=True` argument for all tqdm instanciation except the **outermost**
+bar. Here's an example:
+
+.. code:: python
+
+    from tqdm import trange
+    from time import sleep
+
+    for i in trange(10, desc='1st loop', leave=True):
+        for j in trange(5, desc='2nd loop', leave=True, nested=True):
+            for k in trange(100, desc='3nd loop', leave=True, nested=True):
+                sleep(0.01)
+
+On Windows `colorama <https://github.com/tartley/colorama>`__ will be used if
+available to produce a beautiful nested display.
+
 
 How to make a good progress bar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

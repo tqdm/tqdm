@@ -560,6 +560,142 @@ def test_smoothing():
     assert a2 < c2 < b2
 
 
+def test_nested():
+    """ Test nested progress bars """
+    # Use regexp because the it rates can change
+    RE_nested = re.compile(r'((\x1b\[A|\r|\n)+((outer|inner) loop:\s+\d+%|\s{3,6})?)')  # NOQA
+    RE_nested2 = re.compile(r'((\x1b\[A|\r|\n)+((outer0|inner1|inner2) loop:\s+\d+%|\s{3,6})?)')  # NOQA
+
+    # Artifically test nested loop printing
+    # Without leave
+    our_file = StringIO()
+    t = tqdm(total=2, file=our_file, miniters=1, mininterval=0,
+             maxinterval=0, desc='inner loop', leave=False, nested=True)
+    t.update()
+    t.close()
+    our_file.seek(0)
+    out = our_file.read()
+    res = [m[0] for m in RE_nested.findall(out)]
+    assert res == ['\n\rinner loop:   0%',
+                   '\rinner loop:  50%',
+                   '\r      ',
+                   '\r\x1b[A']
+
+    # With leave
+    our_file = StringIO()
+    t = tqdm(total=2, file=our_file, miniters=1, mininterval=0,
+             maxinterval=0, desc='inner loop', leave=True, nested=True)
+    t.update()
+    t.close()
+    our_file.seek(0)
+    out = our_file.read()
+    res = [m[0] for m in RE_nested.findall(out)]
+    assert res == ['\n\rinner loop:   0%',
+                   '\rinner loop:  50%',
+                   '\r\x1b[A']
+
+    # Test simple nested, without leave
+    our_file = StringIO()
+    for i in trange(2, file=our_file, miniters=1, mininterval=0,
+                    maxinterval=0, desc='outer loop', leave=True):
+        for j in trange(4, file=our_file, miniters=1, mininterval=0,
+                        maxinterval=0, desc='inner loop', nested=True):
+            pass
+    our_file.seek(0)
+    out = our_file.read()
+    res = [m[0] for m in RE_nested.findall(out)]
+    assert res == ['\router loop:   0%',
+                   '\n\rinner loop:   0%',
+                   '\rinner loop:  25%',
+                   '\rinner loop:  50%',
+                   '\rinner loop:  75%',
+                   '\rinner loop: 100%',
+                   '\r      ',
+                   '\r\x1b[A\router loop:  50%',
+                   '\n\rinner loop:   0%',
+                   '\rinner loop:  25%',
+                   '\rinner loop:  50%',
+                   '\rinner loop:  75%',
+                   '\rinner loop: 100%',
+                   '\r      ',
+                   '\r\x1b[A\router loop: 100%',
+                   '\n']
+
+    # Test nested with leave
+    our_file = StringIO()
+    for i in trange(2, file=our_file, miniters=1, mininterval=0,
+                    maxinterval=0, desc='outer loop', leave=True):
+        for j in trange(4, file=our_file, miniters=1, mininterval=0,
+                        maxinterval=0, desc='inner loop', leave=True,
+                        nested=True):
+            pass
+    our_file.seek(0)
+    out = our_file.read()
+    res = [m[0] for m in RE_nested.findall(out)]
+    assert res == ['\router loop:   0%',
+                   '\n\rinner loop:   0%',
+                   '\rinner loop:  25%',
+                   '\rinner loop:  50%',
+                   '\rinner loop:  75%',
+                   '\rinner loop: 100%',
+                   '\r\x1b[A\router loop:  50%',
+                   '\n\rinner loop:   0%',
+                   '\rinner loop:  25%',
+                   '\rinner loop:  50%',
+                   '\rinner loop:  75%',
+                   '\rinner loop: 100%',
+                   '\r\x1b[A\router loop: 100%',
+                   '\n']
+
+    # Test 2 nested loops with leave
+    our_file = StringIO()
+    for i in trange(2, file=our_file, miniters=1, mininterval=0,
+                    maxinterval=0, desc='outer0 loop', leave=True):
+        for j in trange(2, file=our_file, miniters=1, mininterval=0,
+                        maxinterval=0, desc='inner1 loop', leave=True,
+                        nested=True):
+            for k in trange(2, file=our_file, miniters=1, mininterval=0,
+                            maxinterval=0, desc='inner2 loop', leave=True,
+                            nested=True):
+                pass
+    our_file.seek(0)
+    out = our_file.read()
+    res = [m[0] for m in RE_nested2.findall(out)]
+    assert res == ['\router0 loop:   0%',
+                   '\n\rinner1 loop:   0%',
+                   '\n\rinner2 loop:   0%',
+                   '\rinner2 loop:  50%',
+                   '\rinner2 loop: 100%',
+                   '\r\x1b[A\rinner1 loop:  50%',
+                   '\n\rinner2 loop:   0%',
+                   '\rinner2 loop:  50%',
+                   '\rinner2 loop: 100%',
+                   '\r\x1b[A\rinner1 loop: 100%',
+                   '\r\x1b[A\router0 loop:  50%',
+                   '\n\rinner1 loop:   0%',
+                   '\n\rinner2 loop:   0%',
+                   '\rinner2 loop:  50%',
+                   '\rinner2 loop: 100%',
+                   '\r\x1b[A\rinner1 loop:  50%',
+                   '\n\rinner2 loop:   0%',
+                   '\rinner2 loop:  50%',
+                   '\rinner2 loop: 100%',
+                   '\r\x1b[A\rinner1 loop: 100%',
+                   '\r\x1b[A\router0 loop: 100%',
+                   '\n']
+    # TODO: test degradation on windows without colorama?
+
+
+def test_set_description():
+    """ Test set description """
+    t = tqdm(desc='Hello')
+    assert t.desc == 'Hello: '
+    t.set_description('World')
+    assert t.desc == 'World: '
+    t.set_description()
+    assert t.desc == ''
+
+
 def test_no_gui():
     """ Test internal GUI properties """
     # Check: StatusPrinter iff gui is disabled
