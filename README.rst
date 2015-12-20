@@ -198,10 +198,10 @@ Parameters
     Exponential moving average smoothing factor for speed estimates
     (ignored in GUI mode). Ranges from 0 (average speed) to 1
     (current/instantaneous speed) [default: 0.3].
-* nested  : bool, optional  
+* nested  : bool/int, optional  
     Whether this iterable is nested in another one also managed by
     `tqdm` [default: False]. Allows display of multiple, nested
-    progress bars.
+    progress bars. Most outer loop can specify total nesting depth.
 
 Returns
 ~~~~~~~
@@ -352,14 +352,15 @@ Nested progress bars
 
 ``tqdm`` supports nested progress bars, you just need to specify the
 `nested=True` argument for all tqdm instantiations except the **outermost**
-bar. Here's an example:
+bar, which should specify `nested=x` where x is the total number of nested
+loops to correctly place the cursor after the bars finish. Here's an example:
 
 .. code:: python
 
     from tqdm import trange
     from time import sleep
 
-    for i in trange(10, desc='1st loop', leave=True):
+    for i in trange(10, desc='1st loop', leave=True, nested=3):
         for j in trange(5, desc='2nd loop', leave=True, nested=True):
             for k in trange(100, desc='3nd loop', leave=True, nested=True):
                 sleep(0.01)
