@@ -526,10 +526,6 @@ class tqdm(object):
         if self.disable:
             return
 
-        endchar = '\r'
-        if self.nested:
-            endchar += _term_move_up()
-
         if self.leave:
             if self.last_print_n < self.n:
                 cur_t = time()
@@ -539,13 +535,10 @@ class tqdm(object):
                     (self.dynamic_ncols(self.fp) if self.dynamic_ncols
                      else self.ncols),
                     self.desc, self.ascii, self.unit, self.unit_scale))
-            if self.nested:
-                self.fp.write(endchar)
-            else:
-                self.fp.write('\n')
+            self.fp.write('\r' + _term_move_up() if self.nested else '\n')
         else:
             self.sp('')
-            self.fp.write(endchar)
+            self.fp.write('\r' + _term_move_up() if self.nested else '\r')
 
     def set_description(self, desc=None):
         """
