@@ -29,7 +29,7 @@ Here's what the output looks like:
 
 Overhead is low -- about 60ns per iteration (80ns with ``gui=True``).
 By comparison, the well established
-`ProgressBar <https://code.google.com/p/python-progressbar/>`__ has
+`ProgressBar <https://github.com/niltonvolpato/python-progressbar>`__ has
 an 800ns/iter overhead.
 
 In addition to its low overhead, ``tqdm`` uses smart algorithms to predict
@@ -505,7 +505,7 @@ predicted time and statistics:
 Contributions
 -------------
 
-To run the testing suite please make sure tox (http://tox.testrun.org/)
+To run the testing suite please make sure tox (https://testrun.org/tox/latest/)
 is installed, then type ``tox`` from the command line.
 
 Where ``tox`` is unavailable, a Makefile-like setup is
