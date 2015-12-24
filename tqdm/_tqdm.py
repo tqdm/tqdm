@@ -209,8 +209,8 @@ class tqdm(object):
     like the orignal iterable, but prints a dynamically updating
     progressbar every time a value is requested.
     """
-    def __init__(self, iterable=None, desc=None, total=None, leave=False,
-                 file=sys.stderr, ncols=None, mininterval=0.1,
+    def __init__(self, iterable=None, desc=None, total=None, initial=0,
+                 leave=False, file=sys.stderr, ncols=None, mininterval=0.1,
                  maxinterval=10.0, miniters=None, ascii=None, disable=False,
                  unit='it', unit_scale=False, dynamic_ncols=False,
                  smoothing=0.3, nested=False, gui=False):
@@ -228,6 +228,9 @@ class tqdm(object):
             statistics are displayed (no ETA, no progressbar). If `gui` is
             True and this parameter needs subsequent updating, specify an
             initial arbitrary large positive integer, e.g. int(9e9).
+        initial : int, optional
+            The initial counter value. Useful when restarting a progress
+            bar [default: 0].
         leave  : bool, optional
             If [default: False], removes all traces of the progressbar
             upon termination of iteration.
@@ -337,20 +340,20 @@ class tqdm(object):
         # not overwrite the outer progress bar
         self.nested = nested
 
+        # Init the time/iterations counters
+        self.start_t = self.last_print_t = time()
+        self.last_print_n = initial
+        self.n = initial
+
         if not gui:
             # Initialize the screen printer
             self.sp = StatusPrinter(self.fp)
             if not disable:
                 if self.nested:
                     self.fp.write('\n')
-                self.sp(format_meter(0, total, 0,
+                self.sp(format_meter(self.n, total, 0,
                         (dynamic_ncols(file) if dynamic_ncols else ncols),
                         self.desc, ascii, unit, unit_scale))
-
-        # Init the time/iterations counters
-        self.start_t = self.last_print_t = time()
-        self.last_print_n = 0
-        self.n = 0
 
     def __len__(self):
         return len(self.iterable) if self.iterable else self.total
