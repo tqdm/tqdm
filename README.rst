@@ -33,7 +33,7 @@ By comparison, the well established
 an 800ns/iter overhead.
 
 In addition to its low overhead, ``tqdm`` uses smart algorithms to predict
-the remaining time and to skip unneccessary iteration displays, which allows
+the remaining time and to skip unnecessary iteration displays, which allows
 for a negligible overhead in most cases.
 
 ``tqdm`` works on any platform (Linux/Windows/Mac), in any console or in a
@@ -119,7 +119,7 @@ but in this case don't forget to ``close()`` at the end:
 
 .. code:: python
 
-    pbar = tqdm(total=100):
+    pbar = tqdm(total=100)
     for i in range(10):
         pbar.update(10)
     pbar.close()
@@ -133,7 +133,7 @@ Documentation
     class tqdm(object):
       """
       Decorate an iterable object, returning an iterator which acts exactly
-      like the orignal iterable, but prints a dynamically updating
+      like the original iterable, but prints a dynamically updating
       progressbar every time a value is requested.
       """
 
@@ -351,7 +351,7 @@ Nested progress bars
 ~~~~~~~~~~~~~~~~~~~~
 
 ``tqdm`` supports nested progress bars, you just need to specify the
-`nested=True` argument for all tqdm instanciation except the **outermost**
+`nested=True` argument for all tqdm instantiations except the **outermost**
 bar. Here's an example:
 
 .. code:: python
