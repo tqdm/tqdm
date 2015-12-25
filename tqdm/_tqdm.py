@@ -119,10 +119,11 @@ def format_meter(n, total, elapsed, ncols=None, prefix='', ascii=False,
     # (we allow manual override since predicting time is an arcane art)
     if rate is None and elapsed:
         rate = n / elapsed
-    rate_fmt = ((format_sizeof(rate) if unit_scale else
-                 '{0:5.2f}'.format(rate)) if elapsed else
-                '?') \
-        + unit + '/s'
+    inv_rate = 1 / rate if (rate and (rate < 1)) else None
+    rate_fmt = ((format_sizeof(inv_rate if inv_rate else rate) if unit_scale
+                else '{0:5.2f}'.format(inv_rate if inv_rate else rate))
+                if elapsed else '?') \
+        + ('s' if inv_rate else unit) + '/' + (unit if inv_rate else 's')
 
     if unit_scale:
         n_fmt = format_sizeof(n)
