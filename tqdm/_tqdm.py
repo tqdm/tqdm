@@ -206,7 +206,7 @@ def StatusPrinter(file):
 class tqdm(object):
     """
     Decorate an iterable object, returning an iterator which acts exactly
-    like the orignal iterable, but prints a dynamically updating
+    like the original iterable, but prints a dynamically updating
     progressbar every time a value is requested.
     """
     def __init__(self, iterable=None, desc=None, total=None, leave=False,
@@ -273,7 +273,7 @@ class tqdm(object):
             `tqdm` [default: False]. Allows display of multiple, nested
             progress bars.
         gui  : bool, optional
-            WARNING: internal paramer - do not use.
+            WARNING: internal parameter - do not use.
             Use tqdm_gui(...) instead. If set, will attempt to use
             matplotlib animations for a graphical output [default: false].
 

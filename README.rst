@@ -29,11 +29,11 @@ Here's what the output looks like:
 
 Overhead is low -- about 60ns per iteration (80ns with ``gui=True``).
 By comparison, the well established
-`ProgressBar <https://code.google.com/p/python-progressbar/>`__ has
+`ProgressBar <https://github.com/niltonvolpato/python-progressbar>`__ has
 an 800ns/iter overhead.
 
 In addition to its low overhead, ``tqdm`` uses smart algorithms to predict
-the remaining time and to skip unneccessary iteration displays, which allows
+the remaining time and to skip unnecessary iteration displays, which allows
 for a negligible overhead in most cases.
 
 ``tqdm`` works on any platform (Linux/Windows/Mac), in any console or in a
@@ -133,7 +133,7 @@ Documentation
     class tqdm(object):
       """
       Decorate an iterable object, returning an iterator which acts exactly
-      like the orignal iterable, but prints a dynamically updating
+      like the original iterable, but prints a dynamically updating
       progressbar every time a value is requested.
       """
 
@@ -351,7 +351,7 @@ Nested progress bars
 ~~~~~~~~~~~~~~~~~~~~
 
 ``tqdm`` supports nested progress bars, you just need to specify the
-`nested=True` argument for all tqdm instanciation except the **outermost**
+`nested=True` argument for all tqdm instantiations except the **outermost**
 bar. Here's an example:
 
 .. code:: python
@@ -505,7 +505,7 @@ predicted time and statistics:
 Contributions
 -------------
 
-To run the testing suite please make sure tox (http://tox.testrun.org/)
+To run the testing suite please make sure tox (https://testrun.org/tox/latest/)
 is installed, then type ``tox`` from the command line.
 
 Where ``tox`` is unavailable, a Makefile-like setup is
