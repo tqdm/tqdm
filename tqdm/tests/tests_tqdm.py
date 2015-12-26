@@ -767,42 +767,45 @@ def test_bar_format():
         for i in trange(2, file=our_file, leave=True, bar_format=bar_format):
             pass
         out = our_file.getvalue()
-    assert "\r  0%|          |0/2-0/20.0None?it/s00:00?\r" in out
+        assert "\r  0%|          |0/2-0/20.0None?it/s00:00?\r" in out
 
-    # Test unicode string auto conversion
-    bar_format = r'hello world'
-    t = tqdm(ascii=False, bar_format=bar_format)
-    assert isinstance(t.bar_format, _unicode)
+        # Test unicode string auto conversion
+        bar_format = r'hello world'
+        t = tqdm(file=our_file, ascii=False, bar_format=bar_format)
+        assert isinstance(t.bar_format, _unicode)
 
 
 def test_unpause():
     """ Test unpause """
+    timer = DiscreteTimer()
     with closing(StringIO()) as our_file:
         t = trange(10, file=our_file, leave=True, mininterval=0)
-        sleep(0.01)
+        cpu_timify(t, timer)
+        timer.sleep(0.01)
         t.update()
-        sleep(0.01)
+        timer.sleep(0.01)
         t.update()
-        sleep(0.1)  # longer wait time
+        timer.sleep(0.1)  # longer wait time
         t.unpause()
-        sleep(0.01)
+        timer.sleep(0.01)
         t.update()
-        sleep(0.01)
+        timer.sleep(0.01)
         t.update()
         t.close()
         r_before = progressbar_rate(get_bar(our_file.getvalue(), 2))
         r_after = progressbar_rate(get_bar(our_file.getvalue(), 3))
-    assert abs(r_before - r_after) < 1  # TODO: replace equal when DiscreteTimer
+    assert r_before == r_after
 
 
 def test_set_description():
     """ Test set description """
-    t = tqdm(desc='Hello')
-    assert t.desc == 'Hello: '
-    t.set_description('World')
-    assert t.desc == 'World: '
-    t.set_description()
-    assert t.desc == ''
+    with closing(StringIO()) as our_file:
+        t = tqdm(file=our_file, desc='Hello')
+        assert t.desc == 'Hello: '
+        t.set_description('World')
+        assert t.desc == 'World: '
+        t.set_description()
+        assert t.desc == ''
 
 
 def test_no_gui():
