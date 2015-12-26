@@ -562,7 +562,7 @@ def test_smoothing():
 
 def test_nested():
     """ Test nested progress bars """
-    # Use regexp because the it rates can change
+    # Use regexp to break tqdm's output at each printing iteration
     RE_nested = re.compile(r'((\x1b\[A|\r|\n)+((outer|inner) loop:\s+\d+%|\s{3,6})?)')  # NOQA
     RE_nested2 = re.compile(r'((\x1b\[A|\r|\n)+((outer0|inner1|inner2) loop:\s+\d+%|\s{3,6})?)')  # NOQA
 
@@ -719,6 +719,47 @@ def test_nested():
                    '\rinner2 loop:  50%',
                    '\rinner2 loop: 100%',
                    '\r\x1b[A\rinner1 loop: 100%',
+                   '\r\x1b[A\router0 loop: 100%',
+                   '\n\n\n']
+
+    # Test mixed leave (middle bar will be erased at the end)
+    our_file = StringIO()
+    for i in trange(2, file=our_file, miniters=1, mininterval=0,
+                    maxinterval=0, desc='outer0 loop', leave=True,
+                        nested=3):  # most outer loop must specify nesting depth
+        for j in trange(2, file=our_file, miniters=1, mininterval=0,
+                        maxinterval=0, desc='inner1 loop', leave=False,
+                        nested=True):
+            for k in trange(2, file=our_file, miniters=1, mininterval=0,
+                            maxinterval=0, desc='inner2 loop', leave=True,
+                            nested=True):
+                pass
+    our_file.seek(0)
+    out = our_file.read()
+    res = [m[0] for m in RE_nested2.findall(out)]
+    print(repr(res))
+    assert res == ['\n\router0 loop:   0%',
+                   '\n\rinner1 loop:   0%',
+                   '\n\rinner2 loop:   0%',
+                   '\rinner2 loop:  50%',
+                   '\rinner2 loop: 100%',
+                   '\r\x1b[A\rinner1 loop:  50%',
+                   '\n\rinner2 loop:   0%',
+                   '\rinner2 loop:  50%',
+                   '\rinner2 loop: 100%',
+                   '\r\x1b[A\rinner1 loop: 100%',
+                   '\r      ',
+                   '\r\x1b[A\router0 loop:  50%',
+                   '\n\rinner1 loop:   0%',
+                   '\n\rinner2 loop:   0%',
+                   '\rinner2 loop:  50%',
+                   '\rinner2 loop: 100%',
+                   '\r\x1b[A\rinner1 loop:  50%',
+                   '\n\rinner2 loop:   0%',
+                   '\rinner2 loop:  50%',
+                   '\rinner2 loop: 100%',
+                   '\r\x1b[A\rinner1 loop: 100%',
+                   '\r      ',
                    '\r\x1b[A\router0 loop: 100%',
                    '\n\n\n']
     # TODO: test degradation on windows without colorama?
