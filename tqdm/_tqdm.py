@@ -590,6 +590,14 @@ class tqdm(object):
             self.sp('')  # clear up last bar
             self.fp.write('\r' + _term_move_up() if self.nested else '\r')
 
+    def unpause(self):
+        """
+        Restart tqdm timer from last print time.
+        """
+        cur_t = time()
+        self.start_t += cur_t - self.last_print_t
+        self.last_print_t = cur_t
+
     def set_description(self, desc=None):
         """
         Set/modify description of the progress bar.
