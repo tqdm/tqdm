@@ -105,8 +105,11 @@ def format_meter(n, total, elapsed, ncols=None, prefix='', ascii=False,
         If [default: None], uses n/elapsed.
     bar_format  : str, optional
         Specify a custom bar string formatting. May impact performance.
-        Format: r'{var1}{var2}{etc.}'. Possible vars: bar, n, n_fmt, total,
-        total_fmt, percentage, rate, rate_fmt, elapsed, remaining, l_bar, r_bar
+        [default: '{l_bar}{bar}{r_bar}'], where l_bar is
+        '{desc}{percentage:3.0f}%|' and r_bar is
+        '| {n_fmt}/{total_fmt} [{elapsed_str}<{remaining_str}, {rate_fmt}]'.
+        Possible vars: bar, n, n_fmt, total, total_fmt, percentage,
+        rate, rate_fmt, elapsed, remaining, l_bar, r_bar, desc.
 
     Returns
     -------
@@ -198,6 +201,7 @@ def format_meter(n, total, elapsed, ncols=None, prefix='', ascii=False,
                         'remaining': remaining_str,
                         'l_bar': l_bar,
                         'r_bar': r_bar,
+                        'desc': prefix if prefix else ''
                         }
             # Interpolate supplied bar format with the dict
             return bar_format.format(**bar_args)
@@ -298,7 +302,12 @@ class tqdm(object):
             `tqdm` [default: False]. Allows display of multiple, nested
             progress bars.
         bar_format  : str, optional
-            Specify a custom bar string formatting. May slow down performances.
+            Specify a custom bar string formatting. May impact performance.
+            [default: '{l_bar}{bar}{r_bar}'], where l_bar is
+            '{desc}{percentage:3.0f}%|' and r_bar is
+            '| {n_fmt}/{total_fmt} [{elapsed_str}<{remaining_str}, {rate_fmt}]'.
+            Possible vars: bar, n, n_fmt, total, total_fmt, percentage,
+            rate, rate_fmt, elapsed, remaining, l_bar, r_bar, desc.
         gui  : bool, optional
             WARNING: internal parameter - do not use.
             Use tqdm_gui(...) instead. If set, will attempt to use
