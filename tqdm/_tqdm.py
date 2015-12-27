@@ -446,6 +446,7 @@ class tqdm(object):
             avg_rate = self.avg_rate
             bar_format = self.bar_format
             pos = self.pos
+            fp = self.fp
 
             try:
                 sp = self.sp
@@ -473,7 +474,7 @@ class tqdm(object):
                                 (1 - smoothing) * avg_rate
 
                         if pos:
-                            self.fp.write('\n' * pos + _term_move_up() * -pos)
+                            fp.write('\n' * pos + _term_move_up() * -pos)
 
                         # Printing the bar's update
                         sp(format_meter(
@@ -484,7 +485,7 @@ class tqdm(object):
                             bar_format))
 
                         if pos:
-                            self.fp.write('\n' * -pos + _term_move_up() * pos)
+                            fp.write('\n' * -pos + _term_move_up() * pos)
 
                         # If no `miniters` was specified, adjust automatically
                         # to the maximum iteration rate seen so far.
