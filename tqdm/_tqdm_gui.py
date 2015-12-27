@@ -104,6 +104,7 @@ class tqdm_gui(tqdm):  # pragma: no cover
 
         # ncols = self.ncols
         mininterval = self.mininterval
+        maxinterval = self.maxinterval
         miniters = self.miniters
         dynamic_miniters = self.dynamic_miniters
         unit = self.unit
@@ -114,8 +115,9 @@ class tqdm_gui(tqdm):  # pragma: no cover
         last_print_n = self.last_print_n
         n = self.n
         # dynamic_ncols = self.dynamic_ncols
-        # smoothing = self.smoothing
-        # avg_rate = self.avg_rate
+        smoothing = self.smoothing
+        avg_rate = self.avg_rate
+        bar_format = self.bar_format
 
         plt = self.plt
         ax = self.ax
@@ -137,6 +139,13 @@ class tqdm_gui(tqdm):  # pragma: no cover
                 delta_t = cur_t - last_print_t
                 if delta_t >= mininterval:  # pragma: no cover
                     elapsed = cur_t - start_t
+                    # EMA (not just overall average)
+                    if smoothing and delta_t:
+                        avg_rate = delta_it / delta_t \
+                            if avg_rate is None \
+                            else smoothing * delta_it / delta_t + \
+                            (1 - smoothing) * avg_rate
+
                     # Inline due to multiple calls
                     total = self.total
                     # instantaneous rate
@@ -185,15 +194,25 @@ class tqdm_gui(tqdm):  # pragma: no cover
 
                     ax.set_title(format_meter(
                         n, total, elapsed, 0,
-                        self.desc, ascii, unit, unit_scale),
-                        fontname="DejaVu Sans Mono",
-                        fontsize=11)
+                        self.desc, ascii, unit, unit_scale, avg_rate,
+                        bar_format),
+                        fontname="DejaVu Sans Mono", fontsize=11)
                     plt.pause(1e-9)
 
                     # If no `miniters` was specified, adjust automatically
                     # to the maximum iteration rate seen so far.
                     if dynamic_miniters:
-                        miniters = max(miniters, delta_it)
+                        if maxinterval and delta_t > maxinterval:
+                            # Set miniters to correspond to maxinterval
+                            miniters = delta_it * maxinterval / delta_t
+                        elif mininterval and delta_t:
+                            # EMA-weight miniters to converge
+                            # towards the timeframe of mininterval
+                            miniters = smoothing * delta_it * mininterval \
+                                / delta_t + (1 - smoothing) * miniters
+                        else:
+                            miniters = smoothing * delta_it + \
+                                (1 - smoothing) * miniters
 
                     # Store old values for next call
                     last_print_n = n
@@ -222,6 +241,13 @@ class tqdm_gui(tqdm):  # pragma: no cover
             delta_t = cur_t - self.last_print_t
             if delta_t >= self.mininterval:
                 elapsed = cur_t - self.start_t
+                # EMA (not just overall average)
+                if self.smoothing and delta_t:
+                    self.avg_rate = delta_it / delta_t \
+                        if self.avg_rate is None \
+                        else self.smoothing * delta_it / delta_t + \
+                        (1 - self.smoothing) * self.avg_rate
+
                 # Inline due to multiple calls
                 total = self.total
                 ax = self.ax
@@ -271,15 +297,27 @@ class tqdm_gui(tqdm):  # pragma: no cover
 
                 ax.set_title(format_meter(
                     self.n, total, elapsed, 0,
-                    self.desc, self.ascii, self.unit, self.unit_scale),
-                    fontname="DejaVu Sans Mono",
-                    fontsize=11)
+                    self.desc, self.ascii, self.unit, self.unit_scale,
+                    self.avg_rate, self.bar_format),
+                    fontname="DejaVu Sans Mono", fontsize=11)
                 self.plt.pause(1e-9)
 
                 # If no `miniters` was specified, adjust automatically to the
                 # maximum iteration rate seen so far.
+                # e.g.: After running `tqdm.update(5)`, subsequent
+                # calls to `tqdm.update()` will only cause an update after
+                # at least 5 more iterations.
                 if self.dynamic_miniters:
-                    self.miniters = max(self.miniters, delta_it)
+                    if self.maxinterval and delta_t > self.maxinterval:
+                        self.miniters = self.miniters * self.maxinterval \
+                            / delta_t
+                    elif self.mininterval and delta_t:
+                        self.miniters = self.smoothing * delta_it \
+                            * self.mininterval / delta_t + \
+                            (1 - self.smoothing) * self.miniters
+                    else:
+                        self.miniters = self.smoothing * delta_it + \
+                            (1 - self.smoothing) * self.miniters
 
                 # Store old values for next call
                 self.last_print_n = self.n

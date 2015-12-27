@@ -137,13 +137,12 @@ Documentation
       progressbar every time a value is requested.
       """
 
-      def __init__(self, iterable=None, desc=None, total=None,
-                   initial=0, leave=False, file=sys.stderr,
-                   ncols=None, mininterval=0.1, maxinterval=10.0,
-                   miniters=None, ascii=None, disable=False,
-                   unit='it', unit_scale=False,
-                   dynamic_ncols=False, smoothing=0.3,
-                   nested=False):
+      def __init__(self, iterable=None, desc=None, total=None, leave=False,
+                   file=sys.stderr, ncols=None, mininterval=0.1,
+                   maxinterval= 10.0, miniters=None, ascii=None,
+                   disable=False, unit='it', unit_scale=False,
+                   dynamic_ncols=False, smoothing=0.3, nested =False,
+                   bar_format=None, initial=0, gui=False):
 
 Parameters
 ~~~~~~~~~~
@@ -159,9 +158,6 @@ Parameters
     statistics are displayed (no ETA, no progressbar). If `gui` is
     True and this parameter needs subsequent updating, specify an
     initial arbitrary large positive integer, e.g. int(9e9).
-* initial : int, optional
-    The initial counter value. Useful when restarting a progress
-    bar [default: 0].
 * leave  : bool, optional  
     If [default: False], removes all traces of the progressbar
     upon termination of iteration.
@@ -214,6 +210,9 @@ Parameters
     '| {n_fmt}/{total_fmt} [{elapsed_str}<{remaining_str}, {rate_fmt}]'.
     Possible vars: bar, n, n_fmt, total, total_fmt, percentage, rate,
     rate_fmt, elapsed, remaining, l_bar, r_bar, desc.
+* initial : int, optional  
+    The initial counter value. Useful when restarting a progress
+    bar [default: 0].
 
 
 Returns

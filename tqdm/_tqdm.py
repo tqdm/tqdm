@@ -238,11 +238,12 @@ class tqdm(object):
     like the original iterable, but prints a dynamically updating
     progressbar every time a value is requested.
     """
-    def __init__(self, iterable=None, desc=None, total=None, initial=0,
-                 leave=False, file=sys.stderr, ncols=None, mininterval=0.1,
-                 maxinterval=10.0, miniters=None, ascii=None, disable=False,
-                 unit='it', unit_scale=False, dynamic_ncols=False,
-                 smoothing=0.3, nested=False, bar_format=None, gui=False):
+    def __init__(self, iterable=None, desc=None, total=None, leave=False,
+                 file=sys.stderr, ncols=None, mininterval=0.1,
+                 maxinterval= 10.0, miniters=None, ascii=None,
+                 disable=False, unit='it', unit_scale=False,
+                 dynamic_ncols=False, smoothing=0.3, nested =False,
+                 bar_format=None, initial=0, gui=False):
         """
         Parameters
         ----------
@@ -257,9 +258,6 @@ class tqdm(object):
             statistics are displayed (no ETA, no progressbar). If `gui` is
             True and this parameter needs subsequent updating, specify an
             initial arbitrary large positive integer, e.g. int(9e9).
-        initial : int, optional
-            The initial counter value. Useful when restarting a progress
-            bar [default: 0].
         leave  : bool, optional
             If [default: False], removes all traces of the progressbar
             upon termination of iteration.
@@ -311,6 +309,9 @@ class tqdm(object):
             '| {n_fmt}/{total_fmt} [{elapsed_str}<{remaining_str}, {rate_fmt}]'.
             Possible vars: bar, n, n_fmt, total, total_fmt, percentage,
             rate, rate_fmt, elapsed, remaining, l_bar, r_bar, desc.
+        initial : int, optional
+            The initial counter value. Useful when restarting a progress
+            bar [default: 0].
         gui  : bool, optional
             WARNING: internal parameter - do not use.
             Use tqdm_gui(...) instead. If set, will attempt to use
@@ -381,8 +382,7 @@ class tqdm(object):
         self.nested = nested
         self.bar_format = bar_format
 
-        # Init the time/iterations counters
-        self.start_t = self.last_print_t = time()
+        # Init the iterations counters
         self.last_print_n = initial
         self.n = initial
 
@@ -395,6 +395,9 @@ class tqdm(object):
                 self.sp(format_meter(self.n, total, 0,
                         (dynamic_ncols(file) if dynamic_ncols else ncols),
                         self.desc, ascii, unit, unit_scale, None, bar_format))
+
+        # Init the time counter
+        self.start_t = self.last_print_t = time()
 
     def __len__(self):
         return len(self.iterable) if self.iterable else self.total
