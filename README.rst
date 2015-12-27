@@ -203,7 +203,7 @@ Parameters
     `tqdm` [default: False]. Allows display of multiple, nested
     progress bars.
 * bar_format  : str, optional
-    Specify a custom bar string formatting. May slow down performances.
+    Specify a custom bar string formatting. May impact performance.
     Format: r'{var1}{var2}{etc.}'. Possible vars: bar, n, n_fmt, total,
     total_fmt, percentage, rate, rate_fmt, elapsed, remaining, l_bar, r_bar
 
