@@ -69,6 +69,7 @@ def test_manual_overhead():
         for i in _range(total):
             a += i
             t.update(10)
+        t.close()
         time_tqdm = toc()
 
     a = 0
