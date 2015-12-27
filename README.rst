@@ -119,7 +119,7 @@ but in this case don't forget to ``close()`` at the end:
 
 .. code:: python
 
-    pbar = tqdm(total=100):
+    pbar = tqdm(total=100)
     for i in range(10):
         pbar.update(10)
     pbar.close()
