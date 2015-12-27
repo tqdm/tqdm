@@ -269,10 +269,10 @@ class tqdm(object):
             Exponential moving average smoothing factor for speed estimates
             (ignored in GUI mode). Ranges from 0 (average speed) to 1
             (current/instantaneous speed) [default: 0.3].
-        nested  : bool, optional
+        nested  : bool/int, optional
             Whether this iterable is nested in another one also managed by
             `tqdm` [default: False]. Allows display of multiple, nested
-            progress bars.
+            progress bars. Most outer loop can specify total nesting depth.
         gui  : bool, optional
             WARNING: internal parameter - do not use.
             Use tqdm_gui(...) instead. If set, will attempt to use
@@ -536,10 +536,15 @@ class tqdm(object):
                     (self.dynamic_ncols(self.fp) if self.dynamic_ncols
                      else self.ncols),
                     self.desc, self.ascii, self.unit, self.unit_scale))
-            self.fp.write('\r' + _term_move_up() if self.nested else '\n')
+            self.fp.write('\r' + _term_move_up() if self.nested is True
+                          else '\n')
         else:
             self.sp('')
-            self.fp.write('\r' + _term_move_up() if self.nested else '\r')
+            self.fp.write('\r' + _term_move_up() if self.nested is True
+                          else '\r')
+
+        if self.nested > 1:
+            self.fp.write('\n' * max(1, self.nested - self.leave))
 
     def set_description(self, desc=None):
         """
