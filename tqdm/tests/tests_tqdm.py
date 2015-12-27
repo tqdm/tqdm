@@ -29,6 +29,11 @@ try:
 except NameError:
     _range = range
 
+try:
+    _unicode = unicode
+except NameError:
+    _unicode = str
+
 RE_rate = re.compile(r'(\d+\.\d+)it/s')
 
 
@@ -66,6 +71,9 @@ def test_format_meter():
         "100KiB [00:13, 7.69KiB/s]"
     assert format_meter(100, 1000, 12, ncols=0, rate=7.33) == \
         " 10% 100/1000 [00:12<02:02,  7.33it/s]"
+    assert format_meter(20, 100, 12, ncols=30, rate=8.1,
+                        bar_format=r'{l_bar}{bar}|{n_fmt}/{total_fmt}') == \
+        " 20%|" + unich(0x258f) + "|20/100"
 
 
 def test_si_format():
@@ -684,6 +692,21 @@ def test_nested():
                    '\r\x1b[A\router0 loop: 100%',
                    '\n']
     # TODO: test degradation on windows without colorama?
+
+
+def test_bar_format():
+    ''' Test custom bar formatting'''
+    with closing(StringIO()) as our_file:
+        bar_format = r'{l_bar}{bar}|{n_fmt}/{total_fmt}-{n}/{total}{percentage}{rate}{rate_fmt}{elapsed}{remaining}'  # NOQA
+        for i in trange(2, file=our_file, leave=True, bar_format=bar_format):
+            pass
+        out = our_file.getvalue()
+    assert "\r  0%|          |0/2-0/20.0None?it/s00:00?\r" in out
+
+    # Test unicode string auto conversion
+    bar_format = r'hello world'
+    t = tqdm(ascii=False, bar_format=bar_format)
+    assert isinstance(t.bar_format, _unicode)
 
 
 def test_set_description():

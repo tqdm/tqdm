@@ -12,7 +12,7 @@ Usage:
 from __future__ import division, absolute_import
 # import compatibility functions and utilities
 from ._utils import _supports_unicode, _environ_cols_wrapper, _range, _unich, \
-    _term_move_up
+    _term_move_up, _unicode
 import sys
 from time import time
 
@@ -71,7 +71,7 @@ def format_interval(t):
 
 
 def format_meter(n, total, elapsed, ncols=None, prefix='', ascii=False,
-                 unit='it', unit_scale=False, rate=None):
+                 unit='it', unit_scale=False, rate=None, bar_format=None):
     """
     Return a string-based progress bar given some parameters
 
@@ -103,6 +103,8 @@ def format_meter(n, total, elapsed, ncols=None, prefix='', ascii=False,
     rate  : float, optional
         Manual override for iteration rate.
         If [default: None], uses n/elapsed.
+    bar_format  : str, optional
+        Specify a custom bar string formatting. May slow down performances.
 
     Returns
     -------
@@ -176,7 +178,27 @@ def format_meter(n, total, elapsed, ncols=None, prefix='', ascii=False,
             full_bar = bar + \
                 ' ' * max(N_BARS - bar_length, 0)
 
-        return l_bar + full_bar + r_bar
+        if bar_format is None:
+            # Default bar format = fast display
+            return l_bar + full_bar + r_bar
+        else:
+            # Custom bar formatting
+            # Populate a dict with all available progress indicators
+            bar_args = {'bar': full_bar,
+                        'n': n,
+                        'n_fmt': n_fmt,
+                        'total': total,
+                        'total_fmt': total_fmt,
+                        'percentage': percentage,
+                        'rate': rate,
+                        'rate_fmt': rate_fmt,
+                        'elapsed': elapsed_str,
+                        'remaining': remaining_str,
+                        'l_bar': l_bar,
+                        'r_bar': r_bar,
+                        }
+            # Interpolate supplied bar format with the dict
+            return bar_format.format(**bar_args)
 
     # no total: no progressbar, ETA, just progress stats
     else:
@@ -214,7 +236,7 @@ class tqdm(object):
                  file=sys.stderr, ncols=None, mininterval=0.1,
                  maxinterval=10.0, miniters=None, ascii=None, disable=False,
                  unit='it', unit_scale=False, dynamic_ncols=False,
-                 smoothing=0.3, nested=False, gui=False):
+                 smoothing=0.3, nested=False, bar_format=None, gui=False):
         """
         Parameters
         ----------
@@ -273,6 +295,8 @@ class tqdm(object):
             Whether this iterable is nested in another one also managed by
             `tqdm` [default: False]. Allows display of multiple, nested
             progress bars.
+        bar_format  : str, optional
+            Specify a custom bar string formatting. May slow down performances.
         gui  : bool, optional
             WARNING: internal parameter - do not use.
             Use tqdm_gui(...) instead. If set, will attempt to use
@@ -312,6 +336,10 @@ class tqdm(object):
         if ascii is None:
             ascii = not _supports_unicode(file)
 
+        # Convert bar format into unicode since terminal uses unicode
+        if bar_format and not ascii:
+            bar_format = _unicode(bar_format)
+
         if smoothing is None:
             smoothing = 0
 
@@ -337,6 +365,7 @@ class tqdm(object):
         # if nested, at initial sp() call we replace '\r' by '\n' to
         # not overwrite the outer progress bar
         self.nested = nested
+        self.bar_format = bar_format
 
         if not gui:
             # Initialize the screen printer
@@ -346,7 +375,7 @@ class tqdm(object):
                     self.fp.write('\n')
                 self.sp(format_meter(0, total, 0,
                         (dynamic_ncols(file) if dynamic_ncols else ncols),
-                        self.desc, ascii, unit, unit_scale))
+                        self.desc, ascii, unit, unit_scale, None, bar_format))
 
         # Init the time/iterations counters
         self.start_t = self.last_print_t = time()
@@ -390,6 +419,7 @@ class tqdm(object):
             dynamic_ncols = self.dynamic_ncols
             smoothing = self.smoothing
             avg_rate = self.avg_rate
+            bar_format = self.bar_format
 
             try:
                 sp = self.sp
@@ -420,7 +450,8 @@ class tqdm(object):
                             n, self.total, elapsed,
                             (dynamic_ncols(self.fp) if dynamic_ncols
                              else ncols),
-                            self.desc, ascii, unit, unit_scale, avg_rate))
+                            self.desc, ascii, unit, unit_scale, avg_rate,
+                            bar_format))
 
                         # If no `miniters` was specified, adjust automatically
                         # to the maximum iteration rate seen so far.
@@ -497,7 +528,7 @@ class tqdm(object):
                     (self.dynamic_ncols(self.fp) if self.dynamic_ncols
                      else self.ncols),
                     self.desc, self.ascii, self.unit, self.unit_scale,
-                    self.avg_rate))
+                    self.avg_rate, self.bar_format))
 
                 # If no `miniters` was specified, adjust automatically to the
                 # maximum iteration rate seen so far.
@@ -535,10 +566,11 @@ class tqdm(object):
                     self.n, self.total, cur_t - self.start_t,
                     (self.dynamic_ncols(self.fp) if self.dynamic_ncols
                      else self.ncols),
-                    self.desc, self.ascii, self.unit, self.unit_scale))
+                    self.desc, self.ascii, self.unit, self.unit_scale, None,
+                    self.bar_format))
             self.fp.write('\r' + _term_move_up() if self.nested else '\n')
         else:
-            self.sp('')
+            self.sp('')  # clear up last bar
             self.fp.write('\r' + _term_move_up() if self.nested else '\r')
 
     def set_description(self, desc=None):
