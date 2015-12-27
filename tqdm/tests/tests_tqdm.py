@@ -36,6 +36,7 @@ except NameError:
 
 RE_rate = re.compile(r'(\d+\.\d+)it/s')
 
+
 def get_bar(all_bars, i):
     """ Get a specific update from a whole bar traceback """
     return all_bars.strip('\r').split('\r')[i]
