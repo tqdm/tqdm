@@ -240,9 +240,9 @@ class tqdm(object):
     """
     def __init__(self, iterable=None, desc=None, total=None, leave=False,
                  file=sys.stderr, ncols=None, mininterval=0.1,
-                 maxinterval= 10.0, miniters=None, ascii=None,
+                 maxinterval=10.0, miniters=None, ascii=None,
                  disable=False, unit='it', unit_scale=False,
-                 dynamic_ncols=False, smoothing=0.3, nested =False,
+                 dynamic_ncols=False, smoothing=0.3, nested=False,
                  bar_format=None, initial=0, gui=False):
         """
         Parameters
@@ -589,6 +589,14 @@ class tqdm(object):
         else:
             self.sp('')  # clear up last bar
             self.fp.write('\r' + _term_move_up() if self.nested else '\r')
+
+    def unpause(self):
+        """
+        Restart tqdm timer from last print time.
+        """
+        cur_t = time()
+        self.start_t += cur_t - self.last_print_t
+        self.last_print_t = cur_t
 
     def set_description(self, desc=None):
         """

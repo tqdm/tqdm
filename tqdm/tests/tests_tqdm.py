@@ -37,6 +37,11 @@ except NameError:
 RE_rate = re.compile(r'(\d+\.\d+)it/s')
 
 
+def get_bar(all_bars, i):
+    """ Get a specific update from a whole bar traceback """
+    return all_bars.strip('\r').split('\r')[i]
+
+
 def progressbar_rate(bar_str):
     return float(RE_rate.search(bar_str).group(1))
 
@@ -520,10 +525,10 @@ def test_smoothing():
                 t.update()
             # Get result for iter-based bar
             our_file.seek(0)
-            a = progressbar_rate(our_file.read().strip('\r').split('\r')[3])
+            a = progressbar_rate(get_bar(our_file.read(), 3))
         # Get result for manually updated bar
         our_file2.seek(0)
-        a2 = progressbar_rate(our_file2.read().strip('\r').split('\r')[3])
+        a2 = progressbar_rate(get_bar(our_file2.read(), 3))
 
     # 2nd case: use max smoothing (= instant rate)
     with closing(StringIO()) as our_file2:
@@ -539,10 +544,10 @@ def test_smoothing():
                 t.update()
             # Get result for iter-based bar
             our_file.seek(0)
-            b = progressbar_rate(our_file.read().strip('\r').split('\r')[3])
+            b = progressbar_rate(get_bar(our_file.read(), 3))
         # Get result for manually updated bar
         our_file2.seek(0)
-        b2 = progressbar_rate(our_file2.read().strip('\r').split('\r')[3])
+        b2 = progressbar_rate(get_bar(our_file2.read(), 3))
 
     # 3rd case: use medium smoothing
     with closing(StringIO()) as our_file2:
@@ -558,10 +563,10 @@ def test_smoothing():
                 t.update()
             # Get result for iter-based bar
             our_file.seek(0)
-            c = progressbar_rate(our_file.read().strip('\r').split('\r')[3])
+            c = progressbar_rate(get_bar(our_file.read(), 3))
         # Get result for manually updated bar
         our_file2.seek(0)
-        c2 = progressbar_rate(our_file2.read().strip('\r').split('\r')[3])
+        c2 = progressbar_rate(get_bar(our_file2.read(), 3))
 
     # Check that medium smoothing's rate is between no and max smoothing rates
     assert a < c < b
@@ -707,6 +712,26 @@ def test_bar_format():
     bar_format = r'hello world'
     t = tqdm(ascii=False, bar_format=bar_format)
     assert isinstance(t.bar_format, _unicode)
+
+
+def test_unpause():
+    """ Test unpause """
+    with closing(StringIO()) as our_file:
+        t = trange(10, file=our_file, leave=True, mininterval=0)
+        sleep(0.01)
+        t.update()
+        sleep(0.01)
+        t.update()
+        sleep(0.1)  # longer wait time
+        t.unpause()
+        sleep(0.01)
+        t.update()
+        sleep(0.01)
+        t.update()
+        t.close()
+        r_before = progressbar_rate(get_bar(our_file.getvalue(), 2))
+        r_after = progressbar_rate(get_bar(our_file.getvalue(), 3))
+    assert abs(r_before - r_after) < 1  # TODO: replace equal when DiscreteTimer
 
 
 def test_set_description():
