@@ -734,6 +734,96 @@ def test_unpause():
     assert abs(r_before - r_after) < 1  # TODO: replace equal when DiscreteTimer
 
 
+def test_position():
+    """ Test positioned progress bars """
+    # Use regexp because the it rates can change
+    RE_pos = re.compile(r'((\x1b\[A|\r|\n)+((pos\d+) bar:\s+\d+%|\s{3,6})?)')  # NOQA
+
+    # Artificially test nested loop printing
+    # Without leave
+    our_file = StringIO()
+    t = tqdm(total=2, file=our_file, miniters=1, mininterval=0,
+             maxinterval=0, desc='pos2 bar', leave=False, position=2)
+    t.update()
+    t.close()
+    our_file.seek(0)
+    out = our_file.read()
+    res = [m[0] for m in RE_pos.findall(out)]
+    assert res == ['\n\n\rpos2 bar:   0%',
+                   '\x1b[A\x1b[A\n\n\rpos2 bar:  50%',
+                   '\x1b[A\x1b[A\n\n\r      ',
+                   '\r\x1b[A\x1b[A']
+
+
+    # Test iteration-based tqdm positioning
+    our_file = StringIO()
+    for i in trange(2, file=our_file, miniters=1, mininterval=0,
+                    maxinterval=0, desc='pos0 bar', position=0):
+        for j in trange(2, file=our_file, miniters=1, mininterval=0,
+                        maxinterval=0, desc='pos1 bar', position=1):
+            for k in trange(2, file=our_file, miniters=1, mininterval=0,
+                            maxinterval=0, desc='pos2 bar', position=2):
+                pass
+    our_file.seek(0)
+    out = our_file.read()
+    res = [m[0] for m in RE_pos.findall(out)]
+    assert res == ['\rpos0 bar:   0%',
+                   '\n\rpos1 bar:   0%',
+                   '\x1b[A\n\n\rpos2 bar:   0%',
+                   '\x1b[A\x1b[A\n\n\rpos2 bar:  50%',
+                   '\x1b[A\x1b[A\n\n\rpos2 bar: 100%',
+                   '\x1b[A\x1b[A\n\n\r      ',
+                   '\r\x1b[A\x1b[A\n\rpos1 bar:  50%',
+                   '\x1b[A\n\n\rpos2 bar:   0%',
+                   '\x1b[A\x1b[A\n\n\rpos2 bar:  50%',
+                   '\x1b[A\x1b[A\n\n\rpos2 bar: 100%',
+                   '\x1b[A\x1b[A\n\n\r      ',
+                   '\r\x1b[A\x1b[A\n\rpos1 bar: 100%',
+                   '\x1b[A\n\r      ',
+                   '\r\x1b[A\rpos0 bar:  50%',
+                   '\n\rpos1 bar:   0%',
+                   '\x1b[A\n\n\rpos2 bar:   0%',
+                   '\x1b[A\x1b[A\n\n\rpos2 bar:  50%',
+                   '\x1b[A\x1b[A\n\n\rpos2 bar: 100%',
+                   '\x1b[A\x1b[A\n\n\r      ',
+                   '\r\x1b[A\x1b[A\n\rpos1 bar:  50%',
+                   '\x1b[A\n\n\rpos2 bar:   0%',
+                   '\x1b[A\x1b[A\n\n\rpos2 bar:  50%',
+                   '\x1b[A\x1b[A\n\n\rpos2 bar: 100%',
+                   '\x1b[A\x1b[A\n\n\r      ',
+                   '\r\x1b[A\x1b[A\n\rpos1 bar: 100%',
+                   '\x1b[A\n\r      ',
+                   '\r\x1b[A\rpos0 bar: 100%',
+                   '\r      ',
+                   '\r']
+
+    # Test manual tqdm positioning
+    our_file = StringIO()
+    t1 = tqdm(total=2, file=our_file, miniters=1, mininterval=0,
+                maxinterval=0, desc='pos0 bar', position=0)
+    t2 = tqdm(total=2, file=our_file, miniters=1, mininterval=0,
+                maxinterval=0, desc='pos1 bar', position=1)
+    t3 = tqdm(total=2, file=our_file, miniters=1, mininterval=0,
+                maxinterval=0, desc='pos2 bar', position=2)
+    for i in _range(2):
+        t1.update()
+        t3.update()
+        t2.update()
+    our_file.seek(0)
+    out = our_file.read()
+    res = [m[0] for m in RE_pos.findall(out)]
+    assert res == ['\rpos0 bar:   0%',
+                   '\n\rpos1 bar:   0%',
+                   '\x1b[A\n\n\rpos2 bar:   0%',
+                   '\x1b[A\x1b[A\rpos0 bar:  50%',
+                   '\n\n\rpos2 bar:  50%',
+                   '\x1b[A\x1b[A\n\rpos1 bar:  50%',
+                   '\x1b[A\rpos0 bar: 100%',
+                   '\n\n\rpos2 bar: 100%',
+                   '\x1b[A\x1b[A\n\rpos1 bar: 100%',
+                   '\x1b[A']
+
+
 def test_set_description():
     """ Test set description """
     t = tqdm(desc='Hello')
