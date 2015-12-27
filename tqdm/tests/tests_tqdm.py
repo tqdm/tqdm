@@ -688,7 +688,7 @@ def test_nested():
     our_file = StringIO()
     for i in trange(2, file=our_file, miniters=1, mininterval=0,
                     maxinterval=0, desc='outer0 loop', leave=True,
-                        nested=3):  # most outer loop must specify nesting depth
+                    nested=3):  # most outer loop must specify nesting depth
         for j in trange(2, file=our_file, miniters=1, mininterval=0,
                         maxinterval=0, desc='inner1 loop', leave=True,
                         nested=True):
@@ -726,7 +726,7 @@ def test_nested():
     our_file = StringIO()
     for i in trange(2, file=our_file, miniters=1, mininterval=0,
                     maxinterval=0, desc='outer0 loop', leave=True,
-                        nested=3):  # most outer loop must specify nesting depth
+                    nested=3):  # most outer loop must specify nesting depth
         for j in trange(2, file=our_file, miniters=1, mininterval=0,
                         maxinterval=0, desc='inner1 loop', leave=False,
                         nested=True):
@@ -737,7 +737,6 @@ def test_nested():
     our_file.seek(0)
     out = our_file.read()
     res = [m[0] for m in RE_nested2.findall(out)]
-    print(repr(res))
     assert res == ['\n\router0 loop:   0%',
                    '\n\rinner1 loop:   0%',
                    '\n\rinner2 loop:   0%',
@@ -762,6 +761,49 @@ def test_nested():
                    '\r      ',
                    '\r\x1b[A\router0 loop: 100%',
                    '\n\n\n']
+
+    # Test mixed leave again (leave only middle bar)
+    our_file = StringIO()
+    for i in trange(2, file=our_file, miniters=1, mininterval=0,
+                    maxinterval=0, desc='outer0 loop', leave=False,
+                    nested=3):  # most outer loop must specify nesting depth
+        for j in trange(2, file=our_file, miniters=1, mininterval=0,
+                        maxinterval=0, desc='inner1 loop', leave=True,
+                        nested=True):
+            for k in trange(2, file=our_file, miniters=1, mininterval=0,
+                            maxinterval=0, desc='inner2 loop', leave=False,
+                            nested=True):
+                pass
+    our_file.seek(0)
+    out = our_file.read()
+    res = [m[0] for m in RE_nested2.findall(out)]
+    assert res == ['\n\router0 loop:   0%',
+                   '\n\rinner1 loop:   0%',
+                   '\n\rinner2 loop:   0%',
+                   '\rinner2 loop:  50%',
+                   '\rinner2 loop: 100%',
+                   '\r      ',
+                   '\r\x1b[A\rinner1 loop:  50%',
+                   '\n\rinner2 loop:   0%',
+                   '\rinner2 loop:  50%',
+                   '\rinner2 loop: 100%',
+                   '\r      ',
+                   '\r\x1b[A\rinner1 loop: 100%',
+                   '\r\x1b[A\router0 loop:  50%',
+                   '\n\rinner1 loop:   0%',
+                   '\n\rinner2 loop:   0%',
+                   '\rinner2 loop:  50%',
+                   '\rinner2 loop: 100%',
+                   '\r      ',
+                   '\r\x1b[A\rinner1 loop:  50%',
+                   '\n\rinner2 loop:   0%',
+                   '\rinner2 loop:  50%',
+                   '\rinner2 loop: 100%',
+                   '\r      ',
+                   '\r\x1b[A\rinner1 loop: 100%',
+                   '\r\x1b[A\router0 loop: 100%',
+                   '\r      ',
+                   '\r\n\n\n']
     # TODO: test degradation on windows without colorama?
 
 

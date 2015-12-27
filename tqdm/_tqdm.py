@@ -536,10 +536,15 @@ class tqdm(object):
                     (self.dynamic_ncols(self.fp) if self.dynamic_ncols
                      else self.ncols),
                     self.desc, self.ascii, self.unit, self.unit_scale))
-            self.fp.write('\r' + _term_move_up() if self.nested is True else '\n' * max(1, self.nested))
+            self.fp.write('\r' + _term_move_up() if self.nested is True
+                          else '\n')
         else:
             self.sp('')
-            self.fp.write('\r' + _term_move_up() if self.nested is True else '\r')
+            self.fp.write('\r' + _term_move_up() if self.nested is True
+                          else '\r')
+
+        if self.nested > 1:
+            self.fp.write('\n' * max(1, self.nested - self.leave))
 
     def set_description(self, desc=None):
         """
