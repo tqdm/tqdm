@@ -12,6 +12,11 @@ except NameError:    # pragma: no cover
     _unich = chr
 
 try:  # pragma: no cover
+    _unicode = unicode
+except NameError:  # pragma: no cover
+    _unicode = str  # in Py3, all strings are unicode
+
+try:  # pragma: no cover
     import colorama
     colorama.init()
 except ImportError:  # pragma: no cover
