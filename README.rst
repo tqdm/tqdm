@@ -36,8 +36,8 @@ In addition to its low overhead, ``tqdm`` uses smart algorithms to predict
 the remaining time and to skip unnecessary iteration displays, which allows
 for a negligible overhead in most cases.
 
-``tqdm`` works on any platform (Linux/Windows/Mac), in any console or in a
-GUI, and is also friendly with IPython/Jupyter notebooks.
+``tqdm`` works on any platform (Linux, Windows, Mac, FreeBSD, Solaris/SunOS),
+in any console or in a GUI, and is also friendly with IPython/Jupyter notebooks.
 
 ``tqdm`` does not require any library (not even curses!) to run, just a
 vanilla Python interpreter will do.
