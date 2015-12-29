@@ -360,6 +360,14 @@ def _term_move_up():  # pragma: no cover
 
 
 try:
+    from asyncio import coroutine
+    _coroutine = coroutine
+except ImportError:
+    def _coroutine(func):
+        return func
+
+
+try:
     # TODO consider using wcswidth third-party package for 0-width characters
     from unicodedata import east_asian_width
 except ImportError:

@@ -12,7 +12,7 @@ from __future__ import absolute_import, division
 from .utils import _supports_unicode, _screen_shape_wrapper, _range, _unich, \
     _term_move_up, _unicode, WeakSet, _basestring, _OrderedDict, \
     Comparable, _is_ascii, FormatReplace, disp_len, disp_trim, \
-    SimpleTextIOWrapper, CallbackIOWrapper
+    SimpleTextIOWrapper, CallbackIOWrapper, _coroutine
 from ._monitor import TMonitor
 # native libraries
 from contextlib import contextmanager
@@ -1096,6 +1096,20 @@ class tqdm(Comparable):
 
     def __hash__(self):
         return id(self)
+
+    @_coroutine
+    def __aiter__(self):
+        self.start()
+        return self
+
+    @_coroutine
+    def __anext__(self):
+        try:
+            self.update()
+            return next(self.iterable)
+        except StopIteration:
+            self.close()
+            raise StopAsyncIteration
 
     def __iter__(self):
         """Backward-compatibility to use: for x in tqdm(iterable)"""
