@@ -1,6 +1,6 @@
 sudo: false
 language: python
-python: 3.4
+python: 3.5
 branches:  # remove travis double-check on pull requests in main repo
   only:
     - master
@@ -11,6 +11,7 @@ env:
   - TOXENV=py32
   - TOXENV=py33
   - TOXENV=py34
+  - TOXENV=py35
   - TOXENV=pypy
   - TOXENV=pypy3
   - TOXENV=flake8
