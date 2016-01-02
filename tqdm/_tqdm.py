@@ -457,7 +457,7 @@ class tqdm(object):
                     if delta_t >= mininterval:
                         elapsed = cur_t - start_t
                         # EMA (not just overall average)
-                        if smoothing and delta_t:
+                        if smoothing:
                             avg_time = delta_t / delta_it \
                                 if avg_time is None \
                                 else smoothing * delta_t / delta_it + \
@@ -530,7 +530,7 @@ class tqdm(object):
             if delta_t >= self.mininterval:
                 elapsed = cur_t - self.start_t
                 # EMA (not just overall average)
-                if self.smoothing and delta_t:
+                if self.smoothing:
                     self.avg_time = delta_t / delta_it \
                         if self.avg_time is None \
                         else self.smoothing * delta_t / delta_it + \
