@@ -41,7 +41,7 @@ def _environ_cols_wrapper():  # pragma: no cover
     import platform
     current_os = platform.system()
     _environ_cols = None
-    if current_os == 'Windows':
+    if current_os in ['Windows', 'cli']:
         _environ_cols = _environ_cols_windows
         if _environ_cols is None:
             _environ_cols = _environ_cols_tput
