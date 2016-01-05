@@ -1,6 +1,14 @@
 sudo: false
 language: python
-python: 3.5
+python:
+  - "2.6"
+  - "2.7"
+  - "3.2"
+  - "3.3"
+  - "3.4"
+  - "3.5"
+  - "3.5-dev" # 3.5 development branch
+  - "nightly" # currently points to 3.6-dev
 branches:  # remove travis double-check on pull requests in main repo
   only:
     - master
