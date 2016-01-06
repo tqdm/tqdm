@@ -116,7 +116,7 @@ class tqdm_gui(tqdm):  # pragma: no cover
         n = self.n
         # dynamic_ncols = self.dynamic_ncols
         smoothing = self.smoothing
-        avg_rate = self.avg_rate
+        avg_time = self.avg_time
         bar_format = self.bar_format
 
         plt = self.plt
@@ -140,11 +140,11 @@ class tqdm_gui(tqdm):  # pragma: no cover
                 if delta_t >= mininterval:  # pragma: no cover
                     elapsed = cur_t - start_t
                     # EMA (not just overall average)
-                    if smoothing and delta_t:
-                        avg_rate = delta_it / delta_t \
-                            if avg_rate is None \
-                            else smoothing * delta_it / delta_t + \
-                            (1 - smoothing) * avg_rate
+                    if smoothing:
+                        avg_time = delta_t / delta_it \
+                            if avg_time is None \
+                            else smoothing * delta_t / delta_it + \
+                            (1 - smoothing) * avg_time
 
                     # Inline due to multiple calls
                     total = self.total
@@ -194,8 +194,8 @@ class tqdm_gui(tqdm):  # pragma: no cover
 
                     ax.set_title(format_meter(
                         n, total, elapsed, 0,
-                        self.desc, ascii, unit, unit_scale, avg_rate,
-                        bar_format),
+                        self.desc, ascii, unit, unit_scale,
+                        1 / avg_time if avg_time else None, bar_format),
                         fontname="DejaVu Sans Mono", fontsize=11)
                     plt.pause(1e-9)
 
@@ -242,11 +242,11 @@ class tqdm_gui(tqdm):  # pragma: no cover
             if delta_t >= self.mininterval:
                 elapsed = cur_t - self.start_t
                 # EMA (not just overall average)
-                if self.smoothing and delta_t:
-                    self.avg_rate = delta_it / delta_t \
-                        if self.avg_rate is None \
-                        else self.smoothing * delta_it / delta_t + \
-                        (1 - self.smoothing) * self.avg_rate
+                if self.smoothing:
+                    self.avg_time = delta_t / delta_it \
+                        if self.avg_time is None \
+                        else self.smoothing * delta_t / delta_it + \
+                        (1 - self.smoothing) * self.avg_time
 
                 # Inline due to multiple calls
                 total = self.total
@@ -298,7 +298,7 @@ class tqdm_gui(tqdm):  # pragma: no cover
                 ax.set_title(format_meter(
                     self.n, total, elapsed, 0,
                     self.desc, self.ascii, self.unit, self.unit_scale,
-                    self.avg_rate, self.bar_format),
+                    1 / self.avg_time if self.avg_time else None, self.bar_format),
                     fontname="DejaVu Sans Mono", fontsize=11)
                 self.plt.pause(1e-9)
 
