@@ -226,7 +226,7 @@ def test_max_interval():
     # Test with maxinterval effect
     with closing(StringIO()) as our_file:
         with tqdm(total=total, file=our_file, miniters=None, mininterval=0,
-                 smoothing=1, maxinterval=1e-4) as t:
+                  smoothing=1, maxinterval=1e-4) as t:
             # Increase 10 iterations at once
             t.update(bigstep)
             # The next iterations should trigger maxinterval (step 5)
@@ -240,9 +240,10 @@ def test_max_interval():
     # Test iteration based tqdm with maxinterval effect
     with closing(StringIO()) as our_file:
         with tqdm(_range(total), file=our_file, miniters=None,
-                      mininterval=1e-5, smoothing=1, maxinterval=1e-4) as t2:
+                  mininterval=1e-5, smoothing=1, maxinterval=1e-4) as t2:
             for i in t2:
-                if i >= (bigstep - 1) and ((i - (bigstep - 1)) % smallstep) == 0:
+                if i >= (bigstep - 1) and \
+                  ((i - (bigstep - 1)) % smallstep) == 0:
                     sleep(1e-2)
                 if i >= 3 * bigstep:
                     break
@@ -272,11 +273,11 @@ def test_dynamic_min_iters():
     with closing(StringIO()) as our_file:
         total = 10
         with tqdm(total=total, file=our_file, miniters=None, mininterval=0,
-                 smoothing=1) as t:
+                  smoothing=1) as t:
             t.update()
             # Increase 3 iterations
             t.update(3)
-            # The next two iterations should be skipped because of dynamic_miniters
+            # The next two iterations should skip because of dynamic_miniters
             t.update()
             t.update()
             # The third iteration should be displayed
@@ -292,7 +293,8 @@ def test_dynamic_min_iters():
     assert '70%' in out
 
     with closing(StringIO()) as our_file:
-        with tqdm(_range(10), file=our_file, miniters=None, mininterval=None) as t:
+        with tqdm(_range(10), file=our_file, miniters=None,
+                  mininterval=None) as t:
             for _ in t:
                 pass
             assert t.dynamic_miniters
@@ -325,7 +327,7 @@ def test_smoothed_dynamic_min_iters():
     with closing(StringIO()) as our_file:
         total = 100
         with tqdm(total=total, file=our_file, miniters=None, mininterval=0,
-                 smoothing=0.5, maxinterval=0) as t:
+                  smoothing=0.5, maxinterval=0) as t:
             # Increase 10 iterations at once
             t.update(10)
             # The next iterations should be partially skipped
@@ -355,7 +357,7 @@ def test_smoothed_dynamic_min_iters_with_min_interval():
 
         # Test manual updating tqdm
         with tqdm(total=total, file=our_file, miniters=None, mininterval=1e-3,
-                 smoothing=1, maxinterval=0) as t:
+                  smoothing=1, maxinterval=0) as t:
             t.update(10)
             sleep(1e-2)
             for _ in _range(4):
@@ -368,7 +370,7 @@ def test_smoothed_dynamic_min_iters_with_min_interval():
     with closing(StringIO()) as our_file:
         # Test iteration-based tqdm
         with tqdm(_range(total), file=our_file, miniters=None,
-                      mininterval=0.01, smoothing=1, maxinterval=0) as t2:
+                  mininterval=0.01, smoothing=1, maxinterval=0) as t2:
             for i in t2:
                 if i >= 10:
                     sleep(0.1)
@@ -393,7 +395,8 @@ def test_disable():
         assert our_file.read() == ''
 
     with closing(StringIO()) as our_file:
-        with tqdm(total=3, file=our_file, miniters=1, disable=True) as progressbar:
+        with tqdm(total=3, file=our_file, miniters=1,
+                  disable=True) as progressbar:
             progressbar.update(3)
             progressbar.close()
             our_file.seek(0)
@@ -444,7 +447,7 @@ def test_update():
     """ Test manual creation and updates """
     with closing(StringIO()) as our_file:
         with tqdm(total=2, file=our_file, miniters=1, mininterval=0) \
-            as progressbar:
+                  as progressbar:
             assert len(progressbar) == 2
             progressbar.update(2)
             our_file.seek(0)
@@ -833,6 +836,37 @@ def test_position():
                    '\n\n\rpos2 bar: 100%',
                    '\x1b[A\x1b[A\n\rpos1 bar: 100%',
                    '\x1b[A']
+    t1.close()
+    t2.close()
+    t3.close()
+
+    # Test auto repositionning of bars when a bar is prematurely closed
+    tqdm.n_instances = 0  # reset number of instances
+    with closing(StringIO()) as our_file:
+        t1 = tqdm(total=10, file=our_file, desc='pos0 bar', mininterval=0)
+        t2 = tqdm(total=10, file=our_file, desc='pos1 bar', mininterval=0)
+        t3 = tqdm(total=10, file=our_file, desc='pos2 bar', mininterval=0)
+        res = [m[0] for m in RE_pos.findall(our_file.getvalue())]
+        assert res == ['\rpos0 bar:   0%',
+                       '\n\rpos1 bar:   0%',
+                       '\x1b[A\n\n\rpos2 bar:   0%',
+                       '\x1b[A\x1b[A']
+
+        t2.close()
+        t4 = tqdm(total=10, file=our_file, desc='pos3 bar', mininterval=0)
+        t1.update(0)
+        t3.update(0)
+        t4.update(0)
+        res = [m[0] for m in RE_pos.findall(our_file.getvalue())]
+        assert res == ['\rpos0 bar:   0%',
+                       '\n\rpos1 bar:   0%',
+                       '\x1b[A\n\n\rpos2 bar:   0%',
+                       '\x1b[A\x1b[A\n\r      ',
+                       '\r\x1b[A\n\n\rpos3 bar:   0%',
+                       '\x1b[A\x1b[A\rpos0 bar:  10%',
+                       '\n\rpos2 bar:  10%',
+                       '\x1b[A\n\n\rpos3 bar:  10%',
+                       '\x1b[A\x1b[A']
 
 
 def test_set_description():

@@ -240,15 +240,26 @@ class tqdm(object):
     progressbar every time a value is requested.
     """
     n_instances = 0
+    _instances = set()
 
     @classmethod
-    def _incr_instances(cls):
+    def _incr_instances(cls, instance):
         cls.n_instances += 1
+        cls._instances.add(instance)
         return cls.n_instances
 
     @classmethod
-    def _decr_instances(cls):
+    def _decr_instances(cls, instance):
         cls.n_instances -= 1
+        # Remove from list and reposition other bars
+        # so that newer bars won't overlap previous bars
+        try:  # in case instance was explicitly positioned, it won't be in set
+            cls._instances.remove(instance)
+            for inst in cls._instances:
+                if inst.pos > instance.pos:
+                    inst.pos -= 1
+        except KeyError:
+            pass
 
     def __init__(self, iterable=None, desc=None, total=None, leave=False,
                  file=sys.stderr, ncols=None, mininterval=0.1,
@@ -408,7 +419,7 @@ class tqdm(object):
         self.n = initial
 
         if not gui:
-            self.pos = self._incr_instances() - 1 \
+            self.pos = self._incr_instances(self) - 1 \
                 if position is None else position
             # Initialize the screen printer
             self.sp = StatusPrinter(self.fp)
@@ -461,6 +472,9 @@ class tqdm(object):
 
     def __ge__(self, other):
         return self.pos >= other.pos
+
+    def __hash__(self):
+        return id(self)
 
     def __iter__(self):
         ''' Backward-compatibility to use: for x in tqdm(iterable) '''
@@ -649,7 +663,7 @@ class tqdm(object):
             return
         self.closed = True
 
-        self._decr_instances()
+        self._decr_instances(self)
 
         # only for unit testing
         if not hasattr(self, "sp"):
