@@ -63,14 +63,13 @@ def test_manual_overhead():
     total = int(1e6)
 
     with closing(StringIO()) as our_file:
-        t = tqdm(total=total * 10, file=our_file, leave=True)
-        a = 0
-        tic()
-        for i in _range(total):
-            a += i
-            t.update(10)
-        t.close()
-        time_tqdm = toc()
+        with tqdm(total=total * 10, file=our_file, leave=True) as t:
+            a = 0
+            tic()
+            for i in _range(total):
+                a += i
+                t.update(10)
+            time_tqdm = toc()
 
     a = 0
     tic()
