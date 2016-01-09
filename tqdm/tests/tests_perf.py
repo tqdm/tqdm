@@ -3,23 +3,7 @@ from time import time
 from tqdm import trange
 from tqdm import tqdm
 
-try:
-    from StringIO import StringIO
-except:
-    from io import StringIO
-# Ensure we can use `with closing(...) as ... :` syntax
-if getattr(StringIO, '__exit__', False) and \
-   getattr(StringIO, '__enter__', False):
-    def closing(arg):
-        return arg
-else:
-    from contextlib import closing
-
-try:
-    _range = xrange
-except:
-    _range = range
-
+from tests_tqdm import with_setup, pretest, posttest, StringIO, closing, _range
 
 _tic_toc = [None]
 
@@ -32,6 +16,7 @@ def toc():
     return time() - _tic_toc[0]
 
 
+@with_setup(pretest, posttest)
 def test_iter_overhead():
     """ Test overhead of iteration based tqdm """
     total = int(1e6)
@@ -58,6 +43,7 @@ def test_iter_overhead():
                              (total, time_tqdm, total, time_bench))
 
 
+@with_setup(pretest, posttest)
 def test_manual_overhead():
     """ Test overhead of manual tqdm """
     total = int(1e6)

@@ -1,20 +1,10 @@
 from nose.plugins.skip import SkipTest
 
 from tqdm import tqdm
-
-try:
-    from StringIO import StringIO
-except:
-    from io import StringIO
-# Ensure we can use `with closing(...) as ... :` syntax
-if getattr(StringIO, '__exit__', False) and \
-   getattr(StringIO, '__enter__', False):
-    def closing(arg):
-        return arg
-else:
-    from contextlib import closing
+from tests_tqdm import with_setup, pretest, posttest, StringIO, closing
 
 
+@with_setup(pretest, posttest)
 def test_pandas():
     try:
         from numpy.random import randint
@@ -38,6 +28,7 @@ def test_pandas():
             raise AssertionError('Did not expect:\n\t100%|##########| 101/101')
 
 
+@with_setup(pretest, posttest)
 def test_pandas_leave():
     try:
         from numpy.random import randint
