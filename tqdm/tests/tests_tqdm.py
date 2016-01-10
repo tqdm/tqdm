@@ -6,6 +6,7 @@ from __future__ import unicode_literals
 import csv
 from time import sleep
 import re
+import os
 from nose import with_setup
 from nose.plugins.skip import SkipTest
 
@@ -36,6 +37,13 @@ try:
 except NameError:
     _unicode = str
 
+nt_and_no_colorama = False
+if os.name == 'nt':
+    try:
+        import colorama  # NOQA
+    except:
+        nt_and_no_colorama = True
+
 RE_rate = re.compile(r'(\d+\.\d+)it/s')
 
 
@@ -51,13 +59,6 @@ def posttest():
         raise EnvironmentError(
             "{0} `tqdm` instances still in existence POST-test".format(
                 tqdm.n_instances))
-
-
-def _term_move_up():
-    if os.name == 'nt':
-        if colorama is None:
-            return False
-    return True
 
 
 def get_bar(all_bars, i, seek_read=True):
@@ -328,17 +329,16 @@ def test_dynamic_min_iters():
     assert '70%' in out
 
     with closing(StringIO()) as our_file:
-        with tqdm(_range(10), file=our_file, miniters=None,
-                  mininterval=None) as t:
-            for _ in t:
-                pass
-            assert t.dynamic_miniters
+        t = tqdm(_range(10), file=our_file, miniters=None, mininterval=None)
+        for _ in t:
+            pass
+        assert t.dynamic_miniters
 
     with closing(StringIO()) as our_file:
-        with tqdm(_range(10), file=our_file, miniters=1, mininterval=None) as t:
-            for _ in t:
-                pass
-            assert not t.dynamic_miniters
+        t = tqdm(_range(10), file=our_file, miniters=1, mininterval=None)
+        for _ in t:
+            pass
+        assert not t.dynamic_miniters
 
 
 @with_setup(pretest, posttest)
@@ -434,12 +434,11 @@ def test_disable():
         assert our_file.read() == ''
 
     with closing(StringIO()) as our_file:
-        with tqdm(total=3, file=our_file, miniters=1, disable=True) \
-                as progressbar:
-            progressbar.update(3)
-            progressbar.close()
-            our_file.seek(0)
-            assert our_file.read() == ''
+        progressbar = tqdm(total=3, file=our_file, miniters=1, disable=True)
+        progressbar.update(3)
+        progressbar.close()
+        our_file.seek(0)
+        assert our_file.read() == ''
 
 
 @with_setup(pretest, posttest)
@@ -638,9 +637,7 @@ def test_smoothing():
 @with_setup(pretest, posttest)
 def test_nested():
     """ Test nested progress bars """
-    try:
-        assert _term_move_up()
-    except:
+    if nt_and_no_colorama:
         raise SkipTest
 
     # Use regexp to break tqdm's output at each printing iteration
@@ -808,9 +805,7 @@ def test_unpause():
 @with_setup(pretest, posttest)
 def test_position():
     """ Test positioned progress bars """
-    try:
-        assert _term_move_up()
-    except:
+    if nt_and_no_colorama:
         raise SkipTest
 
     # Use regexp because the it rates can change
@@ -968,7 +963,7 @@ def test_no_gui():
 
         try:
             t = tqdm(_range(3), gui=True, file=our_file,
-                          miniters=1, mininterval=0)
+                     miniters=1, mininterval=0)
             for _ in t:
                 pass
         except DeprecationWarning as e:
