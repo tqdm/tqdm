@@ -1,10 +1,6 @@
 sudo: false
 language: python
 python: 3.4
-branches:  # remove travis double-check on pull requests in main repo
-  only:
-    - master
-    - /^\d\.\d+$/
 env:
   - TOXENV=py26
   - TOXENV=py27

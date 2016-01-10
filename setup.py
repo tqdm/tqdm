@@ -54,7 +54,7 @@ def parse_makefile_aliases(filepath):
     # and put the current alias back in the queue to be processed again later.
 
     # Create the queue of aliases to process
-    aliases_todo = commands.keys()
+    aliases_todo = list(commands.keys())
     # Create the dict that will hold the full commands
     commands_new = {}
     # Loop until we have processed all aliases

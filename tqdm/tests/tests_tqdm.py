@@ -7,6 +7,7 @@ import csv
 from time import sleep
 import re
 from nose import with_setup
+from nose.plugins.skip import SkipTest
 
 from tqdm import format_interval
 from tqdm import format_meter
@@ -41,15 +42,22 @@ RE_rate = re.compile(r'(\d+\.\d+)it/s')
 def pretest():
     if tqdm.n_instances != 0:
         raise EnvironmentError(
-            "{0} `tqdm` instances still in existence pre-test".format(
+            "{0} `tqdm` instances still in existence PRE-test".format(
                 tqdm.n_instances))
 
 
 def posttest():
     if tqdm.n_instances != 0:
         raise EnvironmentError(
-            "{0} `tqdm` instances still in existence post-test".format(
+            "{0} `tqdm` instances still in existence POST-test".format(
                 tqdm.n_instances))
+
+
+def _term_move_up():
+    if os.name == 'nt':
+        if colorama is None:
+            return False
+    return True
 
 
 def get_bar(all_bars, i, seek_read=True):
@@ -320,16 +328,17 @@ def test_dynamic_min_iters():
     assert '70%' in out
 
     with closing(StringIO()) as our_file:
-        t = tqdm(_range(10), file=our_file, miniters=None, mininterval=None)
-        for _ in t:
-            pass
-        assert t.dynamic_miniters
+        with tqdm(_range(10), file=our_file, miniters=None,
+                  mininterval=None) as t:
+            for _ in t:
+                pass
+            assert t.dynamic_miniters
 
     with closing(StringIO()) as our_file:
-        t = tqdm(_range(10), file=our_file, miniters=1, mininterval=None)
-        for _ in t:
-            pass
-        assert not t.dynamic_miniters
+        with tqdm(_range(10), file=our_file, miniters=1, mininterval=None) as t:
+            for _ in t:
+                pass
+            assert not t.dynamic_miniters
 
 
 @with_setup(pretest, posttest)
@@ -425,11 +434,12 @@ def test_disable():
         assert our_file.read() == ''
 
     with closing(StringIO()) as our_file:
-        progressbar = tqdm(total=3, file=our_file, miniters=1, disable=True)
-        progressbar.update(3)
-        progressbar.close()
-        our_file.seek(0)
-        assert our_file.read() == ''
+        with tqdm(total=3, file=our_file, miniters=1, disable=True) \
+                as progressbar:
+            progressbar.update(3)
+            progressbar.close()
+            our_file.seek(0)
+            assert our_file.read() == ''
 
 
 @with_setup(pretest, posttest)
@@ -628,6 +638,11 @@ def test_smoothing():
 @with_setup(pretest, posttest)
 def test_nested():
     """ Test nested progress bars """
+    try:
+        assert _term_move_up()
+    except:
+        raise SkipTest
+
     # Use regexp to break tqdm's output at each printing iteration
     RE_nested = re.compile(r'((\x1b\[A|\r|\n)+((outer|inner) loop:\s+\d+%|\s{3,6})?)')  # NOQA
     RE_nested2 = re.compile(r'((\x1b\[A|\r|\n)+((outer0|inner1|inner2) loop:\s+\d+%|\s{3,6})?)')  # NOQA
@@ -793,6 +808,11 @@ def test_unpause():
 @with_setup(pretest, posttest)
 def test_position():
     """ Test positioned progress bars """
+    try:
+        assert _term_move_up()
+    except:
+        raise SkipTest
+
     # Use regexp because the it rates can change
     RE_pos = re.compile(r'((\x1b\[A|\r|\n)+((pos\d+) bar:\s+\d+%|\s{3,6})?)')  # NOQA
 
@@ -942,21 +962,25 @@ def test_no_gui():
         else:
             raise DeprecationWarning('Should not allow manual gui=True without'
                                      ' overriding __iter__() and update()')
-        t.close()
-        tqdm.n_instances += 1  # undo the close() decrement
+        finally:
+            t.close()
+            tqdm.n_instances += 1  # undo the close() decrement
 
         try:
-            for _ in tqdm(_range(3), gui=True, file=our_file,
-                          miniters=1, mininterval=0):
+            t = tqdm(_range(3), gui=True, file=our_file,
+                          miniters=1, mininterval=0)
+            for _ in t:
                 pass
-        except DeprecationWarning:
+        except DeprecationWarning as e:
             if str(e) != ('Please use tqdm_gui(...) instead of'
                           ' tqdm(..., gui=True)'):
-                raise
+                raise e
         else:
             raise DeprecationWarning('Should not allow manual gui=True without'
                                      ' overriding __iter__() and update()')
-        tqdm.n_instances += 1  # undo the close() decrement
+        finally:
+            t.close()
+            tqdm.n_instances += 1  # undo the close() decrement
 
         with tqdm(total=1, gui=False, file=our_file) as t:
             assert hasattr(t, "sp")
