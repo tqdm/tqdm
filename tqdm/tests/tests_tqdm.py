@@ -8,7 +8,6 @@ from time import sleep
 import re
 
 from tqdm import format_interval
-from tqdm import format_meter
 from tqdm import tqdm
 from tqdm import trange
 
@@ -60,6 +59,8 @@ def test_format_meter():
     except NameError:
         unich = chr
 
+    format_meter = tqdm.format_meter
+
     assert format_meter(0, 1000, 13) == \
         "  0%|          | 0/1000 [00:13<?,  0.00it/s]"
     assert format_meter(0, 1000, 13, ncols=68, prefix='desc: ') == \
@@ -83,6 +84,8 @@ def test_format_meter():
 
 def test_si_format():
     """ Test SI unit prefixes """
+    format_meter = tqdm.format_meter
+
     assert '9.00 ' in format_meter(1, 9, 1, unit_scale=True, unit='B')
     assert '99.0 ' in format_meter(1, 99, 1, unit_scale=True)
     assert '999 ' in format_meter(1, 999, 1, unit_scale=True)

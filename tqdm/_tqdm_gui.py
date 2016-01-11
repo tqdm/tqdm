@@ -14,7 +14,7 @@ from __future__ import division, absolute_import
 from time import time
 from ._utils import _range
 # to inherit from the tqdm class
-from ._tqdm import tqdm, format_meter
+from ._tqdm import tqdm
 
 
 __author__ = {"github.com/": ["casperdcl", "lrq3000"]}
@@ -192,7 +192,7 @@ class tqdm_gui(tqdm):  # pragma: no cover
                         line1.set_data(t_ago, ydata)
                         line2.set_data(t_ago, zdata)
 
-                    ax.set_title(format_meter(
+                    ax.set_title(self.format_meter(
                         n, total, elapsed, 0,
                         self.desc, ascii, unit, unit_scale,
                         1 / avg_time if avg_time else None, bar_format),
@@ -295,10 +295,11 @@ class tqdm_gui(tqdm):  # pragma: no cover
                     self.line1.set_data(t_ago, self.ydata)
                     self.line2.set_data(t_ago, self.zdata)
 
-                ax.set_title(format_meter(
+                ax.set_title(self.format_meter(
                     self.n, total, elapsed, 0,
                     self.desc, self.ascii, self.unit, self.unit_scale,
-                    1 / self.avg_time if self.avg_time else None, self.bar_format),
+                    1 / self.avg_time if self.avg_time else None,
+                    self.bar_format),
                     fontname="DejaVu Sans Mono", fontsize=11)
                 self.plt.pause(1e-9)
 
