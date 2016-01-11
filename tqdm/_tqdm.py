@@ -70,32 +70,32 @@ def format_interval(t):
         return '{0:02d}:{1:02d}'.format(m, s)
 
 
-def StatusPrinter(file):
-    """
-    Manage the printing and in-place updating of a line of characters.
-    Note that if the string is longer than a line, then in-place updating
-    may not work (it will print a new line at each refresh).
-    """
-    fp = file
-    if not getattr(fp, 'flush', False):  # pragma: no cover
-        fp.flush = lambda: None
-
-    last_printed_len = [0]  # closure over mutable variable (fast)
-
-    def print_status(s):
-        len_s = len(s)
-        fp.write('\r' + s + (' ' * max(last_printed_len[0] - len_s, 0)))
-        fp.flush()
-        last_printed_len[0] = len_s
-    return print_status
-
-
 class tqdm(object):
     """
     Decorate an iterable object, returning an iterator which acts exactly
     like the original iterable, but prints a dynamically updating
     progressbar every time a value is requested.
     """
+    @classmethod
+    def status_printer(cls, file):
+        """
+        Manage the printing and in-place updating of a line of characters.
+        Note that if the string is longer than a line, then in-place
+        updating may not work (it will print a new line at each refresh).
+        """
+        fp = file
+        if not getattr(fp, 'flush', False):  # pragma: no cover
+            fp.flush = lambda: None
+
+        last_printed_len = [0]  # closure over mutable variable (fast)
+
+        def print_status(s):
+            len_s = len(s)
+            fp.write('\r' + s + (' ' * max(last_printed_len[0] - len_s, 0)))
+            fp.flush()
+            last_printed_len[0] = len_s
+        return print_status
+
     @classmethod
     def format_meter(cls, n, total, elapsed, ncols=None, prefix='',
                      ascii=False, unit='it', unit_scale=False, rate=None,
@@ -394,7 +394,7 @@ class tqdm(object):
 
         if not gui:
             # Initialize the screen printer
-            self.sp = StatusPrinter(self.fp)
+            self.sp = self.status_printer(self.fp)
             if not disable:
                 if self.nested:
                     self.fp.write('\n')
