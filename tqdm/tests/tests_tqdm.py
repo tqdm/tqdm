@@ -4,7 +4,6 @@
 from __future__ import unicode_literals
 
 import csv
-from time import sleep
 import re
 
 from tqdm import tqdm
@@ -31,6 +30,31 @@ try:
     _unicode = unicode
 except NameError:
     _unicode = str
+
+
+class DiscreteTimer(object):
+    '''Virtual discrete time manager, to precisely control time for tests'''
+
+    def __init__(self):
+        self.t = 0.0
+
+    def sleep(self, t):
+        '''Sleep = increment the time counter (almost no CPU used)'''
+        self.t += t
+
+    def time(self):
+        '''Get the current time'''
+        return self.t
+
+
+def cpu_timify(t, timer=None):
+    '''Force tqdm to use the specified timer instead of system-wide time()'''
+    if timer is None:
+        timer = DiscreteTimer()
+    t._time = timer.time
+    t.start_t = t.last_print_t = t._time()
+    return timer
+
 
 RE_rate = re.compile(r'(\d+\.\d+)it/s')
 
@@ -192,6 +216,7 @@ def test_max_interval():
     total = 100
     bigstep = 10
     smallstep = 5
+    timer = DiscreteTimer()
 
     # Test without maxinterval
     with closing(StringIO()) as our_file:
@@ -199,9 +224,12 @@ def test_max_interval():
             # with maxinterval but higher than loop sleep time
             t = tqdm(total=total, file=our_file, miniters=None, mininterval=0,
                      smoothing=1, maxinterval=1e-2)
+            cpu_timify(t, timer)
+
             # without maxinterval
             t2 = tqdm(total=total, file=our_file2, miniters=None, mininterval=0,
                       smoothing=1, maxinterval=None)
+            cpu_timify(t2, timer)
 
             assert t.dynamic_miniters
             assert t2.dynamic_miniters
@@ -213,7 +241,7 @@ def test_max_interval():
             for _ in _range(4):
                 t.update(smallstep)
                 t2.update(smallstep)
-                sleep(1e-5)
+                timer.sleep(1e-5)
 
             our_file.seek(0)
             our_file2.seek(0)
@@ -226,13 +254,14 @@ def test_max_interval():
     with closing(StringIO()) as our_file:
         t = tqdm(total=total, file=our_file, miniters=None, mininterval=0,
                  smoothing=1, maxinterval=1e-4)
+        cpu_timify(t, timer)
 
         # Increase 10 iterations at once
         t.update(bigstep)
         # The next iterations should trigger maxinterval (step 5)
         for _ in _range(4):
             t.update(smallstep)
-            sleep(1e-2)
+            timer.sleep(1e-2)
 
         our_file.seek(0)
         out = our_file.read()
@@ -240,10 +269,13 @@ def test_max_interval():
 
     # Test iteration based tqdm with maxinterval effect
     with closing(StringIO()) as our_file:
-        for i in tqdm(_range(total), file=our_file, miniters=None,
-                      mininterval=1e-5, smoothing=1, maxinterval=1e-4):
+        t2 = tqdm(_range(total), file=our_file, miniters=None,
+                  mininterval=1e-5, smoothing=1, maxinterval=1e-4)
+        cpu_timify(t2, timer)
+
+        for i in t2:
             if i >= (bigstep - 1) and ((i - (bigstep - 1)) % smallstep) == 0:
-                sleep(1e-2)
+                timer.sleep(1e-2)
             if i >= 3 * bigstep:
                 break
 
@@ -324,10 +356,13 @@ def test_big_min_interval():
 
 def test_smoothed_dynamic_min_iters():
     """ Test smoothed dynamic miniters """
+    timer = DiscreteTimer()
+
     with closing(StringIO()) as our_file:
         total = 100
         t = tqdm(total=total, file=our_file, miniters=None, mininterval=0,
                  smoothing=0.5, maxinterval=0)
+        cpu_timify(t, timer)
 
         # Increase 10 iterations at once
         t.update(10)
@@ -352,6 +387,8 @@ def test_smoothed_dynamic_min_iters():
 
 def test_smoothed_dynamic_min_iters_with_min_interval():
     """ Test smoothed dynamic miniters with mininterval """
+    timer = DiscreteTimer()
+
     # Basically in this test, miniters should gradually decline
     with closing(StringIO()) as our_file:
         total = 100
@@ -359,20 +396,25 @@ def test_smoothed_dynamic_min_iters_with_min_interval():
         # Test manual updating tqdm
         t = tqdm(total=total, file=our_file, miniters=None, mininterval=1e-3,
                  smoothing=1, maxinterval=0)
+        cpu_timify(t, timer)
+
         t.update(10)
-        sleep(1e-2)
+        timer.sleep(1e-2)
         for _ in _range(4):
             t.update()
-            sleep(1e-2)
+            timer.sleep(1e-2)
         our_file.seek(0)
         out = our_file.read()
 
     with closing(StringIO()) as our_file:
         # Test iteration-based tqdm
-        for i in tqdm(_range(total), file=our_file, miniters=None,
-                      mininterval=0.01, smoothing=1, maxinterval=0):
+        t2 = tqdm(_range(total), file=our_file, miniters=None,
+                  mininterval=0.01, smoothing=1, maxinterval=0)
+        cpu_timify(t2, timer)
+
+        for i in t2:
             if i >= 10:
-                sleep(0.1)
+                timer.sleep(0.1)
             if i >= 14:
                 break
         our_file.seek(0)
@@ -500,10 +542,14 @@ def test_close():
 
 def test_smoothing():
     """ Test exponential weighted average smoothing """
+    timer = DiscreteTimer()
 
     # -- Test disabling smoothing
     with closing(StringIO()) as our_file:
-        for _ in tqdm(_range(3), file=our_file, smoothing=None, leave=True):
+        t = tqdm(_range(3), file=our_file, smoothing=None, leave=True)
+        cpu_timify(t, timer)
+
+        for _ in t:
             pass
         our_file.seek(0)
         assert '| 3/3 ' in our_file.read()
@@ -515,16 +561,21 @@ def test_smoothing():
         with closing(StringIO()) as our_file:
             t = tqdm(_range(3), file=our_file2, smoothing=None, leave=True,
                      miniters=1, mininterval=0)
-            for i in tqdm(_range(3), file=our_file, smoothing=None, leave=True,
-                          miniters=1, mininterval=0):
+            cpu_timify(t, timer)
+
+            t2 = tqdm(_range(3), file=our_file, smoothing=None, leave=True,
+                      miniters=1, mininterval=0)
+            cpu_timify(t2, timer)
+
+            for i in t2:
                 # Sleep more for first iteration and
                 # see how quickly rate is updated
                 if i == 0:
-                    sleep(0.01)
+                    timer.sleep(0.01)
                 else:
                     # Need to sleep in all iterations to calculate smoothed rate
                     # (else delta_t is 0!)
-                    sleep(0.001)
+                    timer.sleep(0.001)
                 t.update()
             # Get result for iter-based bar
             our_file.seek(0)
@@ -538,12 +589,17 @@ def test_smoothing():
         with closing(StringIO()) as our_file:
             t = tqdm(_range(3), file=our_file2, smoothing=1, leave=True,
                      miniters=1, mininterval=0)
-            for i in tqdm(_range(3), file=our_file, smoothing=1, leave=True,
-                          miniters=1, mininterval=0):
+            cpu_timify(t, timer)
+
+            t2 = tqdm(_range(3), file=our_file, smoothing=1, leave=True,
+                      miniters=1, mininterval=0)
+            cpu_timify(t2, timer)
+
+            for i in t2:
                 if i == 0:
-                    sleep(0.01)
+                    timer.sleep(0.01)
                 else:
-                    sleep(0.001)
+                    timer.sleep(0.001)
                 t.update()
             # Get result for iter-based bar
             our_file.seek(0)
@@ -557,12 +613,17 @@ def test_smoothing():
         with closing(StringIO()) as our_file:
             t = tqdm(_range(3), file=our_file2, smoothing=0.5, leave=True,
                      miniters=1, mininterval=0)
-            for i in tqdm(_range(3), file=our_file, smoothing=0.5, leave=True,
-                          miniters=1, mininterval=0):
+            cpu_timify(t, timer)
+
+            t2 = tqdm(_range(3), file=our_file, smoothing=0.5, leave=True,
+                      miniters=1, mininterval=0)
+            cpu_timify(t2, timer)
+
+            for i in t2:
                 if i == 0:
-                    sleep(0.01)
+                    timer.sleep(0.01)
                 else:
-                    sleep(0.001)
+                    timer.sleep(0.001)
                 t.update()
             # Get result for iter-based bar
             our_file.seek(0)
@@ -709,42 +770,45 @@ def test_bar_format():
         for i in trange(2, file=our_file, leave=True, bar_format=bar_format):
             pass
         out = our_file.getvalue()
-    assert "\r  0%|          |0/2-0/20.0None?it/s00:00?\r" in out
+        assert "\r  0%|          |0/2-0/20.0None?it/s00:00?\r" in out
 
-    # Test unicode string auto conversion
-    bar_format = r'hello world'
-    t = tqdm(ascii=False, bar_format=bar_format)
-    assert isinstance(t.bar_format, _unicode)
+        # Test unicode string auto conversion
+        bar_format = r'hello world'
+        t = tqdm(file=our_file, ascii=False, bar_format=bar_format)
+        assert isinstance(t.bar_format, _unicode)
 
 
 def test_unpause():
     """ Test unpause """
+    timer = DiscreteTimer()
     with closing(StringIO()) as our_file:
         t = trange(10, file=our_file, leave=True, mininterval=0)
-        sleep(0.01)
+        cpu_timify(t, timer)
+        timer.sleep(0.01)
         t.update()
-        sleep(0.01)
+        timer.sleep(0.01)
         t.update()
-        sleep(0.1)  # longer wait time
+        timer.sleep(0.1)  # longer wait time
         t.unpause()
-        sleep(0.01)
+        timer.sleep(0.01)
         t.update()
-        sleep(0.01)
+        timer.sleep(0.01)
         t.update()
         t.close()
         r_before = progressbar_rate(get_bar(our_file.getvalue(), 2))
         r_after = progressbar_rate(get_bar(our_file.getvalue(), 3))
-    assert abs(r_before - r_after) < 1  # TODO: replace equal when DiscreteTimer
+    assert r_before == r_after
 
 
 def test_set_description():
     """ Test set description """
-    t = tqdm(desc='Hello')
-    assert t.desc == 'Hello: '
-    t.set_description('World')
-    assert t.desc == 'World: '
-    t.set_description()
-    assert t.desc == ''
+    with closing(StringIO()) as our_file:
+        t = tqdm(file=our_file, desc='Hello')
+        assert t.desc == 'Hello: '
+        t.set_description('World')
+        assert t.desc == 'World: '
+        t.set_description()
+        assert t.desc == ''
 
 
 def test_no_gui():

@@ -386,6 +386,7 @@ class tqdm(object):
         self.dynamic_ncols = dynamic_ncols
         self.smoothing = smoothing
         self.avg_time = None
+        self._time = time
         # if nested, at initial sp() call we replace '\r' by '\n' to
         # not overwrite the outer progress bar
         self.nested = nested
@@ -406,7 +407,7 @@ class tqdm(object):
                         self.desc, ascii, unit, unit_scale, None, bar_format))
 
         # Init the time counter
-        self.start_t = self.last_print_t = time()
+        self.start_t = self.last_print_t = self._time()
 
     def __len__(self):
         return len(self.iterable) if self.iterable else self.total
@@ -446,6 +447,7 @@ class tqdm(object):
             smoothing = self.smoothing
             avg_time = self.avg_time
             bar_format = self.bar_format
+            _time = self._time
             format_meter = self.format_meter
 
             try:
@@ -462,7 +464,7 @@ class tqdm(object):
                 delta_it = n - last_print_n
                 # check the counter first (avoid calls to time())
                 if delta_it >= miniters:
-                    cur_t = time()
+                    cur_t = _time()
                     delta_t = cur_t - last_print_t
                     if delta_t >= mininterval:
                         elapsed = cur_t - start_t
@@ -535,7 +537,7 @@ class tqdm(object):
         delta_it = self.n - self.last_print_n  # should be n?
         if delta_it >= self.miniters:
             # We check the counter first, to reduce the overhead of time()
-            cur_t = time()
+            cur_t = self._time()
             delta_t = cur_t - self.last_print_t
             if delta_t >= self.mininterval:
                 elapsed = cur_t - self.start_t
@@ -588,7 +590,7 @@ class tqdm(object):
 
         if self.leave:
             if self.last_print_n < self.n:
-                cur_t = time()
+                cur_t = self._time()
                 # stats for overall rate (no weighted average)
                 self.sp(self.format_meter(
                     self.n, self.total, cur_t - self.start_t,
@@ -605,7 +607,7 @@ class tqdm(object):
         """
         Restart tqdm timer from last print time.
         """
-        cur_t = time()
+        cur_t = self._time()
         self.start_t += cur_t - self.last_print_t
         self.last_print_t = cur_t
 
