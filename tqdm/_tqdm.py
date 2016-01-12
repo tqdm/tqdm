@@ -76,8 +76,8 @@ class tqdm(object):
     like the original iterable, but prints a dynamically updating
     progressbar every time a value is requested.
     """
-    @classmethod
-    def status_printer(cls, file):
+    @staticmethod
+    def status_printer(file):
         """
         Manage the printing and in-place updating of a line of characters.
         Note that if the string is longer than a line, then in-place
@@ -96,8 +96,8 @@ class tqdm(object):
             last_printed_len[0] = len_s
         return print_status
 
-    @classmethod
-    def format_meter(cls, n, total, elapsed, ncols=None, prefix='',
+    @staticmethod
+    def format_meter(n, total, elapsed, ncols=None, prefix='',
                      ascii=False, unit='it', unit_scale=False, rate=None,
                      bar_format=None):
         """
