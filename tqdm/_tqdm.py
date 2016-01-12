@@ -19,55 +19,7 @@ from time import time
 
 __author__ = {"github.com/": ["noamraph", "obiwanus", "kmike", "hadim",
                               "casperdcl", "lrq3000"]}
-__all__ = ['tqdm', 'trange', 'format_interval']
-
-
-def format_sizeof(num, suffix=''):
-    """
-    Formats a number (greater than unity) with SI Order of Magnitude prefixes.
-
-    Parameters
-    ----------
-    num  : float
-        Number ( >= 1) to format.
-    suffix  : str, optional
-        Post-postfix [default: ''].
-
-    Returns
-    -------
-    out  : str
-        Number with Order of Magnitude SI unit postfix.
-    """
-    for unit in ['', 'K', 'M', 'G', 'T', 'P', 'E', 'Z']:
-        if abs(num) < 999.95:
-            if abs(num) < 99.95:
-                if abs(num) < 9.995:
-                    return '{0:1.2f}'.format(num) + unit + suffix
-                return '{0:2.1f}'.format(num) + unit + suffix
-            return '{0:3.0f}'.format(num) + unit + suffix
-        num /= 1000.0
-    return '{0:3.1f}Y'.format(num) + suffix
-
-
-def format_interval(t):
-    """
-    Formats a number of seconds as a clock time, [H:]MM:SS
-
-    Parameters
-    ----------
-    t  : int
-        Number of seconds.
-    Returns
-    -------
-    out  : str
-        [H:]MM:SS
-    """
-    mins, s = divmod(int(t), 60)
-    h, m = divmod(mins, 60)
-    if h:
-        return '{0:d}:{1:02d}:{2:02d}'.format(h, m, s)
-    else:
-        return '{0:02d}:{1:02d}'.format(m, s)
+__all__ = ['tqdm', 'trange']
 
 
 class tqdm(object):
@@ -76,6 +28,55 @@ class tqdm(object):
     like the original iterable, but prints a dynamically updating
     progressbar every time a value is requested.
     """
+    @staticmethod
+    def format_sizeof(num, suffix=''):
+        """
+        Formats a number (greater than unity) with SI Order of Magnitude
+        prefixes.
+
+        Parameters
+        ----------
+        num  : float
+            Number ( >= 1) to format.
+        suffix  : str, optional
+            Post-postfix [default: ''].
+
+        Returns
+        -------
+        out  : str
+            Number with Order of Magnitude SI unit postfix.
+        """
+        for unit in ['', 'K', 'M', 'G', 'T', 'P', 'E', 'Z']:
+            if abs(num) < 999.95:
+                if abs(num) < 99.95:
+                    if abs(num) < 9.995:
+                        return '{0:1.2f}'.format(num) + unit + suffix
+                    return '{0:2.1f}'.format(num) + unit + suffix
+                return '{0:3.0f}'.format(num) + unit + suffix
+            num /= 1000.0
+        return '{0:3.1f}Y'.format(num) + suffix
+
+    @staticmethod
+    def format_interval(t):
+        """
+        Formats a number of seconds as a clock time, [H:]MM:SS
+
+        Parameters
+        ----------
+        t  : int
+            Number of seconds.
+        Returns
+        -------
+        out  : str
+            [H:]MM:SS
+        """
+        mins, s = divmod(int(t), 60)
+        h, m = divmod(mins, 60)
+        if h:
+            return '{0:d}:{1:02d}:{2:02d}'.format(h, m, s)
+        else:
+            return '{0:02d}:{1:02d}'.format(m, s)
+
     @staticmethod
     def status_printer(file):
         """
@@ -150,6 +151,7 @@ class tqdm(object):
         if total and n > total:
             total = None
 
+        format_interval = tqdm.format_interval
         elapsed_str = format_interval(elapsed)
 
         # if unspecified, attempt to use rate = average speed
@@ -157,6 +159,7 @@ class tqdm(object):
         if rate is None and elapsed:
             rate = n / elapsed
         inv_rate = 1 / rate if (rate and (rate < 1)) else None
+        format_sizeof = tqdm.format_sizeof
         rate_fmt = ((format_sizeof(inv_rate if inv_rate else rate)
                     if unit_scale else
                     '{0:5.2f}'.format(inv_rate if inv_rate else rate))

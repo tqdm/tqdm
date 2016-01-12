@@ -7,7 +7,6 @@ import csv
 from time import sleep
 import re
 
-from tqdm import format_interval
 from tqdm import tqdm
 from tqdm import trange
 
@@ -47,6 +46,7 @@ def progressbar_rate(bar_str):
 
 def test_format_interval():
     """ Test time interval format """
+    format_interval = tqdm.format_interval
     assert format_interval(60) == '01:00'
     assert format_interval(6160) == '1:42:40'
     assert format_interval(238113) == '66:08:33'
