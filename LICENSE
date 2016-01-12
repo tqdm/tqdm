@@ -1,4 +1,21 @@
+`tqdm` is a product of collaborative work.
+Unless otherwise stated, all authors (see commit logs) retain copyright
+for their respective work, and release the work under the MIT licence
+(text below).
+
+Exceptions or notable authors are listed below
+in reverse chronological order:
+
+* [CC-BY-SA-4.0] 2015-2016 Casper da Costa-Luis
+  [casperdcl](https://github.com/casperdcl)
+* MIT 2016 [PR #96] Google Inc.
+
+  [CC-BY-SA-4.0]: http://creativecommons.org/licenses/by-sa/4.0/
+  [PR #96]: https://github.com/tqdm/tqdm/pull/96
+
+
 The MIT License (MIT)
+---------------------
 
 Copyright (c) 2013 noamraph
 
