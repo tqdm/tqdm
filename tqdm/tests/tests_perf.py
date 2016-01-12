@@ -70,13 +70,14 @@ def relative_timer():
     elapser = lambda: spent
 
 
-class MockFileNoWrite(StringIO):
+class MockIO(StringIO):
     """ Wraps StringIO to mock a file with no I/O """
     def write(self, data):
         return
 
 
-def simple_progress(iterable=None, total=None, file=sys.stdout, desc='', leave=False, miniters=1, mininterval=0.1, width=60):
+def simple_progress(iterable=None, total=None, file=sys.stdout, desc='',
+                    leave=False, miniters=1, mininterval=0.1, width=60):
     """ Simple progress bar reproducing tqdm's major features """
     n = [0]  # use a closure
     start_t = [time()]
@@ -97,7 +98,7 @@ def simple_progress(iterable=None, total=None, file=sys.stdout, desc='', leave=F
         n[0] += i
         if (n[0] - last_n[0]) >= miniters:
             last_n[0] = n[0]
-            
+
             cur_t = time()
             if (cur_t - last_t[0]) >= mininterval:
                 last_t[0] = cur_t
@@ -106,7 +107,7 @@ def simple_progress(iterable=None, total=None, file=sys.stdout, desc='', leave=F
                 spent_fmt = format_interval(spent)
                 eta = spent / n[0] * total if n[0] else 0
                 frac = n[0] / total
-                rate =  n[0] / spent if spent > 0 else 0
+                rate = n[0] / spent if spent > 0 else 0
                 eta = (total - n[0]) / rate if rate > 0 else 0
                 eta_fmt = format_interval(eta)
                 if 0.0 < rate < 1.0:
@@ -121,9 +122,9 @@ def simple_progress(iterable=None, total=None, file=sys.stdout, desc='', leave=F
                 bar = '#' * bar_length
                 frac_bar = chr(48 + frac_bar_length) if frac_bar_length \
                     else ' '
-                file.write("\r%s %i%%|%s%s%s| %i/%i [%s<%s, %s]" % (desc,
-                                    percentage, bar, frac_bar, barfill, n[0],
-                                    total, spent_fmt, eta_fmt, rate_fmt))
+                file.write("\r%s %i%%|%s%s%s| %i/%i [%s<%s, %s]"
+                           % (desc, percentage, bar, frac_bar, barfill, n[0],
+                              total, spent_fmt, eta_fmt, rate_fmt))
                 if n[0] == total and leave:
                     file.write("\n")
                 file.flush()
@@ -149,7 +150,7 @@ def test_iter_overhead():
 
     total = int(1e6)
 
-    with closing(MockFileNoWrite()) as our_file:
+    with closing(MockIO()) as our_file:
         a = 0
         with relative_timer() as time_tqdm:
             for i in trange(total, file=our_file):
@@ -179,7 +180,7 @@ def test_manual_overhead():
 
     total = int(1e6)
 
-    with closing(MockFileNoWrite()) as our_file:
+    with closing(MockIO()) as our_file:
         t = tqdm(total=total * 10, file=our_file, leave=True)
         a = 0
         with relative_timer() as time_tqdm:
@@ -210,7 +211,7 @@ def test_iter_overhead_hard():
 
     total = int(1e5)
 
-    with closing(MockFileNoWrite()) as our_file:
+    with closing(MockIO()) as our_file:
         a = 0
         with relative_timer() as time_tqdm:
             for i in trange(total, file=our_file, leave=True,
@@ -241,7 +242,7 @@ def test_manual_overhead_hard():
 
     total = int(1e5)
 
-    with closing(MockFileNoWrite()) as our_file:
+    with closing(MockIO()) as our_file:
         t = tqdm(total=total * 10, file=our_file, leave=True,
                  miniters=1, mininterval=0, maxinterval=0)
         a = 0
@@ -273,7 +274,7 @@ def test_iter_overhead_simplebar_hard():
 
     total = int(1e4)
 
-    with closing(MockFileNoWrite()) as our_file:
+    with closing(MockIO()) as our_file:
         a = 0
         with relative_timer() as time_tqdm:
             for i in trange(total, file=our_file, leave=True,
@@ -284,7 +285,8 @@ def test_iter_overhead_simplebar_hard():
         a = 0
         with relative_timer() as time_bench:
             simplebar_iter = simple_progress(_range(total), file=our_file,
-                                        leave=True, miniters=1, mininterval=0)
+                                             leave=True, miniters=1,
+                                             mininterval=0)
             for i in simplebar_iter():
                 a += i
 
@@ -305,7 +307,7 @@ def test_manual_overhead_simplebar_hard():
 
     total = int(1e4)
 
-    with closing(MockFileNoWrite()) as our_file:
+    with closing(MockIO()) as our_file:
         t = tqdm(total=total * 10, file=our_file, leave=True,
                  miniters=1, mininterval=0, maxinterval=0)
         a = 0
@@ -315,7 +317,8 @@ def test_manual_overhead_simplebar_hard():
                 t.update(10)
 
         simplebar_update = simple_progress(total=total, file=our_file,
-                                        leave=True, miniters=1, mininterval=0)
+                                           leave=True, miniters=1,
+                                           mininterval=0)
         a = 0
         with relative_timer() as time_bench:
             for i in _range(total):
@@ -328,4 +331,3 @@ def test_manual_overhead_simplebar_hard():
     except AssertionError:
         raise AssertionError('tqdm(%g): %f, simple_progress(%g): %f' %
                              (total, time_tqdm(), total, time_bench()))
-
