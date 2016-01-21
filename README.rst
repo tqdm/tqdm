@@ -84,8 +84,9 @@ Wrap ``tqdm()`` around any iterable:
 
 .. code:: python
 
+    text = ""
     for char in tqdm(["a", "b", "c", "d"]):
-        print char
+        text = text + char
 
 ``trange(i)`` is a special optimised instance of ``tqdm(range(i))``:
 
