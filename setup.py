@@ -152,7 +152,7 @@ if sys.argv[1].lower().strip() == 'make':
 
 
 README_rst = ''
-with open('README.rst', 'r') as fd:
+with open('README.rst', 'r', encoding = 'utf-8') as fd:
     README_rst = fd.read()
 
 setup(
