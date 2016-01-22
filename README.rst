@@ -346,6 +346,16 @@ Returns
         Experimental GUI version of trange!
         """
 
+    class tqdm_notebook(tqdm):
+        """
+        Experimental IPython/Jupyter Notebook widget using tqdm!
+        """
+
+    def tnrange(*args, **kwargs):
+        """
+        Experimental IPython/Jupyter Notebook widget using tqdm!
+        """
+
 
 Examples and Advanced Usage
 ---------------------------
