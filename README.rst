@@ -139,10 +139,9 @@ Documentation
 
       def __init__(self, iterable=None, desc=None, total=None, leave=False,
                    file=sys.stderr, ncols=None, mininterval=0.1,
-                   maxinterval=10.0, miniters=None, ascii=None,
-                   disable=False, unit='it', unit_scale=False,
-                   dynamic_ncols=False, smoothing=0.3, nested=False,
-                   bar_format=None, initial=0, gui=False):
+                   maxinterval=10.0, miniters=None, ascii=None, disable=False,
+                   unit='it', unit_scale=False, dynamic_ncols=False,
+                   smoothing=0.3, bar_format=None, initial=0, position=None):
 
 Parameters
 ~~~~~~~~~~
@@ -199,10 +198,6 @@ Parameters
     Exponential moving average smoothing factor for speed estimates
     (ignored in GUI mode). Ranges from 0 (average speed) to 1
     (current/instantaneous speed) [default: 0.3].
-* nested  : bool, optional  
-    Whether this iterable is nested in another one also managed by
-    `tqdm` [default: False]. Allows display of multiple, nested
-    progress bars.
 * bar_format  : str, optional  
     Specify a custom bar string formatting. May impact performance.
     [default: '{l_bar}{bar}{r_bar}'], where l_bar is
@@ -364,9 +359,7 @@ folder or import the module and run ``help()``.
 Nested progress bars
 ~~~~~~~~~~~~~~~~~~~~
 
-``tqdm`` supports nested progress bars, you just need to specify the
-`nested=True` argument for all tqdm instantiations except the **outermost**
-bar. Here's an example:
+``tqdm`` supports nested progress bars. Here's an example:
 
 .. code:: python
 
@@ -374,12 +367,16 @@ bar. Here's an example:
     from time import sleep
 
     for i in trange(10, desc='1st loop', leave=True):
-        for j in trange(5, desc='2nd loop', leave=True, nested=True):
-            for k in trange(100, desc='3nd loop', leave=True, nested=True):
+        for j in trange(5, desc='2nd loop', leave=True):
+            for k in trange(100, desc='3nd loop', leave=True):
                 sleep(0.01)
 
 On Windows `colorama <https://github.com/tartley/colorama>`__ will be used if
 available to produce a beautiful nested display.
+
+For manual control over positioning (e.g. for multi-threaded use),
+you may specify `position=n` where `n=0` for the outermost bar,
+`n=1` for the next, and so on.
 
 
 How to make a good progress bar

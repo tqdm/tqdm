@@ -15,6 +15,7 @@ from ._utils import _supports_unicode, _environ_cols_wrapper, _range, _unich, \
     _term_move_up, _unicode
 import sys
 from time import time
+from weakref import WeakSet
 
 
 __author__ = {"github.com/": ["noamraph", "obiwanus", "kmike", "hadim",
@@ -240,20 +241,31 @@ class tqdm(object):
     like the original iterable, but prints a dynamically updating
     progressbar every time a value is requested.
     """
-    n_instances = 0
-    _instances = set()
+
+    def __new__(cls, *args, **kwargs):
+        instance = object.__new__(cls, *args, **kwargs)
+        if "_instances" not in cls.__dict__:
+            cls._instances = WeakSet()
+        cls._instances.add(instance)
+        return instance
 
     @classmethod
-    def _incr_instances(cls, instance):
-        cls.n_instances += 1
-        cls._instances.add(instance)
-        return cls.n_instances
+    def _get_free_pos(cls, instance=None):
+        """ Skips specified instance """
+        try:
+            return max(inst.pos for inst in cls._instances
+                       if inst is not instance) + 1
+        except ValueError as e:
+            if "max() arg is an empty sequence" in str(e):
+                return 0
+            raise  # NOQA
 
     @classmethod
     def _decr_instances(cls, instance):
-        cls.n_instances -= 1
-        # Remove from list and reposition other bars
-        # so that newer bars won't overlap previous bars
+        """
+        Remove from list and reposition other bars
+        so that newer bars won't overlap previous bars
+        """
         try:  # in case instance was explicitly positioned, it won't be in set
             cls._instances.remove(instance)
             for inst in cls._instances:
@@ -264,10 +276,10 @@ class tqdm(object):
 
     def __init__(self, iterable=None, desc=None, total=None, leave=False,
                  file=sys.stderr, ncols=None, mininterval=0.1,
-                 maxinterval=10.0, miniters=None, ascii=None,
-                 disable=False, unit='it', unit_scale=False,
-                 dynamic_ncols=False, smoothing=0.3, nested=False,
-                 bar_format=None, initial=0, position=None, gui=False):
+                 maxinterval=10.0, miniters=None, ascii=None, disable=False,
+                 unit='it', unit_scale=False, dynamic_ncols=False,
+                 smoothing=0.3, bar_format=None, initial=0, position=None,
+                 gui=False, **kwargs):
         """
         Parameters
         ----------
@@ -322,10 +334,6 @@ class tqdm(object):
             Exponential moving average smoothing factor for speed estimates
             (ignored in GUI mode). Ranges from 0 (average speed) to 1
             (current/instantaneous speed) [default: 0.3].
-        nested  : bool, optional
-            Whether this iterable is nested in another one also managed by
-            `tqdm` [default: False]. Allows display of multiple, nested
-            progress bars.
         bar_format  : str, optional
             Specify a custom bar string formatting. May impact performance.
             [default: '{l_bar}{bar}{r_bar}'], where l_bar is
@@ -352,6 +360,14 @@ class tqdm(object):
             self.iterable = iterable
             self.disable = disable
             return
+
+        if kwargs:
+            self._instances.remove(self)
+            raise (DeprecationWarning("nested is deprecated and"
+                                      " automated.\nUse position instead"
+                                      " for manual control")
+                   if "nested" in kwargs else
+                   Warning("Unknown argument(s): " + str(kwargs)))
 
         # Preprocess the arguments
         if total is None and iterable is not None:
@@ -409,9 +425,6 @@ class tqdm(object):
         self.dynamic_ncols = dynamic_ncols
         self.smoothing = smoothing
         self.avg_rate = None
-        # if nested, at initial sp() call we replace '\r' by '\n' to
-        # not overwrite the outer progress bar
-        self.nested = nested
         self.bar_format = bar_format
         self.closed = False
 
@@ -420,15 +433,15 @@ class tqdm(object):
         self.n = initial
 
         if not gui:
-            self.pos = self._incr_instances(self) - 1 \
+            # if nested, at initial sp() call we replace '\r' by '\n' to
+            # not overwrite the outer progress bar
+            self.pos = self._get_free_pos(self) \
                 if position is None else position
             # Initialize the screen printer
             self.sp = StatusPrinter(self.fp)
             if not disable:
                 if self.pos:
                     self.moveto(self.pos)
-                elif self.nested:
-                    self.fp.write('\n')
                 self.sp(format_meter(self.n, total, 0,
                         (dynamic_ncols(file) if dynamic_ncols else ncols),
                         self.desc, ascii, unit, unit_scale, None, bar_format))
@@ -457,22 +470,28 @@ class tqdm(object):
                             self.unit_scale, self.avg_rate, self.bar_format)
 
     def __lt__(self, other):
-        return self.pos < other.pos
+        try:
+            return self.pos < other.pos
+        except AttributeError:
+            return self.start_t < other.start_t
 
     def __le__(self, other):
-        return self.pos <= other.pos
+        return (self < other) or (self == other)
 
     def __eq__(self, other):
-        return self.pos == other.pos
+        try:
+            return self.pos == other.pos
+        except AttributeError:
+            return self.start_t == other.start_t
 
     def __ne__(self, other):
-        return self.pos != other.pos
+        return not (self == other)
 
     def __gt__(self, other):
-        return self.pos > other.pos
+        return not (self <= other)
 
     def __ge__(self, other):
-        return self.pos >= other.pos
+        return not (self < other)
 
     def __hash__(self):
         return id(self)
@@ -693,11 +712,11 @@ class tqdm(object):
                     self.bar_format)
                 self.sp(stats)
             self.fp.write('\r' + _term_move_up()
-                          if (self.nested and not self.pos) else '\n')
+                          if self.pos else '\n')
         else:
             self.sp('')  # clear up last bar
             self.fp.write(_unicode('\r' + _term_move_up()
-                                   if (self.nested and not self.pos) else '\r'))
+                                   if self.pos else '\r'))
 
         if self.pos:
             self.moveto(-self.pos)

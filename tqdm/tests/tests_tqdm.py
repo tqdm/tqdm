@@ -48,17 +48,20 @@ RE_rate = re.compile(r'(\d+\.\d+)it/s')
 
 
 def pretest():
-    if tqdm.n_instances != 0:
-        raise EnvironmentError(
-            "{0} `tqdm` instances still in existence PRE-test".format(
-                tqdm.n_instances))
+    if hasattr(tqdm, "_instances"):
+        n = len(tqdm._instances)
+        if n:
+            tqdm._instances.clear()
+            raise EnvironmentError(
+                "{0} `tqdm` instances still in existence PRE-test".format(n))
 
 
 def posttest():
-    if tqdm.n_instances != 0:
+    n = len(tqdm._instances)
+    if n:
+        tqdm._instances.clear()
         raise EnvironmentError(
-            "{0} `tqdm` instances still in existence POST-test".format(
-                tqdm.n_instances))
+            "{0} `tqdm` instances still in existence POST-test".format(n))
 
 
 def get_bar(all_bars, i, seek_read=True):
@@ -512,9 +515,9 @@ def test_close():
         progressbar.update(3)
         our_file.seek(0)
         assert '| 3/3 ' not in our_file.read()  # Should be blank
-        assert tqdm.n_instances == 1
+        assert len(tqdm._instances) == 1
         progressbar.close()
-        assert tqdm.n_instances == 0
+        assert len(tqdm._instances) == 0
         our_file.seek(0)
         assert '| 3/3 ' in our_file.read()
 
@@ -528,16 +531,16 @@ def test_close():
 
     # With all updates
     with closing(StringIO()) as our_file:
-        assert tqdm.n_instances == 0
+        assert len(tqdm._instances) == 0
         with tqdm(total=3, file=our_file, miniters=0, mininterval=0,
                   leave=True) as progressbar:
-            assert tqdm.n_instances == 1
+            assert len(tqdm._instances) == 1
             progressbar.update(3)
             our_file.seek(0)
             res = our_file.read()
             assert '| 3/3 ' in res  # Should be blank
         # close() called
-        assert tqdm.n_instances == 0
+        assert len(tqdm._instances) == 0
         our_file.seek(0)
         try:
             assert res + '\n' == our_file.read()
@@ -584,9 +587,9 @@ def test_smoothing():
                     # (else delta_t is 0!)
                     sleep(0.001)
                 t.update()
-            n_old = tqdm.n_instances
+            n_old = len(tqdm._instances)
             t.close()
-            assert tqdm.n_instances == n_old - 1
+            assert len(tqdm._instances) == n_old - 1
             # Get result for iter-based bar
             a = progressbar_rate(get_bar(our_file, 3))
         # Get result for manually updated bar
@@ -635,133 +638,21 @@ def test_smoothing():
 
 
 @with_setup(pretest, posttest)
-def test_nested():
+def test_deprecated_nested():
     """ Test nested progress bars """
     if nt_and_no_colorama:
         raise SkipTest
-
-    # Use regexp to break tqdm's output at each printing iteration
-    RE_nested = re.compile(r'((\x1b\[A|\r|\n)+((outer|inner) loop:\s+\d+%|\s{3,6})?)')  # NOQA
-    RE_nested2 = re.compile(r'((\x1b\[A|\r|\n)+((outer0|inner1|inner2) loop:\s+\d+%|\s{3,6})?)')  # NOQA
+    # TODO: test degradation on windows without colorama?
 
     # Artificially test nested loop printing
     # Without leave
     our_file = StringIO()
-    t = tqdm(total=2, file=our_file, miniters=1, mininterval=0,
-             maxinterval=0, desc='inner loop', leave=False, nested=True)
-    t.update()
-    t.close()
-    our_file.seek(0)
-    out = our_file.read()
-    res = [m[0] for m in RE_nested.findall(out)]
-    assert res == ['\n\rinner loop:   0%',
-                   '\rinner loop:  50%',
-                   '\r      ',
-                   '\r\x1b[A']
-
-    # With leave
-    our_file = StringIO()
-    t = tqdm(total=2, file=our_file, miniters=1, mininterval=0,
-             maxinterval=0, desc='inner loop', leave=True, nested=True)
-    t.update()
-    t.close()
-    our_file.seek(0)
-    out = our_file.read()
-    res = [m[0] for m in RE_nested.findall(out)]
-    assert res == ['\n\rinner loop:   0%',
-                   '\rinner loop:  50%',
-                   '\r\x1b[A']
-
-    # Test simple nested, without leave
-    our_file = StringIO()
-    for i in trange(2, file=our_file, miniters=1, mininterval=0,
-                    maxinterval=0, desc='outer loop', leave=True):
-        for j in trange(4, file=our_file, miniters=1, mininterval=0,
-                        maxinterval=0, desc='inner loop', nested=True):
-            pass
-    our_file.seek(0)
-    out = our_file.read()
-    res = [m[0] for m in RE_nested.findall(out)]
-    assert res == ['\router loop:   0%',
-                   '\n\rinner loop:   0%',
-                   '\x1b[A\n\rinner loop:  25%',
-                   '\x1b[A\n\rinner loop:  50%',
-                   '\x1b[A\n\rinner loop:  75%',
-                   '\x1b[A\n\rinner loop: 100%',
-                   '\x1b[A\n\r      ',
-                   '\r\x1b[A\router loop:  50%',
-                   '\n\rinner loop:   0%',
-                   '\x1b[A\n\rinner loop:  25%',
-                   '\x1b[A\n\rinner loop:  50%',
-                   '\x1b[A\n\rinner loop:  75%',
-                   '\x1b[A\n\rinner loop: 100%',
-                   '\x1b[A\n\r      ',
-                   '\r\x1b[A\router loop: 100%',
-                   '\n']
-
-    # Test nested with leave
-    our_file = StringIO()
-    for i in trange(2, file=our_file, miniters=1, mininterval=0,
-                    maxinterval=0, desc='outer loop', leave=True):
-        for j in trange(4, file=our_file, miniters=1, mininterval=0,
-                        maxinterval=0, desc='inner loop', leave=True,
-                        nested=True):
-            pass
-    our_file.seek(0)
-    out = our_file.read()
-    res = [m[0] for m in RE_nested.findall(out)]
-    assert res == ['\router loop:   0%',
-                   '\n\rinner loop:   0%',
-                   '\x1b[A\n\rinner loop:  25%',
-                   '\x1b[A\n\rinner loop:  50%',
-                   '\x1b[A\n\rinner loop:  75%',
-                   '\x1b[A\n\rinner loop: 100%',
-                   '\x1b[A\n\n\x1b[A\x1b[A\router loop:  50%',
-                   '\n\rinner loop:   0%',
-                   '\x1b[A\n\rinner loop:  25%',
-                   '\x1b[A\n\rinner loop:  50%',
-                   '\x1b[A\n\rinner loop:  75%',
-                   '\x1b[A\n\rinner loop: 100%',
-                   '\x1b[A\n\n\x1b[A\x1b[A\router loop: 100%',
-                   '\n']
-
-    # Test 2 nested loops with leave
-    our_file = StringIO()
-    for i in trange(2, file=our_file, miniters=1, mininterval=0,
-                    maxinterval=0, desc='outer0 loop', leave=True):
-        for j in trange(2, file=our_file, miniters=1, mininterval=0,
-                        maxinterval=0, desc='inner1 loop', leave=True,
-                        nested=True):
-            for k in trange(2, file=our_file, miniters=1, mininterval=0,
-                            maxinterval=0, desc='inner2 loop', leave=True,
-                            nested=True):
-                pass
-    our_file.seek(0)
-    out = our_file.read()
-    res = [m[0] for m in RE_nested2.findall(out)]
-    assert res == ['\router0 loop:   0%',
-                   '\n\rinner1 loop:   0%',
-                   '\x1b[A\n\n\rinner2 loop:   0%',
-                   '\x1b[A\x1b[A\n\n\rinner2 loop:  50%',
-                   '\x1b[A\x1b[A\n\n\rinner2 loop: 100%',
-                   '\x1b[A\x1b[A\n\n\n\x1b[A\x1b[A\x1b[A\n\rinner1 loop:  50%',
-                   '\x1b[A\n\n\rinner2 loop:   0%',
-                   '\x1b[A\x1b[A\n\n\rinner2 loop:  50%',
-                   '\x1b[A\x1b[A\n\n\rinner2 loop: 100%',
-                   '\x1b[A\x1b[A\n\n\n\x1b[A\x1b[A\x1b[A\n\rinner1 loop: 100%',
-                   '\x1b[A\n\n\x1b[A\x1b[A\router0 loop:  50%',
-                   '\n\rinner1 loop:   0%',
-                   '\x1b[A\n\n\rinner2 loop:   0%',
-                   '\x1b[A\x1b[A\n\n\rinner2 loop:  50%',
-                   '\x1b[A\x1b[A\n\n\rinner2 loop: 100%',
-                   '\x1b[A\x1b[A\n\n\n\x1b[A\x1b[A\x1b[A\n\rinner1 loop:  50%',
-                   '\x1b[A\n\n\rinner2 loop:   0%',
-                   '\x1b[A\x1b[A\n\n\rinner2 loop:  50%',
-                   '\x1b[A\x1b[A\n\n\rinner2 loop: 100%',
-                   '\x1b[A\x1b[A\n\n\n\x1b[A\x1b[A\x1b[A\n\rinner1 loop: 100%',
-                   '\x1b[A\n\n\x1b[A\x1b[A\router0 loop: 100%',
-                   '\n']
-    # TODO: test degradation on windows without colorama?
+    try:
+        tqdm(total=2, file=our_file, nested=True)
+    except DeprecationWarning as e:
+        if str(e) != ("nested is deprecated and automated.\nUse position"
+                      " instead for manual control"):
+            raise
 
 
 @with_setup(pretest, posttest)
@@ -898,7 +789,7 @@ def test_position():
     t3.close()
 
     # Test auto repositionning of bars when a bar is prematurely closed
-    tqdm.n_instances = 0  # reset number of instances
+    # tqdm._instances.clear()  # reset number of instances
     with closing(StringIO()) as our_file:
         t1 = tqdm(total=10, file=our_file, desc='pos0 bar', mininterval=0)
         t2 = tqdm(total=10, file=our_file, desc='pos1 bar', mininterval=0)
@@ -942,7 +833,7 @@ def test_set_description():
 
 
 @with_setup(pretest, posttest)
-def test_no_gui():
+def test_deprecated_gui():
     """ Test internal GUI properties """
     # Check: StatusPrinter iff gui is disabled
     with closing(StringIO()) as our_file:
@@ -958,12 +849,13 @@ def test_no_gui():
             raise DeprecationWarning('Should not allow manual gui=True without'
                                      ' overriding __iter__() and update()')
         finally:
-            t.close()
-            tqdm.n_instances += 1  # undo the close() decrement
+            t._instances.clear()
+            # t.close()
+            # len(tqdm._instances) += 1  # undo the close() decrement
 
+        t = tqdm(_range(3), gui=True, file=our_file,
+                 miniters=1, mininterval=0)
         try:
-            t = tqdm(_range(3), gui=True, file=our_file,
-                     miniters=1, mininterval=0)
             for _ in t:
                 pass
         except DeprecationWarning as e:
@@ -974,8 +866,9 @@ def test_no_gui():
             raise DeprecationWarning('Should not allow manual gui=True without'
                                      ' overriding __iter__() and update()')
         finally:
-            t.close()
-            tqdm.n_instances += 1  # undo the close() decrement
+            t._instances.clear()
+            # t.close()
+            # len(tqdm._instances) += 1  # undo the close() decrement
 
         with tqdm(total=1, gui=False, file=our_file) as t:
             assert hasattr(t, "sp")
