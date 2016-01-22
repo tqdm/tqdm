@@ -14,6 +14,7 @@ except ImportError:  # pragma: no cover
     # Python 3 compatibility
     import configparser as ConfigParser
     import io as StringIO
+import io
 
 
 """ Makefile auxiliary functions """
@@ -30,7 +31,7 @@ def parse_makefile_aliases(filepath):
     # -- Parsing the Makefile using ConfigParser
     # Adding a fake section to make the Makefile a valid Ini file
     ini_str = '[root]\n'
-    with open(filepath, 'r') as fd:
+    with io.open(filepath, mode='r') as fd:
         ini_str = ini_str + fd.read().replace('\t@', '\t').\
             replace('\t+', '\t').replace('\tmake ', '\t')
     ini_fp = StringIO.StringIO(ini_str)
@@ -114,7 +115,7 @@ def execute_makefile_commands(commands, alias, verbose=False):
 # Get version from tqdm/_version.py
 __version__ = None
 version_file = os.path.join(os.path.dirname(__file__), 'tqdm', '_version.py')
-with open(version_file) as fd:
+with io.open(version_file, mode='r') as fd:
     exec(fd.read())
 
 # Executing makefile commands if specified
@@ -152,8 +153,7 @@ if sys.argv[1].lower().strip() == 'make':
 
 
 README_rst = ''
-import io
-with io.open('README.rst', mode = 'r', encoding = 'utf-8') as fd:
+with io.open('README.rst', mode='r', encoding='utf-8') as fd:
     README_rst = fd.read()
 
 setup(
