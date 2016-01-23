@@ -71,6 +71,13 @@ Pull and install in the current directory:
     pip install -e git+https://github.com/tqdm/tqdm.git@master#egg=tqdm
 
 
+Changelog
+---------
+The list of all changes is available either on
+`Github's Releases <https://github.com/tqdm/tqdm/releases>`_ or on
+`allmychanges.com <https://allmychanges.com/p/python/tqdm/>`_.
+
+
 Usage
 -----
 
