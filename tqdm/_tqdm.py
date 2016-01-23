@@ -362,7 +362,7 @@ class tqdm(object):
             return
 
         if kwargs:
-            self._instances.remove(self)
+            self.disable = True
             raise (DeprecationWarning("nested is deprecated and"
                                       " automated.\nUse position instead"
                                       " for manual control")
@@ -426,27 +426,25 @@ class tqdm(object):
         self.smoothing = smoothing
         self.avg_rate = None
         self.bar_format = bar_format
-        self.closed = False
 
         # Init the iterations counters
         self.last_print_n = initial
         self.n = initial
 
+        # if nested, at initial sp() call we replace '\r' by '\n' to
+        # not overwrite the outer progress bar
+        self.pos = self._get_free_pos(self) if position is None else position
+ 
         if not gui:
-            # if nested, at initial sp() call we replace '\r' by '\n' to
-            # not overwrite the outer progress bar
-            self.pos = self._get_free_pos(self) \
-                if position is None else position
             # Initialize the screen printer
             self.sp = StatusPrinter(self.fp)
-            if not disable:
-                if self.pos:
-                    self.moveto(self.pos)
-                self.sp(format_meter(self.n, total, 0,
-                        (dynamic_ncols(file) if dynamic_ncols else ncols),
-                        self.desc, ascii, unit, unit_scale, None, bar_format))
-                if self.pos:
-                    self.moveto(-self.pos)
+            if self.pos:
+                self.moveto(self.pos)
+            self.sp(format_meter(self.n, total, 0,
+                    (dynamic_ncols(file) if dynamic_ncols else ncols),
+                    self.desc, ascii, unit, unit_scale, None, bar_format))
+            if self.pos:
+                self.moveto(-self.pos)
 
         # Init the time counter
         self.start_t = self.last_print_t = time()
@@ -632,7 +630,7 @@ class tqdm(object):
                         else self.smoothing * delta_it / delta_t + \
                         (1 - self.smoothing) * self.avg_rate
 
-                if not (hasattr(self, "sp") and hasattr(self, "pos")):
+                if not hasattr(self, "sp"):
                     raise DeprecationWarning('Please use tqdm_gui(...)'
                                              ' instead of tqdm(..., gui=True)')
 
@@ -679,16 +677,12 @@ class tqdm(object):
             return
 
         # Prevent multiple closures
-        if self.closed:
-            return
-        self.closed = True
+        self.disable = True
 
         self._decr_instances(self)
 
-        # only for unit testing
+        # GUI mode
         if not hasattr(self, "sp"):
-            # raise AttributeError("object has no attribute 'sp'")
-            # Fail silently since __del__() cannot throw errors properly
             return
 
         try:

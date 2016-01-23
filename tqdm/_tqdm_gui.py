@@ -329,6 +329,8 @@ class tqdm_gui(tqdm):  # pragma: no cover
         if self.disable:
             return
 
+        self.disable = True
+
         self._instances.remove(instance)
 
         # Restore toolbars

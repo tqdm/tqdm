@@ -712,10 +712,13 @@ def test_position():
     our_file.seek(0)
     out = our_file.read()
     res = [m[0] for m in RE_pos.findall(out)]
-    assert res == ['\n\n\rpos2 bar:   0%',
-                   '\x1b[A\x1b[A\n\n\rpos2 bar:  50%',
-                   '\x1b[A\x1b[A\n\n\r      ',
-                   '\r\x1b[A\x1b[A']
+    exres = ['\n\n\rpos2 bar:   0%',
+             '\x1b[A\x1b[A\n\n\rpos2 bar:  50%',
+             '\x1b[A\x1b[A\n\n\r      ',
+             '\r\x1b[A\x1b[A']
+    if res != exres:
+        raise AssertionError("\nExpected:\n{0}\nGot:\n{1}\n".format(
+            str(exres), str(res)))
 
     # Test iteration-based tqdm positioning
     our_file = StringIO()
