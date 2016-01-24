@@ -20,219 +20,7 @@ from weakref import WeakSet
 
 __author__ = {"github.com/": ["noamraph", "obiwanus", "kmike", "hadim",
                               "casperdcl", "lrq3000"]}
-__all__ = ['tqdm', 'trange', 'format_interval', 'format_meter']
-
-
-def format_sizeof(num, suffix=''):
-    """
-    Formats a number (greater than unity) with SI Order of Magnitude prefixes.
-
-    Parameters
-    ----------
-    num  : float
-        Number ( >= 1) to format.
-    suffix  : str, optional
-        Post-postfix [default: ''].
-
-    Returns
-    -------
-    out  : str
-        Number with Order of Magnitude SI unit postfix.
-    """
-    for unit in ['', 'K', 'M', 'G', 'T', 'P', 'E', 'Z']:
-        if abs(num) < 999.95:
-            if abs(num) < 99.95:
-                if abs(num) < 9.995:
-                    return '{0:1.2f}'.format(num) + unit + suffix
-                return '{0:2.1f}'.format(num) + unit + suffix
-            return '{0:3.0f}'.format(num) + unit + suffix
-        num /= 1000.0
-    return '{0:3.1f}Y'.format(num) + suffix
-
-
-def format_interval(t):
-    """
-    Formats a number of seconds as a clock time, [H:]MM:SS
-
-    Parameters
-    ----------
-    t  : int
-        Number of seconds.
-    Returns
-    -------
-    out  : str
-        [H:]MM:SS
-    """
-    mins, s = divmod(int(t), 60)
-    h, m = divmod(mins, 60)
-    if h:
-        return '{0:d}:{1:02d}:{2:02d}'.format(h, m, s)
-    else:
-        return '{0:02d}:{1:02d}'.format(m, s)
-
-
-def format_meter(n, total, elapsed, ncols=None, prefix='', ascii=False,
-                 unit='it', unit_scale=False, rate=None, bar_format=None):
-    """
-    Return a string-based progress bar given some parameters
-
-    Parameters
-    ----------
-    n  : int
-        Number of finished iterations.
-    total  : int
-        The expected total number of iterations. If meaningless (), only
-        basic progress statistics are displayed (no ETA).
-    elapsed  : float
-        Number of seconds passed since start.
-    ncols  : int, optional
-        The width of the entire output message. If specified, dynamically
-        resizes the progress meter to stay within this bound
-        [default: None]. The fallback meter width is 10 for the progress bar
-        + no limit for the iterations counter and statistics. If 0, will not
-        print any meter (only stats).
-    prefix  : str, optional
-        Prefix message (included in total width) [default: ''].
-    ascii  : bool, optional
-        If not set, use unicode (smooth blocks) to fill the meter
-        [default: False]. The fallback is to use ASCII characters (1-9 #).
-    unit  : str, optional
-        The iteration unit [default: 'it'].
-    unit_scale  : bool, optional
-        If set, the number of iterations will printed with an appropriate
-        SI metric prefix (K = 10^3, M = 10^6, etc.) [default: False].
-    rate  : float, optional
-        Manual override for iteration rate.
-        If [default: None], uses n/elapsed.
-    bar_format  : str, optional
-        Specify a custom bar string formatting. May impact performance.
-        [default: '{l_bar}{bar}{r_bar}'], where l_bar is
-        '{desc}{percentage:3.0f}%|' and r_bar is
-        '| {n_fmt}/{total_fmt} [{elapsed_str}<{remaining_str}, {rate_fmt}]'.
-        Possible vars: bar, n, n_fmt, total, total_fmt, percentage,
-        rate, rate_fmt, elapsed, remaining, l_bar, r_bar, desc.
-
-    Returns
-    -------
-    out  : Formatted meter and stats, ready to display.
-    """
-
-    # sanity check: total
-    if total and n > total:
-        total = None
-
-    elapsed_str = format_interval(elapsed)
-
-    # if unspecified, attempt to use rate = average speed
-    # (we allow manual override since predicting time is an arcane art)
-    if rate is None and elapsed:
-        rate = n / elapsed
-    inv_rate = 1 / rate if (rate and (rate < 1)) else None
-    rate_fmt = ((format_sizeof(inv_rate if inv_rate else rate)
-                 if unit_scale else
-                 '{0:5.2f}'.format(inv_rate if inv_rate else rate))
-                if rate else '?') \
-        + ('s' if inv_rate else unit) + '/' + (unit if inv_rate else 's')
-
-    if unit_scale:
-        n_fmt = format_sizeof(n)
-        total_fmt = format_sizeof(total) if total else None
-    else:
-        n_fmt = str(n)
-        total_fmt = str(total)
-
-    # total is known: we can predict some stats
-    if total:
-        # fractional and percentage progress
-        frac = n / total
-        percentage = frac * 100
-
-        remaining_str = format_interval((total - n) / rate) if rate else '?'
-
-        # format the stats displayed to the left and right sides of the bar
-        l_bar = (prefix if prefix else '') + '{0:3.0f}%|'.format(percentage)
-        r_bar = '| {0}/{1} [{2}<{3}, {4}]'.format(
-                n_fmt, total_fmt, elapsed_str, remaining_str, rate_fmt)
-
-        if ncols == 0:
-            return l_bar[:-1] + r_bar[1:]
-
-        # space available for bar's display
-        N_BARS = max(1, ncols - len(l_bar) - len(r_bar)) if ncols \
-            else 10
-
-        # format bar depending on availability of unicode/ascii chars
-        if ascii:
-            bar_length, frac_bar_length = divmod(
-                int(frac * N_BARS * 10), 10)
-
-            bar = '#' * bar_length
-            frac_bar = chr(48 + frac_bar_length) if frac_bar_length \
-                else ' '
-
-        else:
-            bar_length, frac_bar_length = divmod(int(frac * N_BARS * 8), 8)
-
-            bar = _unich(0x2588) * bar_length
-            frac_bar = _unich(0x2590 - frac_bar_length) \
-                if frac_bar_length else ' '
-
-        # whitespace padding
-        if bar_length < N_BARS:
-            full_bar = bar + frac_bar + \
-                ' ' * max(N_BARS - bar_length - 1, 0)
-        else:
-            full_bar = bar + \
-                ' ' * max(N_BARS - bar_length, 0)
-
-        if bar_format is None:
-            # Default bar format = fast display
-            return l_bar + full_bar + r_bar
-        else:
-            # Custom bar formatting
-            # Populate a dict with all available progress indicators
-            bar_args = {'bar': full_bar,
-                        'n': n,
-                        'n_fmt': n_fmt,
-                        'total': total,
-                        'total_fmt': total_fmt,
-                        'percentage': percentage,
-                        'rate': rate,
-                        'rate_fmt': rate_fmt,
-                        'elapsed': elapsed_str,
-                        'remaining': remaining_str,
-                        'l_bar': l_bar,
-                        'r_bar': r_bar,
-                        'desc': prefix if prefix else ''
-                        }
-            # Interpolate supplied bar format with the dict
-            return bar_format.format(**bar_args)
-
-    # no total: no progressbar, ETA, just progress stats
-    else:
-        return (prefix if prefix else '') + '{0}{1} [{2}, {3}]'.format(
-            n_fmt, unit, elapsed_str, rate_fmt)
-
-
-def StatusPrinter(file):
-    """
-    Manage the printing and in-place updating of a line of characters.
-    Note that if the string is longer than a line, then in-place updating
-    may not work (it will print a new line at each refresh).
-    """
-    fp = file
-    if not hasattr(fp, "flush"):  # pragma: no cover
-        fp.flush = lambda: None
-
-    last_printed_len = [0]  # closure over mutable variable (fast)
-
-    def print_status(s):
-        len_s = len(s)
-        fp.write(_unicode('\r' + s + (' ' * max(last_printed_len[0] - len_s,
-                                                0))))
-        fp.flush()
-        last_printed_len[0] = len_s
-    return print_status
+__all__ = ['tqdm', 'trange']
 
 
 class tqdm(object):
@@ -241,6 +29,225 @@ class tqdm(object):
     like the original iterable, but prints a dynamically updating
     progressbar every time a value is requested.
     """
+    @staticmethod
+    def format_sizeof(num, suffix=''):
+        """
+        Formats a number (greater than unity) with SI Order of Magnitude
+        prefixes.
+
+        Parameters
+        ----------
+        num  : float
+            Number ( >= 1) to format.
+        suffix  : str, optional
+            Post-postfix [default: ''].
+
+        Returns
+        -------
+        out  : str
+            Number with Order of Magnitude SI unit postfix.
+        """
+        for unit in ['', 'K', 'M', 'G', 'T', 'P', 'E', 'Z']:
+            if abs(num) < 999.95:
+                if abs(num) < 99.95:
+                    if abs(num) < 9.995:
+                        return '{0:1.2f}'.format(num) + unit + suffix
+                    return '{0:2.1f}'.format(num) + unit + suffix
+                return '{0:3.0f}'.format(num) + unit + suffix
+            num /= 1000.0
+        return '{0:3.1f}Y'.format(num) + suffix
+
+    @staticmethod
+    def format_interval(t):
+        """
+        Formats a number of seconds as a clock time, [H:]MM:SS
+
+        Parameters
+        ----------
+        t  : int
+            Number of seconds.
+        Returns
+        -------
+        out  : str
+            [H:]MM:SS
+        """
+        mins, s = divmod(int(t), 60)
+        h, m = divmod(mins, 60)
+        if h:
+            return '{0:d}:{1:02d}:{2:02d}'.format(h, m, s)
+        else:
+            return '{0:02d}:{1:02d}'.format(m, s)
+
+    @staticmethod
+    def status_printer(file):
+        """
+        Manage the printing and in-place updating of a line of characters.
+        Note that if the string is longer than a line, then in-place
+        updating may not work (it will print a new line at each refresh).
+        """
+        fp = file
+        if not getattr(fp, 'flush', False):  # pragma: no cover
+            fp.flush = lambda: None
+
+        last_printed_len = [0]  # closure over mutable variable (fast)
+
+        def print_status(s):
+            len_s = len(s)
+            fp.write(_unicode('\r' + s + \
+                     (' ' * max(last_printed_len[0] - len_s, 0))))
+            fp.flush()
+            last_printed_len[0] = len_s
+        return print_status
+
+    @staticmethod
+    def format_meter(n, total, elapsed, ncols=None, prefix='',
+                     ascii=False, unit='it', unit_scale=False, rate=None,
+                     bar_format=None):
+        """
+        Return a string-based progress bar given some parameters
+
+        Parameters
+        ----------
+        n  : int
+            Number of finished iterations.
+        total  : int
+            The expected total number of iterations. If meaningless (), only
+            basic progress statistics are displayed (no ETA).
+        elapsed  : float
+            Number of seconds passed since start.
+        ncols  : int, optional
+            The width of the entire output message. If specified,
+            dynamically resizes the progress meter to stay within this bound
+            [default: None]. The fallback meter width is 10 for the progress
+            bar + no limit for the iterations counter and statistics. If 0,
+            will not print any meter (only stats).
+        prefix  : str, optional
+            Prefix message (included in total width) [default: ''].
+        ascii  : bool, optional
+            If not set, use unicode (smooth blocks) to fill the meter
+            [default: False]. The fallback is to use ASCII characters
+            (1-9 #).
+        unit  : str, optional
+            The iteration unit [default: 'it'].
+        unit_scale  : bool, optional
+            If set, the number of iterations will printed with an
+            appropriate SI metric prefix (K = 10^3, M = 10^6, etc.)
+            [default: False].
+        rate  : float, optional
+            Manual override for iteration rate.
+            If [default: None], uses n/elapsed.
+        bar_format  : str, optional
+            Specify a custom bar string formatting. May impact performance.
+            [default: '{l_bar}{bar}{r_bar}'], where l_bar is
+            '{desc}{percentage:3.0f}%|' and r_bar is
+            '| {n_fmt}/{total_fmt} [{elapsed_str}<{remaining_str}, {rate_fmt}]'.
+            Possible vars: bar, n, n_fmt, total, total_fmt, percentage,
+            rate, rate_fmt, elapsed, remaining, l_bar, r_bar, desc.
+
+        Returns
+        -------
+        out  : Formatted meter and stats, ready to display.
+        """
+
+        # sanity check: total
+        if total and n > total:
+            total = None
+
+        format_interval = tqdm.format_interval
+        elapsed_str = format_interval(elapsed)
+
+        # if unspecified, attempt to use rate = average speed
+        # (we allow manual override since predicting time is an arcane art)
+        if rate is None and elapsed:
+            rate = n / elapsed
+        inv_rate = 1 / rate if (rate and (rate < 1)) else None
+        format_sizeof = tqdm.format_sizeof
+        rate_fmt = ((format_sizeof(inv_rate if inv_rate else rate)
+                    if unit_scale else
+                    '{0:5.2f}'.format(inv_rate if inv_rate else rate))
+                    if rate else '?') \
+            + ('s' if inv_rate else unit) + '/' + (unit if inv_rate else 's')
+
+        if unit_scale:
+            n_fmt = format_sizeof(n)
+            total_fmt = format_sizeof(total) if total else None
+        else:
+            n_fmt = str(n)
+            total_fmt = str(total)
+
+        # total is known: we can predict some stats
+        if total:
+            # fractional and percentage progress
+            frac = n / total
+            percentage = frac * 100
+
+            remaining_str = format_interval((total - n) / rate) \
+                if rate else '?'
+
+            # format the stats displayed to the left and right sides of the bar
+            l_bar = (prefix if prefix else '') + \
+                '{0:3.0f}%|'.format(percentage)
+            r_bar = '| {0}/{1} [{2}<{3}, {4}]'.format(
+                    n_fmt, total_fmt, elapsed_str, remaining_str, rate_fmt)
+
+            if ncols == 0:
+                return l_bar[:-1] + r_bar[1:]
+
+            # space available for bar's display
+            N_BARS = max(1, ncols - len(l_bar) - len(r_bar)) if ncols \
+                else 10
+
+            # format bar depending on availability of unicode/ascii chars
+            if ascii:
+                bar_length, frac_bar_length = divmod(
+                    int(frac * N_BARS * 10), 10)
+
+                bar = '#' * bar_length
+                frac_bar = chr(48 + frac_bar_length) if frac_bar_length \
+                    else ' '
+
+            else:
+                bar_length, frac_bar_length = divmod(int(frac * N_BARS * 8), 8)
+
+                bar = _unich(0x2588) * bar_length
+                frac_bar = _unich(0x2590 - frac_bar_length) \
+                    if frac_bar_length else ' '
+
+            # whitespace padding
+            if bar_length < N_BARS:
+                full_bar = bar + frac_bar + \
+                    ' ' * max(N_BARS - bar_length - 1, 0)
+            else:
+                full_bar = bar + \
+                    ' ' * max(N_BARS - bar_length, 0)
+
+            if bar_format is None:
+                # Default bar format = fast display
+                return l_bar + full_bar + r_bar
+            else:
+                # Custom bar formatting
+                # Populate a dict with all available progress indicators
+                bar_args = {'bar': full_bar,
+                            'n': n,
+                            'n_fmt': n_fmt,
+                            'total': total,
+                            'total_fmt': total_fmt,
+                            'percentage': percentage,
+                            'rate': rate,
+                            'rate_fmt': rate_fmt,
+                            'elapsed': elapsed_str,
+                            'remaining': remaining_str,
+                            'l_bar': l_bar,
+                            'r_bar': r_bar,
+                            'desc': prefix if prefix else ''
+                            }
+                # Interpolate supplied bar format with the dict
+                return bar_format.format(**bar_args)
+
+        # no total: no progressbar, ETA, just progress stats
+        else:
+            return (prefix if prefix else '') + '{0}{1} [{2}, {3}]'.format(
+                n_fmt, unit, elapsed_str, rate_fmt)
 
     def __new__(cls, *args, **kwargs):
         instance = object.__new__(cls, *args, **kwargs)
@@ -424,7 +431,8 @@ class tqdm(object):
         self.gui = gui
         self.dynamic_ncols = dynamic_ncols
         self.smoothing = smoothing
-        self.avg_rate = None
+        self.avg_time = None
+        self._time = time
         self.bar_format = bar_format
 
         # Init the iterations counters
@@ -437,7 +445,7 @@ class tqdm(object):
 
         if not gui:
             # Initialize the screen printer
-            self.sp = StatusPrinter(self.fp)
+            self.sp = self.status_printer(self.fp)
             if self.pos:
                 self.moveto(self.pos)
             self.sp(format_meter(self.n, total, 0,
@@ -447,7 +455,7 @@ class tqdm(object):
                 self.moveto(-self.pos)
 
         # Init the time counter
-        self.start_t = self.last_print_t = time()
+        self.start_t = self.last_print_t = self._time()
 
     def __len__(self):
         return len(self.iterable) if self.iterable else self.total
@@ -520,13 +528,13 @@ class tqdm(object):
             n = self.n
             dynamic_ncols = self.dynamic_ncols
             smoothing = self.smoothing
-            avg_rate = self.avg_rate
+            avg_time = self.avg_time
             bar_format = self.bar_format
-            fp = self.fp
+            _time = self._time
+            format_meter = self.format_meter
 
             try:
                 sp = self.sp
-                pos = self.pos
             except AttributeError:
                 raise DeprecationWarning('Please use tqdm_gui(...)'
                                          ' instead of tqdm(..., gui=True)')
@@ -539,16 +547,16 @@ class tqdm(object):
                 delta_it = n - last_print_n
                 # check the counter first (avoid calls to time())
                 if delta_it >= miniters:
-                    cur_t = time()
+                    cur_t = _time()
                     delta_t = cur_t - last_print_t
                     if delta_t >= mininterval:
                         elapsed = cur_t - start_t
                         # EMA (not just overall average)
-                        if smoothing and delta_t:
-                            avg_rate = delta_it / delta_t \
-                                if avg_rate is None \
-                                else smoothing * delta_it / delta_t + \
-                                (1 - smoothing) * avg_rate
+                        if smoothing:  # and delta_it
+                            avg_time = delta_t / delta_it \
+                                if avg_time is None \
+                                else smoothing * delta_t / delta_it + \
+                                (1 - smoothing) * avg_time
 
                         if pos:
                             fp.write('\n' * pos + _term_move_up() * -pos)
@@ -558,8 +566,8 @@ class tqdm(object):
                             n, self.total, elapsed,
                             (dynamic_ncols(self.fp) if dynamic_ncols
                              else ncols),
-                            self.desc, ascii, unit, unit_scale, avg_rate,
-                            bar_format))
+                            self.desc, ascii, unit, unit_scale,
+                            1 / avg_time if avg_time else None, bar_format))
 
                         if pos:
                             fp.write('\n' * -pos + _term_move_up() * pos)
@@ -613,22 +621,22 @@ class tqdm(object):
             return
 
         if n < 1:
-            n = 1
+            raise ValueError("n ({0}) cannot be less than 1".format(n))
         self.n += n
 
         delta_it = self.n - self.last_print_n  # should be n?
         if delta_it >= self.miniters:
             # We check the counter first, to reduce the overhead of time()
-            cur_t = time()
+            cur_t = self._time()
             delta_t = cur_t - self.last_print_t
             if delta_t >= self.mininterval:
                 elapsed = cur_t - self.start_t
                 # EMA (not just overall average)
-                if self.smoothing and delta_t:
-                    self.avg_rate = delta_it / delta_t \
-                        if self.avg_rate is None \
-                        else self.smoothing * delta_it / delta_t + \
-                        (1 - self.smoothing) * self.avg_rate
+                if self.smoothing:  # and delta_it
+                    self.avg_time = delta_t / delta_it \
+                        if self.avg_time is None \
+                        else self.smoothing * delta_t / delta_it + \
+                        (1 - self.smoothing) * self.avg_time
 
                 if not hasattr(self, "sp"):
                     raise DeprecationWarning('Please use tqdm_gui(...)'
@@ -638,12 +646,13 @@ class tqdm(object):
                     self.moveto(self.pos)
 
                 # Print bar's update
-                self.sp(format_meter(
+                self.sp(self.format_meter(
                     self.n, self.total, elapsed,
                     (self.dynamic_ncols(self.fp) if self.dynamic_ncols
                      else self.ncols),
                     self.desc, self.ascii, self.unit, self.unit_scale,
-                    self.avg_rate, self.bar_format))
+                    1 / self.avg_time if self.avg_time else None,
+                    self.bar_format))
 
                 if self.pos:
                     self.moveto(-self.pos)
@@ -699,9 +708,9 @@ class tqdm(object):
 
         if self.leave:
             if self.last_print_n < self.n:
-                cur_t = time()
+                cur_t = self._time()
                 # stats for overall rate (no weighted average)
-                stats = format_meter(
+                self.sp(self.format_meter(
                     self.n, self.total, cur_t - self.start_t,
                     (self.dynamic_ncols(self.fp) if self.dynamic_ncols
                      else self.ncols),
@@ -723,7 +732,7 @@ class tqdm(object):
         """
         Restart tqdm timer from last print time.
         """
-        cur_t = time()
+        cur_t = self._time()
         self.start_t += cur_t - self.last_print_t
         self.last_print_t = cur_t
 
