@@ -93,7 +93,7 @@ class tqdm(object):
 
         def print_status(s):
             len_s = len(s)
-            fp.write(_unicode('\r' + s + \
+            fp.write(_unicode('\r' + s +
                      (' ' * max(last_printed_len[0] - len_s, 0))))
             fp.flush()
             last_printed_len[0] = len_s
@@ -448,7 +448,7 @@ class tqdm(object):
             self.sp = self.status_printer(self.fp)
             if self.pos:
                 self.moveto(self.pos)
-            self.sp(format_meter(self.n, total, 0,
+            self.sp(self.format_meter(self.n, total, 0,
                     (dynamic_ncols(file) if dynamic_ncols else ncols),
                     self.desc, ascii, unit, unit_scale, None, bar_format))
             if self.pos:
@@ -471,9 +471,10 @@ class tqdm(object):
         self.close()
 
     def __repr__(self):
-        return format_meter(self.n, self.total, time() - self.last_print_t,
-                            self.ncols, self.desc, self.ascii, self.unit,
-                            self.unit_scale, self.avg_rate, self.bar_format)
+        return self.format_meter(self.n, self.total, time() - self.last_print_t,
+                                 self.ncols, self.desc, self.ascii, self.unit,
+                                 self.unit_scale, 1 / self.avg_time
+                                 if self.avg_time else None, self.bar_format)
 
     def __lt__(self, other):
         # try:
@@ -558,8 +559,8 @@ class tqdm(object):
                                 else smoothing * delta_t / delta_it + \
                                 (1 - smoothing) * avg_time
 
-                        if pos:
-                            fp.write('\n' * pos + _term_move_up() * -pos)
+                        if self.pos:
+                            self.moveto(self.pos)
 
                         # Printing the bar's update
                         sp(format_meter(
@@ -569,8 +570,8 @@ class tqdm(object):
                             self.desc, ascii, unit, unit_scale,
                             1 / avg_time if avg_time else None, bar_format))
 
-                        if pos:
-                            fp.write('\n' * -pos + _term_move_up() * pos)
+                        if self.pos:
+                            self.moveto(-self.pos)
 
                         # If no `miniters` was specified, adjust automatically
                         # to the maximum iteration rate seen so far.
@@ -715,8 +716,7 @@ class tqdm(object):
                     (self.dynamic_ncols(self.fp) if self.dynamic_ncols
                      else self.ncols),
                     self.desc, self.ascii, self.unit, self.unit_scale, None,
-                    self.bar_format)
-                self.sp(stats)
+                    self.bar_format))
             if pos:
                 self.moveto(-pos)
             else:

@@ -4,7 +4,6 @@
 from __future__ import unicode_literals
 
 import csv
-from time import sleep
 import re
 import os
 from nose import with_setup
@@ -43,6 +42,7 @@ if os.name == 'nt':
         nt_and_no_colorama = True
 
 RE_rate = re.compile(r'(\d+\.\d+)it/s')
+
 
 class DiscreteTimer(object):
     '''Virtual discrete time manager, to precisely control time for tests'''
@@ -430,6 +430,7 @@ def test_smoothed_dynamic_min_iters():
 @with_setup(pretest, posttest)
 def test_smoothed_dynamic_min_iters_with_min_interval():
     """ Test smoothed dynamic miniters with mininterval """
+    timer = DiscreteTimer()
 
     # In this test, `miniters` should gradually decline
     total = 100
@@ -642,7 +643,8 @@ def test_smoothing():
                     if i == 0:
                         timer.sleep(0.01)
                     else:
-                        # Need to sleep in all iterations to calculate smoothed rate
+                        # Need to sleep in all iterations
+                        # to calculate smoothed rate
                         # (else delta_t is 0!)
                         timer.sleep(0.001)
                     t.update()
@@ -888,9 +890,9 @@ def test_position():
 
         t2.close()
         t4 = tqdm(total=10, file=our_file, desc='pos3 bar', mininterval=0)
-        t1.update(0)
-        t3.update(0)
-        t4.update(0)
+        t1.update(1)
+        t3.update(1)
+        t4.update(1)
         res = [m[0] for m in RE_pos.findall(our_file.getvalue())]
         exres = ['\rpos0 bar:   0%',
                  '\n\rpos1 bar:   0%',

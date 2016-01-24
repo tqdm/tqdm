@@ -12,23 +12,6 @@ from tqdm import tqdm
 
 from tests_tqdm import with_setup, pretest, posttest, StringIO, closing, _range
 
-try:
-    from StringIO import StringIO
-except:
-    from io import StringIO
-# Ensure we can use `with closing(...) as ... :` syntax
-if getattr(StringIO, '__exit__', False) and \
-   getattr(StringIO, '__enter__', False):
-    def closing(arg):
-        return arg
-else:
-    from contextlib import closing
-
-try:
-    _range = xrange
-except:
-    _range = range
-
 # Use relative/cpu timer to have reliable timings when there is a sudden load
 try:
     from time import process_time
@@ -66,10 +49,15 @@ def checkCpuTime(sleeptime=0.2):
 @contextmanager
 def relative_timer():
     start = process_time()
-    elapser = lambda: process_time() - start
+
+    def elapser():
+        return process_time() - start
+
     yield lambda: elapser()
     spent = process_time() - start
-    elapser = lambda: spent
+
+    def elapser():  # NOQA
+        return spent
 
 
 class MockIO(StringIO):
