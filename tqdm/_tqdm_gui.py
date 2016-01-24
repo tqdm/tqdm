@@ -331,7 +331,7 @@ class tqdm_gui(tqdm):  # pragma: no cover
 
         self.disable = True
 
-        self._instances.remove(instance)
+        self._instances.remove(self)
 
         # Restore toolbars
         self.mpl.rcParams['toolbar'] = self.toolbar

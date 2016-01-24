@@ -221,7 +221,7 @@ def StatusPrinter(file):
     may not work (it will print a new line at each refresh).
     """
     fp = file
-    if not getattr(fp, 'flush', False):  # pragma: no cover
+    if not hasattr(fp, "flush"):  # pragma: no cover
         fp.flush = lambda: None
 
     last_printed_len = [0]  # closure over mutable variable (fast)
@@ -258,7 +258,7 @@ class tqdm(object):
         except ValueError as e:
             if "max() arg is an empty sequence" in str(e):
                 return 0
-            raise  # NOQA
+            raise  # pragma: no cover
 
     @classmethod
     def _decr_instances(cls, instance):
@@ -434,7 +434,7 @@ class tqdm(object):
         # if nested, at initial sp() call we replace '\r' by '\n' to
         # not overwrite the outer progress bar
         self.pos = self._get_free_pos(self) if position is None else position
- 
+
         if not gui:
             # Initialize the screen printer
             self.sp = StatusPrinter(self.fp)
@@ -468,19 +468,19 @@ class tqdm(object):
                             self.unit_scale, self.avg_rate, self.bar_format)
 
     def __lt__(self, other):
-        try:
-            return self.pos < other.pos
-        except AttributeError:
-            return self.start_t < other.start_t
+        # try:
+        return self.pos < other.pos
+        # except AttributeError:
+        #     return self.start_t < other.start_t
 
     def __le__(self, other):
         return (self < other) or (self == other)
 
     def __eq__(self, other):
-        try:
-            return self.pos == other.pos
-        except AttributeError:
-            return self.start_t == other.start_t
+        # try:
+        return self.pos == other.pos
+        # except AttributeError:
+        #     return self.start_t == other.start_t
 
     def __ne__(self, other):
         return not (self == other)
@@ -679,6 +679,8 @@ class tqdm(object):
         # Prevent multiple closures
         self.disable = True
 
+        # decrement instance pos and remove from internal set
+        pos = self.pos
         self._decr_instances(self)
 
         # GUI mode
@@ -690,9 +692,10 @@ class tqdm(object):
         except ValueError as e:
             if 'closed' in str(e):
                 return
+            raise  # pragma: no cover
 
-        if self.pos:
-            self.moveto(self.pos)
+        if pos:
+            self.moveto(pos)
 
         if self.leave:
             if self.last_print_n < self.n:
@@ -705,15 +708,13 @@ class tqdm(object):
                     self.desc, self.ascii, self.unit, self.unit_scale, None,
                     self.bar_format)
                 self.sp(stats)
-            self.fp.write('\r' + _term_move_up()
-                          if self.pos else '\n')
+            self.fp.write('\r' + _term_move_up() if pos else '\n')
         else:
             self.sp('')  # clear up last bar
-            self.fp.write(_unicode('\r' + _term_move_up()
-                                   if self.pos else '\r'))
+            self.fp.write(_unicode('\r' + _term_move_up() if pos else '\r'))
 
-        if self.pos:
-            self.moveto(-self.pos)
+        if pos:
+            self.moveto(-pos)
             if self.leave:
                 self.moveto(-1)
 

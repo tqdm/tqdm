@@ -36,9 +36,7 @@ def test_iter_overhead():
     time_bench = toc()
 
     # Compute relative overhead of tqdm against native range()
-    try:
-        assert(time_tqdm < 9 * time_bench)
-    except AssertionError:
+    if time_tqdm > 9 * time_bench:
         raise AssertionError('trange(%g): %f, range(%g): %f' %
                              (total, time_tqdm, total, time_bench))
 
@@ -64,8 +62,6 @@ def test_manual_overhead():
     time_bench = toc()
 
     # Compute relative overhead of tqdm against native range()
-    try:
-        assert(time_tqdm < 19 * time_bench)
-    except AssertionError:
+    if time_tqdm > 19 * time_bench:
         raise AssertionError('tqdm(%g): %f, range(%g): %f' %
                              (total, time_tqdm, total, time_bench))

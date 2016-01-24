@@ -542,13 +542,12 @@ def test_close():
         # close() called
         assert len(tqdm._instances) == 0
         our_file.seek(0)
-        try:
-            assert res + '\n' == our_file.read()
-        except AssertionError:
+
+        exres = res + '\n'
+        if exres != our_file.read():
             our_file.seek(0)
-            raise AssertionError('\n'.join(
-                ('expected extra line (\\n) after `close`:',
-                 'before:', res, 'closed:', our_file.read(), 'end debug\n')))
+            raise AssertionError("\nExpected:\n{0}\nGot:{1}\n".format(
+                exres, our_file.read()))
 
     # Closing after the output stream has closed
     with closing(StringIO()) as our_file:
@@ -653,6 +652,8 @@ def test_deprecated_nested():
         if str(e) != ("nested is deprecated and automated.\nUse position"
                       " instead for manual control"):
             raise
+    else:
+        raise DeprecationWarning("Should not allow nested kwarg")
 
 
 @with_setup(pretest, posttest)
@@ -717,8 +718,8 @@ def test_position():
              '\x1b[A\x1b[A\n\n\r      ',
              '\r\x1b[A\x1b[A']
     if res != exres:
-        raise AssertionError("\nExpected:\n{0}\nGot:\n{1}\n".format(
-            str(exres), str(res)))
+        raise AssertionError("\nExpected:\n{0}\nGot:\n{1}\nRaw:\n{2}\n".format(
+            str(exres), str(res), str([out])))
 
     # Test iteration-based tqdm positioning
     our_file = StringIO()
