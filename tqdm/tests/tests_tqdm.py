@@ -716,7 +716,7 @@ def test_position():
     exres = ['\n\n\rpos2 bar:   0%',
              '\x1b[A\x1b[A\n\n\rpos2 bar:  50%',
              '\x1b[A\x1b[A\n\n\r      ',
-             '\r\x1b[A\x1b[A']
+             '\x1b[A\x1b[A']
     if res != exres:
         raise AssertionError("\nExpected:\n{0}\nGot:\n{1}\nRaw:\n{2}\n".format(
             str(exres), str(res), str([out])))
@@ -733,35 +733,38 @@ def test_position():
     our_file.seek(0)
     out = our_file.read()
     res = [m[0] for m in RE_pos.findall(out)]
-    assert res == ['\rpos0 bar:   0%',
-                   '\n\rpos1 bar:   0%',
-                   '\x1b[A\n\n\rpos2 bar:   0%',
-                   '\x1b[A\x1b[A\n\n\rpos2 bar:  50%',
-                   '\x1b[A\x1b[A\n\n\rpos2 bar: 100%',
-                   '\x1b[A\x1b[A\n\n\r      ',
-                   '\r\x1b[A\x1b[A\n\rpos1 bar:  50%',
-                   '\x1b[A\n\n\rpos2 bar:   0%',
-                   '\x1b[A\x1b[A\n\n\rpos2 bar:  50%',
-                   '\x1b[A\x1b[A\n\n\rpos2 bar: 100%',
-                   '\x1b[A\x1b[A\n\n\r      ',
-                   '\r\x1b[A\x1b[A\n\rpos1 bar: 100%',
-                   '\x1b[A\n\r      ',
-                   '\r\x1b[A\rpos0 bar:  50%',
-                   '\n\rpos1 bar:   0%',
-                   '\x1b[A\n\n\rpos2 bar:   0%',
-                   '\x1b[A\x1b[A\n\n\rpos2 bar:  50%',
-                   '\x1b[A\x1b[A\n\n\rpos2 bar: 100%',
-                   '\x1b[A\x1b[A\n\n\r      ',
-                   '\r\x1b[A\x1b[A\n\rpos1 bar:  50%',
-                   '\x1b[A\n\n\rpos2 bar:   0%',
-                   '\x1b[A\x1b[A\n\n\rpos2 bar:  50%',
-                   '\x1b[A\x1b[A\n\n\rpos2 bar: 100%',
-                   '\x1b[A\x1b[A\n\n\r      ',
-                   '\r\x1b[A\x1b[A\n\rpos1 bar: 100%',
-                   '\x1b[A\n\r      ',
-                   '\r\x1b[A\rpos0 bar: 100%',
-                   '\r      ',
-                   '\r']
+    exres = ['\rpos0 bar:   0%',
+             '\n\rpos1 bar:   0%',
+             '\x1b[A\n\n\rpos2 bar:   0%',
+             '\x1b[A\x1b[A\n\n\rpos2 bar:  50%',
+             '\x1b[A\x1b[A\n\n\rpos2 bar: 100%',
+             '\x1b[A\x1b[A\n\n\r      ',
+             '\x1b[A\x1b[A\n\rpos1 bar:  50%',
+             '\x1b[A\n\n\rpos2 bar:   0%',
+             '\x1b[A\x1b[A\n\n\rpos2 bar:  50%',
+             '\x1b[A\x1b[A\n\n\rpos2 bar: 100%',
+             '\x1b[A\x1b[A\n\n\r      ',
+             '\x1b[A\x1b[A\n\rpos1 bar: 100%',
+             '\x1b[A\n\r      ',
+             '\x1b[A\rpos0 bar:  50%',
+             '\n\rpos1 bar:   0%',
+             '\x1b[A\n\n\rpos2 bar:   0%',
+             '\x1b[A\x1b[A\n\n\rpos2 bar:  50%',
+             '\x1b[A\x1b[A\n\n\rpos2 bar: 100%',
+             '\x1b[A\x1b[A\n\n\r      ',
+             '\x1b[A\x1b[A\n\rpos1 bar:  50%',
+             '\x1b[A\n\n\rpos2 bar:   0%',
+             '\x1b[A\x1b[A\n\n\rpos2 bar:  50%',
+             '\x1b[A\x1b[A\n\n\rpos2 bar: 100%',
+             '\x1b[A\x1b[A\n\n\r      ',
+             '\x1b[A\x1b[A\n\rpos1 bar: 100%',
+             '\x1b[A\n\r      ',
+             '\x1b[A\rpos0 bar: 100%',
+             '\r      ',
+             '\r']
+    if res != exres:
+        raise AssertionError("\nExpected:\n{0}\nGot:\n{1}\nRaw:\n{2}\n".format(
+            str(exres), str(res), str([out])))
 
     # Test manual tqdm positioning
     our_file = StringIO()
@@ -778,16 +781,19 @@ def test_position():
     our_file.seek(0)
     out = our_file.read()
     res = [m[0] for m in RE_pos.findall(out)]
-    assert res == ['\rpos0 bar:   0%',
-                   '\n\rpos1 bar:   0%',
-                   '\x1b[A\n\n\rpos2 bar:   0%',
-                   '\x1b[A\x1b[A\rpos0 bar:  50%',
-                   '\n\n\rpos2 bar:  50%',
-                   '\x1b[A\x1b[A\n\rpos1 bar:  50%',
-                   '\x1b[A\rpos0 bar: 100%',
-                   '\n\n\rpos2 bar: 100%',
-                   '\x1b[A\x1b[A\n\rpos1 bar: 100%',
-                   '\x1b[A']
+    exres = ['\rpos0 bar:   0%',
+             '\n\rpos1 bar:   0%',
+             '\x1b[A\n\n\rpos2 bar:   0%',
+             '\x1b[A\x1b[A\rpos0 bar:  50%',
+             '\n\n\rpos2 bar:  50%',
+             '\x1b[A\x1b[A\n\rpos1 bar:  50%',
+             '\x1b[A\rpos0 bar: 100%',
+             '\n\n\rpos2 bar: 100%',
+             '\x1b[A\x1b[A\n\rpos1 bar: 100%',
+             '\x1b[A']
+    if res != exres:
+        raise AssertionError("\nExpected:\n{0}\nGot:\n{1}\nRaw:\n{2}\n".format(
+            str(exres), str(res), str([out])))
     t1.close()
     t2.close()
     t3.close()
@@ -799,10 +805,14 @@ def test_position():
         t2 = tqdm(total=10, file=our_file, desc='pos1 bar', mininterval=0)
         t3 = tqdm(total=10, file=our_file, desc='pos2 bar', mininterval=0)
         res = [m[0] for m in RE_pos.findall(our_file.getvalue())]
-        assert res == ['\rpos0 bar:   0%',
-                       '\n\rpos1 bar:   0%',
-                       '\x1b[A\n\n\rpos2 bar:   0%',
-                       '\x1b[A\x1b[A']
+        exres = ['\rpos0 bar:   0%',
+                 '\n\rpos1 bar:   0%',
+                 '\x1b[A\n\n\rpos2 bar:   0%',
+                 '\x1b[A\x1b[A']
+        if res != exres:
+            raise AssertionError(
+                "\nExpected:\n{0}\nGot:\n{1}\n".format(
+                    str(exres), str(res)))
 
         t2.close()
         t4 = tqdm(total=10, file=our_file, desc='pos3 bar', mininterval=0)
@@ -810,15 +820,19 @@ def test_position():
         t3.update(0)
         t4.update(0)
         res = [m[0] for m in RE_pos.findall(our_file.getvalue())]
-        assert res == ['\rpos0 bar:   0%',
-                       '\n\rpos1 bar:   0%',
-                       '\x1b[A\n\n\rpos2 bar:   0%',
-                       '\x1b[A\x1b[A\n\r      ',
-                       '\r\x1b[A\n\n\rpos3 bar:   0%',
-                       '\x1b[A\x1b[A\rpos0 bar:  10%',
-                       '\n\rpos2 bar:  10%',
-                       '\x1b[A\n\n\rpos3 bar:  10%',
-                       '\x1b[A\x1b[A']
+        exres = ['\rpos0 bar:   0%',
+                 '\n\rpos1 bar:   0%',
+                 '\x1b[A\n\n\rpos2 bar:   0%',
+                 '\x1b[A\x1b[A\n\r      ',
+                 '\x1b[A\n\n\rpos3 bar:   0%',
+                 '\x1b[A\x1b[A\rpos0 bar:  10%',
+                 '\n\rpos2 bar:  10%',
+                 '\x1b[A\n\n\rpos3 bar:  10%',
+                 '\x1b[A\x1b[A']
+        if res != exres:
+            raise AssertionError(
+                "\nExpected:\n{0}\nGot:\n{1}\n".format(
+                    str(exres), str(res)))
         t4.close()
         t3.close()
         t1.close()

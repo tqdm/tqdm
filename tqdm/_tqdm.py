@@ -708,15 +708,16 @@ class tqdm(object):
                     self.desc, self.ascii, self.unit, self.unit_scale, None,
                     self.bar_format)
                 self.sp(stats)
-            self.fp.write('\r' + _term_move_up() if pos else '\n')
+            if pos:
+                self.moveto(-pos)
+            else:
+                self.fp.write(_unicode('\n'))
         else:
             self.sp('')  # clear up last bar
-            self.fp.write(_unicode('\r' + _term_move_up() if pos else '\r'))
-
-        if pos:
-            self.moveto(-pos)
-            if self.leave:
-                self.moveto(-1)
+            if pos:
+                self.moveto(-pos)
+            else:
+                self.fp.write(_unicode('\r'))
 
     def unpause(self):
         """
