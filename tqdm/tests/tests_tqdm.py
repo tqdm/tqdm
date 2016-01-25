@@ -704,7 +704,7 @@ def test_smoothing():
         c2 = progressbar_rate(get_bar(our_file2, 3))
 
     # Check that medium smoothing's rate is between no and max smoothing rates
-    assert a < c < b
+    assert a == c < b
     assert a2 < c2 < b2
 
 
