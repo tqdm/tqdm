@@ -12,14 +12,9 @@ Usage:
 from __future__ import division, absolute_import
 # import compatibility functions and utilities
 from ._utils import _supports_unicode, _environ_cols_wrapper, _range, _unich, \
-    _term_move_up, _unicode
+    _term_move_up, _unicode, WeakSet
 import sys
 from time import time
-
-try:
-    from weakref import WeakSet
-except ImportError:
-    WeakSet = set
 
 
 __author__ = {"github.com/": ["noamraph", "obiwanus", "kmike", "hadim",
@@ -254,7 +249,7 @@ class tqdm(object):
                 n_fmt, unit, elapsed_str, rate_fmt)
 
     def __new__(cls, *args, **kwargs):
-        instance = object.__new__(cls, *args, **kwargs)
+        instance = object.__new__(cls)
         if "_instances" not in cls.__dict__:
             cls._instances = WeakSet()
         cls._instances.add(instance)

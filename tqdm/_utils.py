@@ -22,6 +22,11 @@ try:  # pragma: no cover
 except ImportError:  # pragma: no cover
     colorama = None
 
+try:  # pragma: no cover
+    from weakref import WeakSet
+except ImportError:  # pragma: nocover
+    WeakSet = set
+
 
 def _is_utf(encoding):
     return ('U8' == encoding) or ('utf' in encoding) or ('UTF' in encoding)
