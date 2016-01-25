@@ -280,7 +280,7 @@ class tqdm(object):
         except KeyError:
             pass
 
-    def __init__(self, iterable=None, desc=None, total=None, leave=False,
+    def __init__(self, iterable=None, desc=None, total=None, leave=True,
                  file=sys.stderr, ncols=None, mininterval=0.1,
                  maxinterval=10.0, miniters=None, ascii=None, disable=False,
                  unit='it', unit_scale=False, dynamic_ncols=False,
@@ -301,7 +301,7 @@ class tqdm(object):
             True and this parameter needs subsequent updating, specify an
             initial arbitrary large positive integer, e.g. int(9e9).
         leave  : bool, optional
-            If [default: False], removes all traces of the progressbar
+            If [default: True], removes all traces of the progressbar
             upon termination of iteration.
         file  : `io.TextIOWrapper` or `io.StringIO`, optional
             Specifies where to output the progress messages
