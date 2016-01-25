@@ -365,10 +365,14 @@ class tqdm(object):
         if disable:
             self.iterable = iterable
             self.disable = disable
+            self.pos = self._get_free_pos(self)
+            self._instances.remove(self)
             return
 
         if kwargs:
             self.disable = True
+            self.pos = self._get_free_pos(self)
+            self._instances.remove(self)
             raise (DeprecationWarning("nested is deprecated and"
                                       " automated.\nUse position instead"
                                       " for manual control")
