@@ -78,11 +78,12 @@ def pretest():
 
 
 def posttest():
-    n = len(tqdm._instances)
-    if n:
-        tqdm._instances.clear()
-        raise EnvironmentError(
-            "{0} `tqdm` instances still in existence POST-test".format(n))
+    if hasattr(tqdm, "_instances"):
+        n = len(tqdm._instances)
+        if n:
+            tqdm._instances.clear()
+            raise EnvironmentError(
+                "{0} `tqdm` instances still in existence POST-test".format(n))
 
 
 def get_bar(all_bars, i, seek_read=True):
