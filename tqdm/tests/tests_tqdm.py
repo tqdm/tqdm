@@ -174,7 +174,11 @@ def test_all_defaults():
             pass
     import sys
     # restore stdout/stderr output for `nosetest` interface
-    sys.stderr.write('\x1b[A\rTest default kwargs ... ')
+    try:
+        sys.stderr.write('\x1b[A')
+    except:
+        pass
+    sys.stderr.write('\rTest default kwargs ... ')
 
 
 @with_setup(pretest, posttest)

@@ -88,12 +88,17 @@ class tqdm(object):
         if not getattr(fp, 'flush', False):  # pragma: no cover
             fp.flush = lambda: None
 
+        def fp_write(s):
+            try:
+                fp.write(_unicode(s))
+            except UnicodeEncodeError:
+                fp.write(str(s))
+
         last_printed_len = [0]  # closure over mutable variable (fast)
 
         def print_status(s):
             len_s = len(s)
-            fp.write(_unicode('\r' + s +
-                     (' ' * max(last_printed_len[0] - len_s, 0))))
+            fp_write('\r' + s + (' ' * max(last_printed_len[0] - len_s, 0)))
             fp.flush()
             last_printed_len[0] = len_s
         return print_status
@@ -262,7 +267,7 @@ class tqdm(object):
             return max(inst.pos for inst in cls._instances
                        if inst is not instance) + 1
         except ValueError as e:
-            if "max() arg is an empty sequence" in str(e):
+            if "arg is an empty sequence" in str(e):
                 return 0
             raise  # pragma: no cover
 
@@ -700,8 +705,15 @@ class tqdm(object):
         if not hasattr(self, "sp"):
             return
 
+        # annoyingly, _supports_unicode isn't good enough
+        def fp_write(s):
+            try:
+                self.fp.write(_unicode(s))
+            except UnicodeEncodeError:
+                self.fp.write(s)
+
         try:
-            self.fp.write(_unicode(''))
+            fp_write('')
         except ValueError as e:
             if 'closed' in str(e):
                 return
@@ -723,13 +735,13 @@ class tqdm(object):
             if pos:
                 self.moveto(-pos)
             else:
-                self.fp.write(_unicode('\n'))
+                fp_write('\n')
         else:
             self.sp('')  # clear up last bar
             if pos:
                 self.moveto(-pos)
             else:
-                self.fp.write(_unicode('\r'))
+                fp_write('\r')
 
     def unpause(self):
         """
