@@ -174,7 +174,7 @@ def test_all_defaults():
             pass
     import sys
     # restore stdout/stderr output for `nosetest` interface
-    sys.stderr.write('Test default kwargs ... ')
+    sys.stderr.write('\x1b[A\rTest default kwargs ... ')
 
 
 @with_setup(pretest, posttest)
@@ -564,7 +564,7 @@ def test_close():
 
     # With `leave` option
     with closing(StringIO()) as our_file:
-        progressbar = tqdm(total=3, file=our_file, miniters=10, leave=True)
+        progressbar = tqdm(total=3, file=our_file, miniters=10)
         progressbar.update(3)
         our_file.seek(0)
         assert '| 3/3 ' not in our_file.read()  # Should be blank
@@ -576,7 +576,7 @@ def test_close():
 
     # Without `leave` option
     with closing(StringIO()) as our_file:
-        progressbar = tqdm(total=3, file=our_file, miniters=10)
+        progressbar = tqdm(total=3, file=our_file, miniters=10, leave=False)
         progressbar.update(3)
         progressbar.close()
         our_file.seek(0)
@@ -813,30 +813,23 @@ def test_position():
              '\x1b[A\n\n\rpos2 bar:   0%',
              '\x1b[A\x1b[A\n\n\rpos2 bar:  50%',
              '\x1b[A\x1b[A\n\n\rpos2 bar: 100%',
-             '\x1b[A\x1b[A\n\n\r      ',
-             '\x1b[A\x1b[A\n\rpos1 bar:  50%',
+             '\x1b[A\x1b[A\n\n\x1b[A\x1b[A\n\rpos1 bar:  50%',
              '\x1b[A\n\n\rpos2 bar:   0%',
              '\x1b[A\x1b[A\n\n\rpos2 bar:  50%',
              '\x1b[A\x1b[A\n\n\rpos2 bar: 100%',
-             '\x1b[A\x1b[A\n\n\r      ',
-             '\x1b[A\x1b[A\n\rpos1 bar: 100%',
-             '\x1b[A\n\r      ',
-             '\x1b[A\rpos0 bar:  50%',
+             '\x1b[A\x1b[A\n\n\x1b[A\x1b[A\n\rpos1 bar: 100%',
+             '\x1b[A\n\x1b[A\rpos0 bar:  50%',
              '\n\rpos1 bar:   0%',
              '\x1b[A\n\n\rpos2 bar:   0%',
              '\x1b[A\x1b[A\n\n\rpos2 bar:  50%',
              '\x1b[A\x1b[A\n\n\rpos2 bar: 100%',
-             '\x1b[A\x1b[A\n\n\r      ',
-             '\x1b[A\x1b[A\n\rpos1 bar:  50%',
+             '\x1b[A\x1b[A\n\n\x1b[A\x1b[A\n\rpos1 bar:  50%',
              '\x1b[A\n\n\rpos2 bar:   0%',
              '\x1b[A\x1b[A\n\n\rpos2 bar:  50%',
              '\x1b[A\x1b[A\n\n\rpos2 bar: 100%',
-             '\x1b[A\x1b[A\n\n\r      ',
-             '\x1b[A\x1b[A\n\rpos1 bar: 100%',
-             '\x1b[A\n\r      ',
-             '\x1b[A\rpos0 bar: 100%',
-             '\r      ',
-             '\r']
+             '\x1b[A\x1b[A\n\n\x1b[A\x1b[A\n\rpos1 bar: 100%',
+             '\x1b[A\n\x1b[A\rpos0 bar: 100%',
+             '\n']
     if res != exres:
         raise AssertionError("\nExpected:\n{0}\nGot:\n{1}\nRaw:\n{2}\n".format(
             str(exres), str(res), str([out])))
@@ -898,8 +891,7 @@ def test_position():
         exres = ['\rpos0 bar:   0%',
                  '\n\rpos1 bar:   0%',
                  '\x1b[A\n\n\rpos2 bar:   0%',
-                 '\x1b[A\x1b[A\n\r      ',
-                 '\x1b[A\n\n\rpos3 bar:   0%',
+                 '\x1b[A\x1b[A\n\x1b[A\n\n\rpos3 bar:   0%',
                  '\x1b[A\x1b[A\rpos0 bar:  10%',
                  '\n\rpos2 bar:  10%',
                  '\x1b[A\n\n\rpos3 bar:  10%',
