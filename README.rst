@@ -73,8 +73,9 @@ Pull and install in the current directory:
 
 Changelog
 ---------
+
 The list of all changes is available either on
-`Github's Releases <https://github.com/tqdm/tqdm/releases>`_ or on
+`Github's Releases <https://github.com/tqdm/tqdm/releases>`_ or on crawlers such as
 `allmychanges.com <https://allmychanges.com/p/python/tqdm/>`_.
 
 
