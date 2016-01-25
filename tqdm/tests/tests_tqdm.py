@@ -69,7 +69,7 @@ def cpu_timify(t, timer=None):
 
 
 def pretest():
-    if hasattr(tqdm, "_instances"):
+    if getattr(tqdm, "_instances", False):
         n = len(tqdm._instances)
         if n:
             tqdm._instances.clear()
@@ -78,7 +78,7 @@ def pretest():
 
 
 def posttest():
-    if hasattr(tqdm, "_instances"):
+    if getattr(tqdm, "_instances", False):
         n = len(tqdm._instances)
         if n:
             tqdm._instances.clear()
