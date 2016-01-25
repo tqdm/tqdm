@@ -15,7 +15,11 @@ from ._utils import _supports_unicode, _environ_cols_wrapper, _range, _unich, \
     _term_move_up, _unicode
 import sys
 from time import time
-from weakref import WeakSet
+
+try:
+    from weakref import WeakSet
+except ImportError:
+    WeakSet = set
 
 
 __author__ = {"github.com/": ["noamraph", "obiwanus", "kmike", "hadim",
