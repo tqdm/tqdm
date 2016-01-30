@@ -93,7 +93,12 @@ class tqdm(object):
 
         def print_status(s):
             len_s = len(s)
-            fp.write('\r' + s + (' ' * max(last_printed_len[0] - len_s, 0)))
+            s = '\r' + s + (' ' * max(last_printed_len[0] - len_s, 0))
+            try:
+                fp.write(s)
+            except UnicodeEncodeError as exc:
+                print(repr(s))
+                raise exc
             fp.flush()
             last_printed_len[0] = len_s
         return print_status
@@ -248,7 +253,7 @@ class tqdm(object):
             return (prefix if prefix else '') + '{0}{1} [{2}, {3}]'.format(
                 n_fmt, unit, elapsed_str, rate_fmt)
 
-    def __init__(self, iterable=None, desc=None, total=None, leave=False,
+    def __init__(self, iterable=None, desc=None, total=None, leave=True,
                  file=sys.stderr, ncols=None, mininterval=0.1,
                  maxinterval=10.0, miniters=None, ascii=None,
                  disable=False, unit='it', unit_scale=False,
