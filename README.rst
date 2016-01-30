@@ -126,7 +126,7 @@ If the optional variable ``total`` (or an iterable with ``len()``) is
 provided, predictive stats are displayed.
 
 ``with`` is also optional (you can just assign ``tqdm()`` to a variable,
-but in this case don't forget to ``close()`` at the end:
+but in this case don't forget to ``del`` or ``close()`` at the end:
 
 .. code:: python
 
@@ -148,7 +148,7 @@ Documentation
       progressbar every time a value is requested.
       """
 
-      def __init__(self, iterable=None, desc=None, total=None, leave=False,
+      def __init__(self, iterable=None, desc=None, total=None, leave=True,
                    file=sys.stderr, ncols=None, mininterval=0.1,
                    maxinterval=10.0, miniters=None, ascii=None,
                    disable=False, unit='it', unit_scale=False,
@@ -170,7 +170,7 @@ Parameters
     True and this parameter needs subsequent updating, specify an
     initial arbitrary large positive integer, e.g. int(9e9).
 * leave  : bool, optional  
-    If [default: False], removes all traces of the progressbar
+    If [default: True], removes all traces of the progressbar
     upon termination of iteration.
 * file  : `io.TextIOWrapper` or `io.StringIO`, optional  
     Specifies where to output the progress messages
@@ -382,9 +382,9 @@ bar. Here's an example:
     from tqdm import trange
     from time import sleep
 
-    for i in trange(10, desc='1st loop', leave=True):
-        for j in trange(5, desc='2nd loop', leave=True, nested=True):
-            for k in trange(100, desc='3nd loop', leave=True, nested=True):
+    for i in trange(10, desc='1st loop'):
+        for j in trange(5, desc='2nd loop', leave=False, nested=True):
+            for k in trange(100, desc='3nd loop', nested=True):
                 sleep(0.01)
 
 On Windows `colorama <https://github.com/tartley/colorama>`__ will be used if
@@ -400,16 +400,14 @@ a variety of use cases with no or minimal configuration.
 
 However, there is one thing that ``tqdm`` cannot do: choose a pertinent
 progress indicator. To display a useful progress bar, it is very important that
-you ensure that you supply ``tqdm`` with the most pertinent progress indicator,
-which will reflect most accurately the current state of your program.
+``tqdm`` is supplied with the most pertinent progress indicator.
+This will reflect most accurately the current state of your program.
 Usually, a good way is to preprocess quickly to first evaluate the total amount
 of work to do before beginning the real processing.
 
-To illustrate the importance of a good progress indicator, let's take the
+To illustrate the importance of a good progress indicator, take the
 following example: you want to walk through all files of a directory and
-process their contents to do your biddings.
-
-Here is a basic program to do that:
+process their contents with some external function:
 
 .. code:: python
 
@@ -436,7 +434,7 @@ Here is a basic program to do that:
                     buf = fh.read(blocksize)
                     dosomething(buf)
 
-``process_content_no_progress()`` does the job alright, but it does not show
+``process_content_no_progress()`` does the job, but does not show
 any information about the current progress, nor how long it will take.
 
 To quickly fix that using ``tqdm``, we can use this naive approach:
@@ -485,10 +483,10 @@ now we have predictive information:
 
 However, the progress is not smooth: it increments in steps, 1 step being
 1 file processed. The problem is that we do not just walk through files tree,
-but we process the files contents. Thus, if we stumble on one big fat file,
-it will take a huge deal more time to process than other smaller files, but
-the progress bar cannot know that, because we only supplied the files count,
-so it considers that every element is of equal processing weight.
+but we process the files contents. Thus, if we stumble on one very large file
+which takes a great deal more time to process than other smaller files,
+the progress bar
+will still considers that file is of equal processing weight.
 
 To fix this, we should use another indicator than the files count: the total
 sum of all files sizes. This would be more pertinent since the data we
@@ -525,6 +523,7 @@ predicted time and statistics:
 
 47%|██████████████████▍\                    \| 152K/321K [00:03<00:03, 46.2KB/s]
 
+
 Contributions
 -------------
 
@@ -551,7 +550,7 @@ file for more information.
 License
 -------
 
-`MIT LICENSE <https://raw.githubusercontent.com/tqdm/tqdm/master/LICENSE>`__.
+Mostly `CC, MIT licence <https://raw.githubusercontent.com/tqdm/tqdm/master/LICENSE>`__.
 
 
 Authors

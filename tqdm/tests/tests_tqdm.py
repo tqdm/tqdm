@@ -13,6 +13,9 @@ try:
     from StringIO import StringIO
 except:
     from io import StringIO
+
+from io import IOBase  # to support unicode strings
+
 # Ensure we can use `with closing(...) as ... :` syntax
 if getattr(StringIO, '__exit__', False) and \
    getattr(StringIO, '__enter__', False):
@@ -56,13 +59,38 @@ def cpu_timify(t, timer=None):
     return timer
 
 
-RE_rate = re.compile(r'(\d+\.\d+)it/s')
+class UnicodeIO(IOBase):
+    ''' Unicode version of StringIO '''
+
+    def __init__(self, *args, **kwargs):
+        super(UnicodeIO, self).__init__(*args, **kwargs)
+        self.encoding = 'U8'  # io.StringIO supports unicode, but no encoding
+        self.text = ''
+        self.cursor = 0
+    
+    def seek(self, offset):
+        self.cursor = offset
+
+    def tell(self):
+        return self.cursor
+
+    def write(self, s):
+        self.text += s
+        self.cursor = len(self.text)
+
+    def read(self):
+        return self.text[self.cursor:]
+
+    def getvalue(self):
+        return self.text
 
 
 def get_bar(all_bars, i):
     """ Get a specific update from a whole bar traceback """
     return all_bars.strip('\r').split('\r')[i]
 
+
+RE_rate = re.compile(r'(\d+\.\d+)it/s')
 
 def progressbar_rate(bar_str):
     return float(RE_rate.search(bar_str).group(1))
@@ -136,12 +164,11 @@ def test_si_format():
 
 def test_all_defaults():
     """ Test default kwargs """
-    progressbar = tqdm(range(10))
-    assert len(progressbar) == 10
-    for _ in progressbar:
-        pass
-    import sys
-    sys.stderr.write('tests_tqdm.test_all_defaults ... ')
+    with closing(UnicodeIO()) as our_file:
+        progressbar = tqdm(range(10), file=our_file)
+        assert len(progressbar) == 10
+        for _ in progressbar:
+            pass
 
 
 def test_iterate_over_csv_rows():
@@ -472,8 +499,7 @@ def test_ascii():
         assert '20%|##' in res[3]
 
     # Test unicode bar
-    from io import StringIO as uIO  # supports unicode strings
-    with closing(uIO()) as our_file:
+    with closing(UnicodeIO()) as our_file:
         t = tqdm(total=15, file=our_file, ascii=False, mininterval=0)
         for _ in _range(3):
             t.update()
@@ -514,37 +540,31 @@ def test_close():
     with closing(StringIO()) as our_file:
         progressbar = tqdm(total=3, file=our_file, miniters=10, leave=True)
         progressbar.update(3)
-        our_file.seek(0)
-        assert '| 3/3 ' not in our_file.read()  # Should be blank
+        assert '| 3/3 ' not in our_file.getvalue()  # Should be blank
         progressbar.close()
-        our_file.seek(0)
-        assert '| 3/3 ' in our_file.read()
+        assert '| 3/3 ' in our_file.getvalue()
 
     # Without `leave` option
     with closing(StringIO()) as our_file:
-        progressbar = tqdm(total=3, file=our_file, miniters=10)
+        progressbar = tqdm(total=3, file=our_file, miniters=10, leave=False)
         progressbar.update(3)
         progressbar.close()
-        our_file.seek(0)
-        assert '| 3/3 ' not in our_file.read()  # Should be blank
+        assert '| 3/3 ' not in our_file.getvalue()  # Should be blank
 
     # With all updates
     with closing(StringIO()) as our_file:
         with tqdm(total=3, file=our_file, miniters=0, mininterval=0,
                   leave=True) as progressbar:
             progressbar.update(3)
-            our_file.seek(0)
-            res = our_file.read()
+            res = our_file.getvalue()
             assert '| 3/3 ' in res  # Should be blank
         # close() called
-        our_file.seek(0)
         try:
-            assert res + '\n' == our_file.read()
+            assert res + '\n' == our_file.getvalue()
         except AssertionError:
-            our_file.seek(0)
             raise AssertionError('\n'.join(
                 ('expected extra line (\\n) after `close`:',
-                 'before:', res, 'closed:', our_file.read(), 'end debug\n')))
+                 'before:', repr(res), 'closed:', repr(our_file.getvalue()), 'end debug\n')))
 
 
 def test_smoothing():
@@ -683,7 +703,8 @@ def test_nested():
     for i in trange(2, file=our_file, miniters=1, mininterval=0,
                     maxinterval=0, desc='outer loop', leave=True):
         for j in trange(4, file=our_file, miniters=1, mininterval=0,
-                        maxinterval=0, desc='inner loop', nested=True):
+                        maxinterval=0, desc='inner loop', leave=False,
+                        nested=True):
             pass
     our_file.seek(0)
     out = our_file.read()
