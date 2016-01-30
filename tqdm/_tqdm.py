@@ -616,8 +616,8 @@ class tqdm(object):
                                     (1 - smoothing) * miniters
 
                         # Store old values for next call
-                        last_print_n = n
-                        last_print_t = cur_t
+                        self.n = self.last_print_n = last_print_n = n
+                        self.last_print_t = last_print_t = cur_t
 
             # Closing the progress bar.
             # Update some internal variables for close().
@@ -784,6 +784,10 @@ class tqdm(object):
         Force refresh the display of this bar
         """
         self.moveto(self.pos)
+        self.fp.write('\r')
+        self.fp.write(' ' * self.ncols)  # clear up line (can't rely on sp(''))
+        self.fp.write('\r')
+        # Print current/last bar state
         self.fp.write(self.__repr__())
         self.moveto(-self.pos)
 
@@ -792,7 +796,8 @@ class tqdm(object):
         Clear current bar display
         """
         self.moveto(self.pos)
-        self.sp('')  # clear up this bar
+        self.fp.write('\r')
+        self.fp.write(' ' * self.ncols)  # clear up this bar
         self.fp.write('\r')  # place cursor back at the beginning of line
         self.moveto(-self.pos)
 
