@@ -251,10 +251,13 @@ class tqdm(object):
                 n_fmt, unit, elapsed_str, rate_fmt)
 
     def __new__(cls, *args, **kwargs):
+        # Create a new instance
         instance = object.__new__(cls)
+        # Add to the list of instances
         if "_instances" not in cls.__dict__:
             cls._instances = WeakSet()
         cls._instances.add(instance)
+        # Return the instance
         return instance
 
     @classmethod
@@ -281,6 +284,22 @@ class tqdm(object):
                     inst.pos -= 1
         except KeyError:
             pass
+
+    @classmethod
+    def write(cls, s, file=sys.stdout, end="\n"):
+        """
+        Print a message via tqdm (without overlap with bars)
+        """
+        # Clear all bars
+        for inst in cls._instances:
+            inst.clear()
+        # Write the message
+        file.write(s)
+        file.write(end)
+        # Force refresh display of all bars
+        for inst in cls._instances:
+            inst.refresh()
+        # TODO: make a list with all instances including absolutely positioned ones?
 
     def __init__(self, iterable=None, desc=None, total=None, leave=True,
                  file=sys.stderr, ncols=None, mininterval=0.1,
@@ -598,8 +617,8 @@ class tqdm(object):
                                     (1 - smoothing) * miniters
 
                         # Store old values for next call
-                        last_print_n = n
-                        last_print_t = cur_t
+                        self.n = self.last_print_n = last_print_n = n
+                        self.last_print_t = last_print_t = cur_t
 
             # Closing the progress bar.
             # Update some internal variables for close().
@@ -757,6 +776,28 @@ class tqdm(object):
 
     def moveto(self, n):
         self.fp.write(_unicode('\n' * n + _term_move_up() * -n))
+
+    def refresh(self):
+        """
+        Force refresh the display of this bar
+        """
+        self.moveto(self.pos)
+        self.fp.write('\r')
+        self.fp.write(' ' * self.ncols)  # clear up line (can't rely on sp(''))
+        self.fp.write('\r')
+        # Print current/last bar state
+        self.fp.write(self.__repr__())
+        self.moveto(-self.pos)
+
+    def clear(self):
+        """
+        Clear current bar display
+        """
+        self.moveto(self.pos)
+        self.fp.write('\r')
+        self.fp.write(' ' * self.ncols)  # clear up this bar
+        self.fp.write('\r')  # place cursor back at the beginning of line
+        self.moveto(-self.pos)
 
 
 def trange(*args, **kwargs):
