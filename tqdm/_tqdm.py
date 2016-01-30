@@ -14,6 +14,7 @@ from __future__ import division, absolute_import
 from ._utils import _supports_unicode, _environ_cols_wrapper, _range, _unich, \
     _term_move_up, _unicode
 import sys
+import string
 from time import time
 
 
@@ -92,7 +93,12 @@ class tqdm(object):
 
         def print_status(s):
             len_s = len(s)
-            fp.write('\r' + s + (' ' * max(last_printed_len[0] - len_s, 0)))
+            s = '\r' + s + (' ' * max(last_printed_len[0] - len_s, 0))
+            try:
+                fp.write(s)
+            except UnicodeEncodeError:
+                # If error, filter out all non-ascii characters
+                fp.write( filter(lambda x: x in string.printable, s) )
             fp.flush()
             last_printed_len[0] = len_s
         return print_status
