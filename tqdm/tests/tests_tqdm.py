@@ -514,37 +514,31 @@ def test_close():
     with closing(StringIO()) as our_file:
         progressbar = tqdm(total=3, file=our_file, miniters=10, leave=True)
         progressbar.update(3)
-        our_file.seek(0)
-        assert '| 3/3 ' not in our_file.read()  # Should be blank
+        assert '| 3/3 ' not in our_file.getvalue()  # Should be blank
         progressbar.close()
-        our_file.seek(0)
-        assert '| 3/3 ' in our_file.read()
+        assert '| 3/3 ' in our_file.getvalue()
 
     # Without `leave` option
     with closing(StringIO()) as our_file:
-        progressbar = tqdm(total=3, file=our_file, miniters=10)
+        progressbar = tqdm(total=3, file=our_file, miniters=10, leave=False)
         progressbar.update(3)
         progressbar.close()
-        our_file.seek(0)
-        assert '| 3/3 ' not in our_file.read()  # Should be blank
+        assert '| 3/3 ' not in our_file.getvalue()  # Should be blank
 
     # With all updates
     with closing(StringIO()) as our_file:
         with tqdm(total=3, file=our_file, miniters=0, mininterval=0,
                   leave=True) as progressbar:
             progressbar.update(3)
-            our_file.seek(0)
-            res = our_file.read()
+            res = our_file.getvalue()
             assert '| 3/3 ' in res  # Should be blank
         # close() called
-        our_file.seek(0)
         try:
-            assert res + '\n' == our_file.read()
+            assert res + '\n' == our_file.getvalue()
         except AssertionError:
-            our_file.seek(0)
             raise AssertionError('\n'.join(
                 ('expected extra line (\\n) after `close`:',
-                 'before:', res, 'closed:', our_file.read(), 'end debug\n')))
+                 'before:', repr(res), 'closed:', repr(our_file.getvalue()), 'end debug\n')))
 
 
 def test_smoothing():
@@ -683,7 +677,8 @@ def test_nested():
     for i in trange(2, file=our_file, miniters=1, mininterval=0,
                     maxinterval=0, desc='outer loop', leave=True):
         for j in trange(4, file=our_file, miniters=1, mininterval=0,
-                        maxinterval=0, desc='inner loop', nested=True):
+                        maxinterval=0, desc='inner loop', leave=False,
+                        nested=True):
             pass
     our_file.seek(0)
     out = our_file.read()
