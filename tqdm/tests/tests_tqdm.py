@@ -44,7 +44,13 @@ if os.name == 'nt':
     except:
         nt_and_no_colorama = True
 
+# Regex definitions
+# List of control characters
+CTRLCHR = [r'\r', r'\n', r'\x1b\[A']  # Need to escape [ for regex
+# Regular expressions compilation
 RE_rate = re.compile(r'(\d+\.\d+)it/s')
+RE_ctrlchr = re.compile("(%s)" % '|'.join(CTRLCHR))  # Match control chars
+RE_ctrlchr_excl = re.compile('|'.join(CTRLCHR))  # Match and exclude ctrl chars
 
 
 class DiscreteTimer(object):
@@ -115,15 +121,12 @@ class UnicodeIO(IOBase):
         return self.text
 
 
-def get_bar(all_bars, i, seek_read=True):
+def get_bar(all_bars, i):
     """ Get a specific update from a whole bar traceback """
-    if seek_read:
-        all_bars.seek(0)
-    return (all_bars.read() if seek_read else
-            all_bars).strip('\r').split('\r')[i]
-
-
-RE_rate = re.compile(r'(\d+\.\d+)it/s')
+    # Split according to any used control characters
+    bars_split = RE_ctrlchr_excl.split(all_bars)
+    bars_split = list(filter(None, bars_split))  # filter out empty splits
+    return bars_split[i]
 
 
 def progressbar_rate(bar_str):
@@ -201,10 +204,10 @@ def test_si_format():
 def test_all_defaults():
     """ Test default kwargs """
     with closing(UnicodeIO()) as our_file:
-        progressbar = tqdm(range(10), file=our_file)
-        assert len(progressbar) == 10
-        for _ in progressbar:
-            pass
+        with tqdm(range(10), file=our_file) as progressbar:
+            assert len(progressbar) == 10
+            for _ in progressbar:
+                pass
     import sys
     # restore stdout/stderr output for `nosetest` interface
     try:
@@ -685,9 +688,9 @@ def test_smoothing():
             t.close()
             assert len(tqdm._instances) == n_old - 1
             # Get result for iter-based bar
-            a = progressbar_rate(get_bar(our_file, 3))
+            a = progressbar_rate(get_bar(our_file.getvalue(), 3))
         # Get result for manually updated bar
-        a2 = progressbar_rate(get_bar(our_file2, 3))
+        a2 = progressbar_rate(get_bar(our_file2.getvalue(), 3))
 
     # 2nd case: use max smoothing (= instant rate)
     with closing(StringIO()) as our_file2:
@@ -708,9 +711,9 @@ def test_smoothing():
                     t.update()
             t.close()
             # Get result for iter-based bar
-            b = progressbar_rate(get_bar(our_file, 3))
+            b = progressbar_rate(get_bar(our_file.getvalue(), 3))
         # Get result for manually updated bar
-        b2 = progressbar_rate(get_bar(our_file2, 3))
+        b2 = progressbar_rate(get_bar(our_file2.getvalue(), 3))
 
     # 3rd case: use medium smoothing
     with closing(StringIO()) as our_file2:
@@ -732,12 +735,12 @@ def test_smoothing():
             t2.close()
             t.close()
             # Get result for iter-based bar
-            c = progressbar_rate(get_bar(our_file, 3))
+            c = progressbar_rate(get_bar(our_file.getvalue(), 3))
         # Get result for manually updated bar
-        c2 = progressbar_rate(get_bar(our_file2, 3))
+        c2 = progressbar_rate(get_bar(our_file2.getvalue(), 3))
 
     # Check that medium smoothing's rate is between no and max smoothing rates
-    assert a == c < b
+    assert a < c < b
     assert a2 < c2 < b2
 
 
@@ -796,8 +799,8 @@ def test_unpause():
         timer.sleep(0.01)
         t.update()
         t.close()
-        r_before = progressbar_rate(get_bar(our_file.getvalue(), 2, False))
-        r_after = progressbar_rate(get_bar(our_file.getvalue(), 3, False))
+        r_before = progressbar_rate(get_bar(our_file.getvalue(), 2))
+        r_after = progressbar_rate(get_bar(our_file.getvalue(), 3))
     assert r_before == r_after
 
 
