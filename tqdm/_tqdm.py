@@ -91,7 +91,7 @@ class tqdm(object):
         def fp_write(s):
             try:
                 fp.write(_unicode(s))
-            except UnicodeEncodeError:
+            except UnicodeEncodeError:  # pragma: no cover
                 fp.write(repr(s))
 
         last_printed_len = [0]  # closure over mutable variable (fast)
@@ -396,7 +396,7 @@ class tqdm(object):
             if dynamic_ncols:  # pragma: no cover
                 dynamic_ncols = _environ_cols_wrapper()
                 ncols = dynamic_ncols(file)
-            else:
+            else:  # pragma: no cover
                 ncols = _environ_cols_wrapper()(file)
 
         if miniters is None:
@@ -709,8 +709,8 @@ class tqdm(object):
         def fp_write(s):
             try:
                 self.fp.write(_unicode(s))
-            except UnicodeEncodeError:
-                self.fp.write(s)
+            except UnicodeEncodeError:  # pragma: no cover
+                self.fp.write(repr(s))
 
         try:
             fp_write('')
