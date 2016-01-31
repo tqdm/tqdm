@@ -14,6 +14,7 @@ from __future__ import division, absolute_import
 from ._utils import _supports_unicode, _environ_cols_wrapper, _range, _unich, \
     _term_move_up, _unicode, WeakSet
 import sys
+import string
 from time import time
 
 
@@ -92,7 +93,7 @@ class tqdm(object):
             try:
                 fp.write(_unicode(s))
             except UnicodeEncodeError:
-                fp.write(str(s))
+                fp.write(repr(s))
 
         last_printed_len = [0]  # closure over mutable variable (fast)
 
