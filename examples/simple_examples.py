@@ -21,7 +21,7 @@ stmts = (
     ' ascii=True, desc="cool", dynamic_ncols=True):\n\tpass',
     # Nested bars
     'from tqdm import trange\nfor i in trange(10):\n\t'
-    'for j in trange(int(1e7), nested=True):\n\t\tpass',
+    'for j in trange(int(1e7), leave=False, unit_scale=True):\n\t\tpass',
     # Experimental GUI demo
     'import tqdm\nfor i in tqdm.tgrange(int(1e8)):\n\tpass',
     # Comparison to https://code.google.com/p/python-progressbar/
