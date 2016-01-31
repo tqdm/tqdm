@@ -292,7 +292,8 @@ class tqdm(object):
         """
         # Clear all bars
         for inst in cls._instances:
-            inst.clear()
+            if inst.fp == file:
+                inst.clear()
         # Write the message
         file.write(s)
         file.write(end)
