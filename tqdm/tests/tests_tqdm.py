@@ -133,6 +133,51 @@ def progressbar_rate(bar_str):
     return float(RE_rate.search(bar_str).group(1))
 
 
+def squash_ctrlchars(s):
+    """ Apply control characters in a string just like a terminal display """
+    # List of supported control codes
+    ctrlcodes = [r'\r', r'\n', r'\x1b\[A']
+
+    # Init variables
+    curline = 0  # current line in our fake terminal
+    lines = ['']  # state of our fake terminal
+
+    # Split input string by control codes
+    RE_ctrl = re.compile("(%s)" % ("|".join(ctrlcodes)), flags=re.DOTALL)
+    s_split = RE_ctrl.split(s)
+    s_split = filter(None, s_split)  # filter out empty splits
+
+    # For each control character or message
+    for nextctrl in s_split:
+        # If it's a control character, apply it
+        if nextctrl == '\r':
+            # Carriage return
+            # Go to the beginning of the line
+            # simplified here: we just empty the string
+            lines[curline] = ''
+        elif nextctrl == '\n':
+            # Newline
+            # Go to the next line
+            if curline < (len(lines) - 1):
+                # If already exists, just move cursor
+                curline += 1
+            else:
+                # Else the new line is created
+                lines.append('')
+                curline += 1
+        elif nextctrl == '\x1b[A':
+            # Move cursor up
+            if curline > 0:
+                curline -= 1
+            else:
+                raise ValueError("Cannot go up, anymore!")
+        # Else, it is a message, we print it on current line
+        else:
+            lines[curline] += nextctrl
+
+    return lines
+
+
 def test_format_interval():
     """ Test time interval format """
     format_interval = tqdm.format_interval
@@ -1029,3 +1074,35 @@ def test_repr():
     with closing(StringIO()) as our_file:
         with tqdm(total=10, ascii=True, file=our_file) as t:
             assert str(t) == '  0%|          | 0/10 [00:00<?, ?it/s]'
+
+
+@with_setup(pretest, posttest)
+def test_write():
+    """ Test write messages """
+    # Use regexp because the it and rates can change
+    #RE_split = re.compile(r'(((\x1b\[A|\r|\n)*((pos\d+) bar:\s+\d+%\|(#|\s){3,6})?)|^(?!\x1b\[A|\r|\n).+?(?=\x1b\[A|\r|\n))')  # NOQA
+
+    s = "Hello world"
+    with closing(StringIO()) as our_file:
+        t1 = tqdm(total=10, file=our_file, desc='pos0 bar', bar_format='{l_bar}',
+                                mininterval=0, miniters=1)
+        t2 = tqdm(total=10, file=our_file, desc='pos1 bar', bar_format='{l_bar}',
+                                mininterval=0, miniters=1)
+        t3 = tqdm(total=10, file=our_file, desc='pos2 bar', bar_format='{l_bar}',
+                                mininterval=0, miniters=1)
+        t1.update()
+        t2.update()
+        t3.update()
+        before = our_file.getvalue()
+        t1.write(s, file=our_file)
+        after = our_file.getvalue()
+
+        t1.close()
+        t2.close()
+        t3.close()
+
+        before_squashed = squash_ctrlchars(before)
+        after_squashed = squash_ctrlchars(after)
+        #res_before = [m[0] for m in RE_split.findall('\n'.join(before_squashed))]
+        #res_after = [m[0] for m in RE_split.findall('\n'.join(after_squashed))]
+        assert after_squashed == [s] + before_squashed
