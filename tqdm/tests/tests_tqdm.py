@@ -1077,24 +1077,65 @@ def test_repr():
 
 
 @with_setup(pretest, posttest)
+def test_clear():
+    """ Test clearing bar display """
+    with closing(StringIO()) as our_file:
+        t1 = tqdm(total=10, file=our_file, desc='pos0 bar',
+                  bar_format='{l_bar}')
+        t2 = trange(10, file=our_file, desc='pos1 bar',
+                    bar_format='{l_bar}')
+        before = squash_ctrlchars(our_file.getvalue())
+        t2.clear()
+        t1.clear()
+        after = squash_ctrlchars(our_file.getvalue())
+        t1.close()
+        t2.close()
+        assert before == ['pos0 bar:   0%|', 'pos1 bar:   0%|']
+        assert after == ['', '']
+
+
+@with_setup(pretest, posttest)
+def test_refresh():
+    """ Test refresh bar display """
+    with closing(StringIO()) as our_file:
+        t1 = tqdm(total=10, file=our_file, desc='pos0 bar',
+                  bar_format='{l_bar}', mininterval=999, miniters=999)
+        t2 = tqdm(total=10, file=our_file, desc='pos1 bar',
+                  bar_format='{l_bar}', mininterval=999, miniters=999)
+        t1.update()
+        t2.update()
+        before = squash_ctrlchars(our_file.getvalue())
+        t1.refresh()
+        t2.refresh()
+        after = squash_ctrlchars(our_file.getvalue())
+        t1.close()
+        t2.close()
+
+        # Check that refreshing indeed forced the display to use realtime state
+        assert before == [u'pos0 bar:   0%|', u'pos1 bar:   0%|']
+        assert after == [u'pos0 bar:  10%|', u'pos1 bar:  10%|']
+
+
+@with_setup(pretest, posttest)
 def test_write():
     """ Test write messages """
-    # Use regexp because the it and rates can change
-    #RE_split = re.compile(r'(((\x1b\[A|\r|\n)*((pos\d+) bar:\s+\d+%\|(#|\s){3,6})?)|^(?!\x1b\[A|\r|\n).+?(?=\x1b\[A|\r|\n))')  # NOQA
-
     s = "Hello world"
     with closing(StringIO()) as our_file:
-        t1 = tqdm(total=10, file=our_file, desc='pos0 bar', bar_format='{l_bar}',
-                                mininterval=0, miniters=1)
-        t2 = tqdm(total=10, file=our_file, desc='pos1 bar', bar_format='{l_bar}',
-                                mininterval=0, miniters=1)
-        t3 = tqdm(total=10, file=our_file, desc='pos2 bar', bar_format='{l_bar}',
-                                mininterval=0, miniters=1)
+        # Change format to keep only left part w/o bar and it/s rate
+        t1 = tqdm(total=10, file=our_file, desc='pos0 bar',
+                  bar_format='{l_bar}', mininterval=0, miniters=1)
+        t2 = trange(10, file=our_file, desc='pos1 bar', bar_format='{l_bar}',
+                    mininterval=0, miniters=1)
+        t3 = tqdm(total=10, file=our_file, desc='pos2 bar',
+                  bar_format='{l_bar}', mininterval=0, miniters=1)
         t1.update()
         t2.update()
         t3.update()
         before = our_file.getvalue()
-        t1.write(s, file=our_file)
+
+        # Write msg and see if bars are correctly redrawn below the msg
+        t1.write(s, file=our_file)  # call as an instance method
+        tqdm.write(s, file=our_file)  # call as a class method
         after = our_file.getvalue()
 
         t1.close()
@@ -1103,6 +1144,5 @@ def test_write():
 
         before_squashed = squash_ctrlchars(before)
         after_squashed = squash_ctrlchars(after)
-        #res_before = [m[0] for m in RE_split.findall('\n'.join(before_squashed))]
-        #res_after = [m[0] for m in RE_split.findall('\n'.join(after_squashed))]
-        assert after_squashed == [s] + before_squashed
+
+        assert after_squashed == [s, s] + before_squashed
