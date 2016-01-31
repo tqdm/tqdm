@@ -542,7 +542,7 @@ file for more information.
 License
 -------
 
-`MIT LICENSE <https://raw.githubusercontent.com/tqdm/tqdm/master/LICENSE>`__.
+`MIT, CC licences <https://raw.githubusercontent.com/tqdm/tqdm/master/LICENSE>`__.
 
 
 Authors
