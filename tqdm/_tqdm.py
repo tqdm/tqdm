@@ -784,8 +784,9 @@ class tqdm(object):
         Force refresh the display of this bar
         """
         self.moveto(self.pos)
+        # clear up line (can't rely on sp(''))
         self.fp.write('\r')
-        self.fp.write(' ' * self.ncols)  # clear up line (can't rely on sp(''))
+        self.fp.write(' ' * (self.ncols if self.ncols else 10))
         self.fp.write('\r')
         # Print current/last bar state
         self.fp.write(self.__repr__())
@@ -796,8 +797,9 @@ class tqdm(object):
         Clear current bar display
         """
         self.moveto(self.pos)
+        # clear up this bar
         self.fp.write('\r')
-        self.fp.write(' ' * self.ncols)  # clear up this bar
+        self.fp.write(' ' * (self.ncols if self.ncols else 10))
         self.fp.write('\r')  # place cursor back at the beginning of line
         self.moveto(-self.pos)
 
