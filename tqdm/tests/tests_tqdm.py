@@ -88,6 +88,7 @@ def posttest():
             raise EnvironmentError(
                 "{0} `tqdm` instances still in existence POST-test".format(n))
 
+
 class UnicodeIO(IOBase):
     ''' Unicode version of StringIO '''
 
@@ -96,7 +97,7 @@ class UnicodeIO(IOBase):
         self.encoding = 'U8'  # io.StringIO supports unicode, but no encoding
         self.text = ''
         self.cursor = 0
-    
+
     def seek(self, offset):
         self.cursor = offset
 
@@ -123,6 +124,7 @@ def get_bar(all_bars, i, seek_read=True):
 
 
 RE_rate = re.compile(r'(\d+\.\d+)it/s')
+
 
 def progressbar_rate(bar_str):
     return float(RE_rate.search(bar_str).group(1))
