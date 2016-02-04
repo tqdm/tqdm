@@ -10,22 +10,7 @@ from time import sleep, time
 from tqdm import trange
 from tqdm import tqdm
 
-try:
-    from StringIO import StringIO
-except:
-    from io import StringIO
-# Ensure we can use `with closing(...) as ... :` syntax
-if getattr(StringIO, '__exit__', False) and \
-   getattr(StringIO, '__enter__', False):
-    def closing(arg):
-        return arg
-else:
-    from contextlib import closing
-
-try:
-    _range = xrange
-except:
-    _range = range
+from tests_tqdm import with_setup, pretest, posttest, StringIO, closing, _range
 
 # Use relative/cpu timer to have reliable timings when there is a sudden load
 try:
@@ -64,10 +49,15 @@ def checkCpuTime(sleeptime=0.2):
 @contextmanager
 def relative_timer():
     start = process_time()
-    elapser = lambda: process_time() - start
+
+    def elapser():
+        return process_time() - start
+
     yield lambda: elapser()
     spent = process_time() - start
-    elapser = lambda: spent
+
+    def elapser():  # NOQA
+        return spent
 
 
 class MockIO(StringIO):
@@ -141,6 +131,7 @@ def simple_progress(iterable=None, total=None, file=sys.stdout, desc='',
         return update_and_print
 
 
+@with_setup(pretest, posttest)
 def test_iter_overhead():
     """ Test overhead of iteration based tqdm """
     try:
@@ -164,13 +155,12 @@ def test_iter_overhead():
                 our_file.write(a)
 
     # Compute relative overhead of tqdm against native range()
-    try:
-        assert(time_tqdm() < 3 * time_bench())
-    except AssertionError:
+    if time_tqdm() > 9 * time_bench():
         raise AssertionError('trange(%g): %f, range(%g): %f' %
                              (total, time_tqdm(), total, time_bench()))
 
 
+@with_setup(pretest, posttest)
 def test_manual_overhead():
     """ Test overhead of manual tqdm """
     try:
@@ -181,12 +171,12 @@ def test_manual_overhead():
     total = int(1e6)
 
     with closing(MockIO()) as our_file:
-        t = tqdm(total=total * 10, file=our_file, leave=True)
-        a = 0
-        with relative_timer() as time_tqdm:
-            for i in _range(total):
-                a += i
-                t.update(10)
+        with tqdm(total=total * 10, file=our_file, leave=True) as t:
+            a = 0
+            with relative_timer() as time_tqdm:
+                for i in _range(total):
+                    a += i
+                    t.update(10)
 
         a = 0
         with relative_timer() as time_bench:
@@ -195,13 +185,12 @@ def test_manual_overhead():
                 our_file.write(a)
 
     # Compute relative overhead of tqdm against native range()
-    try:
-        assert(time_tqdm() < 10 * time_bench())
-    except AssertionError:
+    if time_tqdm() > 10 * time_bench():
         raise AssertionError('tqdm(%g): %f, range(%g): %f' %
                              (total, time_tqdm(), total, time_bench()))
 
 
+@with_setup(pretest, posttest)
 def test_iter_overhead_hard():
     """ Test overhead of iteration based tqdm (hard) """
     try:
@@ -233,6 +222,7 @@ def test_iter_overhead_hard():
                              (total, time_tqdm(), total, time_bench()))
 
 
+@with_setup(pretest, posttest)
 def test_manual_overhead_hard():
     """ Test overhead of manual tqdm (hard) """
     try:
@@ -265,6 +255,7 @@ def test_manual_overhead_hard():
                              (total, time_tqdm(), total, time_bench()))
 
 
+@with_setup(pretest, posttest)
 def test_iter_overhead_simplebar_hard():
     """ Test overhead of iteration based tqdm vs simple progress bar (hard) """
     try:
@@ -298,6 +289,7 @@ def test_iter_overhead_simplebar_hard():
                              (total, time_tqdm(), total, time_bench()))
 
 
+@with_setup(pretest, posttest)
 def test_manual_overhead_simplebar_hard():
     """ Test overhead of manual tqdm vs simple progress bar (hard) """
     try:

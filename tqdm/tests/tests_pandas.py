@@ -1,21 +1,12 @@
 from nose.plugins.skip import SkipTest
 
 from tqdm import tqdm
-
-try:
-    from StringIO import StringIO
-except:
-    from io import StringIO
-# Ensure we can use `with closing(...) as ... :` syntax
-if getattr(StringIO, '__exit__', False) and \
-   getattr(StringIO, '__enter__', False):
-    def closing(arg):
-        return arg
-else:
-    from contextlib import closing
+from tests_tqdm import with_setup, pretest, posttest, StringIO, closing
 
 
+@with_setup(pretest, posttest)
 def test_pandas():
+    """ Test pandas.DataFrame.groupby(0).progress_apply """
     try:
         from numpy.random import randint
         from tqdm import tqdm_pandas
@@ -30,15 +21,18 @@ def test_pandas():
 
         our_file.seek(0)
 
-        try:
-            # don't expect final output since no `leave` and
-            # high dynamic `miniters`
-            assert '100%|##########| 101/101' not in our_file.read()
-        except:
-            raise AssertionError('Did not expect:\n\t100%|##########| 101/101')
+        # don't expect final output since no `leave` and
+        # high dynamic `miniters`
+        nexres = '100%|##########| 101/101'
+        if nexres in our_file.read():
+            our_file.seek(0)
+            raise AssertionError("\nDid not expect:\n{0}\nIn:{1}\n".format(
+                nexres, our_file.read()))
 
 
+@with_setup(pretest, posttest)
 def test_pandas_leave():
+    """ Test pandas with `leave=True` """
     try:
         from numpy.random import randint
         from tqdm import tqdm_pandas
@@ -53,10 +47,8 @@ def test_pandas_leave():
 
         our_file.seek(0)
 
-        try:
-            assert '100%|##########| 101/101' in our_file.read()
-        except:
+        exres = '100%|##########| 101/101'
+        if exres not in our_file.read():
             our_file.seek(0)
-            raise AssertionError('\n'.join(('Expected:',
-                                            '100%|##########| 101/101', 'Got:',
-                                            our_file.read())))
+            raise AssertionError("\nExpected:\n{0}\nIn:{1}\n".format(
+                exres, our_file.read()))

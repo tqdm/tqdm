@@ -12,7 +12,7 @@ Usage:
 from __future__ import division, absolute_import
 # import compatibility functions and utilities
 from ._utils import _supports_unicode, _environ_cols_wrapper, _range, _unich, \
-    _term_move_up, _unicode
+    _term_move_up, _unicode, WeakSet
 import sys
 from time import time
 
@@ -88,11 +88,17 @@ class tqdm(object):
         if not getattr(fp, 'flush', False):  # pragma: no cover
             fp.flush = lambda: None
 
+        def fp_write(s):
+            try:
+                fp.write(_unicode(s))
+            except UnicodeEncodeError:  # pragma: no cover
+                fp.write(repr(s))
+
         last_printed_len = [0]  # closure over mutable variable (fast)
 
         def print_status(s):
             len_s = len(s)
-            fp.write('\r' + s + (' ' * max(last_printed_len[0] - len_s, 0)))
+            fp_write('\r' + s + (' ' * max(last_printed_len[0] - len_s, 0)))
             fp.flush()
             last_printed_len[0] = len_s
         return print_status
@@ -163,7 +169,7 @@ class tqdm(object):
         rate_fmt = ((format_sizeof(inv_rate if inv_rate else rate)
                     if unit_scale else
                     '{0:5.2f}'.format(inv_rate if inv_rate else rate))
-                    if elapsed else '?') \
+                    if rate else '?') \
             + ('s' if inv_rate else unit) + '/' + (unit if inv_rate else 's')
 
         if unit_scale:
@@ -247,12 +253,44 @@ class tqdm(object):
             return (prefix if prefix else '') + '{0}{1} [{2}, {3}]'.format(
                 n_fmt, unit, elapsed_str, rate_fmt)
 
-    def __init__(self, iterable=None, desc=None, total=None, leave=False,
+    def __new__(cls, *args, **kwargs):
+        instance = object.__new__(cls)
+        if "_instances" not in cls.__dict__:
+            cls._instances = WeakSet()
+        cls._instances.add(instance)
+        return instance
+
+    @classmethod
+    def _get_free_pos(cls, instance=None):
+        """ Skips specified instance """
+        try:
+            return max(inst.pos for inst in cls._instances
+                       if inst is not instance) + 1
+        except ValueError as e:
+            if "arg is an empty sequence" in str(e):
+                return 0
+            raise  # pragma: no cover
+
+    @classmethod
+    def _decr_instances(cls, instance):
+        """
+        Remove from list and reposition other bars
+        so that newer bars won't overlap previous bars
+        """
+        try:  # in case instance was explicitly positioned, it won't be in set
+            cls._instances.remove(instance)
+            for inst in cls._instances:
+                if inst.pos > instance.pos:
+                    inst.pos -= 1
+        except KeyError:
+            pass
+
+    def __init__(self, iterable=None, desc=None, total=None, leave=True,
                  file=sys.stderr, ncols=None, mininterval=0.1,
-                 maxinterval=10.0, miniters=None, ascii=None,
-                 disable=False, unit='it', unit_scale=False,
-                 dynamic_ncols=False, smoothing=0.3, nested=False,
-                 bar_format=None, initial=0, gui=False):
+                 maxinterval=10.0, miniters=None, ascii=None, disable=False,
+                 unit='it', unit_scale=False, dynamic_ncols=False,
+                 smoothing=0.3, bar_format=None, initial=0, position=None,
+                 gui=False, **kwargs):
         """
         Parameters
         ----------
@@ -268,7 +306,7 @@ class tqdm(object):
             True and this parameter needs subsequent updating, specify an
             initial arbitrary large positive integer, e.g. int(9e9).
         leave  : bool, optional
-            If [default: False], removes all traces of the progressbar
+            If [default: True], removes all traces of the progressbar
             upon termination of iteration.
         file  : `io.TextIOWrapper` or `io.StringIO`, optional
             Specifies where to output the progress messages
@@ -307,10 +345,6 @@ class tqdm(object):
             Exponential moving average smoothing factor for speed estimates
             (ignored in GUI mode). Ranges from 0 (average speed) to 1
             (current/instantaneous speed) [default: 0.3].
-        nested  : bool, optional
-            Whether this iterable is nested in another one also managed by
-            `tqdm` [default: False]. Allows display of multiple, nested
-            progress bars.
         bar_format  : str, optional
             Specify a custom bar string formatting. May impact performance.
             [default: '{l_bar}{bar}{r_bar}'], where l_bar is
@@ -321,6 +355,9 @@ class tqdm(object):
         initial : int, optional
             The initial counter value. Useful when restarting a progress
             bar [default: 0].
+        position  : int, optional
+            Specify the line offset to print this bar [default: 0].
+            Useful to manage multiple bars at once (eg, from threads).
         gui  : bool, optional
             WARNING: internal parameter - do not use.
             Use tqdm_gui(...) instead. If set, will attempt to use
@@ -330,6 +367,23 @@ class tqdm(object):
         -------
         out  : decorated iterator.
         """
+        if disable:
+            self.iterable = iterable
+            self.disable = disable
+            self.pos = self._get_free_pos(self)
+            self._instances.remove(self)
+            return
+
+        if kwargs:
+            self.disable = True
+            self.pos = self._get_free_pos(self)
+            self._instances.remove(self)
+            raise (DeprecationWarning("nested is deprecated and"
+                                      " automated.\nUse position instead"
+                                      " for manual control")
+                   if "nested" in kwargs else
+                   Warning("Unknown argument(s): " + str(kwargs)))
+
         # Preprocess the arguments
         if total is None and iterable is not None:
             try:
@@ -342,7 +396,7 @@ class tqdm(object):
             if dynamic_ncols:  # pragma: no cover
                 dynamic_ncols = _environ_cols_wrapper()
                 ncols = dynamic_ncols(file)
-            else:
+            else:  # pragma: no cover
                 ncols = _environ_cols_wrapper()(file)
 
         if miniters is None:
@@ -387,24 +441,26 @@ class tqdm(object):
         self.smoothing = smoothing
         self.avg_time = None
         self._time = time
-        # if nested, at initial sp() call we replace '\r' by '\n' to
-        # not overwrite the outer progress bar
-        self.nested = nested
         self.bar_format = bar_format
 
         # Init the iterations counters
         self.last_print_n = initial
         self.n = initial
 
+        # if nested, at initial sp() call we replace '\r' by '\n' to
+        # not overwrite the outer progress bar
+        self.pos = self._get_free_pos(self) if position is None else position
+
         if not gui:
             # Initialize the screen printer
             self.sp = self.status_printer(self.fp)
-            if not disable:
-                if self.nested:
-                    self.fp.write('\n')
-                self.sp(self.format_meter(self.n, total, 0,
-                        (dynamic_ncols(file) if dynamic_ncols else ncols),
-                        self.desc, ascii, unit, unit_scale, None, bar_format))
+            if self.pos:
+                self.moveto(self.pos)
+            self.sp(self.format_meter(self.n, total, 0,
+                    (dynamic_ncols(file) if dynamic_ncols else ncols),
+                    self.desc, ascii, unit, unit_scale, None, bar_format))
+            if self.pos:
+                self.moveto(-self.pos)
 
         # Init the time counter
         self.start_t = self.last_print_t = self._time()
@@ -418,6 +474,42 @@ class tqdm(object):
     def __exit__(self, *exc):
         self.close()
         return False
+
+    def __del__(self):
+        self.close()
+
+    def __repr__(self):
+        return self.format_meter(self.n, self.total, time() - self.last_print_t,
+                                 self.ncols, self.desc, self.ascii, self.unit,
+                                 self.unit_scale, 1 / self.avg_time
+                                 if self.avg_time else None, self.bar_format)
+
+    def __lt__(self, other):
+        # try:
+        return self.pos < other.pos
+        # except AttributeError:
+        #     return self.start_t < other.start_t
+
+    def __le__(self, other):
+        return (self < other) or (self == other)
+
+    def __eq__(self, other):
+        # try:
+        return self.pos == other.pos
+        # except AttributeError:
+        #     return self.start_t == other.start_t
+
+    def __ne__(self, other):
+        return not (self == other)
+
+    def __gt__(self, other):
+        return not (self <= other)
+
+    def __ge__(self, other):
+        return not (self < other)
+
+    def __hash__(self):
+        return id(self)
 
     def __iter__(self):
         ''' Backward-compatibility to use: for x in tqdm(iterable) '''
@@ -475,12 +567,19 @@ class tqdm(object):
                                 else smoothing * delta_t / delta_it + \
                                 (1 - smoothing) * avg_time
 
+                        if self.pos:
+                            self.moveto(self.pos)
+
+                        # Printing the bar's update
                         sp(format_meter(
                             n, self.total, elapsed,
                             (dynamic_ncols(self.fp) if dynamic_ncols
                              else ncols),
                             self.desc, ascii, unit, unit_scale,
                             1 / avg_time if avg_time else None, bar_format))
+
+                        if self.pos:
+                            self.moveto(-self.pos)
 
                         # If no `miniters` was specified, adjust automatically
                         # to the maximum iteration rate seen so far.
@@ -552,6 +651,10 @@ class tqdm(object):
                     raise DeprecationWarning('Please use tqdm_gui(...)'
                                              ' instead of tqdm(..., gui=True)')
 
+                if self.pos:
+                    self.moveto(self.pos)
+
+                # Print bar's update
                 self.sp(self.format_meter(
                     self.n, self.total, elapsed,
                     (self.dynamic_ncols(self.fp) if self.dynamic_ncols
@@ -559,6 +662,9 @@ class tqdm(object):
                     self.desc, self.ascii, self.unit, self.unit_scale,
                     1 / self.avg_time if self.avg_time else None,
                     self.bar_format))
+
+                if self.pos:
+                    self.moveto(-self.pos)
 
                 # If no `miniters` was specified, adjust automatically to the
                 # maximum iteration rate seen so far.
@@ -588,6 +694,34 @@ class tqdm(object):
         if self.disable:
             return
 
+        # Prevent multiple closures
+        self.disable = True
+
+        # decrement instance pos and remove from internal set
+        pos = self.pos
+        self._decr_instances(self)
+
+        # GUI mode
+        if not hasattr(self, "sp"):
+            return
+
+        # annoyingly, _supports_unicode isn't good enough
+        def fp_write(s):
+            try:
+                self.fp.write(_unicode(s))
+            except UnicodeEncodeError:  # pragma: no cover
+                self.fp.write(repr(s))
+
+        try:
+            fp_write('')
+        except ValueError as e:
+            if 'closed' in str(e):
+                return
+            raise  # pragma: no cover
+
+        if pos:
+            self.moveto(pos)
+
         if self.leave:
             if self.last_print_n < self.n:
                 cur_t = self._time()
@@ -598,10 +732,16 @@ class tqdm(object):
                      else self.ncols),
                     self.desc, self.ascii, self.unit, self.unit_scale, None,
                     self.bar_format))
-            self.fp.write('\r' + _term_move_up() if self.nested else '\n')
+            if pos:
+                self.moveto(-pos)
+            else:
+                fp_write('\n')
         else:
             self.sp('')  # clear up last bar
-            self.fp.write('\r' + _term_move_up() if self.nested else '\r')
+            if pos:
+                self.moveto(-pos)
+            else:
+                fp_write('\r')
 
     def unpause(self):
         """
@@ -616,6 +756,9 @@ class tqdm(object):
         Set/modify description of the progress bar.
         """
         self.desc = desc + ': ' if desc else ''
+
+    def moveto(self, n):
+        self.fp.write(_unicode('\n' * n + _term_move_up() * -n))
 
 
 def trange(*args, **kwargs):
