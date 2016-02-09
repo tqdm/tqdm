@@ -6,10 +6,12 @@ for their respective work, and release the work under the MIT licence
 Exceptions or notable authors are listed below
 in reverse chronological order:
 
-* [CC-BY-SA-4.0] 2015-2016 Casper da Costa-Luis
-  [casperdcl](https://github.com/casperdcl)
+* [LGPLv3] 2015-2016 Casper da Costa-Luis
+  [casperdcl](https://github.com/casperdcl).
+  An alternative [CC-BY-SA-4.0] licence is also available.
 * MIT 2016 [PR #96] Google Inc.
 
+  [LGPLv3]: http://www.gnu.org/licenses/lgpl-3.0.en.html
   [CC-BY-SA-4.0]: http://creativecommons.org/licenses/by-sa/4.0/
   [PR #96]: https://github.com/tqdm/tqdm/pull/96
 
