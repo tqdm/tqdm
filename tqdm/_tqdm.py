@@ -629,7 +629,7 @@ class tqdm(object):
         if self.disable:
             return
 
-        if n < 1:
+        if n < 0:
             raise ValueError("n ({0}) cannot be less than 1".format(n))
         self.n += n
 

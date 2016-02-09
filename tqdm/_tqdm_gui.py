@@ -230,7 +230,7 @@ class tqdm_gui(tqdm):  # pragma: no cover
         if self.disable:
             return
 
-        if n < 1:
+        if n < 0:
             n = 1
         self.n += n
 

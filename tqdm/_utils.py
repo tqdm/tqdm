@@ -19,7 +19,7 @@ except NameError:  # pragma: no cover
 try:  # pragma: no cover
     import colorama
     colorama.init()
-except ImportError:  # pragma: no cover
+except:  # pragma: no cover
     colorama = None
 
 try:  # pragma: no cover
