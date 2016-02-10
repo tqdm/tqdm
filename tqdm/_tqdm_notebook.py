@@ -77,7 +77,7 @@ class tqdm_notebook(tqdm):  # pragma: no cover
         container = HBox(children=[pbar, ptext])
         display(container)
 
-        def print_status(s='', close=False):
+        def print_status(s='', close=False, bar_style=None):
             # Clear previous output (really necessary?)
             # clear_output(wait=1)
 
@@ -98,6 +98,9 @@ class tqdm_notebook(tqdm):  # pragma: no cover
             s = s.replace('||', '')  # remove inesthetical pipes
             s = escape(s)  # html escape special characters (like '?')
             ptext.value = s
+
+            if bar_style:
+                pbar.bar_style = bar_style
 
             # Special signal to close the bar
             if close:
@@ -131,9 +134,25 @@ class tqdm_notebook(tqdm):  # pragma: no cover
                     self.desc, self.ascii, self.unit, self.unit_scale, None,
                     self.bar_format))
 
+    def __iter__(self, *args, **kwargs):
+        try:
+            super(tqdm_notebook, self).__iter__(*args, **kwargs)
+        except Exception as exc:
+            self.sp(bar_style='danger')
+            raise exc
+
+    def update(self, *args, **kwargs):
+        try:
+            super(tqdm_notebook, self).update(*args, **kwargs)
+        except Exception as exc:
+            self.sp(bar_style='danger')
+            raise exc
+
     def close(self, *args, **kwargs):
         super(tqdm_notebook, self).close(*args, **kwargs)
-        if not self.leave:
+        if self.leave:
+            self.sp(bar_style='success')
+        else:
             self.sp(s='', close=True)
 
 
