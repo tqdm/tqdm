@@ -549,7 +549,7 @@ file for more information.
 License
 -------
 
-Mostly `LGPLv3, MIT licence <https://raw.githubusercontent.com/tqdm/tqdm/master/LICENSE>`__. A CC-BY-SA alternative is also available.
+Multiple licences, mostly `MPLv2.0, MIT licences <https://raw.githubusercontent.com/tqdm/tqdm/master/LICENSE>`__.
 
 
 Authors
