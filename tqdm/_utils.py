@@ -21,6 +21,8 @@ try:  # pragma: no cover
     colorama.init()
 except ImportError:  # pragma: no cover
     colorama = None
+except:  # pragma: no cover
+    raise  # try updating colorama?
 
 try:  # pragma: no cover
     from weakref import WeakSet
@@ -35,7 +37,14 @@ def _is_utf(encoding):
 def _supports_unicode(file):
     if not getattr(file, 'encoding', None):
         return False
-    return _is_utf(file.encoding)
+    if _is_utf(file.encoding):
+        try:
+            file.write(_unich(257) + '\r \r')
+        except (UnicodeEncodeError, UnicodeDecodeError):  # pragma: no cover
+            return False
+        else:  # pragma: no cover
+            return True
+    return False  # pragma: no cover
 
 
 def _environ_cols_wrapper():  # pragma: no cover

@@ -89,10 +89,7 @@ class tqdm(object):
             fp.flush = lambda: None
 
         def fp_write(s):
-            try:
-                fp.write(_unicode(s))
-            except UnicodeEncodeError:  # pragma: no cover
-                fp.write(repr(s))
+            fp.write(_unicode(s))
 
         last_printed_len = [0]  # closure over mutable variable (fast)
 
@@ -414,8 +411,8 @@ class tqdm(object):
         if ascii is None:
             ascii = not _supports_unicode(file)
 
-        # Convert bar format into unicode since terminal uses unicode
         if bar_format and not ascii:
+            # Convert bar format into unicode since terminal uses unicode
             bar_format = _unicode(bar_format)
 
         if smoothing is None:
@@ -629,7 +626,7 @@ class tqdm(object):
         if self.disable:
             return
 
-        if n < 1:
+        if n < 0:
             raise ValueError("n ({0}) cannot be less than 1".format(n))
         self.n += n
 
@@ -707,10 +704,7 @@ class tqdm(object):
 
         # annoyingly, _supports_unicode isn't good enough
         def fp_write(s):
-            try:
-                self.fp.write(_unicode(s))
-            except UnicodeEncodeError:  # pragma: no cover
-                self.fp.write(repr(s))
+            self.fp.write(_unicode(s))
 
         try:
             fp_write('')
