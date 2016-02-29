@@ -549,7 +549,7 @@ file for more information.
 License
 -------
 
-Mostly `CC, MIT licence <https://raw.githubusercontent.com/tqdm/tqdm/master/LICENSE>`__.
+Multiple licences, mostly `MPLv2.0, MIT licences <https://raw.githubusercontent.com/tqdm/tqdm/master/LICENCE>`__.
 
 
 Authors
