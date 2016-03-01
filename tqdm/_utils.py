@@ -37,14 +37,15 @@ def _is_utf(encoding):
 def _supports_unicode(file):
     if not getattr(file, 'encoding', None):
         return False
-    if _is_utf(file.encoding):
-        try:
-            file.write(_unich(257) + '\r \r')
-        except (UnicodeEncodeError, UnicodeDecodeError):  # pragma: no cover
-            return False
-        else:  # pragma: no cover
-            return True
-    return False  # pragma: no cover
+    # if _is_utf(file.encoding):
+    #     try:
+    #         file.write(_unich(257) + '\r \r')
+    #     except (UnicodeEncodeError, UnicodeDecodeError):  # pragma: no cover
+    #         return False
+    #     else:  # pragma: no cover
+    #         return True
+    # return False  # pragma: no cover
+    return _is_utf(file.encoding)
 
 
 def _environ_cols_wrapper():  # pragma: no cover
