@@ -1,5 +1,5 @@
 # Definition of the version number
-version_info = 4, 2, 0  # major, minor, patch, -extra
+version_info = 4, 3, 0  # major, minor, patch, -extra
 
 # Nice string for the version
 __version__ = '.'.join(map(str, version_info)).replace('.-', '-').strip('.-')

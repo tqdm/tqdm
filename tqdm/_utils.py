@@ -31,19 +31,15 @@ except ImportError:  # pragma: nocover
 
 
 def _is_utf(encoding):
-    return ('U8' == encoding) or ('utf' in encoding) or ('UTF' in encoding)
+    return encoding.lower().startswith('utf-') or ('U8' == encoding)
 
 
 def _supports_unicode(file):
     if not getattr(file, 'encoding', None):
         return False
-    if _is_utf(file.encoding):
-        try:
-            file.write(_unich(257) + '\r \r')
-        except (UnicodeEncodeError, UnicodeDecodeError):  # pragma: no cover
-            return False
-        else:  # pragma: no cover
-            return True
+    if not getattr(file, 'interface', None):  # pragma: no cover
+        # FakeStreams from things like bpython-curses can lie
+        return _is_utf(file.encoding)
     return False  # pragma: no cover
 
 
