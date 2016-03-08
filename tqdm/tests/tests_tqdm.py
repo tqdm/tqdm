@@ -586,7 +586,7 @@ def test_update():
             try:
                 progressbar.update(-10)
             except ValueError as e:
-                if str(e) != "n (-10) cannot be less than 1":
+                if str(e) != "n (-10) cannot be negative":
                     raise
                 progressbar.update()  # should default to +1
             else:
