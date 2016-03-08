@@ -627,7 +627,7 @@ class tqdm(object):
             return
 
         if n < 0:
-            raise ValueError("n ({0}) cannot be less than 1".format(n))
+            raise ValueError("n ({0}) cannot be negative".format(n))
         self.n += n
 
         delta_it = self.n - self.last_print_n  # should be n?
