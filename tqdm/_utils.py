@@ -55,8 +55,8 @@ def _environ_cols_wrapper():  # pragma: no cover
         _environ_cols = _environ_cols_windows
         if _environ_cols is None:
             _environ_cols = _environ_cols_tput
-    if current_os in ['Linux', 'Darwin', 'SunOS', 'FreeBSD'] or \
-            current_os.startswith('CYGWIN'):
+    if any(current_os.startswith(i) for i in
+           ['CYGWIN', 'MSYS', 'Linux', 'Darwin', 'SunOS', 'FreeBSD']):
         _environ_cols = _environ_cols_linux
     return _environ_cols
 
