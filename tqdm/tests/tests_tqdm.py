@@ -306,8 +306,8 @@ def test_max_interval():
             cpu_timify(t, timer)
 
             # without maxinterval
-            t2 = tqdm(total=total, file=our_file2, miniters=None, mininterval=0,
-                      smoothing=1, maxinterval=None)
+            t2 = tqdm(total=total, file=our_file2, miniters=None,
+                      mininterval=0, smoothing=1, maxinterval=None)
             cpu_timify(t2, timer)
 
             assert t.dynamic_miniters
@@ -1029,36 +1029,3 @@ def test_repr():
     with closing(StringIO()) as our_file:
         with tqdm(total=10, ascii=True, file=our_file) as t:
             assert str(t) == '  0%|          | 0/10 [00:00<?, ?it/s]'
-
-
-# WARNING: this should be the last test as it messes with sys.stdin, argv
-@with_setup(pretest, posttest)
-def test_main():
-    """ Test command line pipes """
-    import subprocess
-    from tqdm import main
-    from docopt import DocoptExit
-
-    ls_out = subprocess.check_output(('ls'))
-    ls = subprocess.Popen(('ls'), stdout=subprocess.PIPE)
-    res = subprocess.check_output(('python', '-m', 'tqdm'),
-                                  stdin=ls.stdout,
-                                  stderr=subprocess.STDOUT)
-    ls.wait()
-    assert (ls_out in res)
-
-    # _sys = (sys.stdin, sys.argv)
-    sys.stdin = map(str, _range(int(1e3)))
-    sys.argv = ['', '--desc', 'Test command line pipes',
-                '--ascii', 'True', '--unit_scale', 'True']
-    main()
-
-    sys.argv = ['', '--bad', 'arg',
-                '--ascii', 'True', '--unit_scale', 'True']
-    try:
-        main()
-    except DocoptExit as e:
-        if """Usage:
-    tqdm [--help | options]""" not in str(e):
-            raise
-    # sys.stdin, sys.argv = _sys
