@@ -171,7 +171,7 @@ setup(
     maintainer_email='python.tqdm@gmail.com',
     platforms=['any'],
     packages=['tqdm'],
-    entry_points={ 'console_scripts': ['tqdm=tqdm._main:main'], },
+    entry_points={'console_scripts': ['tqdm=tqdm._main:main'], },
     long_description=README_rst,
     classifiers=[
         # Trove classifiers

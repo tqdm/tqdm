@@ -30,7 +30,7 @@ def main():
     d = tqdm.__init__.__doc__
     opt_types = dict(RE_OPTS.findall(d))
     # d = RE_OPTS_SOME.sub(r'  --\1=<v>  ', d)
-    # d = RE_OPTS_BOOL.sub(r'  --\1=<v>  ', d)
+    # d = RE_OPTS_BOOL.sub(r'  --\1      ', d)
     d = RE_OPTS.sub(r'  --\1=<v>  : \2', d)
     d = d[d.find('  --desc='):d.find('Returns\n')]
     __doc__ = """
@@ -48,11 +48,7 @@ Options:
             opt_types[opt] = cast(opts['--' + opt], opt_types[opt])
         for i in tqdm(sys.stdin, **opt_types):
             sys.stdout.write(i)
-    except:
+    except:  # pragma: no cover
         sys.stderr.write(__doc__ + '\n')
         for i in sys.stdin:
             sys.stdout.write(i)
-
-
-if __name__ == '__main__':
-    main()

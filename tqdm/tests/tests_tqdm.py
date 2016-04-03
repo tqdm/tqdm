@@ -1031,9 +1031,13 @@ def test_repr():
             assert str(t) == '  0%|          | 0/10 [00:00<?, ?it/s]'
 
 
+# WARNING: this should be the last test as it messes with sys.stdin, argv
+@with_setup(pretest, posttest)
 def test_main():
     """ Test command line pipes """
     import subprocess
+    from tqdm import main
+    from docopt import DocoptExit
 
     ls_out = subprocess.check_output(('ls'))
     ls = subprocess.Popen(('ls'), stdout=subprocess.PIPE)
@@ -1042,3 +1046,19 @@ def test_main():
                                   stderr=subprocess.STDOUT)
     ls.wait()
     assert (ls_out in res)
+
+    # _sys = (sys.stdin, sys.argv)
+    sys.stdin = map(str, _range(int(1e3)))
+    sys.argv = ['', '--desc', 'Test command line pipes',
+                '--ascii', 'True', '--unit_scale', 'True']
+    main()
+
+    sys.argv = ['', '--bad', 'arg',
+                '--ascii', 'True', '--unit_scale', 'True']
+    try:
+        main()
+    except DocoptExit as e:
+        if """Usage:
+    tqdm [--help | options]""" not in str(e):
+            raise
+    # sys.stdin, sys.argv = _sys
