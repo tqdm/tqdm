@@ -31,7 +31,7 @@ It can also be executed as a module with pipes:
 
 .. code:: sh
 
-    $ seq 9999999 | python -m tqdm --unit_scale True | wc -l
+    $ seq 9999999 | tqdm --unit_scale True | wc -l
     10.0Mit [00:02, 3.58Mit/s]
     9999999
 
@@ -148,10 +148,9 @@ but in this case don't forget to ``del`` or ``close()`` at the end:
 Module
 ~~~~~~
 
-Perhaps the most wonderful use of ``tqdm`` is in a script or in the CLI.
-Simply inserting ``python -m tqdm`` between pipes will pass through all
-``stdin`` to ``stdout`` while counting lines and printing progress to
-``stderr``.
+Perhaps the most wonderful use of ``tqdm`` is in a script or on the command
+line. Simply inserting ``tqdm`` (or ``python -m tqdm``) between pipes will pass
+through all ``stdin`` to ``stdout`` while printing progress to ``stderr``.
 
 The example below demonstrated counting the number of lines in all python files
 in the current directory, with timing information included.
@@ -159,27 +158,27 @@ in the current directory, with timing information included.
 .. code:: sh
 
     $ time find . -name '*.py' -exec cat \{} \; | wc -l
-    857348
+    857365
 
-    real    0m3.666s
-    user    0m0.286s
-    sys     0m3.519s
+    real    0m3.458s
+    user    0m0.274s
+    sys     0m3.325s
 
-    $ time find . -name '*.py' -exec cat \{} \; | python -m tqdm | wc -l
-    857349it [00:04, 183288.57it/s]
-    857348
+    $ time find . -name '*.py' -exec cat \{} \; | tqdm | wc -l
+    857366it [00:03, 246471.31it/s]
+    857365
 
-    real    0m4.672s
-    user    0m1.222s
-    sys     0m4.436s
+    real    0m3.585s
+    user    0m0.862s
+    sys     0m3.358s
 
-Note that the usual arguments for ``tqdm`` can be also be specified.
+Note that the usual arguments for ``tqdm`` can also be specified.
 
 .. code:: sh
 
     $ find . -name '*.py' -exec cat \{} \; |
-        python -m tqdm --unit loc --unit_scale True --total 857349 >> /dev/null
-    100%|███████████████████████████████████| 857K/857K [00:04<00:00, 187Kloc/s]
+        tqdm --unit loc --unit_scale True --total 857366 >> /dev/null
+    100%|███████████████████████████████████| 857K/857K [00:04<00:00, 246Kloc/s]
 
 
 Documentation

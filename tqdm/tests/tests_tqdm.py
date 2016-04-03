@@ -3,6 +3,7 @@
 
 from __future__ import unicode_literals
 
+import sys
 import csv
 import re
 import os
@@ -208,7 +209,6 @@ def test_all_defaults():
             assert len(progressbar) == 10
             for _ in progressbar:
                 pass
-    import sys
     # restore stdout/stderr output for `nosetest` interface
     try:
         sys.stderr.write('\x1b[A')
@@ -1029,3 +1029,16 @@ def test_repr():
     with closing(StringIO()) as our_file:
         with tqdm(total=10, ascii=True, file=our_file) as t:
             assert str(t) == '  0%|          | 0/10 [00:00<?, ?it/s]'
+
+
+def test_main():
+    """ Test command line pipes """
+    import subprocess
+
+    ls_out = subprocess.check_output(('ls'))
+    ls = subprocess.Popen(('ls'), stdout=subprocess.PIPE)
+    res = subprocess.check_output(('python', '-m', 'tqdm'),
+                                  stdin=ls.stdout,
+                                  stderr=subprocess.STDOUT)
+    ls.wait()
+    assert (ls_out in res)
