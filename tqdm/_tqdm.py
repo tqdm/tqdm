@@ -14,6 +14,7 @@ from __future__ import division, absolute_import
 from ._utils import _supports_unicode, _environ_cols_wrapper, _range, _unich, \
     _term_move_up, _unicode, WeakSet
 import sys
+import weakref
 from time import time
 
 
@@ -28,6 +29,11 @@ class tqdm(object):
     like the original iterable, but prints a dynamically updating
     progressbar every time a value is requested.
     """
+    _file_instances = weakref.WeakKeyDictionary()
+
+    def _instances(self, file):
+        return self._file_instances.setdefault(file, WeakSet())
+
     @staticmethod
     def format_sizeof(num, suffix=''):
         """
@@ -250,37 +256,20 @@ class tqdm(object):
             return (prefix if prefix else '') + '{0}{1} [{2}, {3}]'.format(
                 n_fmt, unit, elapsed_str, rate_fmt)
 
-    def __new__(cls, *args, **kwargs):
-        instance = object.__new__(cls)
-        if "_instances" not in cls.__dict__:
-            cls._instances = WeakSet()
-        cls._instances.add(instance)
-        return instance
-
-    @classmethod
-    def _get_free_pos(cls, instance=None):
-        """ Skips specified instance """
-        try:
-            return max(inst.pos for inst in cls._instances
-                       if inst is not instance) + 1
-        except ValueError as e:
-            if "arg is an empty sequence" in str(e):
-                return 0
-            raise  # pragma: no cover
-
-    @classmethod
-    def _decr_instances(cls, instance):
+    def _decr_instances(self):
         """
         Remove from list and reposition other bars
         so that newer bars won't overlap previous bars
         """
+        _instances = self._instances(self.fp)
         try:  # in case instance was explicitly positioned, it won't be in set
-            cls._instances.remove(instance)
-            for inst in cls._instances:
-                if inst.pos > instance.pos:
-                    inst.pos -= 1
+            _instances.discard(self)
         except KeyError:
             pass
+        else:
+            for inst in _instances:
+                if inst.pos > instance.pos:
+                    inst.pos -= 1
 
     def __init__(self, iterable=None, desc=None, total=None, leave=True,
                  file=sys.stderr, ncols=None, mininterval=0.1,
@@ -364,17 +353,14 @@ class tqdm(object):
         -------
         out  : decorated iterator.
         """
+
         if disable:
             self.iterable = iterable
             self.disable = disable
-            self.pos = self._get_free_pos(self)
-            self._instances.remove(self)
+            self.pos = 0
             return
 
         if kwargs:
-            self.disable = True
-            self.pos = self._get_free_pos(self)
-            self._instances.remove(self)
             raise (DeprecationWarning("nested is deprecated and"
                                       " automated.\nUse position instead"
                                       " for manual control")
@@ -446,7 +432,13 @@ class tqdm(object):
 
         # if nested, at initial sp() call we replace '\r' by '\n' to
         # not overwrite the outer progress bar
-        self.pos = self._get_free_pos(self) if position is None else position
+        _instances = self._instances(file)
+        if position is None:
+            position = max(
+                [-1] + [inst.pos for inst in _instances]
+            ) + 1
+        self.pos = position
+        _instances.add(self)
 
         if not gui:
             # Initialize the screen printer
@@ -696,7 +688,7 @@ class tqdm(object):
 
         # decrement instance pos and remove from internal set
         pos = self.pos
-        self._decr_instances(self)
+        self._decr_instances()
 
         # GUI mode
         if not hasattr(self, "sp"):
