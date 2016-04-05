@@ -3,6 +3,7 @@
 
 from __future__ import unicode_literals
 
+import sys
 import csv
 import re
 import os
@@ -208,7 +209,6 @@ def test_all_defaults():
             assert len(progressbar) == 10
             for _ in progressbar:
                 pass
-    import sys
     # restore stdout/stderr output for `nosetest` interface
     try:
         sys.stderr.write('\x1b[A')
@@ -306,8 +306,8 @@ def test_max_interval():
             cpu_timify(t, timer)
 
             # without maxinterval
-            t2 = tqdm(total=total, file=our_file2, miniters=None, mininterval=0,
-                      smoothing=1, maxinterval=None)
+            t2 = tqdm(total=total, file=our_file2, miniters=None,
+                      mininterval=0, smoothing=1, maxinterval=None)
             cpu_timify(t2, timer)
 
             assert t.dynamic_miniters

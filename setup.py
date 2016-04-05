@@ -2,7 +2,10 @@
 # -*- coding: utf-8 -*-
 
 import os
-from setuptools import setup
+try:
+    from setuptools import setup
+except ImportError:
+    from distutils.core import setup
 import sys
 import subprocess
 # For Makefile parsing
@@ -168,6 +171,7 @@ setup(
     maintainer_email='python.tqdm@gmail.com',
     platforms=['any'],
     packages=['tqdm'],
+    entry_points={'console_scripts': ['tqdm=tqdm._main:main'], },
     long_description=README_rst,
     classifiers=[
         # Trove classifiers

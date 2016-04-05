@@ -27,6 +27,14 @@ Here's what the output looks like:
 
 |Screenshot|
 
+It can also be executed as a module with pipes:
+
+.. code:: sh
+
+    $ seq 9999999 | tqdm --unit_scale True | wc -l
+    10.0Mit [00:02, 3.58Mit/s]
+    9999999
+
 Overhead is low -- about 60ns per iteration (80ns with ``gui=True``), and is
 unit tested against performance regression.
 By comparison, the well established
@@ -75,7 +83,8 @@ Changelog
 ---------
 
 The list of all changes is available either on
-`Github's Releases <https://github.com/tqdm/tqdm/releases>`_ or on crawlers such as
+`Github's Releases <https://github.com/tqdm/tqdm/releases>`_
+or on crawlers such as
 `allmychanges.com <https://allmychanges.com/p/python/tqdm/>`_.
 
 
@@ -83,7 +92,7 @@ Usage
 -----
 
 ``tqdm`` is very versatile and can be used in a number of ways.
-The two main ones are given below.
+The three main ones are given below.
 
 Iterable-based
 ~~~~~~~~~~~~~~
@@ -136,6 +145,42 @@ but in this case don't forget to ``del`` or ``close()`` at the end:
     pbar.close()
 
 
+Module
+~~~~~~
+
+Perhaps the most wonderful use of ``tqdm`` is in a script or on the command
+line. Simply inserting ``tqdm`` (or ``python -m tqdm``) between pipes will pass
+through all ``stdin`` to ``stdout`` while printing progress to ``stderr``.
+
+The example below demonstrated counting the number of lines in all python files
+in the current directory, with timing information included.
+
+.. code:: sh
+
+    $ time find . -name '*.py' -exec cat \{} \; | wc -l
+    857365
+
+    real    0m3.458s
+    user    0m0.274s
+    sys     0m3.325s
+
+    $ time find . -name '*.py' -exec cat \{} \; | tqdm | wc -l
+    857366it [00:03, 246471.31it/s]
+    857365
+
+    real    0m3.585s
+    user    0m0.862s
+    sys     0m3.358s
+
+Note that the usual arguments for ``tqdm`` can also be specified.
+
+.. code:: sh
+
+    $ find . -name '*.py' -exec cat \{} \; |
+        tqdm --unit loc --unit_scale True --total 857366 >> /dev/null
+    100%|███████████████████████████████████| 857K/857K [00:04<00:00, 246Kloc/s]
+
+
 Documentation
 -------------
 
@@ -163,7 +208,7 @@ Parameters
 * desc  : str, optional  
     Prefix for the progressbar [default: None].
 * total  : int, optional  
-    The number of expected iterations. If not given, len(iterable)
+    The number of expected iterations. If [default: None], len(iterable)
     is used if possible. As a last resort, only basic progress
     statistics are displayed (no ETA, no progressbar). If `gui` is
     True and this parameter needs subsequent updating, specify an
@@ -183,20 +228,20 @@ Parameters
     statistics. If 0, will not print any meter (only stats).
 * mininterval  : float, optional  
     Minimum progress update interval, in seconds [default: 0.1].
-* maxinterval  : float, optional
+* maxinterval  : float, optional  
     Maximum progress update interval, in seconds [default: 10.0].
 * miniters  : int, optional  
     Minimum progress update interval, in iterations [default: None].
     If specified, will set `mininterval` to 0.
 * ascii  : bool, optional  
-    If [default: None] or false, use unicode (smooth blocks) to fill
+    If [default: None] or False, use unicode (smooth blocks) to fill
     the meter. The fallback is to use ASCII characters `1-9 #`.
-* disable : bool  
+* disable  : bool  
     Whether to disable the entire progressbar wrapper
     [default: False].
 * unit  : str, optional  
     String that will be used to define the unit of each iteration
-    [default: 'it'].
+    [default: it].
 * unit_scale  : bool, optional  
     If set, the number of iterations will be reduced/scaled
     automatically and a metric prefix following the
@@ -211,17 +256,18 @@ Parameters
     (current/instantaneous speed) [default: 0.3].
 * bar_format  : str, optional  
     Specify a custom bar string formatting. May impact performance.
-    [default: '{l_bar}{bar}{r_bar}'], where l_bar is
+    If [default: None], will use '{l_bar}{bar}{r_bar}', where l_bar is
     '{desc}{percentage:3.0f}%|' and r_bar is
     '| {n_fmt}/{total_fmt} [{elapsed_str}<{remaining_str}, {rate_fmt}]'.
-    Possible vars: bar, n, n_fmt, total, total_fmt, percentage, rate,
-    rate_fmt, elapsed, remaining, l_bar, r_bar, desc.
-* initial : int, optional  
+    Possible vars: bar, n, n_fmt, total, total_fmt, percentage,
+    rate, rate_fmt, elapsed, remaining, l_bar, r_bar, desc.
+* initial  : int, optional  
     The initial counter value. Useful when restarting a progress
     bar [default: 0].
 * position  : int, optional  
-    Specify the line offset to print this bar. Useful to manage
-    multiple bars at once (eg, from threads).
+    Specify the line offset to print this bar (starting from 0)
+    Automatic if [default: None].
+    Useful to manage multiple bars at once (eg, from threads).
 
 Returns
 ~~~~~~~
@@ -276,8 +322,8 @@ Returns
 Examples and Advanced Usage
 ---------------------------
 
-See the `examples <https://github.com/tqdm/tqdm/tree/master/examples>`__ folder or
-import the module and run ``help()``.
+See the `examples <https://github.com/tqdm/tqdm/tree/master/examples>`__
+folder or import the module and run ``help()``.
 
 Hooks and callbacks
 ~~~~~~~~~~~~~~~~~~~
@@ -364,7 +410,8 @@ for ``DataFrameGroupBy.progress_apply``:
     df.groupby(0).progress_apply(lambda x: x**2)
 
 In case you're interested in how this works (and how to modify it for your
-own callbacks), see the `examples <https://github.com/tqdm/tqdm/tree/master/examples>`__
+own callbacks), see the
+`examples <https://github.com/tqdm/tqdm/tree/master/examples>`__
 folder or import the module and run ``help()``.
 
 Nested progress bars
@@ -503,7 +550,7 @@ Below we implement this approach using a manually updated ``tqdm`` bar, where
         for dirpath, dirs, files in tqdm(os.walk(inputpath)):
             for filename in files:
                 fullpath = os.path.abspath(os.path.join(dirpath, filename))
-                sizecounter += os.stat(fullpath).st_size 
+                sizecounter += os.stat(fullpath).st_size
 
         # Load tqdm with size counter instead of files counter
         with tqdm(total=sizecounter, leave=True, unit='B', unit_scale=True) as pbar:
@@ -542,7 +589,8 @@ To see all options, run:
 
     $ python setup.py make
 
-See the `CONTRIBUTE <https://raw.githubusercontent.com/tqdm/tqdm/master/CONTRIBUTE>`__
+See the
+`CONTRIBUTE <https://raw.githubusercontent.com/tqdm/tqdm/master/CONTRIBUTE>`__
 file for more information.
 
 
