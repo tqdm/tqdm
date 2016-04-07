@@ -141,7 +141,7 @@ class tqdm(object):
             Specify a custom bar string formatting. May impact performance.
             [default: '{l_bar}{bar}{r_bar}'], where l_bar is
             '{desc}{percentage:3.0f}%|' and r_bar is
-            '| {n_fmt}/{total_fmt} [{elapsed_str}<{remaining_str}, {rate_fmt}]'.
+            '| {n_fmt}/{total_fmt} [{elapsed_str}<{remaining_str}, {rate_fmt}]'
             Possible vars: bar, n, n_fmt, total, total_fmt, percentage,
             rate, rate_fmt, elapsed, remaining, l_bar, r_bar, desc.
 
@@ -297,11 +297,11 @@ class tqdm(object):
         desc  : str, optional
             Prefix for the progressbar [default: None].
         total  : int, optional
-            The number of expected iterations. If [default: None], len(iterable)
-            is used if possible. As a last resort, only basic progress
-            statistics are displayed (no ETA, no progressbar). If `gui` is
-            True and this parameter needs subsequent updating, specify an
-            initial arbitrary large positive integer, e.g. int(9e9).
+            The number of expected iterations. If [default: None],
+            len(iterable) is used if possible. As a last resort, only basic
+            progress statistics are displayed (no ETA, no progressbar).
+            If `gui` is True and this parameter needs subsequent updating,
+            specify an initial arbitrary large positive integer, e.g. int(9e9).
         leave  : bool, optional
             If [default: True], removes all traces of the progressbar
             upon termination of iteration.
@@ -347,7 +347,7 @@ class tqdm(object):
             Specify a custom bar string formatting. May impact performance.
             If [default: None], will use '{l_bar}{bar}{r_bar}', where l_bar is
             '{desc}{percentage:3.0f}%|' and r_bar is
-            '| {n_fmt}/{total_fmt} [{elapsed_str}<{remaining_str}, {rate_fmt}]'.
+            '| {n_fmt}/{total_fmt} [{elapsed_str}<{remaining_str}, {rate_fmt}]'
             Possible vars: bar, n, n_fmt, total, total_fmt, percentage,
             rate, rate_fmt, elapsed, remaining, l_bar, r_bar, desc.
         initial  : int, optional
@@ -478,7 +478,8 @@ class tqdm(object):
         self.close()
 
     def __repr__(self):
-        return self.format_meter(self.n, self.total, time() - self.last_print_t,
+        return self.format_meter(self.n, self.total,
+                                 time() - self.last_print_t,
                                  self.ncols, self.desc, self.ascii, self.unit,
                                  self.unit_scale, 1 / self.avg_time
                                  if self.avg_time else None, self.bar_format)

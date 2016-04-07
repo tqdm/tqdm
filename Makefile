@@ -23,6 +23,10 @@
 	testcoverage
 	testperf
 	testtimer
+	distclean
+	coverclean
+	prebuildclean
+	clean
 	installdev
 	install
 	build
@@ -41,10 +45,10 @@ all:
 	@+make build
 
 flake8:
-	@+flake8 --max-line-length=80 --count --statistics --exit-zero tqdm/*.py
+	@+flake8 --max-line-length=80 --count --statistics --exit-zero tqdm/
 	@+flake8 --max-line-length=80 --count --statistics --exit-zero examples/
-	@+flake8 --max-line-length=80 --count --statistics --exit-zero *.py
-	@+flake8 --max-line-length=80 --count --statistics --exit-zero --ignore=E731 tqdm/tests/
+	@+flake8 --max-line-length=80 --count --statistics --exit-zero .
+	@+flake8 --max-line-length=80 --count --statistics --exit-zero tqdm/tests/
 
 test:
 	tox --skip-missing-interpreters
@@ -57,7 +61,7 @@ testsetup:
 	python setup.py make none
 
 testcoverage:
-	rm -f .coverage  # coverage erase
+	@make coverclean
 	nosetests tqdm --with-coverage --cover-package=tqdm --cover-erase --cover-min-percentage=80 --ignore-files="tests_perf\.py" -d -v
 
 testperf:  # do not use coverage (which is extremely slow)
@@ -65,6 +69,21 @@ testperf:  # do not use coverage (which is extremely slow)
 
 testtimer:
 	nosetests tqdm --with-timer -d -v
+
+distclean:
+	@+make coverclean
+	@+make prebuildclean
+	@+make clean
+prebuildclean:
+	@+python -c "import shutil; shutil.rmtree('build', True)"
+	@+python -c "import shutil; shutil.rmtree('dist', True)"
+	@+python -c "import shutil; shutil.rmtree('tqdm.egg-info', True)"
+coverclean:
+	@+python -c "import os; os.remove('.coverage') if os.path.exists('.coverage') else None"
+clean:
+	@+python -c "import os; import glob; [os.remove(i) for i in glob.glob('*.py[co]')]"
+	@+python -c "import os; import glob; [os.remove(i) for i in glob.glob('tqdm/*.py[co]')]"
+	@+python -c "import os; import glob; [os.remove(i) for i in glob.glob('tqdm/tests/*.py[co]')]"
 
 installdev:
 	python setup.py develop --uninstall
@@ -74,11 +93,9 @@ install:
 	python setup.py install
 
 build:
-	python -c "import shutil; shutil.rmtree('build', True)"
-	python -c "import shutil; shutil.rmtree('dist', True)"
-	python -c "import shutil; shutil.rmtree('tqdm.egg-info', True)"
-	python setup.py sdist --formats=gztar,zip bdist_wininst
-	python setup.py sdist bdist_wheel
+	@make prebuildclean
+	python setup.py sdist --formats=gztar,zip bdist --formats=gztar,zip bdist_wheel
+	python setup.py bdist_wininst
 
 pypimeta:
 	python setup.py register

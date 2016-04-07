@@ -18,9 +18,13 @@ except ImportError:  # pragma: no cover
     import configparser as ConfigParser
     import io as StringIO
 import io
+import re
 
 
 """ Makefile auxiliary functions """
+
+
+RE_MAKE_CMD = re.compile('^\t(@\+?)(make)?', flags=re.M)
 
 
 def parse_makefile_aliases(filepath):
@@ -35,8 +39,7 @@ def parse_makefile_aliases(filepath):
     # Adding a fake section to make the Makefile a valid Ini file
     ini_str = '[root]\n'
     with io.open(filepath, mode='r') as fd:
-        ini_str = ini_str + fd.read().replace('\t@', '\t').\
-            replace('\t+', '\t').replace('\tmake ', '\t')
+        ini_str = ini_str + RE_MAKE_CMD.sub('\t', fd.read())
     ini_fp = StringIO.StringIO(ini_str)
     # Parse using ConfigParser
     config = ConfigParser.RawConfigParser()
@@ -47,6 +50,8 @@ def parse_makefile_aliases(filepath):
     # -- Extracting commands for each alias
     commands = {}
     for alias in aliases:
+        if alias.lower() in ['.phony']:
+            continue
         # strip the first line return, and then split by any line return
         commands[alias] = config.get('root', alias).lstrip('\n').split('\n')
 
@@ -131,8 +136,7 @@ if sys.argv[1].lower().strip() == 'make':
     # If no alias (only `python setup.py make`), print the list of aliases
     if len(sys.argv) < 3 or sys.argv[-1] == '--help':
         print("Shortcut to use commands via aliases. List of aliases:")
-        for alias in sorted(commands.keys()):
-            print("- " + alias)
+        print('\n'.join(alias for alias in sorted(commands.keys())))
 
     # Else process the commands for this alias
     else:
