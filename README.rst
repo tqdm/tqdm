@@ -214,7 +214,7 @@ Parameters
     True and this parameter needs subsequent updating, specify an
     initial arbitrary large positive integer, e.g. int(9e9).
 * leave  : bool, optional  
-    If [default: True], removes all traces of the progressbar
+    If [default: True], keeps all traces of the progressbar
     upon termination of iteration.
 * file  : `io.TextIOWrapper` or `io.StringIO`, optional  
     Specifies where to output the progress messages
