@@ -23,12 +23,14 @@ def test_multi():
 
         def success_callback(self, **kwargs):
             kwargs['out'].write(kwargs['result'])
+            self.pbar.close()
 
         def failure_callback(self, **kwargs):
             kwargs['out'].write('Failed {self.task_num} with error: "{error}"\n'.format(
                 self=self, error=kwargs['error'])
             )
             multi.register_job(self.restart_job())
+            self.pbar.close()
 
         def restart_job(self):
             new_task_num = self.task_num * 10 + 2
