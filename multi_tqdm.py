@@ -1,6 +1,4 @@
 import time
-import pudb
-# import sys
 from abc import ABCMeta, abstractmethod
 
 from tqdm import tqdm
@@ -12,15 +10,15 @@ class MultiTQDM(object):
     def register_job(self, job):
         self.jobs.append(job)
 
-    def run(self, sleep_delay=.25):
+    def run(self, sleep_delay=.25, **kwargs):
         while self._incomplete_jobs():
             for job in self._incomplete_jobs():
                 job.update()
                 if job._is_complete():
                     try:
-                        yield job.result_callback()
+                        job.result_callback(**kwargs)
                     except:
-                        yield job.failure_callback()
+                        job.failure_callback(**kwargs)
                     finally:
                         job.pbar.close()
                 else:
@@ -46,42 +44,36 @@ class TQDMJob(object):
     def update(self):
         pass
 
-    def result_callback(self):
-        "returns: result callback"
+    def result_callback(self, **kwargs):
         pass
 
-    def failure_callback(self):
-        "returns: failure callback"
+    def failure_callback(self, **kwargs):
         pass
 
     def _is_complete(self):
         return self.pbar.n >= self.pbar.total
 
-    def _n_remaining(self):
-        return self.pbar.total - self.pbar.n
-
 class TestJob(TQDMJob):
 
-    def __init__(self, task, **kwargs):
+    def __init__(self, task_num, **kwargs):
         super(TestJob, self).__init__(**kwargs)
-        self.task = task
+        self.task_num = task_num
 
     def update(self):
-        update_amt = self._n_remaining() if self._n_remaining() < self.task else self.task
-        self.pbar.update(update_amt)
+        self.pbar.update(self.task_num)
 
-    def result_callback(self):
-        if self.task == 5:
+    def result_callback(self, out):
+        if self.task_num == 5:
             raise Exception
         else:
-            return 'Success: {self.task}\n'.format(self=self)
+            out.write('Success: {self.task_num}\n'.format(self=self))
 
-    def failure_callback(self):
-        return 'Failed: {self.task}\n'.format(self=self)
+    def failure_callback(self, out):
+        out.write('Failed: {self.task_num}\n'.format(self=self))
 
 def get_test_jobs():
-    for task_id in range(1, 10):
-        job = TestJob(task=task_id, desc=str(task_id), total=1000)
+    for task_num in range(1, 10):
+        job = TestJob(task_num=task_num, desc=str(task_num), total=1000)
         yield job
 
 if __name__ == '__main__':
@@ -89,8 +81,5 @@ if __name__ == '__main__':
     for job in get_test_jobs():
         multi.register_job(job)
 
-    # pudb.set_trace()
     with open('results.txt', 'w') as out:
-        for result in multi.run(.001):
-            if result:
-                out.write(result)
+        multi.run(sleep_delay=.001, out=out)
