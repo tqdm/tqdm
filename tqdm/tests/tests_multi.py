@@ -15,15 +15,15 @@ def test_multi():
 
         def handle_result(self, out):
             if self.task_num == 5:
-                raise Exception
+                raise NameError('No 5s allowed')
             else:
-                pass
+                return 'Success: {self.task_num}\n'.format(self=self)
 
         def success_callback(self, result, out):
-            out.write('Success: {self.task_num}\n'.format(self=self))
+            out.write(result)
 
-        def failure_callback(self, result, out):
-            out.write('Failed: {self.task_num}\n'.format(self=self))
+        def failure_callback(self, error, out):
+            out.write('Failed {self.task_num} with error: "{error}"\n'.format(self=self, error=error))
 
     with closing(StringIO()) as our_file, closing(StringIO()) as output:
         multi = multi_tqdm()

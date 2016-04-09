@@ -8,7 +8,6 @@ from ._tqdm import tqdm
     Issues:
         - **kwargs passing doesn't work if the user doesn't take the parameters
           in each of their defined functions.
-        -
     Considerations:
         - How to handle async
         - Naming conventions?
@@ -31,8 +30,8 @@ class multi_tqdm(object):
                     try:
                         result = job.handle_result(**kwargs)
                         job.success_callback(result, **kwargs)
-                    except:
-                        job.failure_callback(result, **kwargs)
+                    except Exception as error:
+                        job.failure_callback(error, **kwargs)
                     finally:
                         job.pbar.close()
                 else:
@@ -61,10 +60,10 @@ class tqdm_job(object):
     def handle_result(self, **kwargs):
         pass
 
-    def success_callback(self, **kwargs):
+    def success_callback(self, result, **kwargs):
         pass
 
-    def failure_callback(self, **kwargs):
+    def failure_callback(self, error, **kwargs):
         pass
 
     def _is_complete(self):
