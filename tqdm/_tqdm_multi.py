@@ -1,17 +1,19 @@
 import time
-from abc import ABCMeta, abstractmethod
 
 from ._tqdm import tqdm
 
 """
 **NOTES**
     Issues:
-        - **kwargs passing doesn't work if the user doesn't take the parameters
-          in each of their defined functions.
+        - When a Bar calls `close()`, it messes up other bars.
+            (This is somewhat fixed with the clear and refresh)
+        - Need to handle moving command line cursor to below bars
     Considerations:
+        - this would work well with the print-message branch. The clear
+            and refresh methods are from there as well.
         - How to handle async
         - Naming conventions?
-
+        - Better way to handle task registry
 """
 
 
@@ -29,11 +31,13 @@ class multi_tqdm(object):
                 if job._is_complete():
                     try:
                         result = job.handle_result(**kwargs)
-                        job.success_callback(result, **kwargs)
+                        job.success_callback(multi=self, result=result, **kwargs)
                     except Exception as error:
-                        job.failure_callback(error, **kwargs)
+                        job.failure_callback(multi=self, error=error, **kwargs)
                     finally:
-                        job.pbar.close()
+                        for inst in job.pbar._instances:
+                            inst.clear()
+                            inst.refresh()
                 else:
                     time.sleep(sleep_delay)
 
@@ -43,8 +47,6 @@ class multi_tqdm(object):
 class tqdm_job(object):
     _positions = 0
 
-    __metaclass__ = ABCMeta
-
     def __init__(self, **kwargs):
         self.position = tqdm_job._positions
         self.pbar = tqdm(position=self.position, **kwargs)
@@ -53,17 +55,16 @@ class tqdm_job(object):
     def __str__(self):
         return str(self.position)
 
-    @abstractmethod
     def update(self):
-        pass
+        self.pbar.update()
 
     def handle_result(self, **kwargs):
         pass
 
-    def success_callback(self, result, **kwargs):
+    def success_callback(self, multi, result, **kwargs):
         pass
 
-    def failure_callback(self, error, **kwargs):
+    def failure_callback(self, multi, error, **kwargs):
         pass
 
     def _is_complete(self):

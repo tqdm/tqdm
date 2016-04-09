@@ -1,3 +1,5 @@
+import random
+
 from tqdm import tqdm, multi_tqdm, tqdm_job
 from tests_tqdm import with_setup, pretest, posttest, StringIO, closing
 
@@ -19,16 +21,23 @@ def test_multi():
             else:
                 return 'Success: {self.task_num}\n'.format(self=self)
 
-        def success_callback(self, result, out):
-            out.write(result)
+        def success_callback(self, **kwargs):
+            kwargs['out'].write(kwargs['result'])
 
-        def failure_callback(self, error, out):
-            out.write('Failed {self.task_num} with error: "{error}"\n'.format(self=self, error=error))
+        def failure_callback(self, **kwargs):
+            kwargs['out'].write('Failed {self.task_num} with error: "{error}"\n'.format(
+                self=self, error=kwargs['error'])
+            )
+            multi.register_job(self.restart_job())
+
+        def restart_job(self):
+            new_task_num = self.task_num * 10 + 2
+            return TestJob(task_num=new_task_num, file=self.pbar.fp, desc=str(new_task_num), total=1000)
 
     with closing(StringIO()) as our_file, closing(StringIO()) as output:
         multi = multi_tqdm()
-        for task_num in range(1, 10):
+        for __ in range(1, 10):
+            task_num = random.randint(1, 10)
             job = TestJob(task_num=task_num, file=our_file, desc=str(task_num), total=1000)
             multi.register_job(job)
-        with open('results.txt', 'w') as out2:
-            multi.run(sleep_delay=.001, out=out2)
+        multi.run(sleep_delay=.001, out=output)

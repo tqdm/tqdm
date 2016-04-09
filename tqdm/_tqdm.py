@@ -282,6 +282,23 @@ class tqdm(object):
         except KeyError:
             pass
 
+    def refresh(self):
+        """
+        Force refresh the display of this bar
+        """
+        self.moveto(self.pos)
+        self.fp.write(self.__repr__())
+        self.moveto(-self.pos)
+
+    def clear(self):
+        """
+        Clear current bar display
+        """
+        self.moveto(self.pos)
+        self.sp('')  # clear up this bar
+        self.fp.write('\r')  # place cursor back at the beginning of line
+        self.moveto(-self.pos)
+
     def __init__(self, iterable=None, desc=None, total=None, leave=True,
                  file=sys.stderr, ncols=None, mininterval=0.1,
                  maxinterval=10.0, miniters=None, ascii=None, disable=False,
