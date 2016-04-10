@@ -4,8 +4,8 @@ from tqdm import tqdm, trange, tqdm_multi
 from tests_tqdm import _range, with_setup, pretest, posttest, StringIO, closing
 
 @with_setup(pretest, posttest)
-def test_multi():
-    """ Test tqdm_multi with inherited tqdm instance"""
+def full_multi_test():
+    """Test tqdm_multi full feature test"""
     class TestJob(tqdm):
 
         def __init__(self, task_num, **kwargs):
@@ -34,21 +34,59 @@ def test_multi():
             new_task_num = self.task_num * 10 + 2
             return TestJob(task_num=new_task_num, file=self.fp, desc=str(new_task_num), total=100)
 
+    multi = tqdm_multi()
     with closing(StringIO()) as our_file:
-        multi = tqdm_multi()
-        for __ in _range(10):
+        for task_num in range(1, 10):
             task_num = random.randint(1, 10)
-            job = TestJob(task_num=task_num, file=our_file, desc=str(task_num), total=100)
+            job = TestJob(task_num=task_num, desc=str(task_num), total=100, file=our_file)
             multi.register_job(job)
-        with closing(StringIO()) as output:
-            multi.run(sleep_delay=.001, out=output)
+        with closing(StringIO()) as out:
+            multi.run(sleep_delay=.001, out=out)
+
+@with_setup(pretest, posttest)
+def mini_test():
+    """Test tqdm_multi with extra attribute"""
+    class MiniTestJob(tqdm):
+
+        def __init__(self, task_num, **kwargs):
+            super(MiniTestJob, self).__init__(**kwargs)
+            self.task_num = task_num
+
+        def update(self):
+            super(MiniTestJob, self).update(n=self.task_num)
+
+    multi = tqdm_multi()
+    with closing(StringIO()) as our_file:
+        for task_num in _range(1, 5):
+            job = MiniTestJob(task_num=task_num, desc=str(task_num), total=100, file=our_file)
+            multi.register_job(job)
+        multi.run(sleep_delay=.001)
 
 @with_setup(pretest, posttest)
 def iterable_test():
-    """ Test tqdm_multi with tqdm from iterable"""
+    """Test tqdm_multi with trange"""
+    multi = tqdm_multi()
     with closing(StringIO()) as our_file:
-        multi = tqdm_multi()
-        for __ in _range(10):
+        for __ in _range(1, 5):
             job = trange(1, 10, file=our_file)
             multi.register_job(job)
         multi.run(sleep_delay=.001)
+
+@with_setup(pretest, posttest)
+def iterable_with_inheritence_test():
+    """Test tqdm_multi iterable test with handle_result only"""
+    class CustomIterable(tqdm):
+
+        def __init__(self, *args, **kwargs):
+            super(CustomIterable, self).__init__(*args, **kwargs)
+
+        def handle_result(self, **kwargs):
+            kwargs['out'].write('success\n')
+
+    multi = tqdm_multi()
+    with closing(StringIO()) as our_file:
+        for __ in range(1, 5):
+            job = CustomIterable(range(1, 100), file=our_file)
+            multi.register_job(job)
+        with closing(StringIO()) as out:
+            multi.run(sleep_delay=.001, out=out)
