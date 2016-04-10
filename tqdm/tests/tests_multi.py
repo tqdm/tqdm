@@ -1,12 +1,12 @@
 import random
 
-from tqdm import tqdm, multi_tqdm, tqdm_job
-from tests_tqdm import with_setup, pretest, posttest, StringIO, closing
+from tqdm import tqdm, trange, tqdm_multi
+from tests_tqdm import _range, with_setup, pretest, posttest, StringIO, closing
 
 @with_setup(pretest, posttest)
 def test_multi():
-    """ Test multi_tqdm with test tqdm_job """
-    class TestJob(tqdm_job):
+    """ Test tqdm_multi with inherited tqdm instance"""
+    class TestJob(tqdm):
 
         def __init__(self, task_num, **kwargs):
             super(TestJob, self).__init__(**kwargs)
@@ -15,7 +15,7 @@ def test_multi():
         def update(self):
             super(TestJob, self).update(self.task_num)
 
-        def handle_result(self, out):
+        def handle_result(self, **kwargs):
             if self.task_num == 5:
                 raise NameError('No 5s allowed')
             else:
@@ -23,22 +23,20 @@ def test_multi():
 
         def success_callback(self, **kwargs):
             kwargs['out'].write(kwargs['result'])
-            self.close()
 
         def failure_callback(self, **kwargs):
             kwargs['out'].write('Failed {self.task_num} with error: "{error}"\n'.format(
                 self=self, error=kwargs['error'])
             )
             multi.register_job(self.restart_job())
-            self.close()
 
         def restart_job(self):
             new_task_num = self.task_num * 10 + 2
             return TestJob(task_num=new_task_num, file=self.fp, desc=str(new_task_num), total=100)
 
     with closing(StringIO()) as our_file:
-        multi = multi_tqdm()
-        for __ in range(1, 10):
+        multi = tqdm_multi()
+        for __ in _range(10):
             task_num = random.randint(1, 10)
             job = TestJob(task_num=task_num, file=our_file, desc=str(task_num), total=100)
             multi.register_job(job)
@@ -47,10 +45,10 @@ def test_multi():
 
 @with_setup(pretest, posttest)
 def iterable_test():
-    """ Test multi_tqdm with iterable as tqdm_job """
+    """ Test tqdm_multi with tqdm from iterable"""
     with closing(StringIO()) as our_file:
-        multi = multi_tqdm()
-        for task_num in range(1, 10):
-            job = tqdm_job(range(1, 100), file=our_file)
+        multi = tqdm_multi()
+        for __ in _range(10):
+            job = trange(1, 10, file=our_file)
             multi.register_job(job)
         multi.run(sleep_delay=.001)

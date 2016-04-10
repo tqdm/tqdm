@@ -3,9 +3,9 @@ from ._tqdm import trange
 from ._tqdm_gui import tqdm_gui
 from ._tqdm_gui import tgrange
 from ._tqdm_pandas import tqdm_pandas
-from ._tqdm_multi import multi_tqdm, tqdm_job
+from ._tqdm_multi import tqdm_multi
 from ._main import main
 from ._version import __version__  # NOQA
 
 __all__ = ['tqdm', 'tqdm_gui', 'trange', 'tgrange', 'tqdm_pandas',
-           'multi_tqdm', 'tqdm_job', 'main', '__version__']
+           'tqdm_multi', 'main', '__version__']
