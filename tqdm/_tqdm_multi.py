@@ -151,5 +151,5 @@ class tqdm_job(object):
         pass
 
     def _is_complete(self):
-        """(Needs refactoring) A way to see if a progress bar has finished"""
+        """(Needs refactoring) A way to see if a progress bar and/or task has finished"""
         return self.pbar.n >= self.pbar.total
