@@ -115,7 +115,10 @@ class tqdm_job(tqdm):
         The class can manually update the tqdm instance each iteration here.
         [default: tqdm.update()]
         """
-        super(tqdm_job, self).update(n)
+        if self.iterable:
+            super(tqdm_job, self).update(next(iter(self)))
+        else:
+            super(tqdm_job, self).update(n)
 
     def handle_result(self, **kwargs):
         """
@@ -146,3 +149,4 @@ class tqdm_job(tqdm):
     def _is_complete(self):
         """(Needs refactoring) A way to see if a progress bar and/or task has finished"""
         return self.n >= self.total
+        # return self.disable
