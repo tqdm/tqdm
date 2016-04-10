@@ -34,13 +34,13 @@ def test_multi():
 
         def restart_job(self):
             new_task_num = self.task_num * 10 + 2
-            return TestJob(task_num=new_task_num, file=self.pbar.fp, desc=str(new_task_num), total=1000)
+            return TestJob(task_num=new_task_num, file=self.pbar.fp, desc=str(new_task_num), total=100)
 
     with closing(StringIO()) as our_file:
         multi = multi_tqdm()
         for __ in range(1, 10):
             task_num = random.randint(1, 10)
-            job = TestJob(task_num=task_num, file=our_file, desc=str(task_num), total=1000)
+            job = TestJob(task_num=task_num, file=our_file, desc=str(task_num), total=100)
             multi.register_job(job)
         with closing(StringIO()) as output:
             multi.run(sleep_delay=.001, out=output)
