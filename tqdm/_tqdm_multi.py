@@ -84,7 +84,7 @@ class multi_tqdm(object):
                     except Exception as error:
                         job.failure_callback(multi=self, error=error, **kwargs)
                     finally:
-                        for inst in job.pbar._instances:
+                        for inst in job._instances:
                             inst.clear()
                             inst.refresh()
                 else:
@@ -94,35 +94,28 @@ class multi_tqdm(object):
         "returns a list of any progress bars that are still unfinished"
         return [job for job in self.jobs if not job._is_complete()]
 
-class tqdm_job(object):
+class tqdm_job(tqdm):
     """
     An abstract class to use as a wrapper for tasks to be handled
     by a multi_tqdm instance. Each class that inherits from this class
     can implement any of the following methods detailed below.
     """
 
-    _positions = 0
-
-    def __init__(self, **kwargs):
+    def __init__(self, *args, **kwargs):
         """
         (Needs refactoring) This class has a counter of the number of instances
         of any user made classes that inherit from it. `position` is set from This
         counter. Any other kwargs here are passed directly to the tqdm instance which
         is created as `self.pbar`
         """
-        self.position = tqdm_job._positions
-        self.pbar = tqdm(position=self.position, **kwargs)
-        tqdm_job._positions += 1
+        super(tqdm_job, self).__init__(*args, **kwargs)
 
-    def __str__(self):
-        return str(self.position)
-
-    def update(self):
+    def update(self, n=1):
         """
         The class can manually update the tqdm instance each iteration here.
         [default: tqdm.update()]
         """
-        self.pbar.update()
+        super(tqdm_job, self).update(n)
 
     def handle_result(self, **kwargs):
         """
@@ -152,4 +145,4 @@ class tqdm_job(object):
 
     def _is_complete(self):
         """(Needs refactoring) A way to see if a progress bar and/or task has finished"""
-        return self.pbar.n >= self.pbar.total
+        return self.n >= self.total

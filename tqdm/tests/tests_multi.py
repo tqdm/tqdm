@@ -13,7 +13,7 @@ def test_multi():
             self.task_num = task_num
 
         def update(self):
-            self.pbar.update(self.task_num)
+            super(TestJob, self).update(self.task_num)
 
         def handle_result(self, out):
             if self.task_num == 5:
@@ -23,18 +23,18 @@ def test_multi():
 
         def success_callback(self, **kwargs):
             kwargs['out'].write(kwargs['result'])
-            self.pbar.close()
+            self.close()
 
         def failure_callback(self, **kwargs):
             kwargs['out'].write('Failed {self.task_num} with error: "{error}"\n'.format(
                 self=self, error=kwargs['error'])
             )
             multi.register_job(self.restart_job())
-            self.pbar.close()
+            self.close()
 
         def restart_job(self):
             new_task_num = self.task_num * 10 + 2
-            return TestJob(task_num=new_task_num, file=self.pbar.fp, desc=str(new_task_num), total=100)
+            return TestJob(task_num=new_task_num, file=self.fp, desc=str(new_task_num), total=100)
 
     with closing(StringIO()) as our_file:
         multi = multi_tqdm()
