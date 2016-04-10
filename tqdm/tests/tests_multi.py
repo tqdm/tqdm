@@ -44,3 +44,13 @@ def test_multi():
             multi.register_job(job)
         with closing(StringIO()) as output:
             multi.run(sleep_delay=.001, out=output)
+
+@with_setup(pretest, posttest)
+def iterable_test():
+    """ Test multi_tqdm with iterable as tqdm_job """
+    with closing(StringIO()) as our_file:
+        multi = multi_tqdm()
+        for task_num in range(1, 10):
+            job = tqdm_job(range(1, 100), file=our_file)
+            multi.register_job(job)
+        multi.run(sleep_delay=.001)
