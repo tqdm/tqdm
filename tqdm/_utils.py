@@ -1,4 +1,5 @@
 import os
+import subprocess
 
 try:    # pragma: no cover
     _range = xrange
@@ -132,3 +133,8 @@ def _term_move_up():  # pragma: no cover
         if colorama is None:
             return ''
     return '\x1b[A'
+
+
+def _sh(*cmd, **kwargs):
+    return subprocess.Popen(cmd, stdout=subprocess.PIPE,
+                            **kwargs).communicate()[0]

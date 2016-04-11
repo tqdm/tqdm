@@ -7,16 +7,19 @@ from copy import deepcopy
 from tests_tqdm import with_setup, pretest, posttest, _range
 
 
+def _sh(*cmd, **kwargs):
+    return subprocess.Popen(cmd, stdout=subprocess.PIPE,
+                            **kwargs).communicate()[0]
+
+
 # WARNING: this should be the last test as it messes with sys.stdin, argv
 @with_setup(pretest, posttest)
 def test_main():
     """ Test command line pipes """
-    ls_out = subprocess.Popen(('ls'), stdout=subprocess.PIPE).communicate()[0]
+    ls_out = _sh('ls')
     ls = subprocess.Popen(('ls'), stdout=subprocess.PIPE)
-    res = subprocess.Popen(('python', '-c', 'from tqdm import main; main()'),
-                           stdout=subprocess.PIPE,
-                           stdin=ls.stdout,
-                           stderr=subprocess.STDOUT).communicate()[0]
+    res = _sh('python', '-c', 'from tqdm import main; main()',
+              stdin=ls.stdout, stderr=subprocess.STDOUT)
     ls.wait()
 
     # actual test:
