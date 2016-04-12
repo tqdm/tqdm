@@ -9,7 +9,7 @@ from tests_tqdm import with_setup, pretest, posttest, _range
 
 def _sh(*cmd, **kwargs):
     return subprocess.Popen(cmd, stdout=subprocess.PIPE,
-                            **kwargs).communicate()[0]
+                            **kwargs).communicate()[0].decode('utf-8')
 
 
 # WARNING: this should be the last test as it messes with sys.stdin, argv
