@@ -1,21 +1,21 @@
 # Definition of the version number
-try:
+try:  # pragma: no cover
     from ._utils import _sh
-except:
+except:  # pragma: no cover
     _sh = None
 
 from subprocess import STDOUT
 __all__ = ["__version__"]
 
 # major, minor, patch, -extra
-version_info = 4, 4, 0
+version_info = 4, 4, 1
 
 # Nice string for the version
 __version__ = '.'.join(map(str, version_info))
 
 
 # auto -extra based on commit hash (if not tagged as release)
-if (_sh is not None) and (len(version_info) < 4):
+if (_sh is not None) and (len(version_info) < 4):  # pragma: no cover
     def commit_hash(*args):
         try:
             return _sh('git', 'log', '-n', '1', '--oneline', *args,
