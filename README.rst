@@ -302,6 +302,21 @@ Returns
           Cleanup and (if leave=False) close the progressbar.
           """
 
+      def clear(self):
+          """
+          Clear current bar display
+          """
+
+      def refresh(self):
+          """
+          Force refresh the display of this bar
+          """
+
+      def write(cls, s, file=sys.stdout, end="\n"):
+          """
+          Print a message via tqdm (without overlap with bars)
+          """
+
     def trange(*args, **kwargs):
         """
         A shortcut for tqdm(xrange(*args), **kwargs).
@@ -436,6 +451,28 @@ For manual control over positioning (e.g. for multi-threaded use),
 you may specify `position=n` where `n=0` for the outermost bar,
 `n=1` for the next, and so on.
 
+Writing messages
+~~~~~~~~~~~~~~~~~~~~
+Since ``tqdm`` uses a simple printing mechanism to display progress bars,
+you should not write any message in the terminal using ``print()``.
+
+To write messages in the terminal without any collision with ``tqdm`` bar
+display, a ``.write()`` method is provided:
+
+.. code:: python
+
+    from tqdm import tqdm, trange
+    from time import sleep
+
+    bar = trange(10)
+    for i in bar:
+        # Print using tqdm class method .write()
+        tqdm.write("Done task %i" % i)
+        # Can also use instance method bar.write()
+
+By default, this will print to standard output ``sys.stdout``. but you can
+specify any file-like object using the ``file`` argument. For example, this
+can be used to redirect the messages writing to a log file or class.
 
 How to make a good progress bar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
