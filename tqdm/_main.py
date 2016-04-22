@@ -1,3 +1,4 @@
+from __future__ import print_function
 from ._tqdm import tqdm
 from ._version import __version__  # NOQA
 import sys
@@ -6,51 +7,63 @@ __all__ = ["main"]
 
 
 def cast(val, typ):
-    if val == 'None':
-        return None
     if typ == 'bool':
-        return str(val) == 'True'
-    # try:
+        return (str(val) == 'True') or not str(val)
     return eval(typ + '("' + str(val) + '")')
-    # except:
-    #     # print val, typ
-    #     if val == 'special':
-    #         return 'whatever... just an example'
-    #     else:
-    #         return eval(typ + '()')
 
 
-RE_OPTS = re.compile(r' {8}(\w+)\s{2,}:\s*(str|int|float|bool)', flags=re.M)
-# RE_OPTS_SOME = re.compile(r' {8}(\w+)  : (str|int|float)', flags=re.M)
-# RE_OPTS_BOOL = re.compile(r' {8}(\w+)  : bool', flags=re.M)
+# Don't have to worry about Python 2.6 not supporting re flags
+# since it does not support executing modules either.
+# RE_OPTS = re.compile(r' {8}(\S+)\s{2,}:\s*(str|int|float|bool)', flags=re.M)
+RE_OPTS = re.compile(r' {8}(\S+)\s{2,}:\s*([^\s,]+)', flags=re.M)
+
+# TODO: add custom support for some of the following?
+UNSUPPORTED_OPTS = ('iterable', 'gui', 'out', 'file')
 
 
 def main():
-    from docopt import docopt
-
     d = tqdm.__init__.__doc__
+
     opt_types = dict(RE_OPTS.findall(d))
-    # d = RE_OPTS_SOME.sub(r'  --\1=<v>  ', d)
-    # d = RE_OPTS_BOOL.sub(r'  --\1      ', d)
-    d = RE_OPTS.sub(r'  --\1=<v>  : \2', d)
-    d = d[d.find('  --desc='):d.find('Returns\n')]
-    __doc__ = """
-Usage:
-    tqdm [--help | options]
+
+    for o in UNSUPPORTED_OPTS:
+        opt_types.pop(o)
+
+    # d = RE_OPTS.sub(r'  --\1=<\1>  : \2', d)
+    split = RE_OPTS.split(d)
+    opt_types_desc = zip(split[1::3], split[2::3], split[3::3])
+    d = ''.join('  --{0}=<{0}>  : {1}{2}'.format(*otd)
+                for otd in opt_types_desc if otd[0] not in UNSUPPORTED_OPTS)
+
+    __doc__ = """Usage:
+  tqdm [--help | options]
 
 Options:
   -h, --help     Print this help and exit
   -v, --version  Print version and exit
-""" + d
 
-    opts = docopt(__doc__, version=__version__)
+""" + d.strip('\n') + '\n'
 
+    # opts = docopt(__doc__, version=__version__)
+    if any(v in sys.argv for v in ('-v', '--version')):
+        sys.stdout.write(__version__ + '\n')
+        sys.exit(0)
+    elif any(v in sys.argv for v in ('-h', '--help')):
+        sys.stdout.write(__doc__ + '\n')
+        sys.exit(0)
+
+    argv = re.split('(--\S+)[=\s]*', ' '.join(sys.argv[1:]))
+    opts = dict(zip(argv[1::2], argv[2::2]))
+
+    tqdm_args = {}
     try:
-        for opt in opt_types:
-            opt_types[opt] = cast(opts['--' + opt], opt_types[opt])
-        for i in tqdm(sys.stdin, **opt_types):
+        for (o, v) in opts.items():
+            tqdm_args[o[2:]] = cast(v, opt_types[o[2:]])
+        # print('debug |', tqdm_args)
+        for i in tqdm(sys.stdin, **tqdm_args):
             sys.stdout.write(i)
     except:  # pragma: no cover
-        sys.stderr.write(__doc__ + '\n')
         for i in sys.stdin:
             sys.stdout.write(i)
+        sys.stderr.write('\nUsage:\n  tqdm [--help | options]\n')
+        raise
