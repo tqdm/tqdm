@@ -100,7 +100,9 @@ class tqdm_notebook(tqdm):  # pragma: no cover
             ptext.value = s
 
             if bar_style:
-                pbar.bar_style = bar_style
+                # Hack-ish way to avoid the danger bar_style being overriden by success because the bar gets closed after the error...
+                if pbar.bar_style != 'danger' and bar_style != 'success':
+                    pbar.bar_style = bar_style
 
             # Special signal to close the bar
             if close:
@@ -136,15 +138,18 @@ class tqdm_notebook(tqdm):  # pragma: no cover
 
     def __iter__(self, *args, **kwargs):
         try:
-            super(tqdm_notebook, self).__iter__(*args, **kwargs)
-        except Exception as exc:
+            for obj in super(tqdm_notebook, self).__iter__(*args, **kwargs):
+                yield obj  # cannot just return super(tqdm...) because can't catch exception
+        except:  # DO NOT use except as, or even except Exception, it simply won't work with IPython async KeyboardInterrupt
             self.sp(bar_style='danger')
-            raise exc
+            raise
 
     def update(self, *args, **kwargs):
         try:
             super(tqdm_notebook, self).update(*args, **kwargs)
         except Exception as exc:
+            # Note that we cannot catch KeyboardInterrupt when using manual tqdm
+            # because the interrupt will most likely happen on another statement
             self.sp(bar_style='danger')
             raise exc
 
@@ -154,6 +159,10 @@ class tqdm_notebook(tqdm):  # pragma: no cover
             self.sp(bar_style='success')
         else:
             self.sp(s='', close=True)
+
+    def moveto(*args, **kwargs):
+        # Nullify moveto to avoid outputting \n (blank lines) in the IPython output cell
+        return
 
 
 def tnrange(*args, **kwargs):  # pragma: no cover
