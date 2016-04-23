@@ -7,14 +7,13 @@ from ._tqdm import tqdm
     Issues:
         - When a Bar calls `close()`, it messes up other bars.
             (This is somewhat fixed with the clear and refresh)
+            - but when to run_callbacks then?
         - Need to handle moving command line cursor to below bars
     Considerations:
-        - fiure out best place to call run_callbacks() in non-multi context
         - this would work well with the print-message branch. The clear
             and refresh methods are from there as well.
         - How to handle async
         - Naming conventions?
-        - Better way to handle task registry
 
     Here is a minimum example with inheritence (see tests/tests_multi.py for a
         more detailed example):
@@ -52,13 +51,27 @@ class tqdm_multi(object):
 
     See tests/tests_multi.py for an example
     """
-    def __init__(self, jobs=[]):
-        self.jobs = jobs
+    def __init__(self, jobs=None, **kwargs):
+        if jobs:
+            # self.jobs = jobs  # get_jobs workaround
+            for job in jobs:
+                self.register_job(job)
+        # else:  # get_jobs workaround
+            # self.jobs = []  # get_jobs workaround
+            # pass  # get_jobs workaround
+
+        for key, value in kwargs.items():
+            setattr(self, key, value)
 
     def register_job(self, job):
-        self.jobs.append(job)
+        # self.jobs.append(job)  # get_jobs workaround
+        job.multi = self
 
-    def run(self, sleep_delay=.25, **kwargs):
+    def get_jobs(self):
+        """Only works if `jobs` exists for some odd reason"""
+        return [job for job in tqdm._instances if job.multi == self]
+
+    def run(self, sleep_delay=.25):
         """
         run() handles the iteration aspect of tqdm_multi. `sleep_delay` is the
         number of seconds to wait between each update() for rate limiting purposes
@@ -72,12 +85,10 @@ class tqdm_multi(object):
             for job in self._incomplete_jobs():
                 job.update()
                 if job._is_complete():
-                    job.run_callbacks(multi=self, **kwargs)
+                    job.close()
                 else:
                     time.sleep(sleep_delay)
-        for job in self.jobs:
-            job.close()
 
     def _incomplete_jobs(self):
         "returns a list of any progress bars that are still unfinished"
-        return [job for job in self.jobs if not job._is_complete()]
+        return [job for job in self.get_jobs() if not job._is_complete()]

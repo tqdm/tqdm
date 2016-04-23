@@ -252,9 +252,9 @@ class tqdm(object):
 
     def __new__(cls, *args, **kwargs):
         instance = object.__new__(cls)
-        if "_instances" not in cls.__dict__:
-            cls._instances = WeakSet()
-        cls._instances.add(instance)
+        if "_instances" not in tqdm.__dict__:
+            tqdm._instances = WeakSet()
+        tqdm._instances.add(instance)
         return instance
 
     @classmethod
@@ -282,29 +282,12 @@ class tqdm(object):
         except KeyError:
             pass
 
-    def refresh(self):
-        """
-        Force refresh the display of this bar
-        """
-        self.moveto(self.pos)
-        self.fp.write(self.__repr__())
-        self.moveto(-self.pos)
-
-    def clear(self):
-        """
-        Clear current bar display
-        """
-        self.moveto(self.pos)
-        self.sp('')  # clear up this bar
-        self.fp.write('\r')  # place cursor back at the beginning of line
-        self.moveto(-self.pos)
-
     def __init__(self, iterable=None, desc=None, total=None, leave=True,
                  file=sys.stderr, ncols=None, mininterval=0.1,
                  maxinterval=10.0, miniters=None, ascii=None, disable=False,
                  unit='it', unit_scale=False, dynamic_ncols=False,
                  smoothing=0.3, bar_format=None, initial=0, position=None,
-                 gui=False, **kwargs):
+                 gui=False, multi=None, **kwargs):
         """
         Parameters
         ----------
@@ -378,6 +361,8 @@ class tqdm(object):
             WARNING: internal parameter - do not use.
             Use tqdm_gui(...) instead. If set, will attempt to use
             matplotlib animations for a graphical output [default: False].
+        multi  : `tqdm_multi`, optional
+            The associated tqdm_multi instance
 
         Returns
         -------
@@ -458,6 +443,7 @@ class tqdm(object):
         self.avg_time = None
         self._time = time
         self.bar_format = bar_format
+        self.multi = multi
 
         # Init the iterations counters
         self.last_print_n = initial
@@ -566,7 +552,10 @@ class tqdm(object):
                                          ' instead of tqdm(..., gui=True)')
 
             for obj in iterable:
-                yield obj
+                try:
+                    yield obj
+                except Exception as error:
+                    self.failure_callback(error=error)
                 # Update and print the progressbar.
                 # Note: does not call self.update(1) for speed optimisation.
                 n += 1
@@ -757,6 +746,8 @@ class tqdm(object):
             else:
                 fp_write('\r')
 
+        self.run_callbacks()
+
     def unpause(self):
         """
         Restart tqdm timer from last print time.
@@ -774,29 +765,25 @@ class tqdm(object):
     def moveto(self, n):
         self.fp.write(_unicode('\n' * n + _term_move_up() * -n))
 
-    def handle_result(self, **kwargs):
+    def handle_result(self):
         """
         Called when the tqdm instance is finished. Can return data which will be
-        handled by the success_callback() as `result` or raise an exception which
+        handled by the success_callback() as `result`, or raise an exception which
         will be passed to the failure_callback() as `error`. [default: pass]
         """
         pass
 
-    def success_callback(self, multi=None, result=None, **kwargs):
+    def success_callback(self, result=None):
         """
-        Called after handle_result() has finsihed without an exception. Has
-        access to the tqdm_multi instance as `multi`, and any results returned
-        from handle_result() as `result`. Also has access to any kwargs a user
-        passed in to tqdm_multi.run(). [default: pass]
+        Called after handle_result() has finsihed without an exception. Has access
+        to any results returned from handle_result() as `result`. [default: pass]
         """
         pass
 
-    def failure_callback(self, multi=None, error=None, **kwargs):
+    def failure_callback(self, error=None):
         """
-        Called after handle_result() raises an exception. Has access to the
-        tqdm_multi instance as `multi`, and the error message returned from
-        handle_result() as `error`. Also has access to any kwargs a user passed
-        in to tqdm_multi.run(). [default: pass]
+        Called after handle_result() raises an exception. Has access to the error
+        message returned from handle_result() as `error`. [default: pass]
         """
         pass
 
@@ -804,16 +791,12 @@ class tqdm(object):
         """(Needs refactoring) A way to see if a progress bar and/or task has finished"""
         return self.n >= self.total
 
-    def run_callbacks(self, multi=None, **kwargs):
+    def run_callbacks(self):
         try:
-            result = self.handle_result(**kwargs)
-            self.success_callback(multi=multi, result=result, **kwargs)
+            result = self.handle_result()
+            self.success_callback(result=result)
         except Exception as error:
-            self.failure_callback(multi=multi, error=error, **kwargs)
-        finally:
-            for inst in self._instances:
-                inst.clear()
-                inst.refresh()
+            self.failure_callback(error=error)
 
 def trange(*args, **kwargs):
     """
