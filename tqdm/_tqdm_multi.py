@@ -4,20 +4,6 @@ from ._tqdm import tqdm
 
 """
 **NOTES**
-    Issues:
-        - When a Bar calls `close()`, it messes up other bars.
-            (This is somewhat fixed with the clear and refresh)
-            - but when to run_callbacks then?
-        - Need to handle moving command line cursor to below bars
-    Considerations:
-        - this would work well with the print-message branch. The clear
-            and refresh methods are from there as well.
-        - How to handle async
-        - Naming conventions?
-
-    Here is a minimum example with inheritence (see tests/tests_multi.py for a
-        more detailed example):
-    ```
     def mini_test():
         multi = tqdm_multi()
         for task_num in range(1, 10):
@@ -31,14 +17,6 @@ from ._tqdm import tqdm
 class tqdm_multi(object):
     """
     A handler for running multiple progress bars simultaneously.
-    Interacts with the tqdm_job wrapper which provides useful hooks
-    that can be used to update the progress bars and return results
-    dynamically.
-
-    The user can create a class that inherits from tqdm_job to create a simple
-    interface around a tqdm instance, and define their own methods for handling
-    the update, and success/failure logic. The user can pass instances of these
-    interfaces to tqdm_multi to handle iterating through this logic.
 
     See tests/tests_multi.py for an example
     """

@@ -746,8 +746,6 @@ class tqdm(object):
             else:
                 fp_write('\r')
 
-        self.run_callbacks()
-
     def unpause(self):
         """
         Restart tqdm timer from last print time.
