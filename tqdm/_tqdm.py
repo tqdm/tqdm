@@ -326,7 +326,7 @@ class tqdm(object):
         ascii  : bool, optional
             If unspecified or False, use unicode (smooth blocks) to fill
             the meter. The fallback is to use ASCII characters `1-9 #`.
-        disable  : bool
+        disable  : bool, optional
             Whether to disable the entire progressbar wrapper
             [default: False].
         unit  : str, optional
@@ -340,7 +340,7 @@ class tqdm(object):
         dynamic_ncols  : bool, optional
             If set, constantly alters `ncols` to the environment (allowing
             for window resizes) [default: False].
-        smoothing  : float
+        smoothing  : float, optional
             Exponential moving average smoothing factor for speed estimates
             (ignored in GUI mode). Ranges from 0 (average speed) to 1
             (current/instantaneous speed) [default: 0.3].

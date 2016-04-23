@@ -31,7 +31,7 @@ It can also be executed as a module with pipes:
 
 .. code:: sh
 
-    $ seq 9999999 | tqdm --unit_scale True | wc -l
+    $ seq 9999999 | tqdm --unit_scale | wc -l
     10.0Mit [00:02, 3.58Mit/s]
     9999999
 
@@ -177,8 +177,16 @@ Note that the usual arguments for ``tqdm`` can also be specified.
 .. code:: sh
 
     $ find . -name '*.py' -exec cat \{} \; |
-        tqdm --unit loc --unit_scale True --total 857366 >> /dev/null
+        tqdm --unit loc --unit_scale --total 857366 >> /dev/null
     100%|███████████████████████████████████| 857K/857K [00:04<00:00, 246Kloc/s]
+
+Backing up a large directory?
+
+.. code:: sh
+
+    $ 7z a -bd -r backup.7z docs/ | grep Compressing |
+        tqdm --total $(find docs/ -type f | wc -l) --unit files >> backup.log
+    100%|███████████████████████████████▉| 8014/8014 [01:37<00:00, 82.29files/s]
 
 
 Documentation
@@ -204,15 +212,16 @@ Parameters
 
 * iterable  : iterable, optional  
     Iterable to decorate with a progressbar.
-    Leave blank [default: None] to manually manage the updates.
+    Leave blank to manually manage the updates.
 * desc  : str, optional  
-    Prefix for the progressbar [default: None].
+    Prefix for the progressbar.
 * total  : int, optional  
-    The number of expected iterations. If [default: None], len(iterable)
-    is used if possible. As a last resort, only basic progress
-    statistics are displayed (no ETA, no progressbar). If `gui` is
-    True and this parameter needs subsequent updating, specify an
-    initial arbitrary large positive integer, e.g. int(9e9).
+    The number of expected iterations. If (default: None),
+    len(iterable) is used if possible. As a last resort, only basic
+    progress statistics are displayed (no ETA, no progressbar).
+    If `gui` is True and this parameter needs subsequent updating,
+    specify an initial arbitrary large positive integer,
+    e.g. int(9e9).
 * leave  : bool, optional  
     If [default: True], keeps all traces of the progressbar
     upon termination of iteration.
@@ -223,7 +232,7 @@ Parameters
 * ncols  : int, optional  
     The width of the entire output message. If specified,
     dynamically resizes the progressbar to stay within this bound.
-    If [default: None], attempts to use environment width. The
+    If unspecified, attempts to use environment width. The
     fallback is a meter width of 10 and no limit for the counter and
     statistics. If 0, will not print any meter (only stats).
 * mininterval  : float, optional  
@@ -231,12 +240,12 @@ Parameters
 * maxinterval  : float, optional  
     Maximum progress update interval, in seconds [default: 10.0].
 * miniters  : int, optional  
-    Minimum progress update interval, in iterations [default: None].
+    Minimum progress update interval, in iterations.
     If specified, will set `mininterval` to 0.
 * ascii  : bool, optional  
-    If [default: None] or False, use unicode (smooth blocks) to fill
+    If unspecified or False, use unicode (smooth blocks) to fill
     the meter. The fallback is to use ASCII characters `1-9 #`.
-* disable  : bool  
+* disable  : bool, optional  
     Whether to disable the entire progressbar wrapper
     [default: False].
 * unit  : str, optional  
@@ -250,15 +259,15 @@ Parameters
 * dynamic_ncols  : bool, optional  
     If set, constantly alters `ncols` to the environment (allowing
     for window resizes) [default: False].
-* smoothing  : float  
+* smoothing  : float, optional  
     Exponential moving average smoothing factor for speed estimates
     (ignored in GUI mode). Ranges from 0 (average speed) to 1
     (current/instantaneous speed) [default: 0.3].
 * bar_format  : str, optional  
     Specify a custom bar string formatting. May impact performance.
-    If [default: None], will use '{l_bar}{bar}{r_bar}', where l_bar is
+    If unspecified, will use '{l_bar}{bar}{r_bar}', where l_bar is
     '{desc}{percentage:3.0f}%|' and r_bar is
-    '| {n_fmt}/{total_fmt} [{elapsed_str}<{remaining_str}, {rate_fmt}]'.
+    '| {n_fmt}/{total_fmt} [{elapsed_str}<{remaining_str}, {rate_fmt}]'
     Possible vars: bar, n, n_fmt, total, total_fmt, percentage,
     rate, rate_fmt, elapsed, remaining, l_bar, r_bar, desc.
 * initial  : int, optional  
@@ -266,8 +275,12 @@ Parameters
     bar [default: 0].
 * position  : int, optional  
     Specify the line offset to print this bar (starting from 0)
-    Automatic if [default: None].
+    Automatic if unspecified.
     Useful to manage multiple bars at once (eg, from threads).
+* gui  : bool, optional  
+    WARNING: internal parameter - do not use.
+    Use tqdm_gui(...) instead. If set, will attempt to use
+    matplotlib animations for a graphical output [default: False].
 
 Returns
 ~~~~~~~
@@ -379,7 +392,7 @@ Here's an example with ``urllib``:
       return inner
 
     eg_link = 'http://www.doc.ic.ac.uk/~cod11/matryoshka.zip'
-    with tqdm(unit='B', unit_scale=True, leave=True, miniters=1,
+    with tqdm(unit='B', unit_scale=True, miniters=1,
               desc=eg_link.split('/')[-1]) as t:  # all optional kwargs
         urllib.urlretrieve(eg_link, filename='/dev/null',
                            reporthook=my_hook(t), data=None)
@@ -488,7 +501,7 @@ To quickly fix that using ``tqdm``, we can use this naive approach:
 .. code:: python
 
     def process_content_with_progress1(inputpath, blocksize=1024):
-        for filepath in tqdm(walkdir(inputpath), leave=True):
+        for filepath in tqdm(walkdir(inputpath)):
             with open(filepath, 'rb') as fh:
                 buf = 1
                 while (buf):
@@ -515,7 +528,7 @@ precompute this by ourselves:
             for filename in files:
                 filecounter += 1
 
-        for filepath in tqdm(walkdir(inputpath), total=filecounter, leave=True):
+        for filepath in tqdm(walkdir(inputpath), total=filecounter):
             with open(filepath, 'rb') as fh:
                 buf = 1
                 while (buf):
@@ -553,7 +566,7 @@ Below we implement this approach using a manually updated ``tqdm`` bar, where
                 sizecounter += os.stat(fullpath).st_size
 
         # Load tqdm with size counter instead of files counter
-        with tqdm(total=sizecounter, leave=True, unit='B', unit_scale=True) as pbar:
+        with tqdm(total=sizecounter, unit='B', unit_scale=True) as pbar:
             for dirpath, dirs, files in os.walk(inputpath):
                 for filename in files:
                     fullpath = os.path.abspath(os.path.join(dirpath, filename))
