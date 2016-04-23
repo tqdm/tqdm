@@ -633,59 +633,55 @@ class tqdm(object):
             raise ValueError("n ({0}) cannot be negative".format(n))
         self.n += n
 
-        delta_it = self.n - self.last_print_n  # should be n?
-        if delta_it >= self.miniters:
-            # We check the counter first, to reduce the overhead of time()
-            cur_t = self._time()
-            delta_t = cur_t - self.last_print_t
-            if delta_t >= self.mininterval:
-                elapsed = cur_t - self.start_t
-                # EMA (not just overall average)
-                if self.smoothing:  # and delta_it
-                    self.avg_time = delta_t / delta_it \
-                        if self.avg_time is None \
-                        else self.smoothing * delta_t / delta_it + \
-                        (1 - self.smoothing) * self.avg_time
+        self._cur_t = self._time()
+        if not self._is_complete:
+            elapsed = self.cur_t - self.start_t
+            # EMA (not just overall average)
+            if self.smoothing:  # and delta_it
+                self.avg_time = self.delta_t / self.delta_it \
+                    if self.avg_time is None \
+                    else self.smoothing * self.delta_t / self.delta_it + \
+                    (1 - self.smoothing) * self.avg_time
 
-                if not hasattr(self, "sp"):
-                    raise DeprecationWarning('Please use tqdm_gui(...)'
-                                             ' instead of tqdm(..., gui=True)')
+            if not hasattr(self, "sp"):
+                raise DeprecationWarning('Please use tqdm_gui(...)'
+                                         ' instead of tqdm(..., gui=True)')
 
-                if self.pos:
-                    self.moveto(self.pos)
+            if self.pos:
+                self.moveto(self.pos)
 
-                # Print bar's update
-                self.sp(self.format_meter(
-                    self.n, self.total, elapsed,
-                    (self.dynamic_ncols(self.fp) if self.dynamic_ncols
-                     else self.ncols),
-                    self.desc, self.ascii, self.unit, self.unit_scale,
-                    1 / self.avg_time if self.avg_time else None,
-                    self.bar_format))
+            # Print bar's update
+            self.sp(self.format_meter(
+                self.n, self.total, elapsed,
+                (self.dynamic_ncols(self.fp) if self.dynamic_ncols
+                 else self.ncols),
+                self.desc, self.ascii, self.unit, self.unit_scale,
+                1 / self.avg_time if self.avg_time else None,
+                self.bar_format))
 
-                if self.pos:
-                    self.moveto(-self.pos)
+            if self.pos:
+                self.moveto(-self.pos)
 
-                # If no `miniters` was specified, adjust automatically to the
-                # maximum iteration rate seen so far.
-                # e.g.: After running `tqdm.update(5)`, subsequent
-                # calls to `tqdm.update()` will only cause an update after
-                # at least 5 more iterations.
-                if self.dynamic_miniters:
-                    if self.maxinterval and delta_t > self.maxinterval:
-                        self.miniters = self.miniters * self.maxinterval \
-                            / delta_t
-                    elif self.mininterval and delta_t:
-                        self.miniters = self.smoothing * delta_it \
-                            * self.mininterval / delta_t + \
-                            (1 - self.smoothing) * self.miniters
-                    else:
-                        self.miniters = self.smoothing * delta_it + \
-                            (1 - self.smoothing) * self.miniters
+            # If no `miniters` was specified, adjust automatically to the
+            # maximum iteration rate seen so far.
+            # e.g.: After running `tqdm.update(5)`, subsequent
+            # calls to `tqdm.update()` will only cause an update after
+            # at least 5 more iterations.
+            if self.dynamic_miniters:
+                if self.maxinterval and self.delta_t > self.maxinterval:
+                    self.miniters = self.miniters * self.maxinterval \
+                        / self.delta_t
+                elif self.mininterval and self.delta_t:
+                    self.miniters = self.smoothing * self.delta_it \
+                        * self.mininterval / self.delta_t + \
+                        (1 - self.smoothing) * self.miniters
+                else:
+                    self.miniters = self.smoothing * self.delta_it + \
+                        (1 - self.smoothing) * self.miniters
 
-                # Store old values for next call
-                self.last_print_n = self.n
-                self.last_print_t = cur_t
+            # Store old values for next call
+            self.last_print_n = self.n
+            self.last_print_t = self._cur_t
 
     def close(self):
         """
@@ -721,10 +717,10 @@ class tqdm(object):
 
         if self.leave:
             if self.last_print_n < self.n:
-                cur_t = self._time()
+                self._cur_t = self._time()
                 # stats for overall rate (no weighted average)
                 self.sp(self.format_meter(
-                    self.n, self.total, cur_t - self.start_t,
+                    self.n, self.total, self._cur_t - self.start_t,
                     (self.dynamic_ncols(self.fp) if self.dynamic_ncols
                      else self.ncols),
                     self.desc, self.ascii, self.unit, self.unit_scale, None,
@@ -744,9 +740,9 @@ class tqdm(object):
         """
         Restart tqdm timer from last print time.
         """
-        cur_t = self._time()
-        self.start_t += cur_t - self.last_print_t
-        self.last_print_t = cur_t
+        self._cur_t = self._time()
+        self.start_t += self._cur_t - self.last_print_t
+        self.last_print_t = self._cur_t
 
     def set_description(self, desc=None):
         """
@@ -757,6 +753,22 @@ class tqdm(object):
     def moveto(self, n):
         self.fp.write(_unicode('\n' * n + _term_move_up() * -n))
 
+    @property
+    def delta_it(self):
+        return self.n - self.last_print_n
+
+    @property
+    def delta_t(self):
+        return self._cur_t - self.last_print_t
+
+    def _is_complete(self):
+        if self.delta_it <= self.miniters:
+            return False
+            # We check the counter first, to reduce the overhead of time()
+            if self.delta_t <= self.mininterval:
+                return False
+        else:
+            return True
 
 def trange(*args, **kwargs):
     """
