@@ -60,15 +60,21 @@ class tqdm_notebook(tqdm):  # pragma: no cover
         Manage the printing of an IPython/Jupyter Notebook progress bar widget.
         """
         # Fallback to text bar if there's no total
-        if not total:
-            return super(tqdm_notebook, tqdm_notebook).status_printer(file)
+        # DEPRECATED: replaced with an 'info' style bar
+        #if not total:
+            #return super(tqdm_notebook, tqdm_notebook).status_printer(file)
 
         fp = file
         if not getattr(fp, 'flush', False):  # pragma: no cover
             fp.flush = lambda: None
 
         # Prepare IPython progress bar
-        pbar = IntProgress(min=0, max=total)
+        if total:
+            pbar = IntProgress(min=0, max=total)
+        else:  # No total? Show info style bar with no progress tqdm status
+            pbar = IntProgress(min=0, max=1)
+            pbar.value = 1
+            pbar.bar_style = 'info'
         if desc:
             pbar.description = desc
         # Prepare status text
@@ -82,23 +88,25 @@ class tqdm_notebook(tqdm):  # pragma: no cover
             # clear_output(wait=1)
 
             # Get current iteration value from format_meter string
-            n = None
-            if s:
-                npos = s.find(r'/|/')  # because we use bar_format=r'{n}|...'
-                # Check that n can be found in s (else n > total)
-                if npos >= 0:
-                    n = int(s[:npos])  # get n from string
-                    s = s[npos+3:]  # remove from string
+            if total:
+                n = None
+                if s:
+                    npos = s.find(r'/|/')  # cause we use bar_format=r'{n}|...'
+                    # Check that n can be found in s (else n > total)
+                    if npos >= 0:
+                        n = int(s[:npos])  # get n from string
+                        s = s[npos+3:]  # remove from string
 
-                    # Update bar with current n value
-                    if n is not None:
-                        pbar.value = n
+                        # Update bar with current n value
+                        if n is not None:
+                            pbar.value = n
 
             # Print stats
             s = s.replace('||', '')  # remove inesthetical pipes
             s = escape(s)  # html escape special characters (like '?')
             ptext.value = s
 
+            # Change bar style
             if bar_style:
                 # Hack-ish way to avoid the danger bar_style being overriden by
                 # success because the bar gets closed after the error...
@@ -122,9 +130,9 @@ class tqdm_notebook(tqdm):  # pragma: no cover
 
         super(tqdm_notebook, self).__init__(*args, **kwargs)
 
-        # Delete the text progress bar display
-        self.sp('')
-        # Replace with IPython progress bar display
+        # Delete first pbar generated from super() (wrong total and text)
+        self.sp('', close=True)
+        # Replace with IPython progress bar display (with correct total)
         self.sp = self.status_printer(self.fp, self.total, self.desc)
         self.desc = None  # trick to place description before the bar
 
