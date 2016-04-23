@@ -141,7 +141,9 @@ class tqdm_notebook(tqdm):  # pragma: no cover
         try:
             for obj in super(tqdm_notebook, self).__iter__(*args, **kwargs):
                 yield obj  # cannot just return super(tqdm...) because can't catch exception
-        except:  # DO NOT use except as, or even except Exception, it simply won't work with IPython async KeyboardInterrupt
+        except:
+            # DO NOT use except as, or even except Exception, it simply won't work
+            # with IPython async KeyboardInterrupt
             self.sp(bar_style='danger')
             raise
 
@@ -156,10 +158,15 @@ class tqdm_notebook(tqdm):  # pragma: no cover
 
     def close(self, *args, **kwargs):
         super(tqdm_notebook, self).close(*args, **kwargs)
-        if self.leave:
-            self.sp(bar_style='success')
+        # Try to detect if there was an error or KeyboardInterrupt
+        # in manual mode: if n < total, things probably got wrong
+        if self.n < self.total:
+            self.sp(bar_style='danger')
         else:
-            self.sp(s='', close=True)
+            if self.leave:
+                self.sp(bar_style='success')
+            else:
+                self.sp(s='', close=True)
 
     def moveto(*args, **kwargs):
         # Nullify moveto to avoid outputting \n (blank lines) in the IPython output cell
