@@ -84,6 +84,10 @@ class tqdm_notebook(tqdm):  # pragma: no cover
         display(container)
 
         def print_status(s='', close=False, bar_style=None):
+            # Note: contrary to native tqdm, s='' does NOT clear bar
+            # goal is to keep all infos if error happens so user knows
+            # at which iteration the loop failed.
+
             # Clear previous output (really necessary?)
             # clear_output(wait=1)
 
@@ -102,9 +106,10 @@ class tqdm_notebook(tqdm):  # pragma: no cover
                             pbar.value = n
 
             # Print stats
-            s = s.replace('||', '')  # remove inesthetical pipes
-            s = escape(s)  # html escape special characters (like '?')
-            ptext.value = s
+            if s:  # never clear the bar (signal: s='')
+                s = s.replace('||', '')  # remove inesthetical pipes
+                s = escape(s)  # html escape special characters (like '?')
+                ptext.value = s
 
             # Change bar style
             if bar_style:
@@ -174,7 +179,7 @@ class tqdm_notebook(tqdm):  # pragma: no cover
             if self.leave:
                 self.sp(bar_style='success')
             else:
-                self.sp(s='', close=True)
+                self.sp(close=True)
 
     def moveto(*args, **kwargs):
         # Nullify moveto to avoid outputting \n (blank lines) in the IPython output cell
