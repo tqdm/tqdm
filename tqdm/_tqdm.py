@@ -556,10 +556,10 @@ class tqdm(object):
                 delta_it = n - last_print_n
                 # check the counter first (avoid calls to time())
                 if delta_it >= miniters:
-                    cur_t = _time()
-                    delta_t = cur_t - last_print_t
+                    self._cur_t = _time()
+                    delta_t = self._cur_t - last_print_t
                     if delta_t >= mininterval:
-                        elapsed = cur_t - start_t
+                        elapsed = self._cur_t - start_t
                         # EMA (not just overall average)
                         if smoothing:  # and delta_it
                             avg_time = delta_t / delta_it \
@@ -598,7 +598,7 @@ class tqdm(object):
 
                         # Store old values for next call
                         last_print_n = n
-                        last_print_t = cur_t
+                        last_print_t = self._cur_t
 
             # Closing the progress bar.
             # Update some internal variables for close().
@@ -633,11 +633,10 @@ class tqdm(object):
             raise ValueError("n ({0}) cannot be negative".format(n))
         self.n += n
 
-        self._cur_t = self._time()
         if not self._is_complete:
-            elapsed = self.cur_t - self.start_t
+            elapsed = self._cur_t - self.start_t
             # EMA (not just overall average)
-            if self.smoothing:  # and delta_it
+            if self.smoothing:  # and self.delta_it
                 self.avg_time = self.delta_t / self.delta_it \
                     if self.avg_time is None \
                     else self.smoothing * self.delta_t / self.delta_it + \
@@ -763,13 +762,15 @@ class tqdm(object):
 
     @property
     def _is_complete(self):
-        if self.delta_it <= self.miniters:
-            return False
-            # We check the counter first, to reduce the overhead of time()
-            if self.delta_t <= self.mininterval:
-                return False
-        else:
+        # We check the counter first, to reduce the overhead of time()
+        if self.delta_it < self.miniters:
             return True
+
+        self._cur_t = self._time()
+        if self.delta_t < self.mininterval:
+            return True
+
+        return False
 
 def trange(*args, **kwargs):
     """
