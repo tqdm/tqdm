@@ -51,25 +51,18 @@ class tqdm_multi(object):
 
     See tests/tests_multi.py for an example
     """
-    def __init__(self, jobs=None, **kwargs):
+    def __init__(self, jobs=[], **kwargs):
+        self.jobs = jobs
         if jobs:
-            # self.jobs = jobs  # get_jobs workaround
             for job in jobs:
                 self.register_job(job)
-        # else:  # get_jobs workaround
-            # self.jobs = []  # get_jobs workaround
-            # pass  # get_jobs workaround
 
         for key, value in kwargs.items():
             setattr(self, key, value)
 
     def register_job(self, job):
-        # self.jobs.append(job)  # get_jobs workaround
+        self.jobs.append(job)
         job.multi = self
-
-    def get_jobs(self):
-        """Only works if `jobs` exists for some odd reason"""
-        return [job for job in tqdm._instances if job.multi == self]
 
     def run(self, sleep_delay=.25):
         """
@@ -91,4 +84,4 @@ class tqdm_multi(object):
 
     def _incomplete_jobs(self):
         "returns a list of any progress bars that are still unfinished"
-        return [job for job in self.get_jobs() if not job._is_complete()]
+        return [job for job in self.jobs if not job._is_complete()]

@@ -252,9 +252,9 @@ class tqdm(object):
 
     def __new__(cls, *args, **kwargs):
         instance = object.__new__(cls)
-        if "_instances" not in tqdm.__dict__:
-            tqdm._instances = WeakSet()
-        tqdm._instances.add(instance)
+        if "_instances" not in cls.__dict__:
+            cls._instances = WeakSet()
+        cls._instances.add(instance)
         return instance
 
     @classmethod
