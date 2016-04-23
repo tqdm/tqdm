@@ -105,7 +105,7 @@ class tqdm_notebook(tqdm):  # pragma: no cover
                     pbar.bar_style = bar_style
 
             # Special signal to close the bar
-            if close:
+            if close and pbar.bar_style != 'danger':  # hide only if no error
                 container.visible = False
 
         return print_status
