@@ -291,16 +291,23 @@ class tqdm(object):
         Print a message via tqdm (without overlap with bars)
         """
         # Clear all bars
+        inst_cleared = []
         for inst in cls._instances:
-            if inst.fp == file:
+            # Clear instance if in the target output file
+            # or if write output + tqdm output are both either
+            # sys.stdout or sys.stderr (because both are mixed in terminal)
+            if inst.fp == file or \
+              (file in [sys.stdout, sys.stderr] and
+               inst.fp in [sys.stdout, sys.stderr]):
                 inst.clear()
+                inst_cleared.append(inst)
         # Write the message
         file.write(s)
         file.write(end)
-        # Force refresh display of all bars
-        for inst in cls._instances:
+        # Force refresh display of bars we cleared
+        for inst in inst_cleared:
             inst.refresh()
-        # TODO: make a list with all instances including absolutely positioned ones?
+        # TODO: make list of all instances incl. absolutely positioned ones?
 
     def __init__(self, iterable=None, desc=None, total=None, leave=True,
                  file=sys.stderr, ncols=None, mininterval=0.1,
