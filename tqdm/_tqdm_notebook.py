@@ -100,8 +100,9 @@ class tqdm_notebook(tqdm):  # pragma: no cover
             ptext.value = s
 
             if bar_style:
-                # Hack-ish way to avoid the danger bar_style being overriden by success because the bar gets closed after the error...
-                if pbar.bar_style != 'danger' and bar_style != 'success':
+                # Hack-ish way to avoid the danger bar_style being overriden by
+                # success because the bar gets closed after the error...
+                if not (pbar.bar_style == 'danger' and bar_style == 'success'):
                     pbar.bar_style = bar_style
 
             # Special signal to close the bar
