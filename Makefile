@@ -94,7 +94,7 @@ install:
 
 build:
 	@make prebuildclean
-	python setup.py sdist --formats=gztar,zip bdist --formats=gztar,zip bdist_wheel
+	python setup.py sdist --formats=gztar,zip bdist_wheel
 	python setup.py bdist_wininst
 
 pypimeta:
