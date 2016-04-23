@@ -1,6 +1,5 @@
 from ._tqdm import tqdm
 from ._version import __version__  # NOQA
-from docopt import docopt
 import sys
 import re
 __all__ = ["main"]
@@ -27,6 +26,8 @@ RE_OPTS = re.compile(r' {8}(\w+)\s{2,}:\s*(str|int|float|bool)', flags=re.M)
 
 
 def main():
+    from docopt import docopt
+
     d = tqdm.__init__.__doc__
     opt_types = dict(RE_OPTS.findall(d))
     # d = RE_OPTS_SOME.sub(r'  --\1=<v>  ', d)
@@ -41,6 +42,7 @@ Options:
   -h, --help     Print this help and exit
   -v, --version  Print version and exit
 """ + d
+
     opts = docopt(__doc__, version=__version__)
 
     try:
