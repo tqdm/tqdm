@@ -553,9 +553,9 @@ class tqdm(object):
                 # Update and print the progressbar.
                 # Note: does not call self.update(1) for speed optimisation.
                 n += 1
-                delta_it = n - last_print_n
                 # check the counter first (avoid calls to time())
-                if delta_it >= miniters:
+                if n - last_print_n >= miniters:
+                    delta_it = n - last_print_n
                     cur_t = _time()
                     delta_t = cur_t - last_print_t
                     if delta_t >= mininterval:
