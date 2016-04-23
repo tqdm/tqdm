@@ -18,21 +18,12 @@ from ._tqdm import tqdm
     Here is a minimum example with inheritence (see tests/tests_multi.py for a
         more detailed example):
     ```
-        class MiniTestJob(tqdm):
-
-            def __init__(self, task_num, **kwargs):
-                super(MiniTestJob, self).__init__(**kwargs)
-                self.task_num = task_num
-
-            def update(self):
-                super(MiniTestJob, self).update(n=self.task_num)
-
-        def mini_test():
-            multi = tqdm_multi()
-            for task_num in range(1, 10):
-                job = MiniTestJob(task_num=task_num, desc=str(task_num), total=1000)
-                multi.register_job(job)
-            multi.run(sleep_delay=.001)
+    def mini_test():
+        multi = tqdm_multi()
+        for task_num in range(1, 10):
+            job = tqdm(desc=str(task_num), total=1000)
+            multi.register_job(job)
+        multi.run(sleep_delay=.001)
     ```
 """
 

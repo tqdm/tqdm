@@ -765,38 +765,9 @@ class tqdm(object):
     def moveto(self, n):
         self.fp.write(_unicode('\n' * n + _term_move_up() * -n))
 
-    def handle_result(self):
-        """
-        Called when the tqdm instance is finished. Can return data which will be
-        handled by the success_callback() as `result`, or raise an exception which
-        will be passed to the failure_callback() as `error`. [default: pass]
-        """
-        pass
-
-    def success_callback(self, result=None):
-        """
-        Called after handle_result() has finsihed without an exception. Has access
-        to any results returned from handle_result() as `result`. [default: pass]
-        """
-        pass
-
-    def failure_callback(self, error=None):
-        """
-        Called after handle_result() raises an exception. Has access to the error
-        message returned from handle_result() as `error`. [default: pass]
-        """
-        pass
-
     def _is_complete(self):
         """(Needs refactoring) A way to see if a progress bar and/or task has finished"""
         return self.n >= self.total
-
-    def run_callbacks(self):
-        try:
-            result = self.handle_result()
-            self.success_callback(result=result)
-        except Exception as error:
-            self.failure_callback(error=error)
 
 def trange(*args, **kwargs):
     """
