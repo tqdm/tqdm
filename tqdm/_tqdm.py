@@ -761,6 +761,7 @@ class tqdm(object):
     def delta_t(self):
         return self._cur_t - self.last_print_t
 
+    @property
     def _is_complete(self):
         if self.delta_it <= self.miniters:
             return False
