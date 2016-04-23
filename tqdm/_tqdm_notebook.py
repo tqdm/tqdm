@@ -45,7 +45,7 @@ except ImportError:  # pragma: no cover
 from ._tqdm import tqdm
 
 
-__author__ = {"github.com/": ["lrq3000", "casperdcl"]}
+__author__ = {"github.com/": ["lrq3000", "casperdcl", "alexanderkuk"]}
 __all__ = ['tqdm_notebook', 'tnrange']
 
 
