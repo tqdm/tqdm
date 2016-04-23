@@ -552,10 +552,7 @@ class tqdm(object):
                                          ' instead of tqdm(..., gui=True)')
 
             for obj in iterable:
-                try:
-                    yield obj
-                except Exception as error:
-                    self.failure_callback(error=error)
+                yield obj
                 # Update and print the progressbar.
                 # Note: does not call self.update(1) for speed optimisation.
                 n += 1
