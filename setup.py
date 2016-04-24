@@ -167,7 +167,7 @@ setup(
     name='tqdm',
     version=__version__,
     description='A Fast, Extensible Progress Meter',
-    license='MIT License',
+    license='MPLv2.0, MIT Licenses',
     author='Noam Yorav-Raphael',
     author_email='noamraph@gmail.com',
     url='https://github.com/tqdm/tqdm',
@@ -181,6 +181,7 @@ setup(
         # Trove classifiers
         # (https://pypi.python.org/pypi?%3Aaction=list_classifiers)
         'Development Status :: 5 - Production/Stable',
+        'License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)',
         'License :: OSI Approved :: MIT License',
         'Environment :: Console',
         'Framework :: IPython',

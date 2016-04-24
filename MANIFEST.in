@@ -1,7 +1,7 @@
 # Misc
 include .coveragerc
 include CONTRIBUTE
-include LICENSE
+include LICENCE
 include logo.png
 include Makefile
 include README.rst
