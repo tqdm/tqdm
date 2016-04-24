@@ -293,15 +293,16 @@ class tqdm(object):
         ----------
         iterable  : iterable, optional
             Iterable to decorate with a progressbar.
-            Leave blank [default: None] to manually manage the updates.
+            Leave blank to manually manage the updates.
         desc  : str, optional
-            Prefix for the progressbar [default: None].
+            Prefix for the progressbar.
         total  : int, optional
-            The number of expected iterations. If [default: None],
+            The number of expected iterations. If unspecified,
             len(iterable) is used if possible. As a last resort, only basic
             progress statistics are displayed (no ETA, no progressbar).
             If `gui` is True and this parameter needs subsequent updating,
-            specify an initial arbitrary large positive integer, e.g. int(9e9).
+            specify an initial arbitrary large positive integer,
+            e.g. int(9e9).
         leave  : bool, optional
             If [default: True], keeps all traces of the progressbar
             upon termination of iteration.
@@ -312,7 +313,7 @@ class tqdm(object):
         ncols  : int, optional
             The width of the entire output message. If specified,
             dynamically resizes the progressbar to stay within this bound.
-            If [default: None], attempts to use environment width. The
+            If unspecified, attempts to use environment width. The
             fallback is a meter width of 10 and no limit for the counter and
             statistics. If 0, will not print any meter (only stats).
         mininterval  : float, optional
@@ -320,12 +321,12 @@ class tqdm(object):
         maxinterval  : float, optional
             Maximum progress update interval, in seconds [default: 10.0].
         miniters  : int, optional
-            Minimum progress update interval, in iterations [default: None].
+            Minimum progress update interval, in iterations.
             If specified, will set `mininterval` to 0.
         ascii  : bool, optional
-            If [default: None] or False, use unicode (smooth blocks) to fill
+            If unspecified or False, use unicode (smooth blocks) to fill
             the meter. The fallback is to use ASCII characters `1-9 #`.
-        disable  : bool
+        disable  : bool, optional
             Whether to disable the entire progressbar wrapper
             [default: False].
         unit  : str, optional
@@ -339,13 +340,13 @@ class tqdm(object):
         dynamic_ncols  : bool, optional
             If set, constantly alters `ncols` to the environment (allowing
             for window resizes) [default: False].
-        smoothing  : float
+        smoothing  : float, optional
             Exponential moving average smoothing factor for speed estimates
             (ignored in GUI mode). Ranges from 0 (average speed) to 1
             (current/instantaneous speed) [default: 0.3].
         bar_format  : str, optional
             Specify a custom bar string formatting. May impact performance.
-            If [default: None], will use '{l_bar}{bar}{r_bar}', where l_bar is
+            If unspecified, will use '{l_bar}{bar}{r_bar}', where l_bar is
             '{desc}{percentage:3.0f}%|' and r_bar is
             '| {n_fmt}/{total_fmt} [{elapsed_str}<{remaining_str}, {rate_fmt}]'
             Possible vars: bar, n, n_fmt, total, total_fmt, percentage,
@@ -355,7 +356,7 @@ class tqdm(object):
             bar [default: 0].
         position  : int, optional
             Specify the line offset to print this bar (starting from 0)
-            Automatic if [default: None].
+            Automatic if unspecified.
             Useful to manage multiple bars at once (eg, from threads).
         gui  : bool, optional
             WARNING: internal parameter - do not use.
