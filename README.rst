@@ -3,8 +3,12 @@
 tqdm
 ====
 
-|PyPi Status| |PyPi Downloads|
+|PyPi Status| |PyPi Downloads| |PyPi Versions|
+
 |Build Status| |Coverage Status| |Branch Coverage Status|
+
+|DOI URI| |Licence|
+
 
 ``tqdm`` (read taqadum, تقدّم) means "progress" in arabic.
 
@@ -35,7 +39,7 @@ It can also be executed as a module with pipes:
     10.0Mit [00:02, 3.58Mit/s]
     9999999
 
-Overhead is low -- about 60ns per iteration (80ns with ``gui=True``), and is
+Overhead is low -- about 60ns per iteration (80ns with ``tqdm_gui``), and is
 unit tested against performance regression.
 By comparison, the well established
 `ProgressBar <https://github.com/niltonvolpato/python-progressbar>`__ has
@@ -65,12 +69,16 @@ Installation
 Latest pypi stable release
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+|PyPi Status| |PyPi Downloads|
+
 .. code:: sh
 
     pip install tqdm
 
 Latest development release on github
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+|Github Status| |Github Stars| |Github Forks|
 
 Pull and install in the current directory:
 
@@ -82,9 +90,8 @@ Pull and install in the current directory:
 Changelog
 ---------
 
-The list of all changes is available either on
-`Github's Releases <https://github.com/tqdm/tqdm/releases>`_
-or on crawlers such as
+The list of all changes is available either on Github's Releases:
+|Github Status| or on crawlers such as
 `allmychanges.com <https://allmychanges.com/p/python/tqdm/>`_.
 
 
@@ -119,6 +126,7 @@ Instantiation outside of the loop allows for manual control over ``tqdm()``:
     pbar = tqdm(["a", "b", "c", "d"])
     for char in pbar:
         pbar.set_description("Processing %s" % char)
+
 
 Manual
 ~~~~~~
@@ -191,6 +199,8 @@ Backing up a large directory?
 
 Documentation
 -------------
+
+|PyPi Versions|
 
 .. code:: python
 
@@ -477,7 +487,7 @@ you may specify `position=n` where `n=0` for the outermost bar,
 IPython/Jupyter Integration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-IPython/Jupyter is now fully supported by using the `tqdm_notebook` submodule:
+IPython/Jupyter is supported via the `tqdm_notebook` submodule:
 
 .. code:: python
 
@@ -491,7 +501,7 @@ IPython/Jupyter is now fully supported by using the `tqdm_notebook` submodule:
 In addition to `tqdm` features, the submodule provides a native Jupyter
 widget (compatible with IPython v1-v4 and Jupyter), fully working nested bars
 and color hints (blue: normal, green: completed, red: error/interrupt,
-light blue: no ETA).
+light blue: no ETA); as demonstrated below.
 
 |Screenshot-Jupyter1|
 |Screenshot-Jupyter2|
@@ -679,14 +689,17 @@ See the
 file for more information.
 
 
-License
+Licence
 -------
 
-Multiple licences, mostly `MPLv2.0, MIT licences <https://raw.githubusercontent.com/tqdm/tqdm/master/LICENCE>`__.
+Open Source (OSI approved): |Licence|
 
+Citation information: |DOI URI|
 
 Authors
 -------
+
+Ranked by contributions.
 
 -  Casper da Costa-Luis (casperdcl)
 -  Stephen Larroque (lrq3000)
@@ -698,17 +711,29 @@ Authors
 `*` Original author
 
 .. |Logo| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/logo.png
+.. |Screenshot| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/tqdm.gif
 .. |Build Status| image:: https://travis-ci.org/tqdm/tqdm.svg?branch=master
    :target: https://travis-ci.org/tqdm/tqdm
 .. |Coverage Status| image:: https://coveralls.io/repos/tqdm/tqdm/badge.svg
    :target: https://coveralls.io/r/tqdm/tqdm
 .. |Branch Coverage Status| image:: https://codecov.io/github/tqdm/tqdm/coverage.svg?branch=master
    :target: https://codecov.io/github/tqdm/tqdm?branch=master
+.. |Github Status| image:: https://img.shields.io/github/tag/tqdm/tqdm.svg?maxAge=2592000
+   :target: https://github.com/tqdm/tqdm/releases
+.. |Github Forks| image:: https://img.shields.io/github/forks/tqdm/tqdm.svg
+   :target: https://github.com/tqdm/tqdm/network
+.. |Github Stars| image:: https://img.shields.io/github/stars/tqdm/tqdm.svg
+   :target: https://github.com/tqdm/tqdm/stargazers
 .. |PyPi Status| image:: https://img.shields.io/pypi/v/tqdm.svg
    :target: https://pypi.python.org/pypi/tqdm
 .. |PyPi Downloads| image:: https://img.shields.io/pypi/dm/tqdm.svg
    :target: https://pypi.python.org/pypi/tqdm
-.. |Screenshot| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/tqdm.gif
+.. |PyPi Versions| image:: https://img.shields.io/pypi/pyversions/tqdm.svg
+   :target: https://pypi.python.org/pypi/tqdm
+.. |Licence| image:: https://img.shields.io/pypi/l/tqdm.svg
+   :target: https://raw.githubusercontent.com/tqdm/tqdm/master/LICENCE
+.. |DOI URI| image:: https://zenodo.org/badge/21637/tqdm/tqdm.svg
+   :target: https://zenodo.org/badge/latestdoi/21637/tqdm/tqdm
 .. |Screenshot-Jupyter1| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/tqdm-jupyter-1.gif
 .. |Screenshot-Jupyter2| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/tqdm-jupyter-2.gif
 .. |Screenshot-Jupyter3| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/tqdm-jupyter-3.gif
