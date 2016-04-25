@@ -52,6 +52,7 @@ CTRLCHR = [r'\r', r'\n', r'\x1b\[A']  # Need to escape [ for regex
 RE_rate = re.compile(r'(\d+\.\d+)it/s')
 RE_ctrlchr = re.compile("(%s)" % '|'.join(CTRLCHR))  # Match control chars
 RE_ctrlchr_excl = re.compile('|'.join(CTRLCHR))  # Match and exclude ctrl chars
+RE_pos = re.compile(r'((\x1b\[A|\r|\n)+((pos\d+) bar:\s+\d+%|\s{3,6})?)')  # NOQA
 
 
 class DiscreteTimer(object):
@@ -132,6 +133,51 @@ def get_bar(all_bars, i):
 
 def progressbar_rate(bar_str):
     return float(RE_rate.search(bar_str).group(1))
+
+
+def squash_ctrlchars(s):
+    """ Apply control characters in a string just like a terminal display """
+    # List of supported control codes
+    ctrlcodes = [r'\r', r'\n', r'\x1b\[A']
+
+    # Init variables
+    curline = 0  # current line in our fake terminal
+    lines = ['']  # state of our fake terminal
+
+    # Split input string by control codes
+    RE_ctrl = re.compile("(%s)" % ("|".join(ctrlcodes)), flags=re.DOTALL)
+    s_split = RE_ctrl.split(s)
+    s_split = filter(None, s_split)  # filter out empty splits
+
+    # For each control character or message
+    for nextctrl in s_split:
+        # If it's a control character, apply it
+        if nextctrl == '\r':
+            # Carriage return
+            # Go to the beginning of the line
+            # simplified here: we just empty the string
+            lines[curline] = ''
+        elif nextctrl == '\n':
+            # Newline
+            # Go to the next line
+            if curline < (len(lines) - 1):
+                # If already exists, just move cursor
+                curline += 1
+            else:
+                # Else the new line is created
+                lines.append('')
+                curline += 1
+        elif nextctrl == '\x1b[A':
+            # Move cursor up
+            if curline > 0:
+                curline -= 1
+            else:
+                raise ValueError("Cannot go up, anymore!")
+        # Else, it is a message, we print it on current line
+        else:
+            lines[curline] += nextctrl
+
+    return lines
 
 
 def test_format_interval():
@@ -810,9 +856,6 @@ def test_position():
     if nt_and_no_colorama:
         raise SkipTest
 
-    # Use regexp because the it rates can change
-    RE_pos = re.compile(r'((\x1b\[A|\r|\n)+((pos\d+) bar:\s+\d+%|\s{3,6})?)')  # NOQA
-
     # Artificially test nested loop printing
     # Without leave
     our_file = StringIO()
@@ -1029,3 +1072,126 @@ def test_repr():
     with closing(StringIO()) as our_file:
         with tqdm(total=10, ascii=True, file=our_file) as t:
             assert str(t) == '  0%|          | 0/10 [00:00<?, ?it/s]'
+
+
+@with_setup(pretest, posttest)
+def test_clear():
+    """ Test clearing bar display """
+    with closing(StringIO()) as our_file:
+        t1 = tqdm(total=10, file=our_file, desc='pos0 bar',
+                  bar_format='{l_bar}')
+        t2 = trange(10, file=our_file, desc='pos1 bar',
+                    bar_format='{l_bar}')
+        before = squash_ctrlchars(our_file.getvalue())
+        t2.clear()
+        t1.clear()
+        after = squash_ctrlchars(our_file.getvalue())
+        t1.close()
+        t2.close()
+        assert before == ['pos0 bar:   0%|', 'pos1 bar:   0%|']
+        assert after == ['', '']
+
+
+@with_setup(pretest, posttest)
+def test_refresh():
+    """ Test refresh bar display """
+    with closing(StringIO()) as our_file:
+        t1 = tqdm(total=10, file=our_file, desc='pos0 bar',
+                  bar_format='{l_bar}', mininterval=999, miniters=999)
+        t2 = tqdm(total=10, file=our_file, desc='pos1 bar',
+                  bar_format='{l_bar}', mininterval=999, miniters=999)
+        t1.update()
+        t2.update()
+        before = squash_ctrlchars(our_file.getvalue())
+        t1.refresh()
+        t2.refresh()
+        after = squash_ctrlchars(our_file.getvalue())
+        t1.close()
+        t2.close()
+
+        # Check that refreshing indeed forced the display to use realtime state
+        assert before == [u'pos0 bar:   0%|', u'pos1 bar:   0%|']
+        assert after == [u'pos0 bar:  10%|', u'pos1 bar:  10%|']
+
+
+@with_setup(pretest, posttest)
+def test_write():
+    """ Test write messages """
+    s = "Hello world"
+    with closing(StringIO()) as our_file:
+        # Change format to keep only left part w/o bar and it/s rate
+        t1 = tqdm(total=10, file=our_file, desc='pos0 bar',
+                  bar_format='{l_bar}', mininterval=0, miniters=1)
+        t2 = trange(10, file=our_file, desc='pos1 bar', bar_format='{l_bar}',
+                    mininterval=0, miniters=1)
+        t3 = tqdm(total=10, file=our_file, desc='pos2 bar',
+                  bar_format='{l_bar}', mininterval=0, miniters=1)
+        t1.update()
+        t2.update()
+        t3.update()
+        before = our_file.getvalue()
+
+        # Write msg and see if bars are correctly redrawn below the msg
+        t1.write(s, file=our_file)  # call as an instance method
+        tqdm.write(s, file=our_file)  # call as a class method
+        after = our_file.getvalue()
+
+        t1.close()
+        t2.close()
+        t3.close()
+
+        before_squashed = squash_ctrlchars(before)
+        after_squashed = squash_ctrlchars(after)
+
+        assert after_squashed == [s, s] + before_squashed
+
+    # Check that no bar clearing if different file
+    with closing(StringIO()) as our_file_bar:
+        with closing(StringIO()) as our_file_write:
+            t1 = tqdm(total=10, file=our_file_bar, desc='pos0 bar',
+                      bar_format='{l_bar}', mininterval=0, miniters=1)
+
+            t1.update()
+            before_bar = our_file_bar.getvalue()
+
+            tqdm.write(s, file=our_file_write)
+
+            after_bar = our_file_bar.getvalue()
+            t1.close()
+
+            assert before_bar == after_bar
+
+    # Test stdout/stderr anti-mixup strategy
+    # Backup stdout/stderr
+    stde = sys.stderr
+    stdo = sys.stdout
+    # Mock stdout/stderr
+    with closing(StringIO()) as our_stderr:
+        with closing(StringIO()) as our_stdout:
+            sys.stderr = our_stderr
+            sys.stdout = our_stdout
+            t1 = tqdm(total=10, file=sys.stderr, desc='pos0 bar',
+                      bar_format='{l_bar}', mininterval=0, miniters=1)
+
+            t1.update()
+            before_err = sys.stderr.getvalue()
+            before_out = sys.stdout.getvalue()
+
+            tqdm.write(s, file=sys.stdout)
+            after_err = sys.stderr.getvalue()
+            after_out = sys.stdout.getvalue()
+
+            t1.close()
+
+            assert before_err == '\rpos0 bar:   0%|\rpos0 bar:  10%|'
+            assert before_out == ''
+            after_err_res = [m[0] for m in RE_pos.findall(after_err)]
+            assert after_err_res == [u'\rpos0 bar:   0%',
+                                     u'\rpos0 bar:  10%',
+                                     u'\r      ',
+                                     u'\r\r      ',
+                                     u'\rpos0 bar:  10%']
+            assert after_out == s+'\n'
+    # Restore stdout and stderr
+    sys.stderr = stde
+    sys.stdout = stdo

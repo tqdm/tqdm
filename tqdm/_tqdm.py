@@ -251,10 +251,13 @@ class tqdm(object):
                 n_fmt, unit, elapsed_str, rate_fmt)
 
     def __new__(cls, *args, **kwargs):
+        # Create a new instance
         instance = object.__new__(cls)
+        # Add to the list of instances
         if "_instances" not in cls.__dict__:
             cls._instances = WeakSet()
         cls._instances.add(instance)
+        # Return the instance
         return instance
 
     @classmethod
@@ -281,6 +284,30 @@ class tqdm(object):
                     inst.pos -= 1
         except KeyError:
             pass
+
+    @classmethod
+    def write(cls, s, file=sys.stdout, end="\n"):
+        """
+        Print a message via tqdm (without overlap with bars)
+        """
+        # Clear all bars
+        inst_cleared = []
+        for inst in cls._instances:
+            # Clear instance if in the target output file
+            # or if write output + tqdm output are both either
+            # sys.stdout or sys.stderr (because both are mixed in terminal)
+            if inst.fp == file or \
+              (file in [sys.stdout, sys.stderr] and
+               inst.fp in [sys.stdout, sys.stderr]):
+                inst.clear()
+                inst_cleared.append(inst)
+        # Write the message
+        file.write(s)
+        file.write(end)
+        # Force refresh display of bars we cleared
+        for inst in inst_cleared:
+            inst.refresh()
+        # TODO: make list of all instances incl. absolutely positioned ones?
 
     def __init__(self, iterable=None, desc=None, total=None, leave=True,
                  file=sys.stderr, ncols=None, mininterval=0.1,
@@ -598,8 +625,8 @@ class tqdm(object):
                                     (1 - smoothing) * miniters
 
                         # Store old values for next call
-                        last_print_n = n
-                        last_print_t = cur_t
+                        self.n = self.last_print_n = last_print_n = n
+                        self.last_print_t = last_print_t = cur_t
 
             # Closing the progress bar.
             # Update some internal variables for close().
@@ -757,6 +784,30 @@ class tqdm(object):
 
     def moveto(self, n):
         self.fp.write(_unicode('\n' * n + _term_move_up() * -n))
+
+    def clear(self, nomove=False):
+        """
+        Clear current bar display
+        """
+        if not nomove:
+            self.moveto(self.pos)
+        # clear up the bar (can't rely on sp(''))
+        self.fp.write('\r')
+        self.fp.write(' ' * (self.ncols if self.ncols else 10))
+        self.fp.write('\r')  # place cursor back at the beginning of line
+        if not nomove:
+            self.moveto(-self.pos)
+
+    def refresh(self):
+        """
+        Force refresh the display of this bar
+        """
+        self.moveto(self.pos)
+        # clear up this line's content (whatever there was)
+        self.clear(nomove=True)
+        # Print current/last bar state
+        self.fp.write(self.__repr__())
+        self.moveto(-self.pos)
 
 
 def trange(*args, **kwargs):
