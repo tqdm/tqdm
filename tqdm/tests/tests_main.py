@@ -15,7 +15,7 @@ def _sh(*cmd, **kwargs):
 @with_setup(pretest, posttest)
 def test_main():
     """ Test command line pipes """
-    ls_out = _sh('ls')
+    ls_out = _sh('ls').replace('\r\n', '\n')
     ls = subprocess.Popen(('ls'), stdout=subprocess.PIPE)
     res = _sh('python', '-c', 'from tqdm import main; main()',
               stdin=ls.stdout, stderr=subprocess.STDOUT)
@@ -23,7 +23,7 @@ def test_main():
 
     # actual test:
 
-    assert (ls_out in res)
+    assert (ls_out in res.replace('\r\n', '\n'))
 
     # semi-fake test which gets coverage:
     try:
