@@ -314,6 +314,7 @@ class tqdm(object):
                  maxinterval=10.0, miniters=None, ascii=None, disable=False,
                  unit='it', unit_scale=False, dynamic_ncols=False,
                  smoothing=0.3, bar_format=None, initial=0, position=None,
+                 pessimistic=False,
                  gui=False, **kwargs):
         """
         Parameters
@@ -385,6 +386,10 @@ class tqdm(object):
             Specify the line offset to print this bar (starting from 0)
             Automatic if unspecified.
             Useful to manage multiple bars at once (eg, from threads).
+        pessimistic  : bool, optional
+            Force fake exponential progression of the bar, predicting
+            more time at the beginning than it will really take, and then
+            steadily accelerates to catch the real rate towards the end.
         gui  : bool, optional
             WARNING: internal parameter - do not use.
             Use tqdm_gui(...) instead. If set, will attempt to use
@@ -469,6 +474,9 @@ class tqdm(object):
         self.avg_time = None
         self._time = time
         self.bar_format = bar_format
+        self.pessimistic = pessimistic
+        if self.pessimistic:
+            self.worst_time = -1
 
         # Init the iterations counters
         self.last_print_n = initial
@@ -569,6 +577,9 @@ class tqdm(object):
             bar_format = self.bar_format
             _time = self._time
             format_meter = self.format_meter
+            pessimistic = self.pessimistic
+            if pessimistic:
+                worst_time = self.worst_time
 
             try:
                 sp = self.sp
@@ -588,12 +599,25 @@ class tqdm(object):
                     delta_t = cur_t - last_print_t
                     if delta_t >= mininterval:
                         elapsed = cur_t - start_t
-                        # EMA (not just overall average)
+                        # Exponential Moving Average (not just overall average)
+                        # To better adapt to hiccups
                         if smoothing and delta_t:
                             avg_time = delta_t / delta_it \
                                 if avg_time is None \
                                 else smoothing * delta_t / delta_it + \
                                 (1 - smoothing) * avg_time
+                        # Pessimistic progress: estimate worst remaining time
+                        # at start, and progressively catch up with real rate
+                        if pessimistic:
+                            # Update worst time
+                            if delta_t > worst_time:
+                                worst_time = delta_t
+                            # Compute average
+                            if avg_time is None:
+                                avg_time = self.total - n / (n - elapsed)
+                            # Compute mixture between worst time and real rate
+                            remaining_pct = (self.total - n) / self.total
+                            avg_time = remaining_pct * worst_time + (1 - remaining_pct) * avg_time
 
                         if self.pos:
                             self.moveto(self.pos)
@@ -668,12 +692,20 @@ class tqdm(object):
             delta_t = cur_t - self.last_print_t
             if delta_t >= self.mininterval:
                 elapsed = cur_t - self.start_t
-                # EMA (not just overall average)
+                # Exponential Moving Average (not just overall average)
                 if self.smoothing and delta_t:
                     self.avg_time = delta_t / delta_it \
                         if self.avg_time is None \
                         else self.smoothing * delta_t / delta_it + \
                         (1 - self.smoothing) * self.avg_time
+                # Pessimistic progress
+                if self.pessimistic:
+                    if delta_t > self.worst_time:
+                        self.worst_time = delta_t
+                    if self.avg_time is None:
+                        self.avg_time = self.total - self.n / (self.n - elapsed)
+                    remaining_pct = (self.total - self.n) / self.total
+                    self.avg_time = remaining_pct * self.worst_time + (1 - remaining_pct) * self.avg_time
 
                 if not hasattr(self, "sp"):
                     raise DeprecationWarning('Please use tqdm_gui(...)'
