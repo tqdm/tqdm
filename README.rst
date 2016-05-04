@@ -474,6 +474,25 @@ For manual control over positioning (e.g. for multi-threaded use),
 you may specify `position=n` where `n=0` for the outermost bar,
 `n=1` for the next, and so on.
 
+IPython/Jupyter Integration
+~~~~~~~~~~~~~~~~~~
+
+IPython/Jupyter is now fully supported by using the `tqdm_notebook` submodule:
+
+.. code:: python
+
+    from tqdm import tnrange, tqdm_notebook
+    from time import sleep
+
+    for i in tnrange(10, desc='1st loop'):
+        for j in tqdm_notebook(xrange(100), desc='2nd loop'):
+            sleep(0.01)
+
+In addition to `tqdm` features, the submodule provides a native Jupyter
+widget (compatible with IPython v1-v4 and Jupyter), fully working nested bars
+and color hints (blue: normal, green: completed, red: error/interrupt,
+light blue: no ETA).
+
 Writing messages
 ~~~~~~~~~~~~~~~~~~~~
 Since ``tqdm`` uses a simple printing mechanism to display progress bars,
