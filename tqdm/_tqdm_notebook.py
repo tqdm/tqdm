@@ -143,12 +143,7 @@ class tqdm_notebook(tqdm):  # pragma: no cover
 
         # Print initial bar state
         if not self.disable:
-            # TODO: replace by self.refresh()
-            self.sp(self.format_meter(self.n, self.total, 0,
-                    (self.dynamic_ncols(self.file) if self.dynamic_ncols
-                     else self.ncols),
-                    self.desc, self.ascii, self.unit, self.unit_scale, None,
-                    self.bar_format))
+            self.sp(self.__repr__())  # same as self.refresh without clearing
 
     def __iter__(self, *args, **kwargs):
         try:
