@@ -234,7 +234,12 @@ class tqdm(object):
                             'total': total,
                             'total_fmt': total_fmt,
                             'percentage': percentage,
-                            'rate': rate,
+                            'rate': rate if inv_rate is None else inv_rate,
+                            'rate_noinv': rate,
+                            'rate_noinv_fmt': ((format_sizeof(rate)
+                                                    if unit_scale else
+                                                    '{0:5.2f}'.format(rate))
+                                                    if rate else '?') + 'it/s',
                             'rate_fmt': rate_fmt,
                             'elapsed': elapsed_str,
                             'remaining': remaining_str,
