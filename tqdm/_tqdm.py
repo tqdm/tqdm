@@ -222,7 +222,7 @@ class tqdm(object):
                     # Format left/right sides of the bar, and format the bar
                     # later in the remaining space (avoid breaking display)
                     l_bar_user, r_bar_user = bar_format.split('{bar}')
-                    l_bar, r_bar = l_bar.format(**bar_args), r_bar.format(**bar_args)
+                    l_bar, r_bar = l_bar_user.format(**bar_args), r_bar_user.format(**bar_args)
                 else:
                     # Else no progress bar, we can just format and return
                     return bar_format.format(**bar_args)
