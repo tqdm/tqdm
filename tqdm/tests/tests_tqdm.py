@@ -221,6 +221,16 @@ def test_format_meter():
     assert format_meter(20, 100, 12, ncols=14, rate=8.1,
                         bar_format=r'{l_bar}{bar}|{n_fmt}/{total_fmt}') == \
         " 20%|" + unich(0x258d) + " |20/100"
+    # Check that bar_format can print only {bar} or just one side
+    assert format_meter(20, 100, 12, ncols=2, rate=8.1,
+                        bar_format=r'{bar}') == \
+        unich(0x258d) + " "
+    assert format_meter(20, 100, 12, ncols=7, rate=8.1,
+                        bar_format=r'{l_bar}{bar}') == \
+        " 20%|" + unich(0x258d) + " "
+    assert format_meter(20, 100, 12, ncols=6, rate=8.1,
+                        bar_format=r'{bar}|test') == \
+        unich(0x258f) + "|test"
 
 
 def test_si_format():
