@@ -214,9 +214,13 @@ def test_format_meter():
         "100KiB [00:13, 7.69KiB/s]"
     assert format_meter(100, 1000, 12, ncols=0, rate=7.33) == \
         " 10% 100/1000 [00:12<02:02,  7.33it/s]"
-    assert format_meter(20, 100, 12, ncols=30, rate=8.1,
+    # Check that bar_format correctly adapts {bar} size to the rest
+    assert format_meter(20, 100, 12, ncols=13, rate=8.1,
                         bar_format=r'{l_bar}{bar}|{n_fmt}/{total_fmt}') == \
         " 20%|" + unich(0x258f) + "|20/100"
+    assert format_meter(20, 100, 12, ncols=14, rate=8.1,
+                        bar_format=r'{l_bar}{bar}|{n_fmt}/{total_fmt}') == \
+        " 20%|" + unich(0x258d) + " |20/100"
 
 
 def test_si_format():
