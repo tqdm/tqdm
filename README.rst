@@ -346,6 +346,16 @@ Returns
         Experimental GUI version of trange!
         """
 
+    class tqdm_notebook(tqdm):
+        """
+        Experimental IPython/Jupyter Notebook widget using tqdm!
+        """
+
+    def tnrange(*args, **kwargs):
+        """
+        Experimental IPython/Jupyter Notebook widget using tqdm!
+        """
+
 
 Examples and Advanced Usage
 ---------------------------
@@ -463,6 +473,29 @@ available to produce a beautiful nested display.
 For manual control over positioning (e.g. for multi-threaded use),
 you may specify `position=n` where `n=0` for the outermost bar,
 `n=1` for the next, and so on.
+
+IPython/Jupyter Integration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+IPython/Jupyter is now fully supported by using the `tqdm_notebook` submodule:
+
+.. code:: python
+
+    from tqdm import tnrange, tqdm_notebook
+    from time import sleep
+
+    for i in tnrange(10, desc='1st loop'):
+        for j in tqdm_notebook(xrange(100), desc='2nd loop'):
+            sleep(0.01)
+
+In addition to `tqdm` features, the submodule provides a native Jupyter
+widget (compatible with IPython v1-v4 and Jupyter), fully working nested bars
+and color hints (blue: normal, green: completed, red: error/interrupt,
+light blue: no ETA).
+
+|Screenshot-Jupyter1|
+|Screenshot-Jupyter2|
+|Screenshot-Jupyter3|
 
 Writing messages
 ~~~~~~~~~~~~~~~~~~~~
@@ -675,4 +708,8 @@ Authors
    :target: https://pypi.python.org/pypi/tqdm
 .. |PyPi Downloads| image:: https://img.shields.io/pypi/dm/tqdm.svg
    :target: https://pypi.python.org/pypi/tqdm
-.. |Screenshot| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/tqdm.gif
+.. |Screenshot| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/tqdm.gif
+.. |Screenshot-Jupyter1| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/tqdm-jupyter-1.gif
+.. |Screenshot-Jupyter2| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/tqdm-jupyter-2.gif
+.. |Screenshot-Jupyter3| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/tqdm-jupyter-3.gif
+
