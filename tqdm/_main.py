@@ -5,30 +5,42 @@ import re
 __all__ = ["main"]
 
 
+class TqdmArgumentError(ValueError):
+    pass
+
+
 def cast(val, typ):
+    # sys.stderr.write('\ndebug | `val:type`: `' + val + ':' + typ + '`.\n')
     if typ == 'bool':
-        # sys.stderr.write('\ndebug | `val:type`: `' + val + ':' + typ + '`.\n')
         if (val == 'True') or (val == ''):
             return True
         elif val == 'False':
             return False
         else:
-            raise ValueError(val + ' : ' + typ)
+            raise TqdmArgumentError(val + ' : ' + typ)
+    try:
+        return eval(typ + '("' + val + '")')
+    except:
+        if (typ == 'chr'):
+            return chr(ord(eval('"' + val + '"')))
+        else:
+            raise TqdmArgumentError(val + ' : ' + typ)
 
-    return eval(typ + '("' + val + '")')
 
-
-def posix_pipe(fin, fout, delim='\n', buf_size=4, callback=None):
+def posix_pipe(fin, fout, delim='\n', buf_size=256, callback=None):
     """
-    Returns
-    -------
-    out  : int. The number of items processed.
+    Params
+    ------
+    fin  : file with `read(buf_size : int)` method
+    fout  : file with `write` (and optionally `flush`) methods.
+    callback  : function(int), e.g.: `tqdm.update`
     """
-    if callback is None:
+    if callback is None:  # pragma: no cover
         def callback(i):
             pass
 
     buf = ''
+    tmp = ''
     # n = 0
     while True:
         tmp = fin.read(buf_size)
@@ -38,17 +50,20 @@ def posix_pipe(fin, fout, delim='\n', buf_size=4, callback=None):
             if buf:
                 fout.write(buf)
                 callback(1 + buf.count(delim))  # n += 1 + buf.count(delim)
-            getattr(fout, 'flush', lambda: None)()
+            getattr(fout, 'flush', lambda: None)()  # pragma: no cover
             return  # n
 
-        try:
-            i = tmp.index(delim)
-        except ValueError:
-            buf += tmp
-        else:
-            callback(1)  # n += 1
-            fout.write(buf + tmp[:i + len(delim)])
-            buf = tmp[i + len(delim):]
+        while True:
+            try:
+                i = tmp.index(delim)
+            except ValueError:
+                buf += tmp
+                break
+            else:
+                fout.write(buf + tmp[:i + len(delim)])
+                callback(1)  # n += 1
+                buf = ''
+                tmp = tmp[i + len(delim):]
 
 
 # RE_OPTS = re.compile(r' {8}(\S+)\s{2,}:\s*(str|int|float|bool)', flags=re.M)
@@ -59,17 +74,14 @@ UNSUPPORTED_OPTS = ('iterable', 'gui', 'out', 'file')
 
 # The 8 leading spaces are required for consistency
 CLI_EXTRA_DOC = """
-        CLI Options
-        -----------
-        delim  : int, optional
-            ascii ordinal for delimiting character [default: 10].
-            Example common values are given below.
-             0 : null
-             9 : \\t
-            10 : \\n
-            13 : \\r
+        Extra CLI Options
+        -----------------
+        delim  : chr, optional
+            Delimiting character [default: '\n']. Use '\0' for null.
+            N.B.: on Windows systems, Python converts '\n' to '\r\n'.
         buf_size  : int, optional
-            String buffer size [default: 4] used when `delim` is specified.
+            String buffer size in bytes [default: 256]
+            used when `delim` is specified.
 """
 
 
@@ -113,9 +125,9 @@ Options:
             tqdm_args[o[2:]] = cast(v, opt_types[o[2:]])
         # sys.stderr.write('\ndebug | args: ' + str(tqdm_args) + '\n')
 
-        delim = chr(tqdm_args.pop('delim', 10))
-        buf_size = tqdm_args.pop('buf_size', 4)
-        if delim == 10:
+        delim = tqdm_args.pop('delim', '\n')
+        buf_size = tqdm_args.pop('buf_size', 256)
+        if delim == '\n':
             for i in tqdm(sys.stdin, **tqdm_args):
                 sys.stdout.write(i)
         else:

@@ -116,8 +116,11 @@ class UnicodeIO(IOBase):
         self.text += s
         self.cursor = len(self.text)
 
-    def read(self):
-        return self.text[self.cursor:]
+    def read(self, n=None):
+        _cur = self.cursor
+        self.cursor = len(self.text) if n is None \
+            else min(_cur + n, len(self.text))
+        return self.text[_cur:self.cursor]
 
     def getvalue(self):
         return self.text
@@ -1205,7 +1208,7 @@ def test_write():
                                      u'\r      ',
                                      u'\r\r      ',
                                      u'\rpos0 bar:  10%']
-            assert after_out == s+'\n'
+            assert after_out == s + '\n'
     # Restore stdout and stderr
     sys.stderr = stde
     sys.stdout = stdo

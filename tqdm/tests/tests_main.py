@@ -3,7 +3,7 @@ import subprocess
 from tqdm import main
 from copy import deepcopy
 
-from tests_tqdm import with_setup, pretest, posttest, _range
+from tests_tqdm import with_setup, pretest, posttest, _range, closing, UnicodeIO
 
 
 def _sh(*cmd, **kwargs):
@@ -30,6 +30,13 @@ def test_main():
         _SYS = (deepcopy(sys.stdin), deepcopy(sys.argv))
     except:
         pass
+
+    with closing(UnicodeIO()) as sys.stdin:
+        sys.argv = ['', '--desc', 'Test CLI delims',
+                    '--ascii', 'True', '--delim', r'\0', '--buf_size', '64']
+        sys.stdin.write('\0'.join(map(str, _range(int(1e3)))))
+        sys.stdin.seek(0)
+        main()
 
     sys.stdin = map(str, _range(int(1e3)))
     sys.argv = ['', '--desc', 'Test CLI pipes',

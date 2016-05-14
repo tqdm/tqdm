@@ -287,10 +287,17 @@ Parameters
     Specify the line offset to print this bar (starting from 0)
     Automatic if unspecified.
     Useful to manage multiple bars at once (eg, from threads).
-* gui  : bool, optional  
-    WARNING: internal parameter - do not use.
-    Use tqdm_gui(...) instead. If set, will attempt to use
-    matplotlib animations for a graphical output [default: False].
+
+Extra CLI Options
+~~~~~~~~~~~~~~~~~
+
+* delim  : chr, optional  
+    Delimiting character [default: '\n']. Use '\0' for null.
+    N.B.: on Windows systems, Python converts '\n' to '\r\n'.
+* buf_size  : int, optional  
+    String buffer size in bytes [default: 256]
+    used when `delim` is specified.
+
 
 Returns
 ~~~~~~~
