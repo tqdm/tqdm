@@ -194,6 +194,40 @@ class tqdm(object):
             if ncols == 0:
                 return l_bar[:-1] + r_bar[1:]
 
+            if bar_format:
+                # Custom bar formatting
+                # Populate a dict with all available progress indicators
+                bar_args = {'n': n,
+                            'n_fmt': n_fmt,
+                            'total': total,
+                            'total_fmt': total_fmt,
+                            'percentage': percentage,
+                            'rate': rate if inv_rate is None else inv_rate,
+                            'rate_noinv': rate,
+                            'rate_noinv_fmt': ((format_sizeof(rate)
+                                                    if unit_scale else
+                                                    '{0:5.2f}'.format(rate))
+                                                    if rate else '?') + unit + '/s',
+                            'rate_fmt': rate_fmt,
+                            'elapsed': elapsed_str,
+                            'remaining': remaining_str,
+                            'l_bar': l_bar,
+                            'r_bar': r_bar,
+                            'desc': prefix if prefix else '',
+                            # 'bar': full_bar  # replaced by procedure below
+                            }
+
+                # Interpolate supplied bar format with the dict
+                if '{bar}' in bar_format:
+                    # Format left/right sides of the bar, and format the bar
+                    # later in the remaining space (avoid breaking display)
+                    l_bar_user, r_bar_user = bar_format.split('{bar}')
+                    l_bar, r_bar = l_bar_user.format(**bar_args), r_bar_user.format(**bar_args)
+                else:
+                    # Else no progress bar, we can just format and return
+                    return bar_format.format(**bar_args)
+
+            # Formatting progress bar
             # space available for bar's display
             N_BARS = max(1, ncols - len(l_bar) - len(r_bar)) if ncols \
                 else 10
@@ -222,33 +256,8 @@ class tqdm(object):
                 full_bar = bar + \
                     ' ' * max(N_BARS - bar_length, 0)
 
-            if bar_format is None:
-                # Default bar format = fast display
-                return l_bar + full_bar + r_bar
-            else:
-                # Custom bar formatting
-                # Populate a dict with all available progress indicators
-                bar_args = {'bar': full_bar,
-                            'n': n,
-                            'n_fmt': n_fmt,
-                            'total': total,
-                            'total_fmt': total_fmt,
-                            'percentage': percentage,
-                            'rate': rate if inv_rate is None else inv_rate,
-                            'rate_noinv': rate,
-                            'rate_noinv_fmt': ((format_sizeof(rate)
-                                                    if unit_scale else
-                                                    '{0:5.2f}'.format(rate))
-                                                    if rate else '?') + 'it/s',
-                            'rate_fmt': rate_fmt,
-                            'elapsed': elapsed_str,
-                            'remaining': remaining_str,
-                            'l_bar': l_bar,
-                            'r_bar': r_bar,
-                            'desc': prefix if prefix else ''
-                            }
-                # Interpolate supplied bar format with the dict
-                return bar_format.format(**bar_args)
+            # Piece together the bar parts
+            return l_bar + full_bar + r_bar
 
         # no total: no progressbar, ETA, just progress stats
         else:
