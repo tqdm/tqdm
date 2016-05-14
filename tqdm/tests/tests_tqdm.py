@@ -106,6 +106,9 @@ class UnicodeIO(IOBase):
         self.text = ''
         self.cursor = 0
 
+    def __len__(self):
+        return len(self.text)
+
     def seek(self, offset):
         self.cursor = offset
 
@@ -113,13 +116,14 @@ class UnicodeIO(IOBase):
         return self.cursor
 
     def write(self, s):
-        self.text += s
-        self.cursor = len(self.text)
+        self.text = self.text[:self.cursor] + s + \
+            self.text[self.cursor + len(s):]
+        self.cursor += len(s)
 
-    def read(self, n=None):
+    def read(self, n=-1):
         _cur = self.cursor
-        self.cursor = len(self.text) if n is None \
-            else min(_cur + n, len(self.text))
+        self.cursor = len(self) if n < 0 \
+            else min(_cur + n, len(self))
         return self.text[_cur:self.cursor]
 
     def getvalue(self):
