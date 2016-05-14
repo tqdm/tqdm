@@ -207,7 +207,7 @@ class tqdm(object):
                             'rate_noinv_fmt': ((format_sizeof(rate)
                                                     if unit_scale else
                                                     '{0:5.2f}'.format(rate))
-                                                    if rate else '?') + 'it/s',
+                                                    if rate else '?') + unit + '/s',
                             'rate_fmt': rate_fmt,
                             'elapsed': elapsed_str,
                             'remaining': remaining_str,
