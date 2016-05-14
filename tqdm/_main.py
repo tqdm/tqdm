@@ -18,15 +18,63 @@ def cast(val, typ):
     return eval(typ + '("' + val + '")')
 
 
+def posix_pipe(fin, fout, delim='\n', buf_size=4, callback=None):
+    """
+    Returns
+    -------
+    out  : int. The number of items processed.
+    """
+    if callback is None:
+        def callback(i):
+            pass
+
+    buf = ''
+    # n = 0
+    while True:
+        tmp = fin.read(buf_size)
+
+        # flush at EOF
+        if not tmp:
+            if buf:
+                fout.write(buf)
+                callback(1 + buf.count(delim))  # n += 1 + buf.count(delim)
+            getattr(fout, 'flush', lambda: None)()
+            return  # n
+
+        try:
+            i = tmp.index(delim)
+        except ValueError:
+            buf += tmp
+        else:
+            callback(1)  # n += 1
+            fout.write(buf + tmp[:i + len(delim)])
+            buf = tmp[i + len(delim):]
+
+
 # RE_OPTS = re.compile(r' {8}(\S+)\s{2,}:\s*(str|int|float|bool)', flags=re.M)
 RE_OPTS = re.compile(r'\n {8}(\S+)\s{2,}:\s*([^\s,]+)')
 
 # TODO: add custom support for some of the following?
 UNSUPPORTED_OPTS = ('iterable', 'gui', 'out', 'file')
 
+# The 8 leading spaces are required for consistency
+CLI_EXTRA_DOC = """
+        CLI Options
+        -----------
+        delim  : int, optional
+            ascii ordinal for delimiting character [default: 10].
+            Example common values are given below.
+             0 : null
+             9 : \\t
+            10 : \\n
+            13 : \\r
+        buf_size  : int, optional
+            String buffer size [default: 4] used when `delim` is specified.
+"""
+
 
 def main():
-    d = tqdm.__init__.__doc__
+    d = tqdm.__init__.__doc__ + CLI_EXTRA_DOC
 
     opt_types = dict(RE_OPTS.findall(d))
 
@@ -64,8 +112,16 @@ Options:
         for (o, v) in opts.items():
             tqdm_args[o[2:]] = cast(v, opt_types[o[2:]])
         # sys.stderr.write('\ndebug | args: ' + str(tqdm_args) + '\n')
-        for i in tqdm(sys.stdin, **tqdm_args):
-            sys.stdout.write(i)
+
+        delim = chr(tqdm_args.pop('delim', 10))
+        buf_size = tqdm_args.pop('buf_size', 4)
+        if delim == 10:
+            for i in tqdm(sys.stdin, **tqdm_args):
+                sys.stdout.write(i)
+        else:
+            with tqdm(**tqdm_args) as t:
+                posix_pipe(sys.stdin, sys.stdout,
+                           delim, buf_size, t.update)
     except:  # pragma: no cover
         sys.stderr.write('\nError:\nUsage:\n  tqdm [--help | options]\n')
         for i in sys.stdin:
