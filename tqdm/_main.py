@@ -5,7 +5,11 @@ import re
 __all__ = ["main"]
 
 
-class TqdmArgumentError(ValueError):
+class TqdmTypeError(TypeError):
+    pass
+
+
+class TqdmKeyError(KeyError):
     pass
 
 
@@ -17,14 +21,14 @@ def cast(val, typ):
         elif val == 'False':
             return False
         else:
-            raise TqdmArgumentError(val + ' : ' + typ)
+            raise TqdmTypeError(val + ' : ' + typ)
     try:
         return eval(typ + '("' + val + '")')
     except:
         if (typ == 'chr'):
             return chr(ord(eval('"' + val + '"')))
         else:
-            raise TqdmArgumentError(val + ' : ' + typ)
+            raise TqdmTypeError(val + ' : ' + typ)
 
 
 def posix_pipe(fin, fout, delim='\n', buf_size=256, callback=None):
@@ -69,7 +73,7 @@ def posix_pipe(fin, fout, delim='\n', buf_size=256, callback=None):
 # ((opt, type), ... )
 RE_OPTS = re.compile(r'\n {8}(\S+)\s{2,}:\s*([^\s,]+)')
 # better split method assuming no positional args
-RE_SHLEX = re.compile(r'\s*--?([^\s=]+)[\s=]')
+RE_SHLEX = re.compile(r'\s*--?([^\s=]+)(?:\s*|=|$)')
 
 # TODO: add custom support for some of the following?
 UNSUPPORTED_OPTS = ('iterable', 'gui', 'out', 'file')
@@ -124,7 +128,10 @@ Options:
     tqdm_args = {}
     try:
         for (o, v) in opts.items():
-            tqdm_args[o] = cast(v, opt_types[o])
+            try:
+                tqdm_args[o] = cast(v, opt_types[o])
+            except KeyError as e:
+                raise TqdmKeyError(str(e))
         # sys.stderr.write('\ndebug | args: ' + str(tqdm_args) + '\n')
 
         delim = tqdm_args.pop('delim', '\n')

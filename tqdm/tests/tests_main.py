@@ -1,6 +1,6 @@
 import sys
 import subprocess
-from tqdm import main
+from tqdm import main, TqdmKeyError, TqdmTypeError
 from copy import deepcopy
 
 from tests_tqdm import with_setup, pretest, posttest, _range, closing, UnicodeIO
@@ -17,8 +17,8 @@ def test_main():
     """ Test command line pipes """
     ls_out = _sh('ls').replace('\r\n', '\n')
     ls = subprocess.Popen(('ls'),
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT)
+                          stdout=subprocess.PIPE,
+                          stderr=subprocess.STDOUT)
     res = _sh('python', '-c', 'from tqdm import main; main()',
               stdin=ls.stdout,
               stderr=subprocess.STDOUT)
@@ -50,26 +50,32 @@ def test_main():
                 '--desc', 'Test CLI errors']
     main()
 
-    sys.argv = ['', '--bad_arg_u_ment', 'foo', '-ascii', '-unit_scale']
+    sys.argv = ['', '-ascii', '-unit_scale', '--bad_arg_u_ment', 'foo']
     try:
         main()
-    except KeyError as e:
+    except TqdmKeyError as e:
         if 'bad_arg_u_ment' not in str(e):
             raise
+    else:
+        raise TqdmKeyError('bad_arg_u_ment')
 
     sys.argv = ['', '-ascii', '-unit_scale', 'invalid_bool_value']
     try:
         main()
-    except ValueError as e:
+    except TqdmTypeError as e:
         if 'invalid_bool_value' not in str(e):
             raise
+    else:
+        raise TqdmTypeError('invalid_bool_value')
 
     sys.argv = ['', '-ascii', '--total', 'invalid_int_value']
     try:
         main()
-    except ValueError as e:
+    except TqdmTypeError as e:
         if 'invalid_int_value' not in str(e):
             raise
+    else:
+        raise TqdmTypeError('invalid_int_value')
 
     for i in ('-h', '--help', '-v', '--version'):
         sys.argv = ['', i]
