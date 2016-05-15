@@ -5,28 +5,94 @@ import re
 __all__ = ["main"]
 
 
+class TqdmTypeError(TypeError):
+    pass
+
+
+class TqdmKeyError(KeyError):
+    pass
+
+
 def cast(val, typ):
+    # sys.stderr.write('\ndebug | `val:type`: `' + val + ':' + typ + '`.\n')
     if typ == 'bool':
-        # sys.stderr.write('\ndebug | `val:type`: `' + val + ':' + typ + '`.\n')
         if (val == 'True') or (val == ''):
             return True
         elif val == 'False':
             return False
         else:
-            raise ValueError(val + ' : ' + typ)
+            raise TqdmTypeError(val + ' : ' + typ)
+    try:
+        return eval(typ + '("' + val + '")')
+    except:
+        if (typ == 'chr'):
+            return chr(ord(eval('"' + val + '"')))
+        else:
+            raise TqdmTypeError(val + ' : ' + typ)
 
-    return eval(typ + '("' + val + '")')
+
+def posix_pipe(fin, fout, delim='\n', buf_size=256, callback=None):
+    """
+    Params
+    ------
+    fin  : file with `read(buf_size : int)` method
+    fout  : file with `write` (and optionally `flush`) methods.
+    callback  : function(int), e.g.: `tqdm.update`
+    """
+    if callback is None:  # pragma: no cover
+        def callback(i):
+            pass
+
+    buf = ''
+    tmp = ''
+    # n = 0
+    while True:
+        tmp = fin.read(buf_size)
+
+        # flush at EOF
+        if not tmp:
+            if buf:
+                fout.write(buf)
+                callback(1 + buf.count(delim))  # n += 1 + buf.count(delim)
+            getattr(fout, 'flush', lambda: None)()  # pragma: no cover
+            return  # n
+
+        while True:
+            try:
+                i = tmp.index(delim)
+            except ValueError:
+                buf += tmp
+                break
+            else:
+                fout.write(buf + tmp[:i + len(delim)])
+                callback(1)  # n += 1
+                buf = ''
+                tmp = tmp[i + len(delim):]
 
 
-# RE_OPTS = re.compile(r' {8}(\S+)\s{2,}:\s*(str|int|float|bool)', flags=re.M)
+# ((opt, type), ... )
 RE_OPTS = re.compile(r'\n {8}(\S+)\s{2,}:\s*([^\s,]+)')
+# better split method assuming no positional args
+RE_SHLEX = re.compile(r'\s*--?([^\s=]+)(?:\s*|=|$)')
 
 # TODO: add custom support for some of the following?
 UNSUPPORTED_OPTS = ('iterable', 'gui', 'out', 'file')
 
+# The 8 leading spaces are required for consistency
+CLI_EXTRA_DOC = r"""
+        Extra CLI Options
+        -----------------
+        delim  : chr, optional
+            Delimiting character [default: '\n']. Use '\0' for null.
+            N.B.: on Windows systems, Python converts '\n' to '\r\n'.
+        buf_size  : int, optional
+            String buffer size in bytes [default: 256]
+            used when `delim` is specified.
+"""
+
 
 def main():
-    d = tqdm.__init__.__doc__
+    d = tqdm.__init__.__doc__ + CLI_EXTRA_DOC
 
     opt_types = dict(RE_OPTS.findall(d))
 
@@ -56,16 +122,27 @@ Options:
         sys.stdout.write(__doc__ + '\n')
         sys.exit(0)
 
-    argv = re.split('\s*(--\S+)[=\s]*', ' '.join(sys.argv[1:]))
+    argv = RE_SHLEX.split(' '.join(sys.argv))
     opts = dict(zip(argv[1::2], argv[2::2]))
 
     tqdm_args = {}
     try:
         for (o, v) in opts.items():
-            tqdm_args[o[2:]] = cast(v, opt_types[o[2:]])
+            try:
+                tqdm_args[o] = cast(v, opt_types[o])
+            except KeyError as e:
+                raise TqdmKeyError(str(e))
         # sys.stderr.write('\ndebug | args: ' + str(tqdm_args) + '\n')
-        for i in tqdm(sys.stdin, **tqdm_args):
-            sys.stdout.write(i)
+
+        delim = tqdm_args.pop('delim', '\n')
+        buf_size = tqdm_args.pop('buf_size', 256)
+        if delim == '\n':
+            for i in tqdm(sys.stdin, **tqdm_args):
+                sys.stdout.write(i)
+        else:
+            with tqdm(**tqdm_args) as t:
+                posix_pipe(sys.stdin, sys.stdout,
+                           delim, buf_size, t.update)
     except:  # pragma: no cover
         sys.stderr.write('\nError:\nUsage:\n  tqdm [--help | options]\n')
         for i in sys.stdin:

@@ -287,10 +287,17 @@ Parameters
     Specify the line offset to print this bar (starting from 0)
     Automatic if unspecified.
     Useful to manage multiple bars at once (eg, from threads).
-* gui  : bool, optional  
-    WARNING: internal parameter - do not use.
-    Use tqdm_gui(...) instead. If set, will attempt to use
-    matplotlib animations for a graphical output [default: False].
+
+Extra CLI Options
+~~~~~~~~~~~~~~~~~
+
+* delim  : chr, optional  
+    Delimiting character [default: '\n']. Use '\0' for null.
+    N.B.: on Windows systems, Python converts '\n' to '\r\n'.
+* buf_size  : int, optional  
+    String buffer size in bytes [default: 256]
+    used when `delim` is specified.
+
 
 Returns
 ~~~~~~~
@@ -487,7 +494,7 @@ you may specify `position=n` where `n=0` for the outermost bar,
 IPython/Jupyter Integration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-IPython/Jupyter is now fully supported by using the `tqdm_notebook` submodule:
+IPython/Jupyter is supported via the `tqdm_notebook` submodule:
 
 .. code:: python
 
@@ -501,7 +508,7 @@ IPython/Jupyter is now fully supported by using the `tqdm_notebook` submodule:
 In addition to `tqdm` features, the submodule provides a native Jupyter
 widget (compatible with IPython v1-v4 and Jupyter), fully working nested bars
 and color hints (blue: normal, green: completed, red: error/interrupt,
-light blue: no ETA).
+light blue: no ETA); as demonstrated below.
 
 |Screenshot-Jupyter1|
 |Screenshot-Jupyter2|
@@ -699,6 +706,8 @@ Citation information: |DOI URI|
 Authors
 -------
 
+Ranked by contributions.
+
 -  Casper da Costa-Luis (casperdcl)
 -  Stephen Larroque (lrq3000)
 -  Hadrien Mary (hadim)
@@ -709,6 +718,7 @@ Authors
 `*` Original author
 
 .. |Logo| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/logo.png
+.. |Screenshot| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/tqdm.gif
 .. |Build Status| image:: https://travis-ci.org/tqdm/tqdm.svg?branch=master
    :target: https://travis-ci.org/tqdm/tqdm
 .. |Coverage Status| image:: https://coveralls.io/repos/tqdm/tqdm/badge.svg
@@ -731,7 +741,6 @@ Authors
    :target: https://raw.githubusercontent.com/tqdm/tqdm/master/LICENCE
 .. |DOI URI| image:: https://zenodo.org/badge/21637/tqdm/tqdm.svg
    :target: https://zenodo.org/badge/latestdoi/21637/tqdm/tqdm
-.. |Screenshot| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/tqdm.gif
 .. |Screenshot-Jupyter1| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/tqdm-jupyter-1.gif
 .. |Screenshot-Jupyter2| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/tqdm-jupyter-2.gif
 .. |Screenshot-Jupyter3| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/tqdm-jupyter-3.gif
