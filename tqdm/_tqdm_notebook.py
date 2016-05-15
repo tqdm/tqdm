@@ -13,23 +13,58 @@ from __future__ import division, absolute_import
 # import compatibility functions and utilities
 import sys
 from ._utils import _range
+# to inherit from the tqdm class
+from ._tqdm import tqdm
+
 
 # import IPython/Jupyter base widget and display utilities
 try:  # pragma: no cover
     # For IPython 4.x using ipywidgets
+    import ipywidgets
+except ImportError:  # pragma: no cover
+    # For IPython 3.x / 2.x
+    import warnings
+    with warnings.catch_warnings():
+        ipy_deprecation_msg = "The `IPython.html` package has been deprecated"
+        warnings.filterwarnings('error',
+                                message=".*" + ipy_deprecation_msg + ".*")
+        try:
+            import IPython.html.widgets as ipywidgets
+        except Warning as e:
+            if ipy_deprecation_msg not in str(e):
+                raise
+            warnings.simplefilter('ignore')
+            try:
+                import IPython.html.widgets as ipywidgets  # NOQA
+            except ImportError:
+                pass
+        except ImportError:
+            pass
+
+try:  # pragma: no cover
+    # For IPython 4.x / 3.x
     from ipywidgets import IntProgress, HBox, HTML
 except ImportError:  # pragma: no cover
-    try:  # pragma: no cover
-        # For IPython 3.x
-        from IPython.html.widgets import IntProgress, HBox, HTML
-    except ImportError:  # pragma: no cover
-        try:  # pragma: no cover
-            # For IPython 2.x
-            from IPython.html.widgets import IntProgressWidget as IntProgress
-            from IPython.html.widgets import ContainerWidget as HBox
-            from IPython.html.widgets import HTML
-        except ImportError:  # pragma: no cover
-            pass
+    try:
+        # For IPython 2.x
+        from ipywidgets import IntProgressWidget as IntProgress
+        from ipywidgets import ContainerWidget as HBox
+        from ipywidgets import HTML
+    except ImportError:
+        # from ._tqdm import tqdm, trange
+        # def warnWrap(fn, msg):
+        #     def inner(*args, **kwargs):
+        #         from sys import stderr
+        #         stderr.write(msg)
+        #         return fn(*args, **kwargs)
+        #     return inner
+        # tqdm_notebook = warnWrap(tqdm, "Warning:\n\tNo ipywidgets."
+        #                          "\ntFalling back to `tqdm`.\n")
+        # tnrange = warnWrap(trange, "Warning:\n\tNo ipywidgets."
+        #                    "\n\tFalling back to `trange`.\n")
+        # exit
+        pass
+
 try:  # pragma: no cover
     from IPython.display import display  # , clear_output
 except ImportError:  # pragma: no cover
@@ -40,9 +75,6 @@ try:  # pragma: no cover
     from html import escape  # python 3.x
 except ImportError:  # pragma: no cover
     from cgi import escape  # python 2.x
-
-# to inherit from the tqdm class
-from ._tqdm import tqdm
 
 
 __author__ = {"github.com/": ["lrq3000", "casperdcl", "alexanderkuk"]}
@@ -61,8 +93,8 @@ class tqdm_notebook(tqdm):  # pragma: no cover
         """
         # Fallback to text bar if there's no total
         # DEPRECATED: replaced with an 'info' style bar
-        #if not total:
-            #return super(tqdm_notebook, tqdm_notebook).status_printer(file)
+        # if not total:
+        #    return super(tqdm_notebook, tqdm_notebook).status_printer(file)
 
         fp = file
         if not getattr(fp, 'flush', False):  # pragma: no cover
@@ -99,7 +131,7 @@ class tqdm_notebook(tqdm):  # pragma: no cover
                     # Check that n can be found in s (else n > total)
                     if npos >= 0:
                         n = int(s[:npos])  # get n from string
-                        s = s[npos+3:]  # remove from string
+                        s = s[npos + 3:]  # remove from string
 
                         # Update bar with current n value
                         if n is not None:
@@ -148,10 +180,10 @@ class tqdm_notebook(tqdm):  # pragma: no cover
     def __iter__(self, *args, **kwargs):
         try:
             for obj in super(tqdm_notebook, self).__iter__(*args, **kwargs):
-                yield obj  # cannot just return super(tqdm...) because can't catch exception
+                # return super(tqdm...) will not catch exception
+                yield obj
+        # NB: except ... [ as ...] breaks IPython async KeyboardInterrupt
         except:
-            # DO NOT use except as, or even except Exception, it simply won't work
-            # with IPython async KeyboardInterrupt
             self.sp(bar_style='danger')
             raise
 
@@ -177,7 +209,7 @@ class tqdm_notebook(tqdm):  # pragma: no cover
                 self.sp(close=True)
 
     def moveto(*args, **kwargs):
-        # Nullify moveto to avoid outputting \n (blank lines) in the IPython output cell
+        # void -> avoid extraneous `\n` in IPython output cell
         return
 
 

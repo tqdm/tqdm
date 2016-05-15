@@ -205,9 +205,9 @@ class tqdm(object):
                             'rate': rate if inv_rate is None else inv_rate,
                             'rate_noinv': rate,
                             'rate_noinv_fmt': ((format_sizeof(rate)
-                                                    if unit_scale else
-                                                    '{0:5.2f}'.format(rate))
-                                                    if rate else '?') + unit + '/s',
+                                               if unit_scale else
+                                               '{0:5.2f}'.format(rate))
+                                               if rate else '?') + unit + '/s',
                             'rate_fmt': rate_fmt,
                             'elapsed': elapsed_str,
                             'remaining': remaining_str,
@@ -222,7 +222,8 @@ class tqdm(object):
                     # Format left/right sides of the bar, and format the bar
                     # later in the remaining space (avoid breaking display)
                     l_bar_user, r_bar_user = bar_format.split('{bar}')
-                    l_bar, r_bar = l_bar_user.format(**bar_args), r_bar_user.format(**bar_args)
+                    l_bar = l_bar_user.format(**bar_args)
+                    r_bar = r_bar_user.format(**bar_args)
                 else:
                     # Else no progress bar, we can just format and return
                     return bar_format.format(**bar_args)
