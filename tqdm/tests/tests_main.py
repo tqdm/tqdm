@@ -16,9 +16,12 @@ def _sh(*cmd, **kwargs):
 def test_main():
     """ Test command line pipes """
     ls_out = _sh('ls').replace('\r\n', '\n')
-    ls = subprocess.Popen(('ls'), stdout=subprocess.PIPE)
+    ls = subprocess.Popen(('ls'),
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT)
     res = _sh('python', '-c', 'from tqdm import main; main()',
-              stdin=ls.stdout, stderr=subprocess.STDOUT)
+              stdin=ls.stdout,
+              stderr=subprocess.STDOUT)
     ls.wait()
 
     # actual test:
@@ -43,25 +46,25 @@ def test_main():
                 '--ascii', 'True', '--unit_scale', 'True']
     import tqdm.__main__  # NOQA
 
-    sys.argv = ['', '--ascii', '--unit_scale', 'False',
+    sys.argv = ['', '-ascii', '--unit_scale', 'False',
                 '--desc', 'Test CLI errors']
     main()
 
-    sys.argv = ['', '--bad_arg_u_ment', 'foo', '--ascii', '--unit_scale']
+    sys.argv = ['', '--bad_arg_u_ment', 'foo', '-ascii', '-unit_scale']
     try:
         main()
     except KeyError as e:
         if 'bad_arg_u_ment' not in str(e):
             raise
 
-    sys.argv = ['', '--ascii', '--unit_scale', 'invalid_bool_value']
+    sys.argv = ['', '-ascii', '-unit_scale', 'invalid_bool_value']
     try:
         main()
     except ValueError as e:
         if 'invalid_bool_value' not in str(e):
             raise
 
-    sys.argv = ['', '--ascii', '--total', 'invalid_int_value']
+    sys.argv = ['', '-ascii', '--total', 'invalid_int_value']
     try:
         main()
     except ValueError as e:

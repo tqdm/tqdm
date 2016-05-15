@@ -66,14 +66,16 @@ def posix_pipe(fin, fout, delim='\n', buf_size=256, callback=None):
                 tmp = tmp[i + len(delim):]
 
 
-# RE_OPTS = re.compile(r' {8}(\S+)\s{2,}:\s*(str|int|float|bool)', flags=re.M)
+# ((opt, type), ... )
 RE_OPTS = re.compile(r'\n {8}(\S+)\s{2,}:\s*([^\s,]+)')
+# better split method assuming no positional args
+RE_SHLEX = re.compile(r'\s*--?([^\s=]+)[\s=]')
 
 # TODO: add custom support for some of the following?
 UNSUPPORTED_OPTS = ('iterable', 'gui', 'out', 'file')
 
 # The 8 leading spaces are required for consistency
-CLI_EXTRA_DOC = """
+CLI_EXTRA_DOC = r"""
         Extra CLI Options
         -----------------
         delim  : chr, optional
@@ -116,13 +118,13 @@ Options:
         sys.stdout.write(__doc__ + '\n')
         sys.exit(0)
 
-    argv = re.split('\s*(--\S+)[=\s]*', ' '.join(sys.argv[1:]))
+    argv = RE_SHLEX.split(' '.join(sys.argv))
     opts = dict(zip(argv[1::2], argv[2::2]))
 
     tqdm_args = {}
     try:
         for (o, v) in opts.items():
-            tqdm_args[o[2:]] = cast(v, opt_types[o[2:]])
+            tqdm_args[o] = cast(v, opt_types[o])
         # sys.stderr.write('\ndebug | args: ' + str(tqdm_args) + '\n')
 
         delim = tqdm_args.pop('delim', '\n')
