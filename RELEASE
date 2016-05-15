@@ -43,6 +43,57 @@ you can fix the metadata by using: `python setup.py make pypimeta`
 or `python setup.py register`.
 
 
+MERGING PULL REQUESTS TO MASTER
+----------------------------------------
+
+This section describes how to cleanly merge PRs:
+
+#### Step 1: From your project repository, bring in the changes and test (replace pr-branch-name by your Pull Request branch name):
+```
+git fetch origin
+git checkout -b pr-branch-name origin/pr-branch-name
+git rebase master
+```
+
+If there are conflicts:
+```
+git mergetool
+git rebase --continue
+```
+
+#### Step 2: Update branch with the rebased history:
+```
+git push origin pr-branch-name --force
+```
+
+Note: NEVER just `git push --force`, this will push all your branches and overwrite the remote repo! Always precise what branch you target.
+Note 2: if you are not a maintainer, you can stop here.
+
+#### Step 3: Merge the changes in Master:
+```sh
+git checkout master
+git merge --no-ff pr-branch-name
+```
+
+#### Step 4: Check tests:
+```sh
+python setup.py make testnose
+python setup.py make testsetup
+```
+
+#### Step 5: Bump version in tqdm/_version.py (by using your text editor) and modify last commit:
+```sh
+git add tqdm/_version.py
+git commit --amend
+Add "+ bump version" in the commit message
+```
+
+#### Step 6: Push onto master:
+```sh
+git push origin master
+```
+
+
 BUILDING A RELEASE AND UPLOADING TO PYPI
 ----------------------------------------
 
