@@ -158,7 +158,7 @@ class tqdm_notebook(tqdm):  # pragma: no cover
 
     def __init__(self, *args, **kwargs):
         # Setup default output
-        if not kwargs.get('file', None) or kwargs['file'] == sys.stderr:
+        if kwargs.get('file', sys.stderr) is sys.stderr:
             kwargs['file'] = sys.stdout  # avoid the red block in IPython
 
         # Remove the bar from the printed string, only print stats
@@ -191,8 +191,8 @@ class tqdm_notebook(tqdm):  # pragma: no cover
         try:
             super(tqdm_notebook, self).update(*args, **kwargs)
         except Exception as exc:
-            # Note that we cannot catch KeyboardInterrupt when using manual tqdm
-            # because the interrupt will most likely happen on another statement
+            # cannot catch KeyboardInterrupt when using manual tqdm
+            # as the interrupt will most likely happen on another statement
             self.sp(bar_style='danger')
             raise exc
 
