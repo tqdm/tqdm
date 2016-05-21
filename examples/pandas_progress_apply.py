@@ -9,18 +9,20 @@ df = pd.DataFrame(np.random.randint(0, 100, (100000, 6)))
 tqdm_pandas(tqdm())
 
 # Now you can use `progress_apply` instead of `apply`
-df.groupby(0).progress_apply(lambda x: x**2)
+df.progress_apply(lambda x: x**2)
+# can also groupby:
+# df.groupby(0).progress_apply(lambda x: x**2)
 
 
 """ Source code for `tqdm_pandas` (really simple!) """
 # def tqdm_pandas(t):
-#   from pandas.core.groupby import DataFrameGroupBy
-#   def inner(groups, func, *args, **kwargs):
-#       t.total = len(groups) + 1
+#   from pandas.core.frame import DataFrame
+#   def inner(df, func, *args, **kwargs):
+#       t.total = groups.size // len(groups)
 #       def wrapper(*args, **kwargs):
 #           t.update(1)
 #           return func(*args, **kwargs)
-#       result = groups.apply(wrapper, *args, **kwargs)
+#       result = df.apply(wrapper, *args, **kwargs)
 #       t.close()
 #       return result
-#   DataFrameGroupBy.progress_apply = inner
+#   DataFrame.progress_apply = inner

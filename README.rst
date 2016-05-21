@@ -447,13 +447,15 @@ Pandas Integration
 ~~~~~~~~~~~~~~~~~~
 
 Due to popular demand we've added support for ``pandas`` -- here's an example
-for ``DataFrameGroupBy.progress_apply``:
+for ``DataFrame.progress_apply`` and ``DataFrameGroupBy.progress_apply``:
 
 .. code:: python
 
     import pandas as pd
     import numpy as np
     from tqdm import tqdm, tqdm_pandas
+
+    ...
 
     df = pd.DataFrame(np.random.randint(0, 100, (100000, 6)))
 
@@ -462,7 +464,9 @@ for ``DataFrameGroupBy.progress_apply``:
     tqdm_pandas(tqdm())
 
     # Now you can use `progress_apply` instead of `apply`
-    df.groupby(0).progress_apply(lambda x: x**2)
+    df.progress_apply(lambda x: x**2)
+    # can also groupby:
+    # df.groupby(0).progress_apply(lambda x: x**2)
 
 In case you're interested in how this works (and how to modify it for your
 own callbacks), see the

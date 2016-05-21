@@ -5,7 +5,7 @@ from tests_tqdm import with_setup, pretest, posttest, StringIO, closing
 
 
 @with_setup(pretest, posttest)
-def test_pandas():
+def test_pandas_groupby_apply():
     """ Test pandas.DataFrame.groupby(0).progress_apply """
     try:
         from numpy.random import randint
@@ -31,7 +31,7 @@ def test_pandas():
 
 
 @with_setup(pretest, posttest)
-def test_pandas():
+def test_pandas_apply():
     """ Test pandas.DataFrame.progress_apply """
     try:
         from numpy.random import randint
@@ -39,7 +39,7 @@ def test_pandas():
         import pandas as pd
     except:
         raise SkipTest
- 
+
     with closing(StringIO()) as our_file:
         df = pd.DataFrame(randint(0, 100, (1000, 6)))
         tqdm_pandas(tqdm(file=our_file, leave=True, ascii=True))

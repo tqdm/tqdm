@@ -32,20 +32,20 @@ def tqdm_pandas(t):  # pragma: no cover
     from pandas.core.frame import DataFrame
     from pandas.core.groupby import DataFrameGroupBy
 
-    def inner(groups, func, *args, **kwargs):
+    def inner(df, func, *args, **kwargs):
         """
         Parameters
         ----------
-        groups  : DataFrame[GroupBy]
-            (Grouped) data.
+        df  : DataFrame[GroupBy]
+            Data (may be grouped).
         func  : function
             To be applied on the (grouped) data.
 
         *args and *kwargs are transmitted to DataFrameGroupBy.apply()
         """
-        t.total = getattr(groups, 'ngroups', None)
+        t.total = getattr(df, 'ngroups', None)
         if t.total is None:  # not grouped
-            t.total = groups.size // len(groups)
+            t.total = df.size // len(df)
         else:
             t.total += 1  # pandas calls update once too many
 
@@ -53,7 +53,7 @@ def tqdm_pandas(t):  # pragma: no cover
             t.update()
             return func(*args, **kwargs)
 
-        result = groups.apply(wrapper, *args, **kwargs)
+        result = df.apply(wrapper, *args, **kwargs)
 
         t.close()
 
