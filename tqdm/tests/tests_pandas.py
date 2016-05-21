@@ -31,6 +31,29 @@ def test_pandas():
 
 
 @with_setup(pretest, posttest)
+def test_pandas():
+    """ Test pandas.DataFrame.progress_apply """
+    try:
+        from numpy.random import randint
+        from tqdm import tqdm_pandas
+        import pandas as pd
+    except:
+        raise SkipTest
+ 
+    with closing(StringIO()) as our_file:
+        df = pd.DataFrame(randint(0, 100, (1000, 6)))
+        tqdm_pandas(tqdm(file=our_file, leave=True, ascii=True))
+        df.progress_apply(lambda x: None)
+
+        our_file.seek(0)
+
+        if '/6' not in our_file.read():
+            our_file.seek(0)
+            raise AssertionError("\nExpected:\n{0}\nIn:{1}\n".format(
+                '/6', our_file.read()))
+
+
+@with_setup(pretest, posttest)
 def test_pandas_leave():
     """ Test pandas with `leave=True` """
     try:
