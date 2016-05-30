@@ -543,6 +543,67 @@ By default, this will print to standard output ``sys.stdout``. but you can
 specify any file-like object using the ``file`` argument. For example, this
 can be used to redirect the messages writing to a log file or class.
 
+Redirecting all printing to tqdm.write()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If your application is using a library that can print messages to the console,
+you may not be willing to edit the library to replace ``print()`` by
+``tqdm.write()``. In that case, you may want to redirect ``sys.stdout`` to
+``tqdm.write()``.
+
+To redirect ``sys.stdout``, you need to create a file-like class that will write
+any input string to ``tqdm.write()``, and you need to supply the arguments
+``file=sys.stdout, dynamic_ncols=True``, else you will get funky issues.
+
+Here is a canonical example that you can reuse:
+
+.. code:: python
+
+    from time import sleep
+
+    import contextlib
+    import sys
+
+    from tqdm import tqdm
+
+    class DummyTqdmFile(object):
+        """Dummy file-like that will write to tqdm"""
+        file = None
+        def __init__(self, file):
+            self.file = file
+
+        def write(self, x):
+            # Avoid print() second call (useless \n)
+            if len(x.rstrip()) > 0:
+                tqdm.write(x, file=self.file)
+
+    @contextlib.contextmanager
+    def stdout_redirect_to_tqdm():
+        save_stdout = sys.stdout
+        try:
+            sys.stdout = DummyTqdmFile(sys.stdout)
+            yield save_stdout
+        # Relay exceptions
+        except Exception as exc:
+            raise exc
+        # Always restore sys.stdout if necessary
+        finally:
+            sys.stdout = save_stdout
+
+    def blabla():
+        print("Foo blabla")
+
+    # Redirect stdout to tqdm.write() (don't forget the `as save_stdout`)
+    with stdout_redirect_to_tqdm() as save_stdout:
+            # tqdm call need to specify sys.stdout, not sys.stderr (default)
+            # and dynamic_ncols=True to autodetect console width
+            for _ in tqdm(range(3), file=save_stdout, dynamic_ncols=True):
+                blabla()
+                sleep(.5)
+
+    # After the `with`, printing is restored
+    print('Done!')
+
 How to make a good progress bar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

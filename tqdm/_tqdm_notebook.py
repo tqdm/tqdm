@@ -156,6 +156,15 @@ class tqdm_notebook(tqdm):  # pragma: no cover
 
         return print_status
 
+    @classmethod
+    def write(cls, s, file=sys.stdout, end="\n"):
+        """
+        Print a message via tqdm_notebook (just an alias for print)
+        """
+        # Just an alias for print because overlap is impossible with ipywidgets
+        file.write(s)
+        file.write(end)
+
     def __init__(self, *args, **kwargs):
         # Setup default output
         if kwargs.get('file', sys.stderr) is sys.stderr:
