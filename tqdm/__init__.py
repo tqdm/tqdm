@@ -13,13 +13,13 @@ __all__ = ['tqdm', 'tqdm_gui', 'trange', 'tgrange', 'tqdm_pandas',
            '__version__']
 
 
-def tqdm_notebook(*args, **kwargs):
+def tqdm_notebook(*args, **kwargs):  # pragma: no cover
     """See tqdm._tqdm_notebook.tqdm_notebook for full documentation"""
     from ._tqdm_notebook import tqdm_notebook as _tqdm_notebook
     return _tqdm_notebook(*args, **kwargs)
 
 
-def tnrange(*args, **kwargs):
+def tnrange(*args, **kwargs):  # pragma: no cover
     """
     A shortcut for tqdm_notebook(xrange(*args), **kwargs).
     On Python3+ range is used instead of xrange.
