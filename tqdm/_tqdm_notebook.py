@@ -174,10 +174,12 @@ class tqdm_notebook(tqdm):  # pragma: no cover
         if not kwargs.get('bar_format', None):
             kwargs['bar_format'] = r'{n}/|/{l_bar}{r_bar}'
 
-        super(tqdm_notebook, self).__init__(*args, **kwargs)
+        # Initialize parent class + avoid printing by using gui=True
+        super(tqdm_notebook, self).__init__(*args, gui=True, **kwargs)
 
         # Delete first pbar generated from super() (wrong total and text)
-        self.sp('', close=True)
+        # DEPRECATED by using gui=True
+        # self.sp('', close=True)
         # Replace with IPython progress bar display (with correct total)
         self.sp = self.status_printer(self.fp, self.total, self.desc)
         self.desc = None  # trick to place description before the bar
