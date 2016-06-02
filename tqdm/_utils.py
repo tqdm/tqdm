@@ -1,5 +1,12 @@
 import os
 import subprocess
+from platform import system as _curos
+CUR_OS = _curos()
+IS_WIN = CUR_OS in ['Windows', 'cli']
+IS_NIX = (not IS_WIN) and any(
+    CUR_OS.startswith(i) for i in
+    ['CYGWIN', 'MSYS', 'Linux', 'Darwin', 'SunOS', 'FreeBSD'])
+
 
 try:    # pragma: no cover
     _range = xrange
@@ -17,9 +24,13 @@ try:  # pragma: no cover
 except NameError:  # pragma: no cover
     _unicode = str  # in Py3, all strings are unicode
 
+
 try:  # pragma: no cover
-    import colorama
-    colorama.init()
+    if IS_WIN:
+        import colorama
+        colorama.init()
+    else:
+        colorama = None
 except ImportError:  # pragma: no cover
     colorama = None
 except:  # pragma: no cover
@@ -49,15 +60,12 @@ def _environ_cols_wrapper():  # pragma: no cover
     Return a function which gets width and height of console
     (linux,osx,windows,cygwin).
     """
-    import platform
-    current_os = platform.system()
     _environ_cols = None
-    if current_os in ['Windows', 'cli']:
+    if IS_WIN:
         _environ_cols = _environ_cols_windows
         if _environ_cols is None:
             _environ_cols = _environ_cols_tput
-    if any(current_os.startswith(i) for i in
-           ['CYGWIN', 'MSYS', 'Linux', 'Darwin', 'SunOS', 'FreeBSD']):
+    if IS_NIX:
         _environ_cols = _environ_cols_linux
     return _environ_cols
 
