@@ -14,18 +14,15 @@ __all__ = ['tqdm', 'tqdm_gui', 'trange', 'tgrange', 'tqdm_pandas',
 
 
 def tqdm_notebook(*args, **kwargs):
-    """See tqdm._tqdm_notebook.tqdm_notebook for full documentation
-
-    This is just an adapter to delay imports
-    """
+    """See tqdm._tqdm_notebook.tqdm_notebook for full documentation"""
     from ._tqdm_notebook import tqdm_notebook as _tqdm_notebook
     return _tqdm_notebook(*args, **kwargs)
 
 
 def tnrange(*args, **kwargs):
-    """See tqdm._tqdm_notebook.tnrange for full documentation
-
-    This is just an adapter to delay imports
+    """
+    A shortcut for tqdm_notebook(xrange(*args), **kwargs).
+    On Python3+ range is used instead of xrange.
     """
     from ._tqdm_notebook import tnrange as _tnrange
     return _tnrange(*args, **kwargs)
