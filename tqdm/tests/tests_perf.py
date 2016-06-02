@@ -33,6 +33,8 @@ def cpu_sleep(t):
 
 def checkCpuTime(sleeptime=0.2):
     '''Check if cpu time works correctly'''
+    if checkCpuTime.passed:
+        return True
     # First test that sleeping does not consume cputime
     start1 = process_time()
     sleep(sleeptime)
@@ -43,7 +45,10 @@ def checkCpuTime(sleeptime=0.2):
     cpu_sleep(sleeptime)
     t2 = process_time() - start2
 
-    return (abs(t1) < 0.0001 and (t1 < t2 / 10))
+    if (abs(t1) < 0.0001 and (t1 < t2 / 10)):
+        return True
+    raise SkipTest
+checkCpuTime.passed = False
 
 
 @contextmanager
@@ -58,6 +63,23 @@ def relative_timer():
 
     def elapser():  # NOQA
         return spent
+
+
+def retry_on_except(n=3):
+    def wrapper(fn):
+        def test_inner():
+            for i in range(1, n + 1):
+                try:
+                    checkCpuTime()
+                    fn()
+                except:
+                    if i >= n:
+                        raise
+                else:
+                    return
+        test_inner.__doc__ = fn.__doc__
+        return test_inner
+    return wrapper
 
 
 class MockIO(StringIO):
@@ -132,12 +154,9 @@ def simple_progress(iterable=None, total=None, file=sys.stdout, desc='',
 
 
 @with_setup(pretest, posttest)
+@retry_on_except()
 def test_iter_overhead():
     """ Test overhead of iteration based tqdm """
-    try:
-        assert checkCpuTime()
-    except:
-        raise SkipTest
 
     total = int(1e6)
 
@@ -161,12 +180,9 @@ def test_iter_overhead():
 
 
 @with_setup(pretest, posttest)
+@retry_on_except()
 def test_manual_overhead():
     """ Test overhead of manual tqdm """
-    try:
-        assert checkCpuTime()
-    except:
-        raise SkipTest
 
     total = int(1e6)
 
@@ -191,12 +207,9 @@ def test_manual_overhead():
 
 
 @with_setup(pretest, posttest)
+@retry_on_except()
 def test_iter_overhead_hard():
     """ Test overhead of iteration based tqdm (hard) """
-    try:
-        assert checkCpuTime()
-    except:
-        raise SkipTest
 
     total = int(1e5)
 
@@ -223,12 +236,9 @@ def test_iter_overhead_hard():
 
 
 @with_setup(pretest, posttest)
+@retry_on_except()
 def test_manual_overhead_hard():
     """ Test overhead of manual tqdm (hard) """
-    try:
-        assert checkCpuTime()
-    except:
-        raise SkipTest
 
     total = int(1e5)
 
@@ -256,12 +266,9 @@ def test_manual_overhead_hard():
 
 
 @with_setup(pretest, posttest)
+@retry_on_except()
 def test_iter_overhead_simplebar_hard():
     """ Test overhead of iteration based tqdm vs simple progress bar (hard) """
-    try:
-        assert checkCpuTime()
-    except:
-        raise SkipTest
 
     total = int(1e4)
 
@@ -290,12 +297,9 @@ def test_iter_overhead_simplebar_hard():
 
 
 @with_setup(pretest, posttest)
+@retry_on_except()
 def test_manual_overhead_simplebar_hard():
     """ Test overhead of manual tqdm vs simple progress bar (hard) """
-    try:
-        assert checkCpuTime()
-    except:
-        raise SkipTest
 
     total = int(1e4)
 
