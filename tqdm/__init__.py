@@ -7,22 +7,18 @@ from ._main import main
 from ._main import TqdmKeyError
 from ._main import TqdmTypeError
 from ._version import __version__  # NOQA
+# from ._tqdm_notebook import tqdm_notebook
+# from ._tqdm_notebook import tnrange
+from ._lazy_import import LazyImport
 
 __all__ = ['tqdm', 'tqdm_gui', 'trange', 'tgrange', 'tqdm_pandas',
            'tqdm_notebook', 'tnrange', 'main', 'TqdmKeyError', 'TqdmTypeError',
            '__version__']
 
+# Slow imports
 
-def tqdm_notebook(*args, **kwargs):  # pragma: no cover
-    """See tqdm._tqdm_notebook.tqdm_notebook for full documentation"""
-    from ._tqdm_notebook import tqdm_notebook as _tqdm_notebook
-    return _tqdm_notebook(*args, **kwargs)
-
-
-def tnrange(*args, **kwargs):  # pragma: no cover
-    """
-    A shortcut for tqdm_notebook(xrange(*args), **kwargs).
-    On Python3+ range is used instead of xrange.
-    """
-    from ._tqdm_notebook import tnrange as _tnrange
-    return _tnrange(*args, **kwargs)
+# tqdm_gui = LazyImport('tqdm_gui', '_tqdm_gui')
+# tgrange = LazyImport('tgrange', '_tqdm_gui')
+# tqdm_pandas = LazyImport('tqdm_pandas', '_tqdm_pandas')
+tqdm_notebook = LazyImport('tqdm_notebook', '_tqdm_notebook')
+tnrange = LazyImport('tnrange', '_tqdm_notebook')
