@@ -1,31 +1,35 @@
 HOW TO CONTRIBUTE TO TQDM
 =========================
 
-This file describes how to contribute changes to the project, and how to
-upload to the pypi repository.
+This file describes how to
+
+- contribute changes to the project, and
+- upload released to the pypi repository.
 
 Most of the management commands have been directly placed inside the
-Makefile: `python setup.py make [alias]`, (or simply `make [alias]` in
-UNIX-like environments).
+Makefile:
 
-Note: to use the Makefile on Windows, you need to install make.exe,
-for example by installing [MinGW MSYS](http://www.mingw.org/wiki/msys).
+```
+make [<alias>]  # on UNIX-like environments
+python setup.py make [<alias>]  # if make is unavailable
+```
+
+Use the alias `help` (or leave blank) to list all available aliases.
 
 
-HOW TO COMMIT YOUR CONTRIBUTIONS
---------------------------------
+HOW TO COMMIT CONTRIBUTIONS
+---------------------------
 
 Contributions to the project are made using the "Fork & Pull" model. The
 typical steps would be:
 
-- create an account on [github](https://github.com)
-- fork [tqdm](https://github.com/tqdm/tqdm)
-- make a local clone: `git clone https://github.com/your_account/tqdm.git`
-- make your changes on your local copy
-- commit your changes `git commit -a -m "my message"`
-- TEST YOUR CHANGES (see below)
-- `push` to your github account: `git push origin`
-- finally, create a Pull Request (PR) from your github fork
+1. create an account on [github](https://github.com)
+2. fork [tqdm](https://github.com/tqdm/tqdm)
+3. make a local clone: `git clone https://github.com/your_account/tqdm.git`
+4. make changes on the local copy
+5. test (see below) and commit changes `git commit -a -m "my message"`
+6. `push` to your github account: `git push origin`
+7. create a Pull Request (PR) from your github fork
 (go to your fork's webpage and click on "Pull Request."
 You can then add a message to describe your proposal.)
 
@@ -33,12 +37,11 @@ You can then add a message to describe your proposal.)
 TESTING
 -------
 
-To test functionality on your machine (such as before submitting a Pull
+To test functionality (such as before submitting a Pull
 Request), there are a number of unit tests.
 
-
-Standard unit testing
-~~~~~~~~~~~~~~~~~~~~~
+Standard unit tests
+~~~~~~~~~~~~~~~~~~~
 
 The standard way to run the tests:
 
@@ -47,18 +50,8 @@ The standard way to run the tests:
 - run the following command:
 
 ```
-python setup.py make test
-```
-
-or
-
-```
-make test
-```
-
-or
-
-```
+[python setup.py] make test
+# or:
 tox --skip-missing-interpreters
 ```
 
@@ -73,22 +66,201 @@ you can use `MiniConda` to install a minimal setup. You must also make sure
 that each distribution has an alias to call the Python interpreter:
 `python27` for Python 2.7's interpreter, `python32` for Python 3.2's, etc.
 
-
-Alternative unit testing with Nose
+Alternative unit tests with Nose
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Alternatively, use `nose` to run the tests just for your Python version:
+Alternatively, use `nose` to run the tests just for the current Python version:
 
 - install `nose` and `flake8`
 - run the following command:
 
 ```
-python setup.py make alltests
+[python setup.py] make alltests
 ```
 
-or
+
+
+MANAGE A NEW RELEASE
+=====================
+
+This section is intended for the project's maintainers and describes
+how to build and upload a new release. Once again,
+`[python setup.py] make [<alias>]` will help.
+
+
+SEMANTIC VERSIONING
+-------------------
+
+The tqdm repository managers should:
+
+- regularly bump the version number in the file
+[_version.py](https://raw.githubusercontent.com/tqdm/tqdm/master/tqdm/_version.py)
+- follow the [Semantic Versioning](http://semver.org/) convention
+- take care of this (instead of users) to avoid PR conflicts
+solely due to the version file bumping
+
+Note: tools can be used to automate this process, such as
+[bumpversion](https://github.com/peritus/bumpversion) or
+[python-semanticversion](https://github.com/rbarrois/python-semanticversion/).
+
+
+CHECKING SETUP.PY
+-----------------
+
+To check that the `setup.py` file is compliant with PyPi requirements (e.g.
+version number; reStructuredText in README.rst) use:
 
 ```
-nosetests --with-coverage --cover-package=tqdm -v tqdm/
-python -m flake8 tqdm/_tqdm.py
+[python setup.py] make testsetup
 ```
+
+To upload just metadata (including overwriting mistakenly uploaded metadata)
+to PyPi, use:
+
+```
+[python setup.py] make pypimeta
+```
+
+
+MERGING PULL REQUESTS
+---------------------
+
+This section describes how to cleanly merge PRs.
+
+1 Rebase
+~~~~~~~~
+
+From your project repository, merge and test
+(replace `pr-branch-name` as appropriate):
+
+```
+git fetch origin
+git checkout -b pr-branch-name origin/pr-branch-name
+git rebase master
+```
+
+If there are conflicts:
+
+```
+git mergetool
+git rebase --continue
+```
+
+2 Push
+~~~~~~
+
+Update branch with the rebased history:
+
+```
+git push origin pr-branch-name --force
+```
+
+Non maintainers can stop here.
+
+Note: NEVER just `git push --force` (this will push all local branches,
+overwriting remotes).
+
+3 Merge
+~~~~~~~
+
+```
+git checkout master
+git merge --no-ff pr-branch-name
+```
+
+4 Test
+~~~~~~
+
+```
+[python setup.py] make alltests
+```
+
+5 Version
+~~~~~~~~~
+
+Modify tqdm/_version.py and ammend the last (merge) commit:
+
+```
+git add tqdm/_version.py
+git commit --amend  # Add "+ bump version" in the commit message
+```
+
+6 Push to master
+~~~~~~~~~~~~~~~~
+
+```
+git push origin master
+```
+
+
+BUILDING A RELEASE AND UPLOADING TO PYPI
+----------------------------------------
+
+Formally publishing requires additional steps: testing and tagging.
+
+Test
+~~~~
+
+- ensure that all online CI tests have passed
+- check `setup.py` and `MANIFEST.in` - which define the packaging
+process and info that will be uploaded to [pypi](pypi.python.org) -
+using `[python setup.py] make installdev`
+
+Tag
+~~~
+
+- ensure the version has been bumped, committed **and** tagged.
+The tag format is `v{major}.{minor}.{patch}`, for example: `v4.4.1`.
+The current commit's tag is used in the version checking process.
+If the current commit is not tagged appropriately, the version will
+display as `v{major}.{minor}.{patch}-{commit_hash}`.
+
+Upload
+~~~~~~
+
+Build tqdm into a distributable python package:
+
+```
+[python setup.py] make build
+```
+
+This will generate several builds in the `dist/` folder. On non-windows
+machines the windows `exe` installer may fail to build. This is normal.
+
+Finally, upload everything to pypi. This can be done easily using the
+[twine](https://github.com/pypa/twine) module:
+
+```
+[python setup.py] make pypi
+```
+
+Also, the new release can (should) be added to `github` by creating a new
+release from the web interface; uploading packages from the `dist/` folder
+created by `[python setup.py] make build`.
+
+Notes
+~~~~~
+
+- you can also test on the pypi test servers `testpypi.python.org/pypi`
+before the real deployment
+- in case of a mistake, you can delete an uploaded release on pypi, but you
+cannot re-upload another with the same version number
+- in case of a mistake in the metadata on pypi (e.g. bad README),
+updating just the metadata is possible: `[python setup.py] make pypimeta`
+
+
+QUICK DEV SUMMARY
+-----------------
+
+For expereinced devs, once happy with local master:
+
+1. bump version in `tqdm/_version.py`
+2. test (`[python setup.py] make alltests`)
+3. `git commit [--amend]  # -m "bump version"`
+4. `git push`
+5. wait for tests to pass
+    a) in case of failure, fix and go back to (2)
+6. `git tag vM.m.p && git push --tags`
+7. `[python setup.py] make distclean`
+8. `[python setup.py] make build`
+9. `[python setup.py] make pypi`
