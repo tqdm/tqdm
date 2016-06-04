@@ -34,6 +34,9 @@
 	pypi
 	none
 
+help:
+	@python setup.py make
+
 alltests:
 	@+make testcoverage
 	@+make testperf
