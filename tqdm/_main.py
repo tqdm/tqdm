@@ -31,7 +31,9 @@ def cast(val, typ):
             raise TqdmTypeError(val + ' : ' + typ)
 
 
-def posix_pipe(fin, fout, delim='\n', buf_size=256, callback=None):
+def posix_pipe(fin, fout, delim='\n', buf_size=256,
+               callback=lambda int: None  # pragma: no cover
+               ):
     """
     Params
     ------
@@ -39,9 +41,7 @@ def posix_pipe(fin, fout, delim='\n', buf_size=256, callback=None):
     fout  : file with `write` (and optionally `flush`) methods.
     callback  : function(int), e.g.: `tqdm.update`
     """
-    if callback is None:  # pragma: no cover
-        def callback(i):
-            pass
+    fp_write = fout.write
 
     buf = ''
     tmp = ''
@@ -52,7 +52,7 @@ def posix_pipe(fin, fout, delim='\n', buf_size=256, callback=None):
         # flush at EOF
         if not tmp:
             if buf:
-                fout.write(buf)
+                fp_write(buf)
                 callback(1 + buf.count(delim))  # n += 1 + buf.count(delim)
             getattr(fout, 'flush', lambda: None)()  # pragma: no cover
             return  # n
@@ -64,7 +64,7 @@ def posix_pipe(fin, fout, delim='\n', buf_size=256, callback=None):
                 buf += tmp
                 break
             else:
-                fout.write(buf + tmp[:i + len(delim)])
+                fp_write(buf + tmp[:i + len(delim)])
                 callback(1)  # n += 1
                 buf = ''
                 tmp = tmp[i + len(delim):]
@@ -133,7 +133,12 @@ Options:
             except KeyError as e:
                 raise TqdmKeyError(str(e))
         # sys.stderr.write('\ndebug | args: ' + str(tqdm_args) + '\n')
-
+    except:
+        sys.stderr.write('\nError:\nUsage:\n  tqdm [--help | options]\n')
+        for i in sys.stdin:
+            sys.stdout.write(i)
+        raise
+    else:
         delim = tqdm_args.pop('delim', '\n')
         buf_size = tqdm_args.pop('buf_size', 256)
         if delim == '\n':
@@ -143,8 +148,3 @@ Options:
             with tqdm(**tqdm_args) as t:
                 posix_pipe(sys.stdin, sys.stdout,
                            delim, buf_size, t.update)
-    except:  # pragma: no cover
-        sys.stderr.write('\nError:\nUsage:\n  tqdm [--help | options]\n')
-        for i in sys.stdin:
-            sys.stdout.write(i)
-        raise

@@ -17,71 +17,57 @@ from ._utils import _range
 from ._tqdm import tqdm
 
 
-# import IPython/Jupyter base widget and display utilities
-try:  # pragma: no cover
-    # For IPython 4.x using ipywidgets
-    import ipywidgets
-except ImportError:  # pragma: no cover
-    # For IPython 3.x / 2.x
-    import warnings
-    with warnings.catch_warnings():
-        ipy_deprecation_msg = "The `IPython.html` package has been deprecated"
-        warnings.filterwarnings('error',
-                                message=".*" + ipy_deprecation_msg + ".*")
-        try:
-            import IPython.html.widgets as ipywidgets
-        except Warning as e:
-            if ipy_deprecation_msg not in str(e):
-                raise
-            warnings.simplefilter('ignore')
+if True:  # pragma: no cover
+    # import IPython/Jupyter base widget and display utilities
+    try:  # IPython 4.x
+        import ipywidgets
+    except ImportError:  # IPython 3.x / 2.x
+        import warnings
+        with warnings.catch_warnings():
+            ipy_deprecation_msg = "The `IPython.html` package" \
+                                  " has been deprecated"
+            warnings.filterwarnings('error',
+                                    message=".*" + ipy_deprecation_msg + ".*")
             try:
-                import IPython.html.widgets as ipywidgets  # NOQA
+                import IPython.html.widgets as ipywidgets
+            except Warning as e:
+                if ipy_deprecation_msg not in str(e):
+                    raise
+                warnings.simplefilter('ignore')
+                try:
+                    import IPython.html.widgets as ipywidgets  # NOQA
+                except ImportError:
+                    pass
             except ImportError:
                 pass
+
+    try:  # IPython 4.x / 3.x
+        from ipywidgets import IntProgress, HBox, HTML
+    except ImportError:
+        try:  # IPython 2.x
+            from ipywidgets import IntProgressWidget as IntProgress
+            from ipywidgets import ContainerWidget as HBox
+            from ipywidgets import HTML
         except ImportError:
             pass
 
-try:  # pragma: no cover
-    # For IPython 4.x / 3.x
-    from ipywidgets import IntProgress, HBox, HTML
-except ImportError:  # pragma: no cover
     try:
-        # For IPython 2.x
-        from ipywidgets import IntProgressWidget as IntProgress
-        from ipywidgets import ContainerWidget as HBox
-        from ipywidgets import HTML
+        from IPython.display import display  # , clear_output
     except ImportError:
-        # from ._tqdm import tqdm, trange
-        # def warnWrap(fn, msg):
-        #     def inner(*args, **kwargs):
-        #         from sys import stderr
-        #         stderr.write(msg)
-        #         return fn(*args, **kwargs)
-        #     return inner
-        # tqdm_notebook = warnWrap(tqdm, "Warning:\n\tNo ipywidgets."
-        #                          "\ntFalling back to `tqdm`.\n")
-        # tnrange = warnWrap(trange, "Warning:\n\tNo ipywidgets."
-        #                    "\n\tFalling back to `trange`.\n")
-        # exit
         pass
 
-try:  # pragma: no cover
-    from IPython.display import display  # , clear_output
-except ImportError:  # pragma: no cover
-    pass
-
-# HTML encoding
-try:  # pragma: no cover
-    from html import escape  # python 3.x
-except ImportError:  # pragma: no cover
-    from cgi import escape  # python 2.x
+    # HTML encoding
+    try:  # Py3
+        from html import escape
+    except ImportError:  # Py2
+        from cgi import escape
 
 
 __author__ = {"github.com/": ["lrq3000", "casperdcl", "alexanderkuk"]}
 __all__ = ['tqdm_notebook', 'tnrange']
 
 
-class tqdm_notebook(tqdm):  # pragma: no cover
+class tqdm_notebook(tqdm):
     """
     Experimental IPython/Jupyter Notebook widget using tqdm!
     """
@@ -97,8 +83,6 @@ class tqdm_notebook(tqdm):  # pragma: no cover
         #    return super(tqdm_notebook, tqdm_notebook).status_printer(file)
 
         fp = file
-        if not getattr(fp, 'flush', False):  # pragma: no cover
-            fp.flush = lambda: None
 
         # Prepare IPython progress bar
         if total:
@@ -224,7 +208,7 @@ class tqdm_notebook(tqdm):  # pragma: no cover
         return
 
 
-def tnrange(*args, **kwargs):  # pragma: no cover
+def tnrange(*args, **kwargs):
     """
     A shortcut for tqdm_notebook(xrange(*args), **kwargs).
     On Python3+ range is used instead of xrange.

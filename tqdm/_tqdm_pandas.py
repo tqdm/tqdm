@@ -7,7 +7,7 @@ __author__ = "github.com/casperdcl"
 __all__ = ['tqdm_pandas']
 
 
-def tqdm_pandas(t):  # pragma: no cover
+def tqdm_pandas(t):
     """
     Registers the given `tqdm` instance with
     `pandas.core.groupby.DataFrameGroupBy.progress_apply`.

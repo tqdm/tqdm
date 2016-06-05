@@ -148,7 +148,7 @@ class tqdm_gui(tqdm):  # pragma: no cover
             if delta_it >= miniters:
                 cur_t = time()
                 delta_t = cur_t - last_print_t
-                if delta_t >= mininterval:  # pragma: no cover
+                if delta_t >= mininterval:
                     elapsed = cur_t - start_t
                     # EMA (not just overall average)
                     if smoothing and delta_t:

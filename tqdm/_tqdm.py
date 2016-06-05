@@ -85,19 +85,17 @@ class tqdm(object):
         updating may not work (it will print a new line at each refresh).
         """
         fp = file
-        if not getattr(fp, 'flush', False):  # pragma: no cover
-            fp.flush = lambda: None
+        fp_flush = getattr(fp, 'flush', lambda: None)  # pragma: no cover
 
         def fp_write(s):
             fp.write(_unicode(s))
+            fp_flush()
 
-        last_printed_len = [0]  # closure over mutable variable (fast)
-
+        last_len = [0]
         def print_status(s):
             len_s = len(s)
-            fp_write('\r' + s + (' ' * max(last_printed_len[0] - len_s, 0)))
-            fp.flush()
-            last_printed_len[0] = len_s
+            fp_write('\r' + s + (' ' * max(last_len[0] - len_s, 0)))
+            last_len[0] = len_s
         return print_status
 
     @staticmethod
@@ -305,20 +303,21 @@ class tqdm(object):
         """
         Print a message via tqdm (without overlap with bars)
         """
+        fp = file
+
         # Clear all bars
         inst_cleared = []
         for inst in cls._instances:
             # Clear instance if in the target output file
             # or if write output + tqdm output are both either
             # sys.stdout or sys.stderr (because both are mixed in terminal)
-            if inst.fp == file or \
-              (file in [sys.stdout, sys.stderr] and
-               inst.fp in [sys.stdout, sys.stderr]):
+            if inst.fp == fp or all(f in (sys.stdout, sys.stderr)
+                                    for f in (fp, inst.fp)):
                 inst.clear()
                 inst_cleared.append(inst)
         # Write the message
-        file.write(s)
-        file.write(end)
+        fp.write(s)
+        fp.write(end)
         # Force refresh display of bars we cleared
         for inst in inst_cleared:
             inst.refresh()
@@ -434,11 +433,11 @@ class tqdm(object):
                 total = None
 
         if ((ncols is None) and (file in (sys.stderr, sys.stdout))) or \
-                dynamic_ncols:
-            if dynamic_ncols:  # pragma: no cover
+                dynamic_ncols:  # pragma: no cover
+            if dynamic_ncols:
                 dynamic_ncols = _environ_cols_wrapper()
                 ncols = dynamic_ncols(file)
-            else:  # pragma: no cover
+            else:
                 ncols = _environ_cols_wrapper()(file)
 
         if miniters is None:

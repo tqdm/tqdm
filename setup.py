@@ -7,22 +7,21 @@ try:
 except ImportError:
     from distutils.core import setup
 import sys
-import subprocess
+from subprocess import check_call
+from io import open
+
 # For Makefile parsing
 import shlex
 try:  # pragma: no cover
     import ConfigParser
     import StringIO
 except ImportError:  # pragma: no cover
-    # Python 3 compatibility
     import configparser as ConfigParser
     import io as StringIO
-import io
 import re
 
 
 """ Makefile auxiliary functions """
-
 
 RE_MAKE_CMD = re.compile('^\t(@\+?)(make)?', flags=re.M)
 
@@ -38,7 +37,7 @@ def parse_makefile_aliases(filepath):
     # -- Parsing the Makefile using ConfigParser
     # Adding a fake section to make the Makefile a valid Ini file
     ini_str = '[root]\n'
-    with io.open(filepath, mode='r') as fd:
+    with open(filepath, mode='r') as fd:
         ini_str = ini_str + RE_MAKE_CMD.sub('\t', fd.read())
     ini_fp = StringIO.StringIO(ini_str)
     # Parse using ConfigParser
@@ -114,16 +113,15 @@ def execute_makefile_commands(commands, alias, verbose=False):
             if verbose:
                 print("Running command: " + cmd)
             # Launch the command and wait to finish (synchronized call)
-            subprocess.check_call(parsed_cmd)
+            check_call(parsed_cmd)
 
 
 """ Main setup.py config """
 
-
 # Get version from tqdm/_version.py
 __version__ = None
 version_file = os.path.join(os.path.dirname(__file__), 'tqdm', '_version.py')
-with io.open(version_file, mode='r') as fd:
+with open(version_file, mode='r') as fd:
     exec(fd.read())
 
 # Executing makefile commands if specified
@@ -158,9 +156,8 @@ if sys.argv[1].lower().strip() == 'make':
 
 """ Python package config """
 
-
 README_rst = ''
-with io.open('README.rst', mode='r', encoding='utf-8') as fd:
+with open('README.rst', mode='r', encoding='utf-8') as fd:
     README_rst = fd.read()
 
 setup(

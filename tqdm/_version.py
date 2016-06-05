@@ -1,5 +1,5 @@
 # Definition of the version number
-try:  # pragma: no cover
+try:
     from ._utils import _sh
 except:  # pragma: no cover
     _sh = None

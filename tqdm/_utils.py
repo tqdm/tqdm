@@ -8,38 +8,35 @@ IS_NIX = (not IS_WIN) and any(
     ['CYGWIN', 'MSYS', 'Linux', 'Darwin', 'SunOS', 'FreeBSD'])
 
 
-try:    # pragma: no cover
-    _range = xrange
-except NameError:    # pragma: no cover
-    _range = range
+if True:  # pragma: no cover
+    try:
+        _range = xrange
+    except NameError:
+        _range = range
 
+    try:
+        _unich = unichr
+    except NameError:
+        _unich = chr
 
-try:    # pragma: no cover
-    _unich = unichr
-except NameError:    # pragma: no cover
-    _unich = chr
+    try:
+        _unicode = unicode
+    except NameError:
+        _unicode = str
 
-try:  # pragma: no cover
-    _unicode = unicode
-except NameError:  # pragma: no cover
-    _unicode = str  # in Py3, all strings are unicode
-
-
-try:  # pragma: no cover
-    if IS_WIN:
-        import colorama
-        colorama.init()
-    else:
+    try:
+        if IS_WIN:
+            import colorama
+            colorama.init()
+        else:
+            colorama = None
+    except ImportError:
         colorama = None
-except ImportError:  # pragma: no cover
-    colorama = None
-except:  # pragma: no cover
-    raise  # try updating colorama?
 
-try:  # pragma: no cover
-    from weakref import WeakSet
-except ImportError:  # pragma: nocover
-    WeakSet = set
+    try:
+        from weakref import WeakSet
+    except ImportError:
+        WeakSet = set
 
 
 def _is_utf(encoding):
@@ -47,12 +44,10 @@ def _is_utf(encoding):
 
 
 def _supports_unicode(file):
-    if not getattr(file, 'encoding', None):
-        return False
-    if not getattr(file, 'interface', None):  # pragma: no cover
+    return _is_utf(file.encoding) if (
+        getattr(file, 'encoding', None) or
         # FakeStreams from things like bpython-curses can lie
-        return _is_utf(file.encoding)
-    return False  # pragma: no cover
+        getattr(file, 'interface', None)) else False  # pragma: no cover
 
 
 def _environ_cols_wrapper():  # pragma: no cover
@@ -137,10 +132,7 @@ def _environ_cols_linux(fp):  # pragma: no cover
 
 
 def _term_move_up():  # pragma: no cover
-    if os.name == 'nt':
-        if colorama is None:
-            return ''
-    return '\x1b[A'
+    return '' if (os.name == 'nt') and (colorama is None) else '\x1b[A'
 
 
 def _sh(*cmd, **kwargs):
