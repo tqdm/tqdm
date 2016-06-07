@@ -155,8 +155,9 @@ class tqdm(object):
         rate  : float, optional
             Manual override for iteration rate.
             If [default: None], uses n/elapsed.
-        bar_format  : str, optional
+        bar_format  : str or callable, optional
             Specify a custom bar string formatting. May impact performance.
+            Can be a callable that will handle bar display.
             [default: '{l_bar}{bar}{r_bar}'], where l_bar is
             '{desc}{percentage:3.0f}%|' and r_bar is
             '| {n_fmt}/{total_fmt} [{elapsed_str}<{remaining_str}, {rate_fmt}]'
@@ -236,7 +237,10 @@ class tqdm(object):
                             }
 
                 # Interpolate supplied bar format with the dict
-                if '{bar}' in bar_format:
+                if hasattr(bar_format, '__call__'):
+                    # Callback user provided function/method to handle display
+                    bar_format(bar_args)
+                elif '{bar}' in bar_format:
                     # Format left/right sides of the bar, and format the bar
                     # later in the remaining space (avoid breaking display)
                     l_bar_user, r_bar_user = bar_format.split('{bar}')
@@ -508,8 +512,9 @@ class tqdm(object):
             Exponential moving average smoothing factor for speed estimates
             (ignored in GUI mode). Ranges from 0 (average speed) to 1
             (current/instantaneous speed) [default: 0.3].
-        bar_format  : str, optional
+        bar_format  : str or callable, optional
             Specify a custom bar string formatting. May impact performance.
+            Can be a callable that will handle bar display.
             If unspecified, will use '{l_bar}{bar}{r_bar}', where l_bar is
             '{desc}{percentage:3.0f}%|' and r_bar is
             '| {n_fmt}/{total_fmt} [{elapsed_str}<{remaining_str}, {rate_fmt}]'
