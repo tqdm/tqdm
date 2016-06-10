@@ -1,9 +1,10 @@
 import sys
 import subprocess
 from tqdm import main, TqdmKeyError, TqdmTypeError
-from copy import deepcopy
+import re
+# from copy import deepcopy
 
-from tests_tqdm import with_setup, pretest, posttest, _range, closing, UnicodeIO
+from tests_tqdm import with_setup, pretest, posttest, _range, UnicodeIO
 
 
 def _sh(*cmd, **kwargs):
@@ -11,37 +12,45 @@ def _sh(*cmd, **kwargs):
                             **kwargs).communicate()[0].decode('utf-8')
 
 
+RE_TQDM_OUT = re.compile(r'\s\d+it \[\d\d:\d\d, (?:[\d.]+|\?)(?:it/s|s/it)\]')
+
+
 # WARNING: this should be the last test as it messes with sys.stdin, argv
 @with_setup(pretest, posttest)
 def test_main():
     """ Test command line pipes """
-    ls_out = _sh('ls').replace('\r\n', '\n')
-    ls = subprocess.Popen(('ls'),
+    ls_out = _sh('dir')
+    ls = subprocess.Popen(('dir'),
                           stdout=subprocess.PIPE,
                           stderr=subprocess.STDOUT)
-    res = _sh('python', '-c', 'from tqdm import main; main()',
+    res = _sh('python', '-c', 'import sys; sys.argv = [""];'
+                              ' from tqdm import main; main()',
               stdin=ls.stdout,
               stderr=subprocess.STDOUT)
     ls.wait()
 
     # actual test:
-
-    assert (ls_out in res.replace('\r\n', '\n'))
+    res_stripped = RE_TQDM_OUT.sub('', res)
+    assert res_stripped[-1] == '\n'  # tqdm's extra newline
+    assert ls_out == res_stripped[:-1]
 
     # semi-fake test which gets coverage:
     try:
-        _SYS = (deepcopy(sys.stdin), deepcopy(sys.argv))
+        _SYS = sys.stdin, sys.argv  # map(deepcopy, (sys.stdin, sys.argv))
     except:
         pass
 
-    with closing(UnicodeIO()) as sys.stdin:
-        sys.argv = ['', '--desc', 'Test CLI delims',
-                    '--ascii', 'True', '--delim', r'\0', '--buf_size', '64']
-        sys.stdin.write('\0'.join(map(str, _range(int(1e3)))))
-        sys.stdin.seek(0)
-        main()
+    sys.stdin = UnicodeIO()
+    sys.argv = ['', '--desc', 'Test CLI delims',
+                '--ascii', 'True', '--delim', r'\0', '--buf_size', '64']
+    sys.stdin.write('\0'.join(map(str, _range(int(1e3)))))
+    sys.stdin.seek(0)
+    main()
 
-    sys.stdin = map(str, _range(int(1e3)))
+    sys.stdin.seek(0)
+    sys.stdin.write('\n'.join(map(str, _range(int(1e3)))))
+
+    sys.stdin.seek(0)
     sys.argv = ['', '--desc', 'Test CLI pipes',
                 '--ascii', 'True', '--unit_scale', 'True']
     import tqdm.__main__  # NOQA
@@ -50,6 +59,7 @@ def test_main():
                 '--desc', 'Test CLI errors']
     main()
 
+    sys.stdin.seek(0)
     sys.argv = ['', '-ascii', '-unit_scale', '--bad_arg_u_ment', 'foo']
     try:
         main()
@@ -59,6 +69,7 @@ def test_main():
     else:
         raise TqdmKeyError('bad_arg_u_ment')
 
+    sys.stdin.seek(0)
     sys.argv = ['', '-ascii', '-unit_scale', 'invalid_bool_value']
     try:
         main()
@@ -68,6 +79,7 @@ def test_main():
     else:
         raise TqdmTypeError('invalid_bool_value')
 
+    sys.stdin.seek(0)
     sys.argv = ['', '-ascii', '--total', 'invalid_int_value']
     try:
         main()
@@ -78,6 +90,7 @@ def test_main():
         raise TqdmTypeError('invalid_int_value')
 
     for i in ('-h', '--help', '-v', '--version'):
+        sys.stdin.seek(0)
         sys.argv = ['', i]
         try:
             main()
@@ -85,6 +98,7 @@ def test_main():
             pass
 
     # clean up
+    sys.stdin.close()
     try:
         sys.stdin, sys.argv = _SYS
     except:

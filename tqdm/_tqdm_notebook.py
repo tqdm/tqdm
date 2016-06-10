@@ -73,7 +73,7 @@ class tqdm_notebook(tqdm):
     """
 
     @staticmethod
-    def status_printer(file, total=None, desc=None):
+    def status_printer(_, total=None, desc=None):
         """
         Manage the printing of an IPython/Jupyter Notebook progress bar widget.
         """
@@ -81,8 +81,6 @@ class tqdm_notebook(tqdm):
         # DEPRECATED: replaced with an 'info' style bar
         # if not total:
         #    return super(tqdm_notebook, tqdm_notebook).status_printer(file)
-
-        fp = file
 
         # Prepare IPython progress bar
         if total:

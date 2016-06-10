@@ -92,6 +92,7 @@ class tqdm(object):
             fp_flush()
 
         last_len = [0]
+
         def print_status(s):
             len_s = len(s)
             fp_write('\r' + s + (' ' * max(last_len[0] - len_s, 0)))

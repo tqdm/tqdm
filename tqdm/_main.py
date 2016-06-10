@@ -1,8 +1,16 @@
 from ._tqdm import tqdm
 from ._version import __version__  # NOQA
+import os
 import sys
 import re
 __all__ = ["main"]
+__author__ = "github.com/casperdcl"
+
+
+"""
+Note: as a general rule in case of errors, we pipe all stdin>out
+before raising the exception.
+"""
 
 
 class TqdmTypeError(TypeError):
@@ -35,19 +43,28 @@ def posix_pipe(fin, fout, delim='\n', buf_size=256,
                callback=lambda int: None  # pragma: no cover
                ):
     """
+    Should be noexcept.
+
     Params
     ------
-    fin  : file with `read(buf_size : int)` method
+    fin  : file with `fileno()` or `read(buf_size : int)` method.
     fout  : file with `write` (and optionally `flush`) methods.
     callback  : function(int), e.g.: `tqdm.update`
     """
+    try:
+        fp = os.fdopen(os.dup(fin.fileno()), "rb")  # don't want "rU"
+    except:
+        fp_read = fin.read
+    else:
+        fp_read = fp.read
+
     fp_write = fout.write
 
     buf = ''
     tmp = ''
     # n = 0
     while True:
-        tmp = fin.read(buf_size)
+        tmp = fp_read(buf_size)
 
         # flush at EOF
         if not tmp:
@@ -57,17 +74,18 @@ def posix_pipe(fin, fout, delim='\n', buf_size=256,
             getattr(fout, 'flush', lambda: None)()  # pragma: no cover
             return  # n
 
+        i, iPrev = 0, 0
         while True:
             try:
-                i = tmp.index(delim)
+                i = tmp.index(delim, iPrev)
             except ValueError:
-                buf += tmp
+                buf += tmp[iPrev:]
                 break
             else:
-                fp_write(buf + tmp[:i + len(delim)])
+                fp_write(buf + tmp[iPrev:i + len(delim)])
                 callback(1)  # n += 1
                 buf = ''
-                tmp = tmp[i + len(delim):]
+                iPrev = i + len(delim) + 1
 
 
 # ((opt, type), ... )
@@ -126,6 +144,16 @@ Options:
     opts = dict(zip(argv[1::2], argv[2::2]))
 
     tqdm_args = {}
+    # try:
+    #     dumb_stdin = os.fdopen(sys.stdin.fileno(), "rb", 0)
+    #     dumb_stdout = os.fdopen(sys.stdout.fileno(), "wb", 0)
+    # except Exception as e:
+    #     if 'fileno' not in str(e):
+    #         posix_pipe(dumb_stdin, dumb_stdout, '\n')
+    #         raise
+    #     # mock io - probably list or StringIO
+    #     dumb_stdin = sys.stdin
+    #     dumb_stdout = sys.stdout
     try:
         for (o, v) in opts.items():
             try:
@@ -135,16 +163,11 @@ Options:
         # sys.stderr.write('\ndebug | args: ' + str(tqdm_args) + '\n')
     except:
         sys.stderr.write('\nError:\nUsage:\n  tqdm [--help | options]\n')
-        for i in sys.stdin:
-            sys.stdout.write(i)
+        posix_pipe(sys.stdin, sys.stdout, '\n')
         raise
     else:
         delim = tqdm_args.pop('delim', '\n')
         buf_size = tqdm_args.pop('buf_size', 256)
-        if delim == '\n':
-            for i in tqdm(sys.stdin, **tqdm_args):
-                sys.stdout.write(i)
-        else:
-            with tqdm(**tqdm_args) as t:
-                posix_pipe(sys.stdin, sys.stdout,
-                           delim, buf_size, t.update)
+        with tqdm(**tqdm_args) as t:
+            posix_pipe(sys.stdin, sys.stdout,
+                       delim, buf_size, t.update)
