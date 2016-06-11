@@ -4,7 +4,8 @@ from tqdm import main, TqdmKeyError, TqdmTypeError
 import re
 # from copy import deepcopy
 
-from tests_tqdm import with_setup, pretest, posttest, _range, UnicodeIO
+from tests_tqdm import with_setup, pretest, posttest, _range
+from tests_tqdm import StringIO as UnicodeIO
 
 
 def _sh(*cmd, **kwargs):
@@ -23,7 +24,7 @@ def test_main():
     ls = subprocess.Popen(('dir'),
                           stdout=subprocess.PIPE,
                           stderr=subprocess.STDOUT)
-    res = _sh('python', '-c', 'import sys; sys.argv = [""];'
+    res = _sh('python', '-c', r'import sys; sys.argv = ["", "--delim", "\\t"];'
                               ' from tqdm import main; main()',
               stdin=ls.stdout,
               stderr=subprocess.STDOUT)
@@ -34,7 +35,7 @@ def test_main():
     assert res_stripped[-1] == '\n'  # tqdm's extra newline
     assert ls_out == res_stripped[:-1]
 
-    # semi-fake test which gets coverage:
+    # semi-fake tests which get coverage:
     try:
         _SYS = sys.stdin, sys.argv  # map(deepcopy, (sys.stdin, sys.argv))
     except:

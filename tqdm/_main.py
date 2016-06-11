@@ -85,7 +85,7 @@ def posix_pipe(fin, fout, delim='\n', buf_size=256,
                 fp_write(buf + tmp[iPrev:i + len(delim)])
                 callback(1)  # n += 1
                 buf = ''
-                iPrev = i + len(delim) + 1
+                iPrev = i + len(delim)
 
 
 # ((opt, type), ... )
@@ -163,11 +163,20 @@ Options:
         # sys.stderr.write('\ndebug | args: ' + str(tqdm_args) + '\n')
     except:
         sys.stderr.write('\nError:\nUsage:\n  tqdm [--help | options]\n')
-        posix_pipe(sys.stdin, sys.stdout, '\n')
+        mock_stdin = os.fdopen(os.dup(sys.stdin.fileno()), "rb") \
+            if hasattr(sys.stdin, 'fileno') else sys.stdin
+        for i in mock_stdin:
+            sys.stdout.write(i)
         raise
     else:
         delim = tqdm_args.pop('delim', '\n')
         buf_size = tqdm_args.pop('buf_size', 256)
-        with tqdm(**tqdm_args) as t:
-            posix_pipe(sys.stdin, sys.stdout,
-                       delim, buf_size, t.update)
+        if delim == '\n':
+            mock_stdin = os.fdopen(os.dup(sys.stdin.fileno()), "rb") \
+                if hasattr(sys.stdin, 'fileno') else sys.stdin
+            for i in tqdm(mock_stdin, **tqdm_args):
+                sys.stdout.write(i)
+        else:
+            with tqdm(**tqdm_args) as t:
+                posix_pipe(sys.stdin, sys.stdout,
+                           delim, buf_size, t.update)
