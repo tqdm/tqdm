@@ -52,13 +52,27 @@ def posix_pipe(fin, fout, delim='\n', buf_size=256,
     callback  : function(int), e.g.: `tqdm.update`
     """
     try:
-        fp = os.fdopen(os.dup(fin.fileno()), "rb")  # don't want "rU"
+        fpi = os.fdopen(os.dup(fin.fileno()), "rb")  # don't want "rU"
     except:
         fp_read = fin.read
     else:
-        fp_read = fp.read
+        fp_read = fpi.read
 
-    fp_write = fout.write
+    try:
+        obsize = 0
+        if sys.version_info[0] == 3:
+            delim = bytes(delim)
+            assert delim != '\n'
+            os.environment['PYTHONUNBUFFERED'] = '1'
+            obsize = 1
+        else:
+            assert delim != '\n'
+        # unbuffered is slightly slower but more POSIX filter compliant
+        fpo = os.fdopen(os.dup(fout.fileno()), "ab", obsize)
+    except:
+        fp_write = fout.write
+    else:
+        fp_write = fpo.write
 
     buf = ''
     tmp = ''
@@ -71,7 +85,6 @@ def posix_pipe(fin, fout, delim='\n', buf_size=256,
             if buf:
                 fp_write(buf)
                 callback(1 + buf.count(delim))  # n += 1 + buf.count(delim)
-            getattr(fout, 'flush', lambda: None)()  # pragma: no cover
             return  # n
 
         i, iPrev = 0, 0
@@ -163,20 +176,15 @@ Options:
         # sys.stderr.write('\ndebug | args: ' + str(tqdm_args) + '\n')
     except:
         sys.stderr.write('\nError:\nUsage:\n  tqdm [--help | options]\n')
-        mock_stdin = os.fdopen(os.dup(sys.stdin.fileno()), "rb") \
-            if hasattr(sys.stdin, 'fileno') else sys.stdin
-        for i in mock_stdin:
-            sys.stdout.write(i)
+        posix_pipe(sys.stdin, sys.stdout)
+        # mock_stdin = os.fdopen(os.dup(sys.stdin.fileno()), "rb") \
+        #     if hasattr(sys.stdin, 'fileno') else sys.stdin
+        # for i in mock_stdin:
+        #     sys.stdout.write(i)
         raise
     else:
         delim = tqdm_args.pop('delim', '\n')
         buf_size = tqdm_args.pop('buf_size', 256)
-        if delim == '\n':
-            mock_stdin = os.fdopen(os.dup(sys.stdin.fileno()), "rb") \
-                if hasattr(sys.stdin, 'fileno') else sys.stdin
-            for i in tqdm(mock_stdin, **tqdm_args):
-                sys.stdout.write(i)
-        else:
-            with tqdm(**tqdm_args) as t:
-                posix_pipe(sys.stdin, sys.stdout,
-                           delim, buf_size, t.update)
+        with tqdm(**tqdm_args) as t:
+            posix_pipe(sys.stdin, sys.stdout,
+                       delim, buf_size, t.update)
