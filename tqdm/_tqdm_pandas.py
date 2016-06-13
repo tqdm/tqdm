@@ -30,7 +30,8 @@ def tqdm_pandas(t):
     progress-indicator-during-pandas-operations-python
     """
     from pandas.core.frame import DataFrame
-    from pandas.core.groupby import DataFrameGroupBy
+    from pandas.core.series import Series
+    from pandas.core.groupby import DataFrameGroupBy, SeriesGroupBy
 
     def inner(df, func, *args, **kwargs):
         """
@@ -62,3 +63,5 @@ def tqdm_pandas(t):
     # Enable custom tqdm progress in pandas!
     DataFrame.progress_apply = inner
     DataFrameGroupBy.progress_apply = inner
+    Series.progress_apply = inner
+    SeriesGroupBy.progress_apply = inner
