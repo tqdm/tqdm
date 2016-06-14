@@ -46,7 +46,8 @@ def tqdm_pandas(t):
         """
         t.total = getattr(df, 'ngroups', None)
         if t.total is None:  # not grouped
-            t.total = df.size // len(df)
+            t.total = len(df) if isinstance(df, Series) \
+                else df.size // len(df)
         else:
             t.total += 1  # pandas calls update once too many
 
