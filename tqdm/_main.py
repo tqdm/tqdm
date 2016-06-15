@@ -51,8 +51,10 @@ def posix_pipe(fin, fout, delim='\n', buf_size=256,
     fout  : file with `write` (and optionally `flush`) methods.
     callback  : function(int), e.g.: `tqdm.update`
     """
+    # buf_size = 1 if delim == '\n' else buf_size
     try:
-        fpi = os.fdopen(os.dup(fin.fileno()), "rb")  # don't want "rU"
+        fpi = os.fdopen(os.dup(fin.fileno()), mode="r" + "bt"[bool(buf_size)],
+                        buffering=buf_size, newline='')
     except:
         fp_read = fin.read
     else:
@@ -61,14 +63,11 @@ def posix_pipe(fin, fout, delim='\n', buf_size=256,
     try:
         obsize = 0
         if sys.version_info[0] == 3:
-            delim = bytes(delim)
-            assert delim != '\n'
-            os.environment['PYTHONUNBUFFERED'] = '1'
+            os.environ['PYTHONUNBUFFERED'] = '1'
             obsize = 1
-        else:
-            assert delim != '\n'
         # unbuffered is slightly slower but more POSIX filter compliant
-        fpo = os.fdopen(os.dup(fout.fileno()), "ab", obsize)
+        fpo = os.fdopen(os.dup(fout.fileno()), mode="a" + "bt"[obsize],
+                        buffering=obsize, newline='')
     except:
         fp_write = fout.write
     else:
@@ -94,6 +93,8 @@ def posix_pipe(fin, fout, delim='\n', buf_size=256,
             except ValueError:
                 buf += tmp[iPrev:]
                 break
+            # except Exception as e:
+            #     raise IOError('\n'.join([str(e), tmp, delim]))
             else:
                 fp_write(buf + tmp[iPrev:i + len(delim)])
                 callback(1)  # n += 1
@@ -153,7 +154,7 @@ Options:
         sys.stdout.write(__doc__ + '\n')
         sys.exit(0)
 
-    argv = RE_SHLEX.split(' '.join(sys.argv))
+    argv = RE_SHLEX.split('tqdm ' + ' '.join(sys.argv[1:]))
     opts = dict(zip(argv[1::2], argv[2::2]))
 
     tqdm_args = {}
@@ -187,4 +188,4 @@ Options:
         buf_size = tqdm_args.pop('buf_size', 256)
         with tqdm(**tqdm_args) as t:
             posix_pipe(sys.stdin, sys.stdout,
-                       delim, buf_size, t.update)
+                       delim, 1 if delim == '\n' else buf_size, t.update)

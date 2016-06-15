@@ -32,8 +32,8 @@ def test_main():
 
     # actual test:
     res_stripped = RE_TQDM_OUT.sub('', res)
-    assert res_stripped[-1] == '\n'  # tqdm's extra newline
-    assert ls_out == res_stripped[:-1]
+    assert res_stripped[-2:] == '\r\n'  # tqdm's extra newline
+    assert ls_out == res_stripped[:-2]
 
     # semi-fake tests which get coverage:
     try:
