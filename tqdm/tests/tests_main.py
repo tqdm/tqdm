@@ -13,7 +13,7 @@ def _sh(*cmd, **kwargs):
                             **kwargs).communicate()[0].decode('utf-8')
 
 
-RE_TQDM_OUT = re.compile(r'\s\d+it \[\d\d:\d\d, (?:[\d.]+|\?)(?:it/s|s/it)\]')
+RE_TQDM_OUT = re.compile(r'[\r]\d+it \[\d\d:\d\d, (?:[\d.]+|\?)(?:it/s|s/it)\]')
 
 
 # WARNING: this should be the last test as it messes with sys.stdin, argv
@@ -31,9 +31,10 @@ def test_main():
     ls.wait()
 
     # actual test:
-    res_stripped = RE_TQDM_OUT.sub('', res)
-    assert res_stripped[-2:] == '\r\n'  # tqdm's extra newline
-    assert ls_out == res_stripped[:-2]
+    res_split = RE_TQDM_OUT.split(res)
+    assert res_split[-1][:2] == '\r\n'  # tqdm's extra newline
+    res_stripped = ''.join(res_split[:-1]) + res_split[-1][2:]
+    assert ls_out == res_stripped
 
     # semi-fake tests which get coverage:
     try:

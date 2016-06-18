@@ -93,8 +93,6 @@ def posix_pipe(fin, fout, delim='\n', buf_size=256,
             except ValueError:
                 buf += tmp[iPrev:]
                 break
-            # except Exception as e:
-            #     raise IOError('\n'.join([str(e), tmp, delim]))
             else:
                 fp_write(buf + tmp[iPrev:i + len(delim)])
                 callback(1)  # n += 1
@@ -158,16 +156,6 @@ Options:
     opts = dict(zip(argv[1::2], argv[2::2]))
 
     tqdm_args = {}
-    # try:
-    #     dumb_stdin = os.fdopen(sys.stdin.fileno(), "rb", 0)
-    #     dumb_stdout = os.fdopen(sys.stdout.fileno(), "wb", 0)
-    # except Exception as e:
-    #     if 'fileno' not in str(e):
-    #         posix_pipe(dumb_stdin, dumb_stdout, '\n')
-    #         raise
-    #     # mock io - probably list or StringIO
-    #     dumb_stdin = sys.stdin
-    #     dumb_stdout = sys.stdout
     try:
         for (o, v) in opts.items():
             try:
@@ -178,10 +166,6 @@ Options:
     except:
         sys.stderr.write('\nError:\nUsage:\n  tqdm [--help | options]\n')
         posix_pipe(sys.stdin, sys.stdout)
-        # mock_stdin = os.fdopen(os.dup(sys.stdin.fileno()), "rb") \
-        #     if hasattr(sys.stdin, 'fileno') else sys.stdin
-        # for i in mock_stdin:
-        #     sys.stdout.write(i)
         raise
     else:
         delim = tqdm_args.pop('delim', '\n')
