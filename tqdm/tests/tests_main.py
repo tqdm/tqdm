@@ -7,6 +7,10 @@ import re
 from tests_tqdm import with_setup, pretest, posttest, _range
 from tests_tqdm import StringIO as UnicodeIO
 
+from platform import system as _curos
+CUR_OS = _curos()
+IS_WIN = CUR_OS in ['Windows', 'cli']
+
 
 def _sh(*cmd, **kwargs):
     return subprocess.Popen(cmd, stdout=subprocess.PIPE,
@@ -32,8 +36,13 @@ def test_main():
 
     # actual test:
     res_split = RE_TQDM_OUT.split(res)
-    assert res_split[-1][:2] == '\r\n'  # tqdm's extra newline
-    res_stripped = ''.join(res_split[:-1]) + res_split[-1][2:]
+    # tqdm's extra newline
+    if IS_WIN:
+        assert res_split[-1][:2] == '\r\n'
+        res_stripped = ''.join(res_split[:-1]) + res_split[-1][2:]
+    else:
+        assert res_split[-1][0] == '\n'
+        res_stripped = ''.join(res_split[:-1]) + res_split[-1][1:]
     assert ls_out == res_stripped
 
     # semi-fake tests which get coverage:
