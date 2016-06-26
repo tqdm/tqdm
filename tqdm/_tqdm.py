@@ -508,7 +508,9 @@ class tqdm(object):
         self.start_t = self.last_print_t = self._time()
 
     def __len__(self):
-        return len(self.iterable) if self.iterable else self.total
+        return (self.iterable.shape[0] if hasattr(self.iterable, 'shape') \
+                else len(self.iterable)) if self.iterable is not None \
+            else self.total
 
     def __enter__(self):
         return self
