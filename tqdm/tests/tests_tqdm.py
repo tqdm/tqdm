@@ -1216,3 +1216,15 @@ def test_write():
     # Restore stdout and stderr
     sys.stderr = stde
     sys.stdout = stdo
+
+
+@with_setup(pretest, posttest)
+def test_len():
+    """Test advance len (numpy array shape)"""
+    try:
+        import numpy as np
+    except:
+        raise SkipTest
+    with closing(StringIO()) as f:
+        with tqdm(np.zeros((3, 4)), file=f) as t:
+            assert len(t) == 3
