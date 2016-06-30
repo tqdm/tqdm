@@ -21,7 +21,9 @@ if True:  # pragma: no cover
     # import IPython/Jupyter base widget and display utilities
     try:  # IPython 4.x
         import ipywidgets
+        IPY = 4
     except ImportError:  # IPython 3.x / 2.x
+        IPY = 32
         import warnings
         with warnings.catch_warnings():
             ipy_deprecation_msg = "The `IPython.html` package" \
@@ -42,14 +44,19 @@ if True:  # pragma: no cover
                 pass
 
     try:  # IPython 4.x / 3.x
-        from ipywidgets import IntProgress, HBox, HTML
+        if IPY == 32:
+            from IPython.html.widgets import IntProgress, HBox, HTML
+            IPY = 3
+        else:
+            from ipywidgets import IntProgress, HBox, HTML
     except ImportError:
         try:  # IPython 2.x
-            from ipywidgets import IntProgressWidget as IntProgress
-            from ipywidgets import ContainerWidget as HBox
-            from ipywidgets import HTML
+            from IPython.html.widgets import IntProgressWidget as IntProgress
+            from IPython.html.widgets import ContainerWidget as HBox
+            from IPython.html.widgets import HTML
+            IPY = 2
         except ImportError:
-            pass
+            IPY = 0
 
     try:
         from IPython.display import display  # , clear_output
