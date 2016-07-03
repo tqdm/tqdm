@@ -18,9 +18,9 @@ def test_pandas_groupby_apply():
         df = pd.DataFrame(randint(0, 50, (500, 3)))
         dfs = pd.DataFrame(randint(0, 50, (500, 3)),
                            columns=list('abc'))
-        tqdm_pandas(tqdm(file=our_file, leave=False, ascii=True))
+        tqdm_pandas(tqdm, file=our_file, leave=False, ascii=True)
         df.groupby(0).progress_apply(lambda x: None)
-        tqdm_pandas(tqdm(file=our_file, leave=False, ascii=True))
+        tqdm_pandas(tqdm, file=our_file, leave=False, ascii=True)
         dfs.groupby(['a']).progress_apply(lambda x: None)
 
         our_file.seek(0)
@@ -48,9 +48,9 @@ def test_pandas_apply():
         df = pd.DataFrame(randint(0, 50, (500, 3)))
         dfs = pd.DataFrame(randint(0, 50, (500, 3)),
                            columns=list('abc'))
-        tqdm_pandas(tqdm(file=our_file, leave=True, ascii=True))
+        tqdm_pandas(tqdm, file=our_file, leave=True, ascii=True)
         df.progress_apply(lambda x: None)
-        tqdm_pandas(tqdm(file=our_file, leave=True, ascii=True))
+        tqdm_pandas(tqdm, file=our_file, leave=True, ascii=True)
         dfs.a.progress_apply(lambda x: None)
 
         our_file.seek(0)
@@ -73,7 +73,7 @@ def test_pandas_leave():
 
     with closing(StringIO()) as our_file:
         df = pd.DataFrame(randint(0, 100, (1000, 6)))
-        tqdm_pandas(tqdm(file=our_file, leave=True, ascii=True))
+        tqdm_pandas(tqdm, file=our_file, leave=True, ascii=True)
         df.groupby(0).progress_apply(lambda x: None)
 
         our_file.seek(0)

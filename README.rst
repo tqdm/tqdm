@@ -497,8 +497,8 @@ for ``DataFrame.progress_apply`` and ``DataFrameGroupBy.progress_apply``:
     df = pd.DataFrame(np.random.randint(0, 100, (100000, 6)))
 
     # Create and register a new `tqdm` instance with `pandas`
-    # (can use tqdm_gui, optional kwargs, etc.)
-    tqdm_pandas(tqdm())
+    # (can use tqdm_gui, tqdm_notebook, optional kwargs, etc.)
+    tqdm_pandas(tqdm, leave=True)
 
     # Now you can use `progress_apply` instead of `apply`
     df.progress_apply(lambda x: x**2)
