@@ -83,3 +83,24 @@ def test_pandas_leave():
             our_file.seek(0)
             raise AssertionError("\nExpected:\n{0}\nIn:{1}\n".format(
                 exres, our_file.read()))
+
+
+@with_setup(pretest, posttest)
+def test_pandas_deprecation():
+    """ Test bar object instance as argument deprecation """
+    try:
+        from numpy.random import randint
+        from tqdm import tqdm_pandas
+        import pandas as pd
+    except:
+        raise SkipTest
+
+    # Trigger a warning.
+    with closing(StringIO()) as our_file:
+        df = pd.DataFrame(randint(0, 50, (500, 3)))
+        tqdm_pandas(tqdm(file=our_file, leave=False, ascii=True, ncols=20))
+        df.groupby(0).progress_apply(lambda x: None)
+        # Check deprecation message
+        our_file.seek(0)
+        out = our_file.read()
+        assert "deprecated" in out

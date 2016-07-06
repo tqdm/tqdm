@@ -58,7 +58,15 @@ def tqdm_pandas(tclass, *targs, **tkwargs):
             total += 1  # pandas calls update once too many
 
         # Init bar
-        t = tclass(*targs, total=total, **tkwargs)
+        if isinstance(tclass, type) or \
+            (hasattr(tclass, '__name__') and
+                tclass.__name__ == 'tqdm_notebook'):  # delayed adapter case
+            t = tclass(*targs, total=total, **tkwargs)
+        else:
+            t = tclass
+            t.total = total
+            t.write("Warning: tqdm_pandas: using a bar instance is deprecated,"
+                    " please provide a bar class instead.", file=t.fp)
 
         # Define bar updating wrapper
         def wrapper(*args, **kwargs):
@@ -69,7 +77,7 @@ def tqdm_pandas(tclass, *targs, **tkwargs):
         # on the df using our wrapper (which provides bar updating)
         result = df.apply(wrapper, *args, **kwargs)
 
-        # Close bar and return result
+        # Close bar and return pandas calculation result
         t.close()
         return result
 
