@@ -19,7 +19,7 @@ def test_main():
     ls = subprocess.Popen(('ls'),
                           stdout=subprocess.PIPE,
                           stderr=subprocess.STDOUT)
-    res = _sh('python', '-c', 'from tqdm import main; main()',
+    res = _sh(sys.executable, '-c', 'from tqdm import main; main()',
               stdin=ls.stdout,
               stderr=subprocess.STDOUT)
     ls.wait()
