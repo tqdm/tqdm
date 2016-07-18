@@ -308,7 +308,7 @@ class tqdm(object):
 
         # Clear all bars
         inst_cleared = []
-        for inst in cls._instances:
+        for inst in getattr(cls, '_instances', []):
             # Clear instance if in the target output file
             # or if write output + tqdm output are both either
             # sys.stdout or sys.stderr (because both are mixed in terminal)
