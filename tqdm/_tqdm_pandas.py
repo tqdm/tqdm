@@ -60,7 +60,7 @@ def tqdm_pandas(tclass, *targs, **tkwargs):
         # Init bar
         if isinstance(tclass, type) or \
             (hasattr(tclass, '__name__') and
-                tclass.__name__ == 'tqdm_notebook'):  # delayed adapter case
+             tclass.__name__.startswith('tqdm_')):  # delayed adapter case
             t = tclass(*targs, total=total, **tkwargs)
         else:
             t = tclass
