@@ -34,6 +34,18 @@ def tqdm_pandas(tclass, *targs, **tkwargs):
     https://stackoverflow.com/questions/18603270/
     progress-indicator-during-pandas-operations-python
     """
+
+    if isinstance(tclass, type) or (getattr(tclass, '__name__', '').startswith(
+            'tqdm_')):  # delayed adapter case
+        tclass.write("Warning: `tqdm_pandas(tqdm(...))` is deprecated,"
+                     " please use `tqdm.pandas(...)` instead.")
+        tclass.pandas(*targs, **tkwargs)
+        return
+
+    t = tclass
+    t.write("Warning: tqdm_pandas: using a bar instance is deprecated,"
+            " please provide a bar class instead.", file=t.fp)
+
     from pandas.core.frame import DataFrame
     from pandas.core.series import Series
     from pandas.core.groupby import DataFrameGroupBy, SeriesGroupBy
@@ -49,24 +61,14 @@ def tqdm_pandas(tclass, *targs, **tkwargs):
 
         *args and *kwargs are transmitted to DataFrameGroupBy.apply()
         """
+
         # Precompute total iterations
         total = getattr(df, 'ngroups', None)
         if total is None:  # not grouped
-            total = len(df) if isinstance(df, Series) \
+            t.total = len(df) if isinstance(df, Series) \
                 else df.size // len(df)
         else:
-            total += 1  # pandas calls update once too many
-
-        # Init bar
-        if isinstance(tclass, type) or \
-            (hasattr(tclass, '__name__') and
-             tclass.__name__.startswith('tqdm_')):  # delayed adapter case
-            t = tclass(*targs, total=total, **tkwargs)
-        else:
-            t = tclass
-            t.total = total
-            t.write("Warning: tqdm_pandas: using a bar instance is deprecated,"
-                    " please provide a bar class instead.", file=t.fp)
+            t.total = total + 1  # pandas calls update once too many
 
         # Define bar updating wrapper
         def wrapper(*args, **kwargs):
