@@ -202,15 +202,17 @@ The most common issues relate to excessive output on multiple lines, instead
 of a neat one-line progress bar.
 
 - Consoles in general: require support for carriage return (``CR``, ``\r``).
-- Nested progress bars
-    - Consoles in general: require support for moving cursors up to the
-      previous line.
-    - Windows: additionally may require the python module ``colorama``.
+- Nested progress bars:
+    * Consoles in general: require support for moving cursors up to the
+      previous line. For example, `IDLE won't work <https://github.com/tqdm/tqdm/issues/191#issuecomment-230168030>`__.
+    * Windows: additionally may require the python module ``colorama``.
 - Wrapping enumerated iterables: use ``enumerate(tqdm(...))`` instead of
   ``tqdm(enumerate(...))``. The same applies to ``numpy.ndenumerate``.
   This is because enumerate functions tend to hide the length of iterables.
-  ``tqdm`` however, ~~is not that stupid~~ does not.
+  ``tqdm`` does not.
 
+If you come across any other difficulties, browse/open issues
+`here <https://github.com/tqdm/tqdm/issues?q=is%3Aissue>`__.
 
 Documentation
 -------------
