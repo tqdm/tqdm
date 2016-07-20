@@ -195,6 +195,23 @@ Backing up a large directory?
     100%|███████████████████████████████▉| 8014/8014 [01:37<00:00, 82.29files/s]
 
 
+Help!
+-----
+
+The most common issues relate to excessive output on multiple lines, instead
+of a neat one-line progress bar.
+
+- Consoles in general: require support for carriage return (``CR``, ``\r``).
+- Nested progress bars
+    - Consoles in general: require support for moving cursors up to the
+      previous line.
+    - Windows: additionally may require the python module ``colorama``.
+- Wrapping enumerated iterables: use ``enumerate(tqdm(...))`` instead of
+  ``tqdm(enumerate(...))``. The same applies to ``numpy.ndenumerate``.
+  This is because enumerate functions tend to hide the length of iterables.
+  ``tqdm`` however, ~~is not that stupid~~ does not.
+
+
 Documentation
 -------------
 
