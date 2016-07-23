@@ -1,16 +1,8 @@
-from ._tqdm import tqdm
+from ._tqdm import tqdm, TqdmTypeError, TqdmKeyError
 from ._version import __version__  # NOQA
 import sys
 import re
 __all__ = ["main"]
-
-
-class TqdmTypeError(TypeError):
-    pass
-
-
-class TqdmKeyError(KeyError):
-    pass
 
 
 def cast(val, typ):

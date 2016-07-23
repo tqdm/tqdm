@@ -12,6 +12,7 @@ from nose.plugins.skip import SkipTest
 
 from tqdm import tqdm
 from tqdm import trange
+from tqdm import TqdmDeprecationWarning
 
 try:
     from StringIO import StringIO
@@ -19,6 +20,10 @@ except:
     from io import StringIO
 
 from io import IOBase  # to support unicode strings
+
+
+class DeprecationError(Exception):
+    pass
 
 # Ensure we can use `with closing(...) as ... :` syntax
 if getattr(StringIO, '__exit__', False) and \
@@ -823,12 +828,12 @@ def test_deprecated_nested():
     our_file = StringIO()
     try:
         tqdm(total=2, file=our_file, nested=True)
-    except DeprecationWarning as e:
-        if str(e) != ("nested is deprecated and automated.\nUse position"
-                      " instead for manual control"):
+    except TqdmDeprecationWarning as e:
+        if """`nested` is deprecated and automated.\
+ Use position instead for manual control.""" not in str(e):
             raise
     else:
-        raise DeprecationWarning("Should not allow nested kwarg")
+        raise DeprecationError("Should not allow nested kwarg")
 
 
 @with_setup(pretest, posttest)
@@ -1025,13 +1030,13 @@ def test_deprecated_gui():
         assert not hasattr(t, "sp")
         try:
             t.update(1)
-        except DeprecationWarning as e:
-            if str(e) != ('Please use tqdm_gui(...) instead of'
-                          ' tqdm(..., gui=True)'):
+        except TqdmDeprecationWarning as e:
+            if 'Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`' \
+                    not in str(e):
                 raise
         else:
-            raise DeprecationWarning('Should not allow manual gui=True without'
-                                     ' overriding __iter__() and update()')
+            raise DeprecationError('Should not allow manual gui=True without'
+                                   ' overriding __iter__() and update()')
         finally:
             t._instances.clear()
             # t.close()
@@ -1042,13 +1047,13 @@ def test_deprecated_gui():
         try:
             for _ in t:
                 pass
-        except DeprecationWarning as e:
-            if str(e) != ('Please use tqdm_gui(...) instead of'
-                          ' tqdm(..., gui=True)'):
+        except TqdmDeprecationWarning as e:
+            if 'Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`' \
+                    not in str(e):
                 raise e
         else:
-            raise DeprecationWarning('Should not allow manual gui=True without'
-                                     ' overriding __iter__() and update()')
+            raise DeprecationError('Should not allow manual gui=True without'
+                                   ' overriding __iter__() and update()')
         finally:
             t._instances.clear()
             # t.close()
