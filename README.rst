@@ -756,21 +756,8 @@ predicted time and statistics:
 Contributions
 -------------
 
-To run the testing suite please make sure tox (https://testrun.org/tox/latest/)
-is installed, then type ``tox`` from the command line.
-
-Where ``tox`` is unavailable, a Makefile-like setup is
-provided with the following command:
-
-.. code:: sh
-
-    $ python setup.py make alltests
-
-To see all options, run:
-
-.. code:: sh
-
-    $ python setup.py make
+All source code is hosted on `github <https://github.com/tqdm/tqdm>`__.
+Contributions are welcome.
 
 See the
 `CONTRIBUTE <https://raw.githubusercontent.com/tqdm/tqdm/master/CONTRIBUTE>`__
