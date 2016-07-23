@@ -1,7 +1,4 @@
-# future division is important to divide integers and get as
-# a result precise floating numbers (instead of truncated int)
-from __future__ import absolute_import
-from __future__ import division
+import sys
 
 __author__ = "github.com/casperdcl"
 __all__ = ['tqdm_pandas']
@@ -37,55 +34,14 @@ def tqdm_pandas(tclass, *targs, **tkwargs):
 
     if isinstance(tclass, type) or (getattr(tclass, '__name__', '').startswith(
             'tqdm_')):  # delayed adapter case
-        tclass.write("Warning: `tqdm_pandas(tqdm(...))` is deprecated,"
-                     " please use `tqdm.pandas(...)` instead.")
+        tkwargs.get('file', sys.stderr).write("""\
+Warning: `tqdm_pandas(tqdm, ...)` is deprecated,
+please use `tqdm.pandas(...)` instead.
+""")
         tclass.pandas(*targs, **tkwargs)
-        return
-
-    t = tclass
-    t.write("Warning: tqdm_pandas: using a bar instance is deprecated,"
-            " please provide a bar class instead.", file=t.fp)
-
-    from pandas.core.frame import DataFrame
-    from pandas.core.series import Series
-    from pandas.core.groupby import DataFrameGroupBy, SeriesGroupBy
-
-    def inner(df, func, *args, **kwargs):
-        """
-        Parameters
-        ----------
-        df  : DataFrame[GroupBy]
-            Data (may be grouped).
-        func  : function
-            To be applied on the (grouped) data.
-
-        *args and *kwargs are transmitted to DataFrameGroupBy.apply()
-        """
-
-        # Precompute total iterations
-        total = getattr(df, 'ngroups', None)
-        if total is None:  # not grouped
-            t.total = len(df) if isinstance(df, Series) \
-                else df.size // len(df)
-        else:
-            t.total = total + 1  # pandas calls update once too many
-
-        # Define bar updating wrapper
-        def wrapper(*args, **kwargs):
-            t.update()
-            return func(*args, **kwargs)
-
-        # Apply the provided function (in *args and **kwargs)
-        # on the df using our wrapper (which provides bar updating)
-        result = df.apply(wrapper, *args, **kwargs)
-
-        # Close bar and return pandas calculation result
-        t.close()
-        return result
-
-    # Monkeypatch pandas to provide easy methods
-    # Enable custom tqdm progress in pandas!
-    DataFrame.progress_apply = inner
-    DataFrameGroupBy.progress_apply = inner
-    Series.progress_apply = inner
-    SeriesGroupBy.progress_apply = inner
+    else:
+        tclass.write("""\
+Warning: `tqdm_pandas(tqdm(...))` is deprecated,
+please use `tqdm.pandas(...)` instead.
+""", file=tclass.fp)
+        type(tclass).pandas(deprecated_t=tclass)

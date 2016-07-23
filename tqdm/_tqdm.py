@@ -7,9 +7,10 @@ Usage:
   >>> for i in trange(10): #same as: for i in tqdm(xrange(10))
   ...     ...
 """
+from __future__ import absolute_import
 # future division is important to divide integers and get as
 # a result precise floating numbers (instead of truncated int)
-from __future__ import division, absolute_import
+from __future__ import division
 # import compatibility functions and utilities
 from ._utils import _supports_unicode, _environ_cols_wrapper, _range, _unich, \
     _term_move_up, _unicode, WeakSet
@@ -362,6 +363,8 @@ class tqdm(object):
         from pandas.core.series import Series
         from pandas.core.groupby import DataFrameGroupBy, SeriesGroupBy
 
+        deprecated_t = [tkwargs.pop('deprecated_t', None)]
+
         def inner(df, func, *args, **kwargs):
             """
             Parameters
@@ -382,7 +385,11 @@ class tqdm(object):
                 total += 1  # pandas calls update once too many
 
             # Init bar
-            t = tclass(*targs, total=total, **tkwargs)
+            if deprecated_t[0] is not None:
+                t = deprecated_t[0]
+                deprecated_t[0] = None
+            else:
+                t = tclass(*targs, total=total, **tkwargs)
 
             # Define bar updating wrapper
             def wrapper(*args, **kwargs):
