@@ -23,8 +23,8 @@ iterable with "tqdm(iterable)", and you're done!
 
 Here's what the output looks like:
 
-76%\|████████████████████\             \| 7641/10000 [00:34<00:10,
-222.22 it/s]
+``76%|████████████████████             | 7641/10000 [00:34<00:10,
+222.22 it/s]``
 
 ``trange(N)`` can be also used as a convenient shortcut for
 ``tqdm(xrange(N))``.
