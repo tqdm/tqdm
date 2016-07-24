@@ -277,10 +277,10 @@ def test_all_defaults():
             for _ in progressbar:
                 pass
     # restore stdout/stderr output for `nosetest` interface
-    try:
-        sys.stderr.write('\x1b[A')
-    except:
-        pass
+    # try:
+    #     sys.stderr.write('\x1b[A')
+    # except:
+    #     pass
     sys.stderr.write('\rTest default kwargs ... ')
 
 
