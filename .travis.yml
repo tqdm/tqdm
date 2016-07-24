@@ -1,6 +1,8 @@
 sudo: false
 language: python
 python: 3.5
+notifications:
+  email: false
 # branches:  # remove travis double-check on pull requests in main repo
 #   only:
 #     - master
@@ -16,12 +18,27 @@ env:
   - TOXENV=flake8
   - TOXENV=perf
 before_install:
+  - wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
+  - chmod +x miniconda.sh
+  - ./miniconda.sh -b -p /home/travis/miniconda
+  - export PATH=/home/travis/miniconda/bin:$PATH
+  - conda update --yes conda
+  # The next couple lines fix a crash with multiprocessing on Travis and are not specific to using Miniconda
+  # - sudo rm -rf /dev/shm
+  # - sudo ln -s /run/shm /dev/shm
+  # - conda install --yes python=$TRAVIS_PYTHON_VERSION codecov
   - pip install codecov
 install:
-  - pip install 'coverage<4'
-  - pip install tox coveralls
+  - conda install --yes python=$TRAVIS_PYTHON_VERSION numpy pandas
+  # - conda install --yes python=$TRAVIS_PYTHON_VERSION 'coverage<4' coveralls
+  - pip install tox 'coverage<4' coveralls
+  # Coverage packages from dan_blanchard binstar channel?
+  # - conda install --yes -c dan_blanchard python-coveralls nose-cov
+  - python setup.py install
+# run tests
 script:
   - tox
+# submit coverage
 after_success:
   - coveralls
   - codecov
