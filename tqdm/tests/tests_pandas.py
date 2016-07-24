@@ -9,18 +9,18 @@ def test_pandas_groupby_apply():
     """ Test pandas.DataFrame.groupby(...).progress_apply """
     try:
         from numpy.random import randint
-        from tqdm import tqdm_pandas
         import pandas as pd
     except:
         raise SkipTest
 
     with closing(StringIO()) as our_file:
+        tqdm.pandas(file=our_file, leave=False, ascii=True)
+
         df = pd.DataFrame(randint(0, 50, (500, 3)))
+        df.groupby(0).progress_apply(lambda x: None)
+
         dfs = pd.DataFrame(randint(0, 50, (500, 3)),
                            columns=list('abc'))
-        tqdm_pandas(tqdm(file=our_file, leave=False, ascii=True))
-        df.groupby(0).progress_apply(lambda x: None)
-        tqdm_pandas(tqdm(file=our_file, leave=False, ascii=True))
         dfs.groupby(['a']).progress_apply(lambda x: None)
 
         our_file.seek(0)
@@ -39,18 +39,17 @@ def test_pandas_apply():
     """ Test pandas.DataFrame[.series].progress_apply """
     try:
         from numpy.random import randint
-        from tqdm import tqdm_pandas
         import pandas as pd
     except:
         raise SkipTest
 
     with closing(StringIO()) as our_file:
+        tqdm.pandas(file=our_file, leave=True, ascii=True)
         df = pd.DataFrame(randint(0, 50, (500, 3)))
+        df.progress_apply(lambda x: None)
+
         dfs = pd.DataFrame(randint(0, 50, (500, 3)),
                            columns=list('abc'))
-        tqdm_pandas(tqdm(file=our_file, leave=True, ascii=True))
-        df.progress_apply(lambda x: None)
-        tqdm_pandas(tqdm(file=our_file, leave=True, ascii=True))
         dfs.a.progress_apply(lambda x: None)
 
         our_file.seek(0)
@@ -66,14 +65,13 @@ def test_pandas_leave():
     """ Test pandas with `leave=True` """
     try:
         from numpy.random import randint
-        from tqdm import tqdm_pandas
         import pandas as pd
     except:
         raise SkipTest
 
     with closing(StringIO()) as our_file:
         df = pd.DataFrame(randint(0, 100, (1000, 6)))
-        tqdm_pandas(tqdm(file=our_file, leave=True, ascii=True))
+        tqdm.pandas(file=our_file, leave=True, ascii=True)
         df.groupby(0).progress_apply(lambda x: None)
 
         our_file.seek(0)
@@ -83,3 +81,28 @@ def test_pandas_leave():
             our_file.seek(0)
             raise AssertionError("\nExpected:\n{0}\nIn:{1}\n".format(
                 exres, our_file.read()))
+
+
+@with_setup(pretest, posttest)
+def test_pandas_deprecation():
+    """ Test bar object instance as argument deprecation """
+    try:
+        from numpy.random import randint
+        from tqdm import tqdm_pandas
+        import pandas as pd
+    except:
+        raise SkipTest
+
+    with closing(StringIO()) as our_file:
+        tqdm_pandas(tqdm(file=our_file, leave=False, ascii=True, ncols=20))
+        df = pd.DataFrame(randint(0, 50, (500, 3)))
+        df.groupby(0).progress_apply(lambda x: None)
+        # Check deprecation message
+        assert "`tqdm_pandas(tqdm(...))` is deprecated" in our_file.getvalue()
+
+    with closing(StringIO()) as our_file:
+        tqdm_pandas(tqdm, file=our_file, leave=False, ascii=True, ncols=20)
+        df = pd.DataFrame(randint(0, 50, (500, 3)))
+        df.groupby(0).progress_apply(lambda x: None)
+        # Check deprecation message
+        assert "`tqdm_pandas(tqdm, ...)` is deprecated" in our_file.getvalue()

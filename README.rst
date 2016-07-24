@@ -490,15 +490,15 @@ for ``DataFrame.progress_apply`` and ``DataFrameGroupBy.progress_apply``:
 
     import pandas as pd
     import numpy as np
-    from tqdm import tqdm, tqdm_pandas
+    from tqdm import tqdm
 
     ...
 
     df = pd.DataFrame(np.random.randint(0, 100, (100000, 6)))
 
-    # Create and register a new `tqdm` instance with `pandas`
-    # (can use tqdm_gui, optional kwargs, etc.)
-    tqdm_pandas(tqdm())
+    # Register `pandas.progress_apply` with `tqdm`
+    # (can use `tqdm_gui`, `tqdm_notebook`, optional kwargs, etc.)
+    tqdm.pandas(desc="my bar!")
 
     # Now you can use `progress_apply` instead of `apply`
     df.progress_apply(lambda x: x**2)
