@@ -8,7 +8,7 @@ from subprocess import STDOUT
 __all__ = ["__version__"]
 
 # major, minor, patch, -extra
-version_info = 4, 8, 0
+version_info = 4, 8, 1
 
 # Nice string for the version
 __version__ = '.'.join(map(str, version_info))

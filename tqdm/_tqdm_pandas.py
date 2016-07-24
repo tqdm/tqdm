@@ -31,17 +31,16 @@ def tqdm_pandas(tclass, *targs, **tkwargs):
     https://stackoverflow.com/questions/18603270/
     progress-indicator-during-pandas-operations-python
     """
+    from tqdm import TqdmDeprecationWarning
 
     if isinstance(tclass, type) or (getattr(tclass, '__name__', '').startswith(
             'tqdm_')):  # delayed adapter case
-        tkwargs.get('file', sys.stderr).write("""\
-Warning: `tqdm_pandas(tqdm, ...)` is deprecated,
-please use `tqdm.pandas(...)` instead.
-""")
+        TqdmDeprecationWarning("""\
+Please use `tqdm.pandas(...)` instead of `tqdm_pandas(tqdm, ...)`.
+""", fp_write=getattr(tkwargs.get('file', None), 'write', sys.stderr.write))
         tclass.pandas(*targs, **tkwargs)
     else:
-        tclass.write("""\
-Warning: `tqdm_pandas(tqdm(...))` is deprecated,
-please use `tqdm.pandas(...)` instead.
-""", file=tclass.fp)
+        TqdmDeprecationWarning("""\
+Please use `tqdm.pandas(...)` instead of `tqdm_pandas(tqdm(...))`.
+""", fp_write=getattr(tclass.fp, 'write', sys.stderr.write))
         type(tclass).pandas(deprecated_t=tclass)

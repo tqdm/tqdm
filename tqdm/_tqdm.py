@@ -20,7 +20,25 @@ from time import time
 
 __author__ = {"github.com/": ["noamraph", "obiwanus", "kmike", "hadim",
                               "casperdcl", "lrq3000"]}
-__all__ = ['tqdm', 'trange']
+__all__ = ['tqdm', 'trange',
+           'TqdmTypeError', 'TqdmKeyError', 'TqdmDeprecationWarning']
+
+
+class TqdmTypeError(TypeError):
+    pass
+
+
+class TqdmKeyError(KeyError):
+    pass
+
+
+class TqdmDeprecationWarning(Exception):
+    # not suppressed if raised
+    def __init__(self, msg, fp_write=None, *a, **k):
+        if fp_write is not None:
+            fp_write("\nTqdmDeprecationWarning: " + str(msg).rstrip() + '\n')
+        else:
+            super(TqdmDeprecationWarning, self).__init__(msg, *a, **k)
 
 
 class tqdm(object):
@@ -507,11 +525,11 @@ class tqdm(object):
             self.disable = True
             self.pos = self._get_free_pos(self)
             self._instances.remove(self)
-            raise (DeprecationWarning("nested is deprecated and"
-                                      " automated.\nUse position instead"
-                                      " for manual control")
-                   if "nested" in kwargs else
-                   Warning("Unknown argument(s): " + str(kwargs)))
+            raise (TqdmDeprecationWarning("""\
+`nested` is deprecated and automated. Use position instead for manual control.
+""", fp_write=getattr(file, 'write', sys.stderr.write))
+                if "nested" in kwargs else
+                TqdmKeyError("Unknown argument(s): " + str(kwargs)))
 
         # Preprocess the arguments
         if total is None and iterable is not None:
@@ -677,8 +695,9 @@ class tqdm(object):
             try:
                 sp = self.sp
             except AttributeError:
-                raise DeprecationWarning('Please use tqdm_gui(...)'
-                                         ' instead of tqdm(..., gui=True)')
+                raise TqdmDeprecationWarning("""\
+Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
+""", fp_write=getattr(self.fp, 'write', sys.stderr.write))
 
             for obj in iterable:
                 yield obj
@@ -780,8 +799,9 @@ class tqdm(object):
                         (1 - self.smoothing) * self.avg_time
 
                 if not hasattr(self, "sp"):
-                    raise DeprecationWarning('Please use tqdm_gui(...)'
-                                             ' instead of tqdm(..., gui=True)')
+                    raise TqdmDeprecationWarning("""\
+Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
+""", fp_write=getattr(self.fp, 'write', sys.stderr.write))
 
                 if self.pos:
                     self.moveto(self.pos)

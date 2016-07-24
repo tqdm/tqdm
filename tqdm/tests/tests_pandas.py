@@ -98,11 +98,13 @@ def test_pandas_deprecation():
         df = pd.DataFrame(randint(0, 50, (500, 3)))
         df.groupby(0).progress_apply(lambda x: None)
         # Check deprecation message
-        assert "`tqdm_pandas(tqdm(...))` is deprecated" in our_file.getvalue()
+        assert "TqdmDeprecationWarning" in our_file.getvalue()
+        assert "instead of `tqdm_pandas(tqdm(...))`" in our_file.getvalue()
 
     with closing(StringIO()) as our_file:
         tqdm_pandas(tqdm, file=our_file, leave=False, ascii=True, ncols=20)
         df = pd.DataFrame(randint(0, 50, (500, 3)))
         df.groupby(0).progress_apply(lambda x: None)
         # Check deprecation message
-        assert "`tqdm_pandas(tqdm, ...)` is deprecated" in our_file.getvalue()
+        assert "TqdmDeprecationWarning" in our_file.getvalue()
+        assert "instead of `tqdm_pandas(tqdm, ...)`" in our_file.getvalue()
