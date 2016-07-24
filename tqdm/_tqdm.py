@@ -32,8 +32,8 @@ class TqdmKeyError(KeyError):
     pass
 
 
-class TqdmDeprecationWarning(DeprecationWarning):
-    # intended to be no-except
+class TqdmDeprecationWarning(Exception):
+    # not suppressed if raised
     def __init__(self, msg, fp_write=None, *a, **k):
         if fp_write is not None:
             fp_write("\nTqdmDeprecationWarning: " + str(msg).rstrip() + '\n')
@@ -527,9 +527,9 @@ class tqdm(object):
             self._instances.remove(self)
             raise (TqdmDeprecationWarning("""\
 `nested` is deprecated and automated. Use position instead for manual control.
-""")
-                   if "nested" in kwargs else
-                   Warning("Unknown argument(s): " + str(kwargs)))
+""", fp_write=getattr(file, 'write', sys.stderr.write))
+                if "nested" in kwargs else
+                TqdmKeyError("Unknown argument(s): " + str(kwargs)))
 
         # Preprocess the arguments
         if total is None and iterable is not None:
@@ -697,7 +697,7 @@ class tqdm(object):
             except AttributeError:
                 raise TqdmDeprecationWarning("""\
 Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
-""")
+""", fp_write=getattr(self.fp, 'write', sys.stderr.write))
 
             for obj in iterable:
                 yield obj
@@ -801,7 +801,7 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
                 if not hasattr(self, "sp"):
                     raise TqdmDeprecationWarning("""\
 Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
-""")
+""", fp_write=getattr(self.fp, 'write', sys.stderr.write))
 
                 if self.pos:
                     self.moveto(self.pos)

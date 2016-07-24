@@ -828,9 +828,9 @@ def test_deprecated_nested():
     our_file = StringIO()
     try:
         tqdm(total=2, file=our_file, nested=True)
-    except TqdmDeprecationWarning as e:
+    except TqdmDeprecationWarning:
         if """`nested` is deprecated and automated.\
- Use position instead for manual control.""" not in str(e):
+ Use position instead for manual control.""" not in our_file.getvalue():
             raise
     else:
         raise DeprecationError("Should not allow nested kwarg")
@@ -1032,7 +1032,7 @@ def test_deprecated_gui():
             t.update(1)
         except TqdmDeprecationWarning as e:
             if 'Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`' \
-                    not in str(e):
+                    not in our_file.getvalue():
                 raise
         else:
             raise DeprecationError('Should not allow manual gui=True without'
@@ -1049,7 +1049,7 @@ def test_deprecated_gui():
                 pass
         except TqdmDeprecationWarning as e:
             if 'Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`' \
-                    not in str(e):
+                    not in our_file.getvalue():
                 raise e
         else:
             raise DeprecationError('Should not allow manual gui=True without'
