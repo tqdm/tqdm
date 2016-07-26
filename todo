@@ -1,0 +1,4 @@
+if ascii is True or len(unicode ascii) != 10:
+  ascii = " 123456789#"
+elif ascii is False:
+  ascii = " " + ''.join(map(ord, range()))
