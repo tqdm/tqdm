@@ -61,6 +61,26 @@ def test_pandas_apply():
 
 
 @with_setup(pretest, posttest)
+def test_pandas_map():
+    """ Test pandas.Series.progress_map """
+    try:
+        from numpy.random import randint
+        import pandas as pd
+    except:
+        raise SkipTest
+
+    with closing(StringIO()) as our_file:
+        tqdm.pandas(file=our_file, leave=True, ascii=True)
+        dfs = pd.DataFrame(randint(0, 50, (500, 3)),
+                           columns=list('abc'))
+        dfs.a.progress_map(lambda x: None)
+
+        if our_file.getvalue().count('100%') < 1:
+            raise AssertionError("\nExpected:\n{0}\nIn:{1}\n".format(
+                '100% at least twice', our_file.getvalue()))
+
+
+@with_setup(pretest, posttest)
 def test_pandas_leave():
     """ Test pandas with `leave=True` """
     try:
