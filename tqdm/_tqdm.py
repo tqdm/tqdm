@@ -379,7 +379,11 @@ class tqdm(object):
         """
         from pandas.core.frame import DataFrame
         from pandas.core.series import Series
-        from pandas.core.groupby import DataFrameGroupBy, SeriesGroupBy
+        from pandas.core.groupby import DataFrameGroupBy
+        from pandas.core.groupby import SeriesGroupBy
+        from pandas.core.groupby import GroupBy
+        from pandas.core.groupby import PanelGroupBy
+        from pandas import Panel
 
         deprecated_t = [tkwargs.pop('deprecated_t', None)]
 
@@ -426,12 +430,21 @@ class tqdm(object):
 
         # Monkeypatch pandas to provide easy methods
         # Enable custom tqdm progress in pandas!
-        DataFrame.progress_apply = inner_generator()
-        DataFrameGroupBy.progress_apply = inner_generator()
         Series.progress_apply = inner_generator()
         SeriesGroupBy.progress_apply = inner_generator()
         Series.progress_map = inner_generator('map')
         SeriesGroupBy.progress_map = inner_generator('map')
+
+        DataFrame.progress_apply = inner_generator()
+        DataFrameGroupBy.progress_apply = inner_generator()
+        DataFrame.progress_applymap = inner_generator('applymap')
+
+        Panel.progress_apply = inner_generator()
+        PanelGroupBy.progress_apply = inner_generator()
+
+        GroupBy.progress_apply = inner_generator()
+        GroupBy.progress_aggregate = inner_generator('aggregate')
+        GroupBy.progress_transform = inner_generator('transform')
 
     def __init__(self, iterable=None, desc=None, total=None, leave=True,
                  file=sys.stderr, ncols=None, mininterval=0.1,
