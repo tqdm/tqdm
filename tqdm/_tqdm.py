@@ -168,6 +168,27 @@ class tqdm(object):
         -------
         out  : Formatted meter and stats, ready to display.
         """
+        
+        def extract_symbols(s, start_tag, end_tag):
+            """
+            Extract custom symbols enclosed by tags, with the first character being the separator.
+            Eg, extract_symbols('before{start},1,2,3,4,#{end}after', '{start}', '{end}')
+            
+            Returns
+            -------
+            out, out2  : list of symbols, input string without tagged part
+            """
+            start = s.find(start_tag)
+            start_content = start+len(start_tag)
+            end_content = s.find(end_tag)
+            end = end_content+len(end_tag)
+
+            sep = s[start_content:start_content+1]
+            return s[start_content+1:end_content].split(sep), s[:start] + s[end:]
+
+        # Custom symbols variables
+        c_symbols = None
+        looping = False
 
         # sanity check: total
         if total and n > total:
@@ -240,6 +261,22 @@ class tqdm(object):
                             # 'bar': full_bar  # replaced by procedure below
                             }
 
+                # Custom symbols extraction
+                for tag in ['bar_symbols', 'bar_symbols_ascii', 'bar_symbols_loop', 'bar_symbols_loop_ascii']:
+                    start_tag = '{' + tag + '}'
+                    end_tag = '{/' + tag + '}'
+                    # Check if tag is found in the template
+                    if start_tag in bar_format and end_tag in bar_format:
+                        # Get ascii symbols if ascii env, else unicode
+                        if (ascii and 'ascii' in tag) or (not ascii and not 'ascii' in tag):
+                            c_symbols, bar_format = extract_symbols(bar_format, start_tag, end_tag)
+                            # Looping symbol?
+                            if 'loop' in tag:
+                                looping = True
+                        # Need to clean all tags from template
+                        else:
+                            _, bar_format = extract_symbols(bar_format, start_tag, end_tag)
+
                 # Interpolate supplied bar format with the dict
                 if hasattr(bar_format, '__call__'):
                     # Callback user provided function/method to handle display
@@ -264,8 +301,32 @@ class tqdm(object):
             if ncols == 0:
                 return l_bar + r_bar
 
-            # format bar depending on availability of unicode/ascii chars
-            if ascii:
+            # custom symbols format
+            # need to provide both ascii and unicode versions of custom symbols,
+            # eg, if ascii env but user provided only unicode symbols, then
+            # will revert to default ascii bar.
+            if c_symbols:
+                # looping symbols: just update the symbol animation at each iteration
+                if looping:
+                    # increment one step in the animation at each step
+                    bar = c_symbols[divmod(n, len(c_symbols))[1]]
+                    frac_bar = ''
+
+                    bar_length = N_BARS  # avoid the filling
+                    frac_bar_length = len(frac_bar)
+                # normal progress symbols
+                else:
+                    bar_length, frac_bar_length = divmod(
+                        int(frac * N_BARS * len(c_symbols)), len(c_symbols))
+
+                    bar = c_symbols[-1] * bar_length  # last symbol is always the filler
+                    frac_bar = c_symbols[frac_bar_length] if frac_bar_length \
+                        else ' '
+
+            # ascii format
+            elif ascii:
+                # get the remainder of the division of current fraction with number of symbols
+                # this will tell us which symbol we should pick
                 bar_length, frac_bar_length = divmod(
                     int(frac * N_BARS * 10), 10)
 
@@ -273,6 +334,7 @@ class tqdm(object):
                 frac_bar = chr(48 + frac_bar_length) if frac_bar_length \
                     else ' '
 
+            # unicode format (if available)
             else:
                 bar_length, frac_bar_length = divmod(int(frac * N_BARS * 8), 8)
 
