@@ -317,11 +317,13 @@ class tqdm(object):
                 # normal progress symbols
                 else:
                     bar_length, frac_bar_length = divmod(
-                        int(frac * N_BARS * len(c_symbols)), len(c_symbols))
+                        int((frac/len(c_symbols[-1])) * N_BARS * len(c_symbols)), len(c_symbols))
 
                     bar = c_symbols[-1] * bar_length  # last symbol is always the filler
                     frac_bar = c_symbols[frac_bar_length] if frac_bar_length \
                         else ' '
+                    # update real bar length (if symbols > 1 char) for correct filler
+                    bar_length = bar_length * len(c_symbols[-1])
 
             # ascii format
             elif ascii:
@@ -345,7 +347,7 @@ class tqdm(object):
             # whitespace padding
             if bar_length < N_BARS:
                 full_bar = bar + frac_bar + \
-                    ' ' * max(N_BARS - bar_length - 1, 0)
+                    ' ' * max(N_BARS - bar_length - len(frac_bar), 0)
             else:
                 full_bar = bar + \
                     ' ' * max(N_BARS - bar_length, 0)
