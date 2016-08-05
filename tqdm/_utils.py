@@ -107,12 +107,6 @@ def _environ_cols_tput(*args):  # pragma: no cover
 
 def _environ_cols_linux(fp):  # pragma: no cover
 
-    # import os
-    # if fp is None:
-    #     try:
-    #         fp = os.open(os.ctermid(), os.O_RDONLY)
-    #     except:
-    #         pass
     try:
         from termios import TIOCGWINSZ
         from fcntl import ioctl
