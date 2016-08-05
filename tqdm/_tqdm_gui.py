@@ -38,13 +38,10 @@ class tqdm_gui(tqdm):  # pragma: no cover
 
     def __init__(self, *args, **kwargs):
 
-        # try:  # pragma: no cover
+        # pragma: no cover
         import matplotlib as mpl
         import matplotlib.pyplot as plt
         from collections import deque
-        # except ImportError:  # gui not available
-        #   kwargs['gui'] = False
-        # else:
         kwargs['gui'] = True
 
         super(tqdm_gui, self).__init__(*args, **kwargs)
