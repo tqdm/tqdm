@@ -530,19 +530,13 @@ class tqdm(object):
                                  if self.avg_time else None, self.bar_format)
 
     def __lt__(self, other):
-        # try:
         return self.pos < other.pos
-        # except AttributeError:
-        #     return self.start_t < other.start_t
 
     def __le__(self, other):
         return (self < other) or (self == other)
 
     def __eq__(self, other):
-        # try:
         return self.pos == other.pos
-        # except AttributeError:
-        #     return self.start_t == other.start_t
 
     def __ne__(self, other):
         return not (self == other)
