@@ -1,4 +1,0 @@
-if ascii is True or len(_unicode(ascii)) != 11:
-  ascii = " 123456789#"
-elif ascii is False:
-  ascii = " " + ''.join(map(ord, range()))
