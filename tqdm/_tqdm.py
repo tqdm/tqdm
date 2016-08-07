@@ -121,7 +121,7 @@ class tqdm(object):
     @staticmethod
     def format_meter(n, total, elapsed, ncols=None, prefix='',
                      ascii=False, unit='it', unit_scale=False, rate=None,
-                     bar_format=None):
+                     bar_format=None, custom_symbols=None):
         """
         Return a string-based progress bar given some parameters
 
@@ -168,27 +168,6 @@ class tqdm(object):
         -------
         out  : Formatted meter and stats, ready to display.
         """
-        
-        def extract_symbols(s, start_tag, end_tag):
-            """
-            Extract custom symbols enclosed by tags, with the first character being the separator.
-            Eg, extract_symbols('before{start},1,2,3,4,#{end}after', '{start}', '{end}')
-            
-            Returns
-            -------
-            out, out2  : list of symbols, input string without tagged part
-            """
-            start = s.find(start_tag)
-            start_content = start+len(start_tag)
-            end_content = s.find(end_tag)
-            end = end_content+len(end_tag)
-
-            sep = s[start_content:start_content+1]
-            return s[start_content+1:end_content].split(sep), s[:start] + s[end:]
-
-        # Custom symbols variables
-        c_symbols = None
-        looping = False
 
         # sanity check: total
         if total and n > total:
@@ -261,22 +240,6 @@ class tqdm(object):
                             # 'bar': full_bar  # replaced by procedure below
                             }
 
-                # Custom symbols extraction
-                for tag in ['bar_symbols', 'bar_symbols_ascii', 'bar_symbols_loop', 'bar_symbols_loop_ascii']:
-                    start_tag = '{' + tag + '}'
-                    end_tag = '{/' + tag + '}'
-                    # Check if tag is found in the template
-                    if start_tag in bar_format and end_tag in bar_format:
-                        # Get ascii symbols if ascii env, else unicode
-                        if (ascii and 'ascii' in tag) or (not ascii and not 'ascii' in tag):
-                            c_symbols, bar_format = extract_symbols(bar_format, start_tag, end_tag)
-                            # Looping symbol?
-                            if 'loop' in tag:
-                                looping = True
-                        # Need to clean all tags from template
-                        else:
-                            _, bar_format = extract_symbols(bar_format, start_tag, end_tag)
-
                 # Interpolate supplied bar format with the dict
                 if hasattr(bar_format, '__call__'):
                     # Callback user provided function/method to handle display
@@ -302,28 +265,33 @@ class tqdm(object):
                 return l_bar + r_bar
 
             # custom symbols format
-            # need to provide both ascii and unicode versions of custom symbols,
-            # eg, if ascii env but user provided only unicode symbols, then
-            # will revert to default ascii bar.
-            if c_symbols:
+            # need to provide both ascii and unicode versions of custom symbols
+            if custom_symbols:
+                # get ascii or unicode template
+                if ascii:
+                    c_symb = custom_symbols[1]
+                else:
+                    c_symb = custom_symbols[2]
                 # looping symbols: just update the symbol animation at each iteration
-                if looping:
+                if custom_symbols[0] == 'loop':
                     # increment one step in the animation at each step
-                    bar = c_symbols[divmod(n, len(c_symbols))[1]]
+                    bar = c_symb[divmod(n, len(c_symb))[1]]
                     frac_bar = ''
 
                     bar_length = N_BARS  # avoid the filling
                     frac_bar_length = len(frac_bar)
                 # normal progress symbols
                 else:
+                    nb_symb = len(c_symb)
+                    len_filler = len(c_symb[-1])
                     bar_length, frac_bar_length = divmod(
-                        int((frac/len(c_symbols[-1])) * N_BARS * len(c_symbols)), len(c_symbols))
+                        int((frac/len_filler) * N_BARS * nb_symb), nb_symb)
 
-                    bar = c_symbols[-1] * bar_length  # last symbol is always the filler
-                    frac_bar = c_symbols[frac_bar_length] if frac_bar_length \
+                    bar = c_symb[-1] * bar_length  # last symbol is always the filler
+                    frac_bar = c_symb[frac_bar_length] if frac_bar_length \
                         else ' '
                     # update real bar length (if symbols > 1 char) for correct filler
-                    bar_length = bar_length * len(c_symbols[-1])
+                    bar_length = bar_length * len_filler
 
             # ascii format
             elif ascii:
@@ -705,6 +673,46 @@ class tqdm(object):
         if ascii is None:
             ascii = not _supports_unicode(file)
 
+
+        # Custom symbols extraction
+        custom_symbols = None
+        if bar_format:
+            looping = None
+            c_symbols_ascii = None
+            c_symbols_unicode = None
+            found_tag = False
+            for tag in ['bar_symbols', 'bar_symbols_ascii', 'bar_symbols_loop', 'bar_symbols_loop_ascii']:
+                start_tag = '{' + tag + '}'
+                end_tag = '{/' + tag + '}'
+                # Check if tag is found in the template
+                if start_tag in bar_format and end_tag in bar_format:
+                    found_tag = True
+                    # Extract custom symbols enclosed by tags, with the first character being the separator.
+                    # Eg, extract_symbols('before{start},1,2,3,4,#{end}after', '{start}', '{end}')
+                    start = bar_format.find(start_tag)
+                    start_content = start+len(start_tag)
+                    end_content = bar_format.find(end_tag)
+                    end = end_content+len(end_tag)
+                    sep = bar_format[start_content:start_content+1]
+                    c_symbols = bar_format[start_content+1:end_content].split(sep)
+                    # Cleanup all weird tags from bar_format else .format() crash
+                    bar_format = bar_format[:start] + bar_format[end:]
+
+                    if 'ascii' in tag:
+                        c_symbols_ascii = c_symbols
+                    else:
+                        c_symbols_unicode = c_symbols
+
+                    # Looping symbol?
+                    if 'loop' in tag:
+                        looping = True
+                    else:
+                        looping = False
+
+            # Compile the ascii/unicode bars in a nice argument for format_meter
+            if found_tag:
+                custom_symbols = ['loop' if looping else 'bar', c_symbols_ascii, c_symbols_unicode]
+
         if bar_format and not ascii:
             # Convert bar format into unicode since terminal uses unicode
             bar_format = _unicode(bar_format)
@@ -733,6 +741,7 @@ class tqdm(object):
         self.avg_time = None
         self._time = time
         self.bar_format = bar_format
+        self.custom_symbols = custom_symbols
 
         # Init the iterations counters
         self.last_print_n = initial
@@ -749,7 +758,8 @@ class tqdm(object):
                 self.moveto(self.pos)
             self.sp(self.format_meter(self.n, total, 0,
                     (dynamic_ncols(file) if dynamic_ncols else ncols),
-                    self.desc, ascii, unit, unit_scale, None, bar_format))
+                    self.desc, ascii, unit, unit_scale, None,
+                    bar_format, custom_symbols))
             if self.pos:
                 self.moveto(-self.pos)
 
@@ -776,7 +786,8 @@ class tqdm(object):
                                  time() - self.last_print_t,
                                  self.ncols, self.desc, self.ascii, self.unit,
                                  self.unit_scale, 1 / self.avg_time
-                                 if self.avg_time else None, self.bar_format)
+                                 if self.avg_time else None,
+                                 self.bar_format, self.custom_symbols)
 
     def __lt__(self, other):
         return self.pos < other.pos
@@ -827,6 +838,7 @@ class tqdm(object):
             smoothing = self.smoothing
             avg_time = self.avg_time
             bar_format = self.bar_format
+            custom_symbols = self.custom_symbols
             _time = self._time
             format_meter = self.format_meter
 
@@ -865,7 +877,8 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
                             (dynamic_ncols(self.fp) if dynamic_ncols
                              else ncols),
                             self.desc, ascii, unit, unit_scale,
-                            1 / avg_time if avg_time else None, bar_format))
+                            1 / avg_time if avg_time else None,
+                            bar_format, custom_symbols))
 
                         if self.pos:
                             self.moveto(-self.pos)
@@ -951,7 +964,7 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
                      else self.ncols),
                     self.desc, self.ascii, self.unit, self.unit_scale,
                     1 / self.avg_time if self.avg_time else None,
-                    self.bar_format))
+                    self.bar_format, self.custom_symbols))
 
                 if self.pos:
                     self.moveto(-self.pos)
@@ -1018,7 +1031,7 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
                     (self.dynamic_ncols(self.fp) if self.dynamic_ncols
                      else self.ncols),
                     self.desc, self.ascii, self.unit, self.unit_scale, None,
-                    self.bar_format))
+                    self.bar_format, self.custom_symbols))
             if pos:
                 self.moveto(-pos)
             else:
