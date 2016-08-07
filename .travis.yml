@@ -2,12 +2,22 @@ sudo: required
 dist: trusty
 language: python
 python: 3.5
+
+# use cache for big builds like pandas
+cache:
+  pip: true
+  directories:
+    - $HOME/.cache/pip
+before_cache:
+  - rm -f $HOME/.cache/pip/log/debug.log
+
 notifications:
   email: false
 # branches:  # remove travis double-check on pull requests in main repo
 #   only:
 #     - master
 #     - /^\d\.\d+$/
+
 env:
   - TOXENV=py26
   - TOXENV=py27
@@ -18,31 +28,29 @@ env:
   - TOXENV=pypy3
   - TOXENV=flake8
   - TOXENV=perf
+
 before_install:
-  # (mini)conda
-  # - pip install --upgrade virtualenv
-  # - wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
-  # - chmod +x miniconda.sh
-  # - ./miniconda.sh -b -p /home/travis/miniconda
-  # - export PATH=/home/travis/miniconda/bin:$PATH
-  # - conda update --yes conda
   # fix a crash with multiprocessing on Travis
   - sudo rm -rf /dev/shm
   - sudo ln -s /run/shm /dev/shm
-  # - conda install --yes python=$TRAVIS_PYTHON_VERSION codecov
+  # install codecov
   - pip install codecov
+
 install:
-  # - conda install --yes python=$TRAVIS_PYTHON_VERSION pandas
+  # install big packages (they are cached to minimize build time)
+  # if issues, clear cache
+  # https://docs.travis-ci.com/user/caching/#Clearing-Caches
   - pip install pandas
-  # - conda install --yes python=$TRAVIS_PYTHON_VERSION 'coverage<4' coveralls
+  # Coverage install
   - pip install tox 'coverage<4' coveralls
-  # Coverage packages as per https://gist.github.com/dan-blanchard/7045057
-  # - conda install --yes -c dan_blanchard python-coveralls nose-cov
+  # install this package (tqdm) into the environment
   - python setup.py install
+
 # run tests
 script:
   - tox
 # submit coverage
+
 after_success:
   - coveralls
   - codecov
