@@ -13,7 +13,7 @@ tqdm
 ``tqdm`` (read taqadum, تقدّم) means "progress" in arabic.
 
 Instantly make your loops show a smart progress meter - just wrap any
-iterable with "tqdm(iterable)", and you're done!
+iterable with ``tqdm(iterable)``, and you're done!
 
 .. code:: python
 
