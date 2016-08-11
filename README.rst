@@ -23,8 +23,7 @@ iterable with "tqdm(iterable)", and you're done!
 
 Here's what the output looks like:
 
-76%\|████████████████████\             \| 7641/10000 [00:34<00:10,
-222.22 it/s]
+``76%|████████████████████████████         | 7568/10000 [00:33<00:10, 229.00it/s]``
 
 ``trange(N)`` can be also used as a convenient shortcut for
 ``tqdm(xrange(N))``.
@@ -194,6 +193,25 @@ Backing up a large directory?
         tqdm --total $(find docs/ -type f | wc -l) --unit files >> backup.log
     100%|███████████████████████████████▉| 8014/8014 [01:37<00:00, 82.29files/s]
 
+
+Help!
+-----
+
+The most common issues relate to excessive output on multiple lines, instead
+of a neat one-line progress bar.
+
+- Consoles in general: require support for carriage return (``CR``, ``\r``).
+- Nested progress bars:
+    * Consoles in general: require support for moving cursors up to the
+      previous line. For example, `IDLE won't work <https://github.com/tqdm/tqdm/issues/191#issuecomment-230168030>`__.
+    * Windows: additionally may require the python module ``colorama``.
+- Wrapping enumerated iterables: use ``enumerate(tqdm(...))`` instead of
+  ``tqdm(enumerate(...))``. The same applies to ``numpy.ndenumerate``.
+  This is because enumerate functions tend to hide the length of iterables.
+  ``tqdm`` does not.
+
+If you come across any other difficulties, browse/open issues
+`here <https://github.com/tqdm/tqdm/issues?q=is%3Aissue>`__.
 
 Documentation
 -------------
@@ -472,17 +490,16 @@ for ``DataFrame.progress_apply`` and ``DataFrameGroupBy.progress_apply``:
 
     import pandas as pd
     import numpy as np
-    from tqdm import tqdm, tqdm_pandas
-
-    ...
+    from tqdm import tqdm
 
     df = pd.DataFrame(np.random.randint(0, 100, (100000, 6)))
 
-    # Create and register a new `tqdm` instance with `pandas`
-    # (can use tqdm_gui, optional kwargs, etc.)
-    tqdm_pandas(tqdm())
+    # Register `pandas.progress_apply` and `pandas.Series.map_apply` with `tqdm`
+    # (can use `tqdm_gui`, `tqdm_notebook`, optional kwargs, etc.)
+    tqdm.pandas(desc="my bar!")
 
     # Now you can use `progress_apply` instead of `apply`
+    # and `progress_map` instead of `map`
     df.progress_apply(lambda x: x**2)
     # can also groupby:
     # df.groupby(0).progress_apply(lambda x: x**2)
@@ -689,7 +706,7 @@ precompute this by ourselves:
 ``process_content_with_progress2()`` is better than the naive approach because
 now we have predictive information:
 
-50%|████████████\             \| 2/4 [00:00<00:00,  4.06it/s]
+``50%|████████████            | 2/4 [00:00<00:00,  4.06it/s]``
 
 However, the progress is not smooth: it increments in steps, 1 step being
 1 file processed. The problem is that we do not just walk through files tree,
@@ -731,27 +748,15 @@ Below we implement this approach using a manually updated ``tqdm`` bar, where
 And here is the result: a much smoother progress bar with meaningful
 predicted time and statistics:
 
-47%|████████████\             \| 152K/321K [00:03<00:03, 46.2KB/s]
+``47%|████████████             | 152K/321K [00:03<00:03, 46.2KB/s]``
+
 
 
 Contributions
 -------------
 
-To run the testing suite please make sure tox (https://testrun.org/tox/latest/)
-is installed, then type ``tox`` from the command line.
-
-Where ``tox`` is unavailable, a Makefile-like setup is
-provided with the following command:
-
-.. code:: sh
-
-    $ python setup.py make alltests
-
-To see all options, run:
-
-.. code:: sh
-
-    $ python setup.py make
+All source code is hosted on `github <https://github.com/tqdm/tqdm>`__.
+Contributions are welcome.
 
 See the
 `CONTRIBUTE <https://raw.githubusercontent.com/tqdm/tqdm/master/CONTRIBUTE>`__

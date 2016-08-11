@@ -7,9 +7,10 @@ Usage:
   >>> for i in trange(10): #same as: for i in tqdm(xrange(10))
   ...     ...
 """
+from __future__ import absolute_import
 # future division is important to divide integers and get as
 # a result precise floating numbers (instead of truncated int)
-from __future__ import division, absolute_import
+from __future__ import division
 # import compatibility functions and utilities
 from ._utils import _supports_unicode, _environ_cols_wrapper, _range, _unich, \
     _term_move_up, _unicode, WeakSet
@@ -19,7 +20,25 @@ from time import time
 
 __author__ = {"github.com/": ["noamraph", "obiwanus", "kmike", "hadim",
                               "casperdcl", "lrq3000"]}
-__all__ = ['tqdm', 'trange']
+__all__ = ['tqdm', 'trange',
+           'TqdmTypeError', 'TqdmKeyError', 'TqdmDeprecationWarning']
+
+
+class TqdmTypeError(TypeError):
+    pass
+
+
+class TqdmKeyError(KeyError):
+    pass
+
+
+class TqdmDeprecationWarning(Exception):
+    # not suppressed if raised
+    def __init__(self, msg, fp_write=None, *a, **k):
+        if fp_write is not None:
+            fp_write("\nTqdmDeprecationWarning: " + str(msg).rstrip() + '\n')
+        else:
+            super(TqdmDeprecationWarning, self).__init__(msg, *a, **k)
 
 
 class tqdm(object):
@@ -324,6 +343,109 @@ class tqdm(object):
             inst.refresh()
         # TODO: make list of all instances incl. absolutely positioned ones?
 
+    @classmethod
+    def pandas(tclass, *targs, **tkwargs):
+        """
+        Registers the given `tqdm` class with
+            pandas.core.
+            ( frame.DataFrame
+            | series.Series
+            | groupby.DataFrameGroupBy
+            | groupby.SeriesGroupBy
+            ).progress_apply
+
+        A new instance will be create every time `progress_apply` is called,
+        and each instance will automatically close() upon completion.
+
+        Parameters
+        ----------
+        targs, tkwargs  : arguments for the tqdm instance
+
+        Examples
+        --------
+        >>> import pandas as pd
+        >>> import numpy as np
+        >>> from tqdm import tqdm, tqdm_gui
+        >>>
+        >>> df = pd.DataFrame(np.random.randint(0, 100, (100000, 6)))
+        >>> tqdm.pandas(ncols=50)  # can use tqdm_gui, optional kwargs, etc
+        >>> # Now you can use `progress_apply` instead of `apply`
+        >>> df.groupby(0).progress_apply(lambda x: x**2)
+
+        References
+        ----------
+        https://stackoverflow.com/questions/18603270/
+        progress-indicator-during-pandas-operations-python
+        """
+        from pandas.core.frame import DataFrame
+        from pandas.core.series import Series
+        from pandas.core.groupby import DataFrameGroupBy
+        from pandas.core.groupby import SeriesGroupBy
+        from pandas.core.groupby import GroupBy
+        from pandas.core.groupby import PanelGroupBy
+        from pandas import Panel
+
+        deprecated_t = [tkwargs.pop('deprecated_t', None)]
+
+        def inner_generator(df_function='apply'):
+            def inner(df, func, *args, **kwargs):
+                """
+                Parameters
+                ----------
+                df  : (DataFrame|Series)[GroupBy]
+                    Data (may be grouped).
+                func  : function
+                    To be applied on the (grouped) data.
+                *args, *kwargs  : optional
+                    Transmitted to `df.apply()`.
+                """
+                # Precompute total iterations
+                total = getattr(df, 'ngroups', None)
+                if total is None:  # not grouped
+                    total = len(df) if isinstance(df, Series) \
+                        else df.size // len(df)
+                else:
+                    total += 1  # pandas calls update once too many
+
+                # Init bar
+                if deprecated_t[0] is not None:
+                    t = deprecated_t[0]
+                    deprecated_t[0] = None
+                else:
+                    t = tclass(*targs, total=total, **tkwargs)
+
+                # Define bar updating wrapper
+                def wrapper(*args, **kwargs):
+                    t.update()
+                    return func(*args, **kwargs)
+
+                # Apply the provided function (in *args and **kwargs)
+                # on the df using our wrapper (which provides bar updating)
+                result = getattr(df, df_function)(wrapper, *args, **kwargs)
+
+                # Close bar and return pandas calculation result
+                t.close()
+                return result
+            return inner
+
+        # Monkeypatch pandas to provide easy methods
+        # Enable custom tqdm progress in pandas!
+        Series.progress_apply = inner_generator()
+        SeriesGroupBy.progress_apply = inner_generator()
+        Series.progress_map = inner_generator('map')
+        SeriesGroupBy.progress_map = inner_generator('map')
+
+        DataFrame.progress_apply = inner_generator()
+        DataFrameGroupBy.progress_apply = inner_generator()
+        DataFrame.progress_applymap = inner_generator('applymap')
+
+        Panel.progress_apply = inner_generator()
+        PanelGroupBy.progress_apply = inner_generator()
+
+        GroupBy.progress_apply = inner_generator()
+        GroupBy.progress_aggregate = inner_generator('aggregate')
+        GroupBy.progress_transform = inner_generator('transform')
+
     def __init__(self, iterable=None, desc=None, total=None, leave=True,
                  file=sys.stderr, ncols=None, mininterval=0.1,
                  maxinterval=10.0, miniters=None, ascii=None, disable=False,
@@ -420,11 +542,11 @@ class tqdm(object):
             self.disable = True
             self.pos = self._get_free_pos(self)
             self._instances.remove(self)
-            raise (DeprecationWarning("nested is deprecated and"
-                                      " automated.\nUse position instead"
-                                      " for manual control")
-                   if "nested" in kwargs else
-                   Warning("Unknown argument(s): " + str(kwargs)))
+            raise (TqdmDeprecationWarning("""\
+`nested` is deprecated and automated. Use position instead for manual control.
+""", fp_write=getattr(file, 'write', sys.stderr.write))
+                if "nested" in kwargs else
+                TqdmKeyError("Unknown argument(s): " + str(kwargs)))
 
         # Preprocess the arguments
         if total is None and iterable is not None:
@@ -584,8 +706,9 @@ class tqdm(object):
             try:
                 sp = self.sp
             except AttributeError:
-                raise DeprecationWarning('Please use tqdm_gui(...)'
-                                         ' instead of tqdm(..., gui=True)')
+                raise TqdmDeprecationWarning("""\
+Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
+""", fp_write=getattr(self.fp, 'write', sys.stderr.write))
 
             for obj in iterable:
                 yield obj
@@ -687,8 +810,9 @@ class tqdm(object):
                         (1 - self.smoothing) * self.avg_time
 
                 if not hasattr(self, "sp"):
-                    raise DeprecationWarning('Please use tqdm_gui(...)'
-                                             ' instead of tqdm(..., gui=True)')
+                    raise TqdmDeprecationWarning("""\
+Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
+""", fp_write=getattr(self.fp, 'write', sys.stderr.write))
 
                 if self.pos:
                     self.moveto(self.pos)

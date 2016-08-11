@@ -1,14 +1,15 @@
 import pandas as pd
 import numpy as np
-from tqdm import tqdm, tqdm_pandas
+from tqdm import tqdm
 
 df = pd.DataFrame(np.random.randint(0, 100, (100000, 6)))
 
-# Create and register a new `tqdm` instance with `pandas`
-# (can use tqdm_gui, optional kwargs, etc.)
-tqdm_pandas(tqdm())
+# Register `pandas.progress_apply` and `pandas.Series.map_apply` with `tqdm`
+# (can use `tqdm_gui`, `tqdm_notebook`, optional kwargs, etc.)
+tqdm.pandas(desc="my bar!")
 
 # Now you can use `progress_apply` instead of `apply`
+# and `progress_map` instead of `map`
 df.progress_apply(lambda x: x**2)
 # can also groupby:
 # df.groupby(0).progress_apply(lambda x: x**2)

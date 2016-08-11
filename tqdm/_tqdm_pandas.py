@@ -1,17 +1,19 @@
-# future division is important to divide integers and get as
-# a result precise floating numbers (instead of truncated int)
-from __future__ import absolute_import
-from __future__ import division
+import sys
 
 __author__ = "github.com/casperdcl"
 __all__ = ['tqdm_pandas']
 
 
-def tqdm_pandas(t):
+def tqdm_pandas(tclass, *targs, **tkwargs):
     """
     Registers the given `tqdm` instance with
     `pandas.core.groupby.DataFrameGroupBy.progress_apply`.
     It will even close() the `tqdm` instance upon completion.
+
+    Parameters
+    ----------
+    tclass  : tqdm class you want to use (eg, tqdm, tqdm_notebook, etc)
+    targs and tkwargs  : arguments for the tqdm instance
 
     Examples
     --------
@@ -20,7 +22,7 @@ def tqdm_pandas(t):
     >>> from tqdm import tqdm, tqdm_pandas
     >>>
     >>> df = pd.DataFrame(np.random.randint(0, 100, (100000, 6)))
-    >>> tqdm_pandas(tqdm())  # can use tqdm_gui, optional kwargs, etc
+    >>> tqdm_pandas(tqdm, leave=True)  # can use tqdm_gui, optional kwargs, etc
     >>> # Now you can use `progress_apply` instead of `apply`
     >>> df.groupby(0).progress_apply(lambda x: x**2)
 
@@ -29,40 +31,16 @@ def tqdm_pandas(t):
     https://stackoverflow.com/questions/18603270/
     progress-indicator-during-pandas-operations-python
     """
-    from pandas.core.frame import DataFrame
-    from pandas.core.series import Series
-    from pandas.core.groupby import DataFrameGroupBy, SeriesGroupBy
+    from tqdm import TqdmDeprecationWarning
 
-    def inner(df, func, *args, **kwargs):
-        """
-        Parameters
-        ----------
-        df  : DataFrame[GroupBy]
-            Data (may be grouped).
-        func  : function
-            To be applied on the (grouped) data.
-
-        *args and *kwargs are transmitted to DataFrameGroupBy.apply()
-        """
-        t.total = getattr(df, 'ngroups', None)
-        if t.total is None:  # not grouped
-            t.total = len(df) if isinstance(df, Series) \
-                else df.size // len(df)
-        else:
-            t.total += 1  # pandas calls update once too many
-
-        def wrapper(*args, **kwargs):
-            t.update()
-            return func(*args, **kwargs)
-
-        result = df.apply(wrapper, *args, **kwargs)
-
-        t.close()
-
-        return result
-
-    # Enable custom tqdm progress in pandas!
-    DataFrame.progress_apply = inner
-    DataFrameGroupBy.progress_apply = inner
-    Series.progress_apply = inner
-    SeriesGroupBy.progress_apply = inner
+    if isinstance(tclass, type) or (getattr(tclass, '__name__', '').startswith(
+            'tqdm_')):  # delayed adapter case
+        TqdmDeprecationWarning("""\
+Please use `tqdm.pandas(...)` instead of `tqdm_pandas(tqdm, ...)`.
+""", fp_write=getattr(tkwargs.get('file', None), 'write', sys.stderr.write))
+        tclass.pandas(*targs, **tkwargs)
+    else:
+        TqdmDeprecationWarning("""\
+Please use `tqdm.pandas(...)` instead of `tqdm_pandas(tqdm(...))`.
+""", fp_write=getattr(tclass.fp, 'write', sys.stderr.write))
+        type(tclass).pandas(deprecated_t=tclass)
