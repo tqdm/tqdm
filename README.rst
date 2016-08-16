@@ -3,11 +3,11 @@
 tqdm
 ====
 
-|PyPi-Status| |PyPi-Versions|
+|PyPI-Status| |PyPI-Versions|
 
 |Build-Status| |Coverage-Status| |Branch-Coverage-Status|
 
-|DOI-URI| |Licence|
+|DOI-URI| |License|
 
 
 ``tqdm`` (read taqadum, تقدّم) means "progress" in arabic.
@@ -66,10 +66,10 @@ return \r`` and ``line feed \n`` control characters.
 Installation
 ------------
 
-Latest pypi stable release
+Latest PyPI stable release
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-|PyPi-Status|
+|PyPI-Status|
 
 .. code:: sh
 
@@ -78,7 +78,7 @@ Latest pypi stable release
 Latest development release on github
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-|Github-Status| |Github-Stars| |Github-Forks|
+|GitHub-Status| |GitHub-Stars| |GitHub-Forks|
 
 Pull and install in the current directory:
 
@@ -90,8 +90,8 @@ Pull and install in the current directory:
 Changelog
 ---------
 
-The list of all changes is available either on Github's Releases:
-|Github-Status| or on crawlers such as
+The list of all changes is available either on GitHub's Releases:
+|GitHub-Status| or on crawlers such as
 `allmychanges.com <https://allmychanges.com/p/python/tqdm/>`_.
 
 
@@ -217,7 +217,7 @@ If you come across any other difficulties, browse/open issues
 Documentation
 -------------
 
-|PyPi-Versions| |Readme-Hits| (Since 19 May 2016)
+|PyPI-Versions| |Readme-Hits| (Since 19 May 2016)
 
 .. code:: python
 
@@ -714,7 +714,7 @@ However, the progress is not smooth: it increments in steps, 1 step being
 but we process the files contents. Thus, if we stumble on one very large file
 which takes a great deal more time to process than other smaller files,
 the progress bar
-will still considers that file is of equal processing weight.
+will still consider that file is of equal processing weight.
 
 To fix this, we should use another indicator than the files count: the total
 sum of all files sizes. This would be more pertinent since the data we
@@ -756,7 +756,7 @@ predicted time and statistics:
 Contributions
 -------------
 
-All source code is hosted on `github <https://github.com/tqdm/tqdm>`__.
+All source code is hosted on `GitHub <https://github.com/tqdm/tqdm>`__.
 Contributions are welcome.
 
 See the
@@ -764,10 +764,10 @@ See the
 file for more information.
 
 
-Licence
+License
 -------
 
-Open Source (OSI approved): |Licence|
+Open Source (OSI approved): |License|
 
 Citation information: |DOI-URI|
 
@@ -796,20 +796,20 @@ Ranked by contributions.
    :target: https://coveralls.io/r/tqdm/tqdm
 .. |Branch-Coverage-Status| image:: https://codecov.io/github/tqdm/tqdm/coverage.svg?branch=master
    :target: https://codecov.io/github/tqdm/tqdm?branch=master
-.. |Github-Status| image:: https://img.shields.io/github/tag/tqdm/tqdm.svg?maxAge=2592000
+.. |GitHub-Status| image:: https://img.shields.io/github/tag/tqdm/tqdm.svg?maxAge=2592000
    :target: https://github.com/tqdm/tqdm/releases
-.. |Github-Forks| image:: https://img.shields.io/github/forks/tqdm/tqdm.svg
+.. |GitHub-Forks| image:: https://img.shields.io/github/forks/tqdm/tqdm.svg
    :target: https://github.com/tqdm/tqdm/network
-.. |Github-Stars| image:: https://img.shields.io/github/stars/tqdm/tqdm.svg
+.. |GitHub-Stars| image:: https://img.shields.io/github/stars/tqdm/tqdm.svg
    :target: https://github.com/tqdm/tqdm/stargazers
-.. |PyPi-Status| image:: https://img.shields.io/pypi/v/tqdm.svg
+.. |PyPI-Status| image:: https://img.shields.io/pypi/v/tqdm.svg
    :target: https://pypi.python.org/pypi/tqdm
-.. |PyPi-Downloads| image:: https://img.shields.io/pypi/dm/tqdm.svg
+.. |PyPI-Downloads| image:: https://img.shields.io/pypi/dm/tqdm.svg
    :target: https://pypi.python.org/pypi/tqdm
-.. |PyPi-Versions| image:: https://img.shields.io/pypi/pyversions/tqdm.svg
+.. |PyPI-Versions| image:: https://img.shields.io/pypi/pyversions/tqdm.svg
    :target: https://pypi.python.org/pypi/tqdm
-.. |Licence| image:: https://img.shields.io/pypi/l/tqdm.svg
-   :target: https://raw.githubusercontent.com/tqdm/tqdm/master/LICENCE
+.. |License| image:: https://img.shields.io/pypi/l/tqdm.svg
+   :target: https://raw.githubusercontent.com/tqdm/tqdm/master/LICENSE
 .. |DOI-URI| image:: https://zenodo.org/badge/21637/tqdm/tqdm.svg
    :target: https://zenodo.org/badge/latestdoi/21637/tqdm/tqdm
 .. |Screenshot-Jupyter1| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/tqdm-jupyter-1.gif
