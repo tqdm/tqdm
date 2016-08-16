@@ -217,7 +217,7 @@ If you come across any other difficulties, browse/open issues
 Documentation
 -------------
 
-|PyPI-Versions| |Readme-Hits| (Since 19 May 2016)
+|PyPI-Versions| |README-Hits| (Since 19 May 2016)
 
 .. code:: python
 
@@ -711,7 +711,7 @@ now we have predictive information:
 
 However, the progress is not smooth: it increments in steps, 1 step being
 1 file processed. The problem is that we do not just walk through files tree,
-but we process the files contents. Thus, if we stumble on one very large file
+but we process the files contents. Thus, if we stumble upon one very large file
 which takes a great deal more time to process than other smaller files,
 the progress bar
 will still consider that file is of equal processing weight.
@@ -786,7 +786,7 @@ Ranked by contributions.
 
 `*` Original author
 
-|Readme-Hits| (Since 19 May 2016)
+|README-Hits| (Since 19 May 2016)
 
 .. |Logo| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/logo.png
 .. |Screenshot| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/tqdm.gif
@@ -815,4 +815,4 @@ Ranked by contributions.
 .. |Screenshot-Jupyter1| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/tqdm-jupyter-1.gif
 .. |Screenshot-Jupyter2| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/tqdm-jupyter-2.gif
 .. |Screenshot-Jupyter3| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/tqdm-jupyter-3.gif
-.. |Readme-Hits| image:: http://hitt.herokuapp.com/tqdm/tqdm.svg
+.. |README-Hits| image:: http://hitt.herokuapp.com/tqdm/tqdm.svg
