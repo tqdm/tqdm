@@ -723,10 +723,10 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
                 n += 1
                 # check the counter first (avoid calls to time())
                 if n - last_print_n >= miniters:
-                    delta_it = n - last_print_n
-                    cur_t = _time()
-                    delta_t = cur_t - last_print_t
+                    delta_t = _time() - last_print_t
                     if delta_t >= mininterval:
+                        cur_t = _time()
+                        delta_it = n - last_print_n
                         elapsed = cur_t - start_t
                         # EMA (not just overall average)
                         if smoothing and delta_t:
@@ -762,7 +762,7 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
                                     / delta_t + (1 - smoothing) * miniters
                             else:
                                 miniters = smoothing * delta_it + \
-                                    (1 - smoothing) * miniters
+                                           (1 - smoothing) * miniters
 
                         # Store old values for next call
                         self.n = self.last_print_n = last_print_n = n
@@ -801,12 +801,12 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
             raise ValueError("n ({0}) cannot be negative".format(n))
         self.n += n
 
-        delta_it = self.n - self.last_print_n  # should be n?
-        if delta_it >= self.miniters:
+        if self.n - self.last_print_n >= self.miniters:
             # We check the counter first, to reduce the overhead of time()
-            cur_t = self._time()
-            delta_t = cur_t - self.last_print_t
+            delta_t = self._time() - self.last_print_t
             if delta_t >= self.mininterval:
+                cur_t = self._time()
+                delta_it = self.n - self.last_print_n  # should be n?
                 elapsed = cur_t - self.start_t
                 # EMA (not just overall average)
                 if self.smoothing and delta_t:
@@ -843,14 +843,14 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
                 if self.dynamic_miniters:
                     if self.maxinterval and delta_t > self.maxinterval:
                         self.miniters = self.miniters * self.maxinterval \
-                            / delta_t
+                                        / delta_t
                     elif self.mininterval and delta_t:
                         self.miniters = self.smoothing * delta_it \
-                            * self.mininterval / delta_t + \
-                            (1 - self.smoothing) * self.miniters
+                                        * self.mininterval / delta_t + \
+                                        (1 - self.smoothing) * self.miniters
                     else:
                         self.miniters = self.smoothing * delta_it + \
-                            (1 - self.smoothing) * self.miniters
+                                        (1 - self.smoothing) * self.miniters
 
                 # Store old values for next call
                 self.last_print_n = self.n
