@@ -205,7 +205,7 @@ class tqdm_notebook(tqdm):
         super(tqdm_notebook, self).close(*args, **kwargs)
         # Try to detect if there was an error or KeyboardInterrupt
         # in manual mode: if n < total, things probably got wrong
-        if self.total is not None and self.n < self.total:
+        if self.total and self.n < self.total:
             self.sp(bar_style='danger')
         else:
             if self.leave:
