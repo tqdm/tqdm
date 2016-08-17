@@ -393,8 +393,11 @@ Returns
 Examples and Advanced Usage
 ---------------------------
 
-See the `examples <https://github.com/tqdm/tqdm/tree/master/examples>`__
-folder or import the module and run ``help()``.
+- See the `examples <https://github.com/tqdm/tqdm/tree/master/examples>`__
+  folder;
+- import the module and run ``help()``, or
+- consult the `wiki <https://github.com/tqdm/tqdm/wiki>`__.
+    - this has an `excellent article <https://github.com/tqdm/tqdm/wiki/How-to-Make-a-Great-Progressbar>`__ on how to make a **great** progressbar.
 
 Nested progress bars
 ~~~~~~~~~~~~~~~~~~~~
@@ -618,139 +621,6 @@ A reusable canonical example is given below:
 
     # After the `with`, printing is restored
     print('Done!')
-
-How to make a good progress bar
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-A good progress bar is a useful progress bar. To be useful, ``tqdm`` displays
-statistics and uses smart algorithms to predict and automagically adapt to
-a variety of use cases with no or minimal configuration.
-
-However, there is one thing that ``tqdm`` cannot do: choose a pertinent
-progress indicator. To display a useful progress bar, it is very important that
-``tqdm`` is supplied with the most pertinent progress indicator.
-This will reflect most accurately the current state of your program.
-Usually, a good way is to preprocess quickly to first evaluate the total amount
-of work to do before beginning the real processing.
-
-To illustrate the importance of a good progress indicator, take the
-following example: you want to walk through all files of a directory and
-process their contents with some external function:
-
-.. code:: python
-
-    import os
-    from tqdm import tqdm, trange
-    from time import sleep
-
-    def dosomething(buf):
-        """Do something with the content of a file"""
-        sleep(0.01)
-        pass
-
-    def walkdir(folder):
-        """Walk through each files in a directory"""
-        for dirpath, dirs, files in os.walk(folder):
-            for filename in files:
-                yield os.path.abspath(os.path.join(dirpath, filename))
-
-    def process_content_no_progress(inputpath, blocksize=1024):
-        for filepath in walkdir(inputpath):
-            with open(filepath, 'rb') as fh:
-                buf = 1
-                while (buf):
-                    buf = fh.read(blocksize)
-                    dosomething(buf)
-
-``process_content_no_progress()`` does the job, but does not show
-any information about the current progress, nor how long it will take.
-
-To quickly fix that using ``tqdm``, we can use this naive approach:
-
-.. code:: python
-
-    def process_content_with_progress1(inputpath, blocksize=1024):
-        for filepath in tqdm(walkdir(inputpath)):
-            with open(filepath, 'rb') as fh:
-                buf = 1
-                while (buf):
-                    buf = fh.read(blocksize)
-                    dosomething(buf)
-
-``process_content_with_progress1()`` will load ``tqdm()``, but since the
-iterator does not provide any length (``os.walkdir()`` does not have a
-``__len__()`` method for the total files count), there is only an indication
-of the current and past program state, no prediction:
-
-``4it [00:03,  2.79it/s]``
-
-The way to get predictive information is to know the total amount of work to be
-done. Since ``os.walkdir()`` cannot give us this information, we need to
-precompute this by ourselves:
-
-.. code:: python
-
-    def process_content_with_progress2(inputpath, blocksize=1024):
-        # Preprocess the total files count
-        filecounter = 0
-        for dirpath, dirs, files in tqdm(os.walk(inputpath)):
-            for filename in files:
-                filecounter += 1
-
-        for filepath in tqdm(walkdir(inputpath), total=filecounter):
-            with open(filepath, 'rb') as fh:
-                buf = 1
-                while (buf):
-                    buf = fh.read(blocksize)
-                    dosomething(buf)
-
-``process_content_with_progress2()`` is better than the naive approach because
-now we have predictive information:
-
-``50%|████████████            | 2/4 [00:00<00:00,  4.06it/s]``
-
-However, the progress is not smooth: it increments in steps, 1 step being
-1 file processed. The problem is that we do not just walk through files tree,
-but we process the files contents. Thus, if we stumble upon one very large file
-which takes a great deal more time to process than other smaller files,
-the progress bar
-will still consider that file is of equal processing weight.
-
-To fix this, we should use another indicator than the files count: the total
-sum of all files sizes. This would be more pertinent since the data we
-process is the files' content, so there is a direct relation between size and
-content.
-
-Below we implement this approach using a manually updated ``tqdm`` bar, where
-``tqdm`` will work on size, while the ``for`` loop works on files paths:
-
-.. code:: python
-
-    def process_content_with_progress3(inputpath, blocksize=1024):
-        # Preprocess the total files sizes
-        sizecounter = 0
-        for dirpath, dirs, files in tqdm(os.walk(inputpath)):
-            for filename in files:
-                fullpath = os.path.abspath(os.path.join(dirpath, filename))
-                sizecounter += os.stat(fullpath).st_size
-
-        # Load tqdm with size counter instead of files counter
-        with tqdm(total=sizecounter, unit='B', unit_scale=True) as pbar:
-            for dirpath, dirs, files in os.walk(inputpath):
-                for filename in files:
-                    fullpath = os.path.abspath(os.path.join(dirpath, filename))
-                    with open(fullpath, 'rb') as fh:
-                        buf = 1
-                        while (buf):
-                            buf = fh.read(blocksize)
-                            dosomething(buf)
-                            if buf: pbar.update(len(buf))
-
-And here is the result: a much smoother progress bar with meaningful
-predicted time and statistics:
-
-``47%|████████████             | 152K/321K [00:03<00:03, 46.2KB/s]``
-
 
 
 Contributions
