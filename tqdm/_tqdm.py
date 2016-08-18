@@ -402,8 +402,13 @@ class tqdm(object):
                 # Precompute total iterations
                 total = getattr(df, 'ngroups', None)
                 if total is None:  # not grouped
-                    axis = kwargs.get('axis', 0)
-                    total = df.shape[axis]
+                    if df_function == 'applymap':
+                        total = df.size
+                    else:
+                        axis = kwargs.get('axis', 0)
+                        total = df.shape[axis]
+                        if isinstance(df, DataFrame):
+                            total += 1  # pandas calls update once too many
                 else:
                     total += 1  # pandas calls update once too many
 
