@@ -596,7 +596,7 @@ class tqdm(object):
         deprecated_t = [tkwargs.pop('deprecated_t', None)]
 
         def inner_generator(df_function='apply'):
-            def inner(df, func, *args, **kwargs):
+            def inner(df, func, **kwargs):
                 """
                 Parameters
                 ----------
@@ -604,8 +604,8 @@ class tqdm(object):
                     Data (may be grouped).
                 func  : function
                     To be applied on the (grouped) data.
-                *args, *kwargs  : optional
-                    Transmitted to `df.apply()`.
+                **kwargs  : optional
+                    Transmitted to `df.apply()`. *args not intentionally supported.
                 """
                 # Precompute total iterations
                 total = getattr(df, 'ngroups', None)
@@ -632,9 +632,9 @@ class tqdm(object):
                     t.update()
                     return func(*args, **kwargs)
 
-                # Apply the provided function (in *args and **kwargs)
+                # Apply the provided function (in **kwargs)
                 # on the df using our wrapper (which provides bar updating)
-                result = getattr(df, df_function)(wrapper, *args, **kwargs)
+                result = getattr(df, df_function)(wrapper, **kwargs)
 
                 # Close bar and return pandas calculation result
                 t.close()
