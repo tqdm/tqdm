@@ -124,40 +124,44 @@ class tqdm_custom(tqdm):
 
             if bar_format:
                 # Unpack variables if it's a list
-                if isinstance(bar_format, list):
-                    bar_format, custom_symbols = bar_format
-                # Custom bar formatting
-                # Populate a dict with all available progress indicators
-                bar_args = {'n': n,
-                            'n_fmt': n_fmt,
-                            'total': total,
-                            'total_fmt': total_fmt,
-                            'percentage': percentage,
-                            'rate': rate if inv_rate is None else inv_rate,
-                            'rate_noinv': rate,
-                            'rate_noinv_fmt': ((format_sizeof(rate)
-                                               if unit_scale else
-                                               '{0:5.2f}'.format(rate))
-                                               if rate else '?') + unit + '/s',
-                            'rate_fmt': rate_fmt,
-                            'elapsed': elapsed_str,
-                            'remaining': remaining_str,
-                            'l_bar': l_bar,
-                            'r_bar': r_bar,
-                            'desc': prefix if prefix else '',
-                            # 'bar': full_bar  # replaced by procedure below
-                            }
-
-                # Interpolate supplied bar format with the dict
-                if '{bar}' in bar_format:
-                    # Format left/right sides of the bar, and format the bar
-                    # later in the remaining space (avoid breaking display)
-                    l_bar_user, r_bar_user = bar_format.split('{bar}')
-                    l_bar = l_bar_user.format(**bar_args)
-                    r_bar = r_bar_user.format(**bar_args)
+                if isinstance(bar_format, dict):
+                    bar_format_template = bar_format.get('template', None)
                 else:
-                    # Else no progress bar, we can just format and return
-                    return bar_format.format(**bar_args)
+                    bar_format_template = bar_format
+
+                if bar_format_template:
+                    # Custom bar formatting
+                    # Populate a dict with all available progress indicators
+                    bar_args = {'n': n,
+                                'n_fmt': n_fmt,
+                                'total': total,
+                                'total_fmt': total_fmt,
+                                'percentage': percentage,
+                                'rate': rate if inv_rate is None else inv_rate,
+                                'rate_noinv': rate,
+                                'rate_noinv_fmt': ((format_sizeof(rate)
+                                                   if unit_scale else
+                                                   '{0:5.2f}'.format(rate))
+                                                   if rate else '?') + unit + '/s',
+                                'rate_fmt': rate_fmt,
+                                'elapsed': elapsed_str,
+                                'remaining': remaining_str,
+                                'l_bar': l_bar,
+                                'r_bar': r_bar,
+                                'desc': prefix if prefix else '',
+                                # 'bar': full_bar  # replaced by procedure below
+                                }
+
+                    # Interpolate supplied bar format with the dict
+                    if '{bar}' in bar_format_template:
+                        # Format left/right sides of the bar, and format the bar
+                        # later in the remaining space (avoid breaking display)
+                        l_bar_user, r_bar_user = bar_format_template.split('{bar}')
+                        l_bar = l_bar_user.format(**bar_args)
+                        r_bar = r_bar_user.format(**bar_args)
+                    else:
+                        # Else no progress bar, we can just format and return
+                        return bar_format_template.format(**bar_args)
 
             # Formatting progress bar
             # space available for bar's display
@@ -166,14 +170,14 @@ class tqdm_custom(tqdm):
 
             # custom symbols format
             # need to provide both ascii and unicode versions of custom symbols
-            if custom_symbols:
+            if bar_format and isinstance(bar_format, dict):
                 # get ascii or unicode template
                 if ascii:
-                    c_symb = custom_symbols[1]
+                    c_symb = bar_format['symbols'].get('ascii', list("123456789#"))
                 else:
-                    c_symb = custom_symbols[2]
+                    c_symb = bar_format['symbols'].get('unicode', map(_unich, range(0x258F, 0x2587, -1)))
                 # looping symbols: just update the symbol animation at each iteration
-                if custom_symbols[0] == 'loop':
+                if bar_format['symbols'].get('loop', False):
                     # increment one step in the animation at each step
                     bar = c_symb[divmod(n, len(c_symb))[1]]
                     frac_bar = ''
@@ -229,57 +233,28 @@ class tqdm_custom(tqdm):
                 n_fmt, unit, elapsed_str, rate_fmt)
 
     def __init__(self, *args, **kwargs):
+        """
+        bar_format:  str/dict, optional
+        Can either be a string, or a dict for more complex templating.
+        Format: {'template': '{l_bar}{bar}{r_bar}',
+                     'symbols': {'unicode': ['1', '2', '3', '4', '5', '6'],
+                                     'ascii': ['1', '2', '3'],
+                                     'loop': False}
+                     'symbols_indeterminate': {'unicode': ....
+                     }
+        """
         # get bar_format
         bar_format = kwargs.get('bar_format', None)
-
-        # Custom symbols extraction
-        custom_symbols = None
-        if bar_format:
-            looping = None
-            c_symbols_ascii = None
-            c_symbols_unicode = None
-            found_tag = False
-            for tag in ['bar_symbols', 'bar_symbols_ascii', 'bar_symbols_loop', 'bar_symbols_loop_ascii']:
-                start_tag = '{' + tag + '}'
-                end_tag = '{/' + tag + '}'
-                # Check if tag is found in the template
-                if start_tag in bar_format and end_tag in bar_format:
-                    found_tag = True
-                    # Extract custom symbols enclosed by tags, with the first character being the separator.
-                    # Eg, extract_symbols('before{start},1,2,3,4,#{end}after', '{start}', '{end}')
-                    start = bar_format.find(start_tag)
-                    start_content = start+len(start_tag)
-                    end_content = bar_format.find(end_tag)
-                    end = end_content+len(end_tag)
-                    sep = bar_format[start_content:start_content+1]
-                    c_symbols = bar_format[start_content+1:end_content].split(sep)
-                    # Cleanup all weird tags from bar_format else .format() crash
-                    bar_format = bar_format[:start] + bar_format[end:]
-
-                    if 'ascii' in tag:
-                        c_symbols_ascii = c_symbols
-                    else:
-                        c_symbols_unicode = c_symbols
-
-                    # Looping symbol?
-                    if 'loop' in tag:
-                        looping = True
-                    else:
-                        looping = False
-
-            # Compile the ascii/unicode bars in a nice argument for format_meter
-            if found_tag:
-                custom_symbols = ['loop' if looping else 'bar', c_symbols_ascii, c_symbols_unicode]
+        
+        if bar_format and isinstance(bar_format, dict):
+            kwargs['bar_format'] = bar_format.get('template', None)
 
         # Do rest of init with cleaned up bar_format
-        kwargs['bar_format'] = bar_format
         super(tqdm_custom, self).__init__(*args, **kwargs)
 
         # Store the arguments
-        if custom_symbols is not None:
-            self.bar_format = [bar_format, custom_symbols]
-        else:
-            self.bar_format = bar_format
+        bar_format['template'] = self.bar_format
+        self.bar_format = bar_format
 
 
 def tcrange(*args, **kwargs):
