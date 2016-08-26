@@ -453,7 +453,7 @@ class RegressionSklearn(RegressionNormalEq):
 
 class tqdm_regress(tqdm):
     """
-    Experimental IPython/Jupyter Notebook widget using tqdm!
+    Experimental tqdm with machine learning polynomial regression to predict time!
     """
 
     # not a static method anymore
