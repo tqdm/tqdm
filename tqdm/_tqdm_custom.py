@@ -22,6 +22,15 @@ __author__ = {"github.com/": ["lrq3000"]}
 __all__ = ['tqdm_custom', 'tcrange']
 
 
+def mirror_chars(s):
+    """Mirror characters using translation"""
+    import string
+    ins = '()<>[]\/{}bd'
+    outs = ')(><][/\}{db'
+    trans = string.maketrans(ins,outs)
+    return s.translate(trans)
+
+
 class tqdm_custom(tqdm):
     """
     tqdm with nice customizable bar symbols!
@@ -229,8 +238,54 @@ class tqdm_custom(tqdm):
 
         # no total: no progressbar, ETA, just progress stats
         else:
-            return (prefix if prefix else '') + '{0}{1} [{2}, {3}]'.format(
-                n_fmt, unit, elapsed_str, rate_fmt)
+            if bar_format and isinstance(bar_format, dict):
+                # left and right sides
+                l_bar = '{0}{1}|'.format(n_fmt, unit)
+                r_bar = '| {0}/? [{1}, {2}]'.format(n_fmt, elapsed_str, rate_fmt)
+
+                # space available for bar's display
+                N_BARS = max(1, ncols - len(l_bar) - len(r_bar)) if ncols \
+                    else 10
+
+                # get ascii or unicode template
+                if ascii:
+                    c_symb = bar_format['symbols_indeterminate'].get('ascii', ["====="])
+                else:
+                    c_symb = bar_format['symbols_indeterminate'].get('unicode', ["====="])
+                # looping symbols: just update the symbol animation at each iteration
+                if bar_format['symbols_indeterminate'].get('loop', False):
+                    # increment one step in the animation at each step
+                    bar = c_symb[divmod(n, len(c_symb))[1]]
+
+                    bar_length = N_BARS  # avoid the filling
+                # indeterminate progress bar (cycle from left to right then right to left)
+                else:
+                    # Get current bar animation based on current iteration
+                    bar = c_symb[divmod(n, len(c_symb))[1]]
+                    # Get left filling space and animation step (right pass or left?)
+                    anim_step, fill_left = divmod(n, (N_BARS - len(bar)))
+                    # If anim_step is odd, then we do left pass (2nd pass)
+                    if divmod(anim_step, 2)[1] == 1:
+                        # Inverse the left filling space (now it's the right space)
+                        fill_left = N_BARS - len(bar) - fill_left
+                        # Reverse the bar string
+                        bar = mirror_chars(bar[::-1])
+
+                    # Generate bar with left filling space
+                    bar = ' ' * fill_left + bar
+                    bar_length = len(bar)
+
+                # Right space padding
+                full_bar = bar + \
+                    ' ' * max(N_BARS - bar_length, 0)
+
+                # Piece together the bar parts
+                return l_bar + full_bar + r_bar
+
+            # Standard fast no ETA progress status
+            else:
+                return (prefix if prefix else '') + '{0}{1} [{2}, {3}]'.format(
+                        n_fmt, unit, elapsed_str, rate_fmt)
 
     def __init__(self, *args, **kwargs):
         """
