@@ -106,7 +106,7 @@ class TPlot(object):
 
 class RegressionPoly(object):
     """Multivariable linear/polynomial/ridge regression in pure Python"""
-    def __init__(self, total, order=2.5, batch_size=10, proba_add_batch=0.5):
+    def __init__(self, total, order=2.5, batch_size=10, proba_add_batch=0.5, norand=False):
         self.total = total
         self.order = order
         self.batch_size = batch_size
@@ -117,11 +117,15 @@ class RegressionPoly(object):
         self.last_cost = None
         self.cost_history = []
         self.last_it = 0
+        self.norand = norand
 
         # feature scale total
         self.total_poly = self.polynomize(self.total, self.order)
         # init parameters
-        self.params = [random.random() for _ in range(len(self.total_poly)+1)]  # +1 for bias unit
+        if norand:
+            self.params = [0] * (len(self.total_poly)+1)  # +1 for bias unit
+        else:
+            self.params = [random.random() for _ in range(len(self.total_poly)+1)]  # +1 for bias unit
 
     def add_sample(self, x, y, iteration=0, random_insert=True):
         self.last_it = iteration
@@ -131,7 +135,7 @@ class RegressionPoly(object):
             # Below batch size, we can add
             add_point = True
         else:
-            if random_insert:
+            if random_insert and not self.norand:
                 # Above batch size, randomly add or not a point
                 # The goal is to keep a batch spanning a longer timeframe than just last points
                 # in order to avoid forgetting of past
