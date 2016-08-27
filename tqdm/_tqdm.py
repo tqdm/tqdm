@@ -15,7 +15,9 @@ from __future__ import division
 from ._utils import _supports_unicode, _environ_cols_wrapper, _range, _unich, \
     _term_move_up, _unicode, WeakSet
 import sys
-from time import time
+from threading import Thread
+from threading import Event
+from time import time, sleep
 
 
 __author__ = {"github.com/": ["noamraph", "obiwanus", "kmike", "hadim",
@@ -41,12 +43,58 @@ class TqdmDeprecationWarning(Exception):
             super(TqdmDeprecationWarning, self).__init__(msg, *a, **k)
 
 
+class TMonitor(Thread):
+    """ tqdm monitoring thread
+    Monitors if tqdm bars are taking too much time to display
+    and readjusts miniters automatically if necessary"""
+
+    def __init__ (self, tqdm_cls, sleep_interval):
+        Thread.__init__(self)
+        self.exit_event=Event()
+        self.daemon = True  # kill this thread when main is killed (KeyboardInterrupt)
+        self.tqdm_cls = tqdm_cls
+        self.sleep_interval=sleep_interval
+        self._time = time
+        self._sleep = sleep
+        self.start()
+
+    def exit(self):
+        self.exit_event.set()
+        #self.join()  # DO NOT, blocking event, slows down tqdm at closing
+        return self.report()
+
+    def run(self):
+        while not self.exit_event.isSet():
+            # Sleep some time...
+            self._sleep(self.sleep_interval)
+            # Then monitor!
+            cur_t = self._time()
+            # Check for each tqdm instance if one is waiting too long to print
+            for instance in self.tqdm_cls._instances:
+                # Only if mininterval > 1 (else it's just that iterations are slow)
+                # and if the last refresh was longer than maxinterval for this instance
+                if instance.miniters > 1 and \
+                  (cur_t - instance.last_print_t) > instance.maxinterval:
+                    # We force bypassing miniters on next iteration
+                    # dynamic_miniters should adjust mininterval automatically
+                    instance.miniters = 1
+                    # Refresh now!
+                    instance.refresh()
+
+    def report(self):
+        return self.is_alive()
+
+
 class tqdm(object):
     """
     Decorate an iterable object, returning an iterator which acts exactly
     like the original iterable, but prints a dynamically updating
     progressbar every time a value is requested.
     """
+
+    monitor_interval = 10
+    monitor = None
+
     @staticmethod
     def format_sizeof(num, suffix=''):
         """
@@ -290,6 +338,9 @@ class tqdm(object):
         if "_instances" not in cls.__dict__:
             cls._instances = WeakSet()
         cls._instances.add(instance)
+        # Create the monitoring thread
+        if cls.monitor_interval and (cls.monitor is None or not cls.monitor.report()):
+            cls.monitor = TMonitor(cls, cls.monitor_interval)
         # Return the instance
         return instance
 
@@ -315,6 +366,9 @@ class tqdm(object):
             for inst in cls._instances:
                 if inst.pos > instance.pos:
                     inst.pos -= 1
+            # Kill monitor if no instances left
+            if not cls._instances:
+                cls.monitor.exit()
         except KeyError:
             pass
 
@@ -696,7 +750,6 @@ class tqdm(object):
             ncols = self.ncols
             mininterval = self.mininterval
             maxinterval = self.maxinterval
-            miniters = self.miniters
             dynamic_miniters = self.dynamic_miniters
             unit = self.unit
             unit_scale = self.unit_scale
@@ -725,12 +778,13 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
                 # Note: does not call self.update(1) for speed optimisation.
                 n += 1
                 # check the counter first (avoid calls to time())
-                if n - last_print_n >= miniters:
+                if n - last_print_n >= self.miniters:
+                    miniters = self.miniters  # watch for monitoring thread changes
                     delta_t = _time() - last_print_t
                     if delta_t >= mininterval:
                         cur_t = _time()
                         delta_it = n - last_print_n
-                        elapsed = cur_t - start_t
+                        elapsed = cur_t - start_t  # perf optimization if in inner loop
                         # EMA (not just overall average)
                         if smoothing and delta_t and delta_it:
                             avg_time = delta_t / delta_it \
@@ -770,6 +824,7 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
                         # Store old values for next call
                         self.n = self.last_print_n = last_print_n = n
                         self.last_print_t = last_print_t = cur_t
+                        self.miniters = miniters
 
             # Closing the progress bar.
             # Update some internal variables for close().
