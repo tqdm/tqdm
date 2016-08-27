@@ -35,8 +35,7 @@ class tqdm_custom(tqdm):
     """
     tqdm with nice customizable bar symbols!
     """
-    @staticmethod
-    def format_meter(n, total, elapsed, ncols=None, prefix='',
+    def format_meter(self, n, total, elapsed, ncols=None, prefix='',
                      ascii=False, unit='it', unit_scale=False, rate=None,
                      bar_format=None):
         """
@@ -187,8 +186,10 @@ class tqdm_custom(tqdm):
                     c_symb = bar_format['symbols'].get('unicode', map(_unich, range(0x258F, 0x2587, -1)))
                 # looping symbols: just update the symbol animation at each iteration
                 if bar_format['symbols'].get('loop', False):
-                    # increment one step in the animation at each step
-                    bar = c_symb[divmod(n, len(c_symb))[1]]
+                    # increment one step in the animation for each display
+                    self.n_anim += 1
+                    # get the symbol for current animation step
+                    bar = c_symb[divmod(self.n_anim, len(c_symb))[1]]
                     frac_bar = ''
 
                     bar_length = N_BARS  # avoid the filling
@@ -254,16 +255,20 @@ class tqdm_custom(tqdm):
                     c_symb = bar_format['symbols_indeterminate'].get('unicode', ["====="])
                 # looping symbols: just update the symbol animation at each iteration
                 if bar_format['symbols_indeterminate'].get('loop', False):
-                    # increment one step in the animation at each step
-                    bar = c_symb[divmod(n, len(c_symb))[1]]
+                    # increment one step in the animation for each display
+                    self.n_anim += 1
+                    # Get current bar animation based on current iteration
+                    bar = c_symb[divmod(self.n_anim, len(c_symb))[1]]
 
                     bar_length = N_BARS  # avoid the filling
                 # indeterminate progress bar (cycle from left to right then right to left)
                 else:
+                    # increment one step in the animation for each display
+                    self.n_anim += 1
                     # Get current bar animation based on current iteration
-                    bar = c_symb[divmod(n, len(c_symb))[1]]
+                    bar = c_symb[divmod(self.n_anim, len(c_symb))[1]]
                     # Get left filling space and animation step (right pass or left?)
-                    anim_step, fill_left = divmod(n, (N_BARS - len(bar)))
+                    anim_step, fill_left = divmod(self.n_anim, (N_BARS - len(bar)))
                     # If anim_step is odd, then we do left pass (2nd pass)
                     if divmod(anim_step, 2)[1] == 1:
                         # Inverse the left filling space (now it's the right space)
@@ -289,14 +294,18 @@ class tqdm_custom(tqdm):
 
     def __init__(self, *args, **kwargs):
         """
+        mininterval:  float, optional
+            Controls display refresh rate just like for core tqdm,
+            but in addition also controls looping symbols animation speed
+            (except if miniters is set, then miniters controls the animation).
         bar_format:  str/dict, optional
-        Can either be a string, or a dict for more complex templating.
-        Format: {'template': '{l_bar}{bar}{r_bar}',
-                     'symbols': {'unicode': ['1', '2', '3', '4', '5', '6'],
-                                     'ascii': ['1', '2', '3'],
-                                     'loop': False}
-                     'symbols_indeterminate': {'unicode': ....
-                     }
+            Can either be a string, or a dict for more complex templating.
+            Format: {'template': '{l_bar}{bar}{r_bar}',
+                         'symbols': {'unicode': ['1', '2', '3', '4', '5', '6'],
+                                         'ascii': ['1', '2', '3'],
+                                         'loop': False}
+                         'symbols_indeterminate': {'unicode': ....
+                         }
         """
         # get bar_format
         bar_format = kwargs.get('bar_format', None)
@@ -310,6 +319,7 @@ class tqdm_custom(tqdm):
         # Store the arguments
         bar_format['template'] = self.bar_format
         self.bar_format = bar_format
+        self.n_anim = 0  # animation step for looping symbols
 
 
 def tcrange(*args, **kwargs):
