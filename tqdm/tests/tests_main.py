@@ -37,6 +37,8 @@ def test_main():
     # actual test:
     res_split = RE_TQDM_OUT.split(res)
     print(res_split)
+    print(res)
+    print(ls_out)
     assert False
     # tqdm's extra newline
     if IS_WIN:
