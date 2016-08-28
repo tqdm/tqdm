@@ -273,12 +273,19 @@ Parameters
     fallback is a meter width of 10 and no limit for the counter and
     statistics. If 0, will not print any meter (only stats).
 * mininterval  : float, optional  
-    Minimum progress update interval, in seconds [default: 0.1].
+    Minimum progress display update interval, in seconds [default: 0.1].
 * maxinterval  : float, optional  
-    Maximum progress update interval, in seconds [default: 10.0].
+    Maximum progress display update interval, in seconds [default: 10].
+    Automatically adjusts miniters to mininterval after a too long
+    update. Only works if ``dynamic_miniters`` or monitor thread enabled.
 * miniters  : int, optional  
-    Minimum progress update interval, in iterations.
-    If specified, will set ``mininterval`` to 0.
+    Minimum progress display update interval, in iterations.
+    If 0 and ``dynamic_miniters``, will automatically adjust to equal
+    ``mininterval`` (more CPU efficient, good for tight loops).
+    If > 0, will skip display of specified number of iterations.
+    Tweak this and ``mininterval`` to get very efficient loops.
+    If your progress is erratic with both fast and slow iterations
+    (network, skipping items, etc) you should set miniters=1.
 * ascii  : bool, optional  
     If unspecified or False, use unicode (smooth blocks) to fill
     the meter. The fallback is to use ASCII characters ``1-9 #``.

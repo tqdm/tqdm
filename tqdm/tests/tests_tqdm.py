@@ -382,9 +382,9 @@ def test_max_interval():
     total = 100
     bigstep = 10
     smallstep = 5
-    timer = DiscreteTimer()
 
     # Test without maxinterval
+    timer = DiscreteTimer()
     with closing(StringIO()) as our_file:
         with closing(StringIO()) as our_file2:
             # with maxinterval but higher than loop sleep time
@@ -417,6 +417,7 @@ def test_max_interval():
         assert "25%" not in our_file.read()
 
     # Test with maxinterval effect
+    timer = DiscreteTimer()
     with closing(StringIO()) as our_file:
         with tqdm(total=total, file=our_file, miniters=None, mininterval=0,
                   smoothing=1, maxinterval=1e-4) as t:
@@ -433,6 +434,7 @@ def test_max_interval():
             assert "25%" in our_file.read()
 
     # Test iteration based tqdm with maxinterval effect
+    timer = DiscreteTimer()
     with closing(StringIO()) as our_file:
         with tqdm(_range(total), file=our_file, miniters=None,
                   mininterval=1e-5, smoothing=1, maxinterval=1e-4) as t2:
@@ -447,6 +449,69 @@ def test_max_interval():
 
         our_file.seek(0)
         assert "15%" in our_file.read()
+
+    # Test different behavior with and without mininterval
+    timer = DiscreteTimer()
+    total = 1000
+    mininterval = 0.1
+    maxinterval = 10
+    with closing(StringIO()) as our_file:
+        with tqdm(total=total, file=our_file, miniters=None, smoothing=1,
+                  mininterval=mininterval, maxinterval=maxinterval) as tm1:
+            with tqdm(total=total, file=our_file, miniters=None, smoothing=1,
+                      mininterval=0, maxinterval=maxinterval) as tm2:
+
+                cpu_timify(tm1, timer)
+                cpu_timify(tm2, timer)
+
+                # Fast iterations, check if dynamic_miniters triggers
+                timer.sleep(mininterval)  # to force update for t1
+                tm1.update(total/2)
+                tm2.update(total/2)
+                assert int(tm1.miniters) == tm2.miniters == total/2
+
+                # Slow iterations, check different miniters if mininterval
+                timer.sleep(maxinterval*2)
+                tm1.update(total/2)
+                tm2.update(total/2)
+                res = [tm1.miniters, tm2.miniters]
+                assert res == [
+                               (total/2)*mininterval/(maxinterval*2),
+                               (total/2)*maxinterval/(maxinterval*2)
+                               ]
+
+    # Same with iteratable based tqdm
+    timer1 = DiscreteTimer()  # need 2 timers for each bar because zip not work
+    timer2 = DiscreteTimer()
+    total = 100
+    mininterval = 0.1
+    maxinterval = 10
+    with closing(StringIO()) as our_file:
+        t1 = tqdm(_range(total), file=our_file, miniters=None, smoothing=1,
+                  mininterval=mininterval, maxinterval=maxinterval)
+        t2 = tqdm(_range(total), file=our_file, miniters=None, smoothing=1,
+                  mininterval=0, maxinterval=maxinterval)
+
+        cpu_timify(t1, timer1)
+        cpu_timify(t2, timer2)
+
+        for i in t1:
+            if i == ((total/2)-2):
+                timer1.sleep(mininterval)
+            if i == (total-1):
+                timer1.sleep(maxinterval*2)
+
+        for i in t2:
+            if i == ((total/2)-2):
+                timer2.sleep(mininterval)
+            if i == (total-1):
+                timer2.sleep(maxinterval*2)
+
+        assert t1.miniters == 0.255
+        assert t2.miniters == 0.5
+
+        t1.close()
+        t2.close()
 
 
 @with_setup(pretest, posttest)
