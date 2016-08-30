@@ -15,7 +15,7 @@ from __future__ import division
 from ._utils import _supports_unicode, _environ_cols_wrapper, _range, _unich, \
     _term_move_up, _unicode, WeakSet
 import sys
-from threading import Thread, Event
+from threading import Thread
 from time import time, sleep
 
 
@@ -61,10 +61,11 @@ class TMonitor(Thread):
     _sleep = None
 
     def __init__(self, tqdm_cls, sleep_interval):
+        sys.setcheckinterval(100)
         Thread.__init__(self)
-        self.exit_event = Event()
         self.daemon = True  # kill thread when main killed (KeyboardInterrupt)
         self.was_killed = False
+        self.woken = 0  # last time woken up, to sync with monitor
         self.tqdm_cls = tqdm_cls
         self.sleep_interval = sleep_interval
         if TMonitor._time is not None:
@@ -78,17 +79,20 @@ class TMonitor(Thread):
         self.start()
 
     def exit(self):
-        self.exit_event.set()
         self.was_killed = True
         # self.join()  # DO NOT, blocking event, slows down tqdm at closing
         return self.report()
 
     def run(self):
+        cur_t = self._time()
         while True:
+            # After processing and before sleeping, notify that we woke
+            # Need to be done just before sleeping
+            self.woken = cur_t
             # Sleep some time...
             self._sleep(self.sleep_interval)
             # Quit if killed
-            # if self.exit_event.isSet():  # TODO: should work but does not...
+            # if self.exit_event.is_set():  # TODO: should work but does not...
             if self.was_killed:
                 return
             # Then monitor!
@@ -102,7 +106,7 @@ class TMonitor(Thread):
                     # We force bypassing miniters on next iteration
                     # dynamic_miniters should adjust mininterval automatically
                     instance.miniters = 1
-                    # Refresh now!
+                    # Refresh now! (works only for manual tqdm)
                     instance.refresh()
 
     def report(self):
