@@ -111,11 +111,10 @@ def simple_progress(iterable=None, total=None, file=sys.stdout, desc='',
         if (n[0] - last_n[0]) >= miniters:
             last_n[0] = n[0]
 
-            cur_t = time()
-            if (cur_t - last_t[0]) >= mininterval:
-                last_t[0] = cur_t
+            if (time() - last_t[0]) >= mininterval:
+                last_t[0] = time()  # last_t[0] == current time
 
-                spent = cur_t - start_t[0]
+                spent = last_t[0] - start_t[0]
                 spent_fmt = format_interval(spent)
                 eta = spent / n[0] * total if n[0] else 0
                 frac = n[0] / total
