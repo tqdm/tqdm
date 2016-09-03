@@ -116,16 +116,17 @@ def simple_progress(iterable=None, total=None, file=sys.stdout, desc='',
 
                 spent = last_t[0] - start_t[0]
                 spent_fmt = format_interval(spent)
-                eta = spent / n[0] * total if n[0] else 0
-                frac = n[0] / total
                 rate = n[0] / spent if spent > 0 else 0
-                eta = (total - n[0]) / rate if rate > 0 else 0
-                eta_fmt = format_interval(eta)
                 if 0.0 < rate < 1.0:
                     rate_fmt = "%.2fs/it" % (1.0 / rate)
                 else:
                     rate_fmt = "%.2fit/s" % rate
+
+                frac = n[0] / total
                 percentage = int(frac * 100)
+                eta = (total - n[0]) / rate if rate > 0 else 0
+                eta_fmt = format_interval(eta)
+
                 bar = "#" * int(frac * width)
                 barfill = " " * int((1.0 - frac) * width)
                 bar_length, frac_bar_length = divmod(
@@ -133,9 +134,11 @@ def simple_progress(iterable=None, total=None, file=sys.stdout, desc='',
                 bar = '#' * bar_length
                 frac_bar = chr(48 + frac_bar_length) if frac_bar_length \
                     else ' '
+
                 file.write("\r%s %i%%|%s%s%s| %i/%i [%s<%s, %s]"
                            % (desc, percentage, bar, frac_bar, barfill, n[0],
                               total, spent_fmt, eta_fmt, rate_fmt))
+
                 if n[0] == total and leave:
                     file.write("\n")
                 file.flush()
