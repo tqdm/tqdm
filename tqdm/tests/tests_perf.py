@@ -150,7 +150,7 @@ def simple_progress(iterable=None, total=None, file=sys.stdout, desc='',
 
     update_and_print(0)
     if iterable is not None:
-        return update_and_yield
+        return update_and_yield()
     else:
         return update_and_print
 
@@ -284,10 +284,9 @@ def test_iter_overhead_simplebar_hard():
 
         a = 0
         with relative_timer() as time_bench:
-            simplebar_iter = simple_progress(_range(total), file=our_file,
-                                             leave=True, miniters=1,
-                                             mininterval=0)
-            for i in simplebar_iter():
+            for i in simple_progress(_range(total), file=our_file,
+                                     leave=True, miniters=1,
+                                     mininterval=0):
                 a += i
 
     # Compute relative overhead of tqdm against native range()
