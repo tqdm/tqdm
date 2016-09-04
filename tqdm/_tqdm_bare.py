@@ -249,9 +249,10 @@ def tqdm_bare(iterable=None, desc=None, total=None, leave=True,
         total = len(iterable)
 
     # Initialize the bar display
-    moveto(my_pos[0])
-    file.write(format_meter(n[0], total, 0, width, desc, unit, unit_scale))
-    moveto(-my_pos[0])
+    if not disable:
+        moveto(my_pos[0])
+        file.write(format_meter(n[0], total, 0, width, desc, unit, unit_scale))
+        moveto(-my_pos[0])
     # -- End of initialization
 
     # Iterable and manual mode are supported
