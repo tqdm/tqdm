@@ -1,5 +1,6 @@
 """
-Simple but extremely fast progressbar decorator for iterators.
+Standalone minimal tqdm but with major features.
+For developers porting to other languages or speed freaks.
 Includes a default (x)range iterator printing to stderr.
 
 Usage:
@@ -43,7 +44,7 @@ def tqdm_bare(iterable=None, desc=None, total=None, leave=True,
                     smoothing=0.3, initial=0, position=None,
                     **kwargs):
     """
-    Extremely fast barebone progress bar reproducing tqdm's major features.
+    Minimalist barebone progress bar reproducing tqdm's major features.
     Decorate an iterable object, returning an iterator which acts exactly
     like the original iterable, but prints a dynamically updating
     progressbar every time a value is requested.
@@ -169,9 +170,19 @@ def tqdm_bare(iterable=None, desc=None, total=None, leave=True,
                         miniters[0] = smoothing * delta_it * temporalterm + \
                                    (1 - smoothing) * miniters[0]
 
+                # EMA rate
+                if smoothing and delta_t:
+                    avg_time[0] = delta_t / delta_it \
+                        if avg_time[0] is None \
+                        else smoothing * delta_t / delta_it + \
+                        (1 - smoothing) * avg_time[0]
+
                 # Format bar
                 elapsed = last_t[0] - start_t[0]
-                full_bar = format_meter(n[0], total, elapsed, width, desc, unit, unit_scale)
+                full_bar = format_meter(n[0], total, elapsed, width, desc,
+                                        unit, unit_scale,
+                                        1 / avg_time[0] if avg_time[0]
+                                        else None)
 
                 # Position the cursor
                 moveto(my_pos[0])
@@ -217,6 +228,7 @@ def tqdm_bare(iterable=None, desc=None, total=None, leave=True,
     last_t = [0]
     last_len = [0]
     desc = desc + ': ' if desc else ''
+    avg_time = [None]
 
     if miniters is None:
         miniters = [0]
