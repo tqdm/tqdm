@@ -286,12 +286,29 @@ def tqdm_bare(iterable=None, desc=None, total=None, leave=True,
                     # Force output the display
                     file.flush()
 
+        # Postprocessing at closing (last iteration)
+        moveto(local_my_pos)
+        # Print last status
+        # Format bar
+        cur_t = time()
+        elapsed = cur_t - local_start_t
+        full_bar = format_meter(local_n, local_total, elapsed, local_width, local_desc,
+                                local_unit, local_unit_scale,
+                                1 / local_avg_time if local_avg_time
+                                else None)
+        # Clear up previous bar display
+        file.write("\r" + (" " * local_last_len))
+        # Display current bar
+        file.write("\r" + full_bar)
+        # Save current bar size
+        local_last_len = len(full_bar)
         # Leave last bar display?
         if leave:
             if not local_my_pos or local_my_pos == 0:
                 file.write("\n")
         else:
             file.write("\r" + (" " * local_last_len) + "\r")
+        moveto(-local_my_pos)
         # Remove oneself from the list of positions
         tqdm_bare._instances.remove(local_my_pos)
 
