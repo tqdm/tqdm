@@ -559,12 +559,40 @@ def test_dynamic_min_iters():
     assert '60%' not in out
     assert '70%' in out
 
+    # Check with smoothing=0, miniters should be set to max update seen so far
     with closing(StringIO()) as our_file:
-        t = tqdm(_range(10), file=our_file, miniters=None, mininterval=None)
+        total = 10
+        t = tqdm(total=total, file=our_file, miniters=None, mininterval=0,
+                 smoothing=0)
+
+        t.update()
+        t.update(2)
+        t.update(5)  # this should be stored as miniters
+        t.update(1)
+
+        our_file.seek(0)
+        out = our_file.read()
+        assert t.dynamic_miniters and not t.smoothing
+        assert t.miniters == 5
+        t.close()
+
+    # Check iterable based tqdm
+    with closing(StringIO()) as our_file:
+        t = tqdm(_range(10), file=our_file, miniters=None, mininterval=None,
+                 smoothing=0.5)
         for _ in t:
             pass
         assert t.dynamic_miniters
 
+    # No smoothing
+    with closing(StringIO()) as our_file:
+        t = tqdm(_range(10), file=our_file, miniters=None, mininterval=None,
+                 smoothing=0)
+        for _ in t:
+            pass
+        assert t.dynamic_miniters
+
+    # No dynamic_miniters (miniters is fixed manually)
     with closing(StringIO()) as our_file:
         t = tqdm(_range(10), file=our_file, miniters=1, mininterval=None)
         for _ in t:

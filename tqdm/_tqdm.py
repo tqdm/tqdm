@@ -573,14 +573,14 @@ class tqdm(object):
             Minimum progress display update interval, in seconds [default: 0.1].
         maxinterval  : float, optional
             Maximum progress display update interval, in seconds [default: 10].
-            Will readjust automatically to adjust miniters to mininterval after
-            a too long update. Only works if dynamic_miniters.
+            Automatically adjusts miniters to mininterval after a too long
+            update. Only works if `dynamic_miniters` or monitor thread enabled.
         miniters  : int, optional
             Minimum progress display update interval, in iterations.
-            If 0 and dynamic_miniters, will be automatically adjusted to equal
-            mininterval (more CPU efficient, good for tight loops).
-            If > 0, will skip display of the specified number of iterations.
-            Tweak this and mininterval to get very efficient loops.
+            If 0 and `dynamic_miniters`, will automatically adjust to equal
+            `mininterval` (more CPU efficient, good for tight loops).
+            If > 0, will skip display of specified number of iterations.
+            Tweak this and `mininterval` to get very efficient loops.
             If your progress is erratic with both fast and slow iterations
             (network, skipping items, etc) you should set miniters=1.
         ascii  : bool, optional
@@ -845,8 +845,8 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
                         if self.pos:
                             self.moveto(-self.pos)
 
-                        # If no `miniters` was specified, adjust automatically
-                        # to the maximum iteration rate seen so far.
+                        # If no miniters was specified, adjust automatically to
+                        # the max iteration rate seen so far between 2 prints.
                         if dynamic_miniters:
                             if maxinterval and delta_t >= maxinterval:
                                 # Adjust miniters to time interval by rule of 3
@@ -856,14 +856,17 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
                                 else:
                                     # Set miniters to correspond to maxinterval
                                     miniters = delta_it * maxinterval / delta_t
-                            elif mininterval and delta_t:
+                            elif smoothing:
                                 # EMA-weight miniters to converge
                                 # towards the timeframe of mininterval
-                                miniters = smoothing * delta_it * mininterval \
-                                    / delta_t + (1 - smoothing) * miniters
+                                miniters = smoothing * delta_it * \
+                                              (mininterval / delta_t
+                                               if mininterval and delta_t
+                                               else 1) + \
+                                              (1 - smoothing) * miniters
                             else:
-                                miniters = smoothing * delta_it + \
-                                           (1 - smoothing) * miniters
+                                # Maximum nb of iterations between 2 prints
+                                miniters = max(miniters, delta_it)
 
                         # Store old values for next call
                         self.n = self.last_print_n = last_print_n = n
@@ -939,7 +942,7 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
                     self.moveto(-self.pos)
 
                 # If no `miniters` was specified, adjust automatically to the
-                # maximum iteration rate seen so far.
+                # maximum iteration rate seen so far between two prints.
                 # e.g.: After running `tqdm.update(5)`, subsequent
                 # calls to `tqdm.update()` will only cause an update after
                 # at least 5 more iterations.
@@ -951,13 +954,14 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
                         else:
                             self.miniters = delta_it * self.maxinterval \
                                         / delta_t
-                    elif self.mininterval and delta_t:
-                        self.miniters = self.smoothing * delta_it \
-                                        * self.mininterval / delta_t + \
+                    elif self.smoothing:
+                        self.miniters = self.smoothing * delta_it * \
+                                        (self.mininterval / delta_t
+                                         if self.mininterval and delta_t
+                                         else 1) + \
                                         (1 - self.smoothing) * self.miniters
                     else:
-                        self.miniters = self.smoothing * delta_it + \
-                                        (1 - self.smoothing) * self.miniters
+                        self.miniters = max(self.miniters, delta_it)
 
                 # Store old values for next call
                 self.last_print_n = self.n
