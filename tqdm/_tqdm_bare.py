@@ -144,10 +144,10 @@ def tqdm_bare(iterable=None, desc=None, total=None, leave=True,
         Main function to update bar progress
         """
         n[0] += i
-        #last_iteration = (n[0] == total) if total else False
-        if (n[0] - last_print_n[0]) >= miniters[0]:# or last_iteration:
+        last_iteration = (n[0] == total) if total else False
+        if (n[0] - last_print_n[0]) >= miniters[0] or last_iteration:
             delta_t = time() - last_print_t[0]
-            if delta_t >= mininterval:# or last_iteration:
+            if delta_t >= mininterval or last_iteration:
                 cur_t = time()
                 delta_it = n[0] - last_print_n[0]
                 last_print_t[0] = cur_t
@@ -192,14 +192,14 @@ def tqdm_bare(iterable=None, desc=None, total=None, leave=True,
                 last_len[0] = len(full_bar)
 
                 # Leave last bar display?
-                # if last_iteration:
-                    # if leave:
-                        # if not my_pos or my_pos[0] == 0:
-                            # file.write("\n")
-                    # else:
-                        # file.write("\r" + (" " * last_len[0]) + "\r")
-                    # # Remove oneself from the list of positions
-                    # tqdm_bare._instances.remove(my_pos[0])
+                if last_iteration:
+                    if leave:
+                        if not my_pos or my_pos[0] == 0:
+                            file.write("\n")
+                    else:
+                        file.write("\r" + (" " * last_len[0]) + "\r")
+                    # Remove oneself from the list of positions
+                    tqdm_bare._instances.remove(my_pos[0])
 
                 # Position the cursor back
                 moveto(-my_pos[0])
@@ -280,21 +280,21 @@ def tqdm_bare(iterable=None, desc=None, total=None, leave=True,
                     # Save current bar size
                     local_last_len = len(full_bar)
 
-                    # Leave last bar display?
-                    # if last_iteration:
-                        # if leave:
-                            # if not my_pos or my_pos[0] == 0:
-                                # file.write("\n")
-                        # else:
-                            # file.write("\r" + (" " * last_len[0]) + "\r")
-                        # # Remove oneself from the list of positions
-                        # tqdm_bare._instances.remove(my_pos[0])
-
                     # Position the cursor back
                     moveto(-local_my_pos)
 
                     # Force output the display
                     file.flush()
+
+        # Leave last bar display?
+        if leave:
+            if not local_my_pos or local_my_pos == 0:
+                file.write("\n")
+        else:
+            file.write("\r" + (" " * local_last_len) + "\r")
+        # Remove oneself from the list of positions
+        tqdm_bare._instances.remove(local_my_pos)
+
 
     # -- Initialization
     n = [initial]  # use a closure to store and modify within subfunctions
