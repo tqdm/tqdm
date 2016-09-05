@@ -143,23 +143,18 @@ def tqdm_bare(iterable=None, desc=None, total=None, leave=True,
         """
         Main function to update bar progress
         """
-        if disable:
-            return
-
         n[0] += i
-        last_iteration = (n[0] == total) if total else False
-        if (n[0] - last_n[0]) >= miniters[0] or last_iteration:
-            last_n[0] = n[0]
-
-            if (time() - last_t[0]) >= mininterval or last_iteration:
+        #last_iteration = (n[0] == total) if total else False
+        if (n[0] - last_print_n[0]) >= miniters[0]:# or last_iteration:
+            delta_t = time() - last_print_t[0]
+            if delta_t >= mininterval:# or last_iteration:
                 cur_t = time()
-                delta_t = cur_t - last_t[0]
                 delta_it = n[0] - last_print_n[0]
-                last_t[0] = cur_t
+                last_print_t[0] = cur_t
                 last_print_n[0] = n[0]
 
                 if dynamic_miniters:
-                    if maxinterval and mininterval and delta_t >= maxinterval:
+                    if maxinterval and delta_t >= maxinterval and mininterval:
                         # Set miniters to correspond to maxinterval
                         miniters[0] = delta_it * mininterval / delta_t
                     else:
@@ -178,7 +173,7 @@ def tqdm_bare(iterable=None, desc=None, total=None, leave=True,
                         (1 - smoothing) * avg_time[0]
 
                 # Format bar
-                elapsed = last_t[0] - start_t[0]
+                elapsed = cur_t - start_t
                 full_bar = format_meter(n[0], total, elapsed, width, desc,
                                         unit, unit_scale,
                                         1 / avg_time[0] if avg_time[0]
@@ -197,14 +192,14 @@ def tqdm_bare(iterable=None, desc=None, total=None, leave=True,
                 last_len[0] = len(full_bar)
 
                 # Leave last bar display?
-                if last_iteration:
-                    if leave:
-                        if not my_pos or my_pos[0] == 0:
-                            file.write("\n")
-                    else:
-                        file.write("\r" + (" " * last_len[0]) + "\r")
-                    # Remove oneself from the list of positions
-                    tqdm_bare._instances.remove(my_pos[0])
+                # if last_iteration:
+                    # if leave:
+                        # if not my_pos or my_pos[0] == 0:
+                            # file.write("\n")
+                    # else:
+                        # file.write("\r" + (" " * last_len[0]) + "\r")
+                    # # Remove oneself from the list of positions
+                    # tqdm_bare._instances.remove(my_pos[0])
 
                 # Position the cursor back
                 moveto(-my_pos[0])
@@ -216,16 +211,96 @@ def tqdm_bare(iterable=None, desc=None, total=None, leave=True,
         """
         Iterable wrapper for update_and_print()
         """
+        local_n = n[0]
+        local_last_print_n = last_print_n[0]
+        local_start_t = start_t
+        local_last_print_t = last_print_t[0]
+        local_miniters = miniters[0]
+        local_mininterval = mininterval
+        local_maxinterval = maxinterval
+        local_dynamic_miniters = dynamic_miniters
+        local_smoothing = smoothing
+        local_avg_time = avg_time[0]
+        local_total = total
+        local_desc = desc
+        local_width = width
+        local_unit = unit
+        local_unit_scale = unit_scale
+        local_my_pos = my_pos[0]
+        local_last_len = last_len[0]
         for elt in iterable:
             yield elt
-            update_and_print()
+            #update_and_print()
+
+            local_n += 1
+            #last_iteration = (n[0] == total) if total else False
+            if (local_n - local_last_print_n) >= local_miniters:# or last_iteration:
+                delta_t = time() - local_last_print_t
+                if delta_t >= local_mininterval:# or last_iteration:
+                    cur_t = time()
+                    delta_it = local_n - local_last_print_n
+                    local_last_print_t = cur_t
+                    local_last_print_n = local_n
+
+                    if local_dynamic_miniters:
+                        if local_maxinterval and delta_t >= local_maxinterval and local_mininterval:
+                            # Set miniters to correspond to maxinterval
+                            local_miniters = delta_it * local_mininterval / delta_t
+                        else:
+                            # EMA-weight miniters to converge
+                            # towards the timeframe of mininterval
+                            temporalterm = (local_mininterval / delta_t
+                                                if local_mininterval and delta_t else 1)
+                            local_miniters = local_smoothing * delta_it * temporalterm + \
+                                       (1 - local_smoothing) * local_miniters
+
+                    # EMA rate
+                    if local_smoothing and delta_t:
+                        local_avg_time = delta_t / delta_it \
+                            if local_avg_time is None \
+                            else local_smoothing * delta_t / delta_it + \
+                            (1 - local_smoothing) * local_avg_time
+
+                    # Format bar
+                    elapsed = cur_t - local_start_t
+                    full_bar = format_meter(local_n, local_total, elapsed, local_width, local_desc,
+                                            local_unit, local_unit_scale,
+                                            1 / local_avg_time if local_avg_time
+                                            else None)
+
+                    # Position the cursor
+                    moveto(local_my_pos)
+
+                    # Clear up previous bar display
+                    file.write("\r" + (" " * local_last_len))
+
+                    # Display current bar
+                    file.write("\r" + full_bar)
+
+                    # Save current bar size
+                    local_last_len = len(full_bar)
+
+                    # Leave last bar display?
+                    # if last_iteration:
+                        # if leave:
+                            # if not my_pos or my_pos[0] == 0:
+                                # file.write("\n")
+                        # else:
+                            # file.write("\r" + (" " * last_len[0]) + "\r")
+                        # # Remove oneself from the list of positions
+                        # tqdm_bare._instances.remove(my_pos[0])
+
+                    # Position the cursor back
+                    moveto(-local_my_pos)
+
+                    # Force output the display
+                    file.flush()
 
     # -- Initialization
-    n = [initial]  # use a closure to store and access within subfunctions
-    start_t = [time()]
-    last_n = [0]
-    last_print_n = [0]
-    last_t = [0]
+    n = [initial]  # use a closure to store and modify within subfunctions
+    start_t = time()  # simple variable enough for access in subfunctions
+    last_print_n = [initial]
+    last_print_t = [start_t]
     last_len = [0]
     desc = desc + ': ' if desc else ''
     avg_time = [None]
@@ -270,10 +345,16 @@ def tqdm_bare(iterable=None, desc=None, total=None, leave=True,
     # Iterable and manual mode are supported
     if iterable is not None:
         # Iterable mode
-        return update_and_yield()
+        if disable:
+            return iterable
+        else:
+            return update_and_yield()
     else:
         # Manual mode
-        return update_and_print
+        if disable:
+            return lambda x: x
+        else:
+            return update_and_print
 
 
 def tbrange(*args, **kwargs):
