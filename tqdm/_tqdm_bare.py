@@ -180,7 +180,8 @@ def tqdm_bare(iterable=None, desc=None, total=None, leave=True,
                                         else None)
 
                 # Position the cursor
-                moveto(my_pos[0])
+                if my_pos[0]:
+                    moveto(my_pos[0])
 
                 # Clear up previous bar display
                 file.write("\r" + (" " * last_len[0]))
@@ -202,7 +203,8 @@ def tqdm_bare(iterable=None, desc=None, total=None, leave=True,
                     tqdm_bare._instances.remove(my_pos[0])
 
                 # Position the cursor back
-                moveto(-my_pos[0])
+                if my_pos[0]:
+                    moveto(-my_pos[0])
 
                 # Force output the display
                 file.flush()
@@ -269,7 +271,8 @@ def tqdm_bare(iterable=None, desc=None, total=None, leave=True,
                                             else None)
 
                     # Position the cursor
-                    moveto(local_my_pos)
+                    if local_my_pos:
+                        moveto(local_my_pos)
 
                     # Clear up previous bar display
                     file.write("\r" + (" " * local_last_len))
@@ -281,7 +284,8 @@ def tqdm_bare(iterable=None, desc=None, total=None, leave=True,
                     local_last_len = len(full_bar)
 
                     # Position the cursor back
-                    moveto(-local_my_pos)
+                    if local_my_pos:
+                        moveto(-local_my_pos)
 
                     # Force output the display
                     file.flush()
