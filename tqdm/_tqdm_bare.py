@@ -303,13 +303,17 @@ class tqdm_bare(object):
                             if maxinterval and delta_t >= maxinterval and mininterval:
                                 # Set miniters to correspond to maxinterval
                                 miniters = delta_it * mininterval / delta_t
-                            else:
+                            elif smoothing:
                                 # EMA-weight miniters to converge
                                 # towards the timeframe of mininterval
-                                temporalterm = (mininterval / delta_t
-                                                    if mininterval and delta_t else 1)
-                                miniters = smoothing * delta_it * temporalterm + \
-                                           (1 - smoothing) * miniters
+                                miniters = smoothing * delta_it * \
+                                              (mininterval / delta_t
+                                               if mininterval and delta_t
+                                               else 1) + \
+                                              (1 - smoothing) * miniters
+                            else:
+                                # Maximum nb of iterations between 2 prints
+                                miniters = max(miniters, delta_it)
 
                         # EMA rate
                         if smoothing and delta_t:
@@ -358,13 +362,14 @@ class tqdm_bare(object):
                     if self.maxinterval and delta_t >= self.maxinterval and self.mininterval:
                         # Set miniters to correspond to maxinterval
                         self.miniters = delta_it * self.mininterval / delta_t
+                    elif self.smoothing:
+                        self.miniters = self.smoothing * delta_it * \
+                                        (self.mininterval / delta_t
+                                         if self.mininterval and delta_t
+                                         else 1) + \
+                                        (1 - self.smoothing) * self.miniters
                     else:
-                        # EMA-weight miniters to converge
-                        # towards the timeframe of mininterval
-                        temporalterm = (self.mininterval / delta_t
-                                            if self.mininterval and delta_t else 1)
-                        self.miniters = self.smoothing * delta_it * temporalterm + \
-                                   (1 - self.smoothing) * self.miniters
+                        self.miniters = max(self.miniters, delta_it)
 
                 # EMA rate
                 if self.smoothing and delta_t:
