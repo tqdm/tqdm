@@ -157,13 +157,17 @@ def tqdm_bare(iterable=None, desc=None, total=None, leave=True,
                     if maxinterval and delta_t >= maxinterval and mininterval:
                         # Set miniters to correspond to maxinterval
                         miniters[0] = delta_it * mininterval / delta_t
-                    else:
+                    elif smoothing:
                         # EMA-weight miniters to converge
                         # towards the timeframe of mininterval
-                        temporalterm = (mininterval / delta_t
-                                            if mininterval and delta_t else 1)
-                        miniters[0] = smoothing * delta_it * temporalterm + \
-                                   (1 - smoothing) * miniters[0]
+                        miniters[0] = smoothing * delta_it * \
+                                            (mininterval / delta_t
+                                             if mininterval and delta_t
+                                             else 1) + \
+                                            (1 - smoothing) * miniters[0]
+                    else:
+                        # Maximum nb of iterations between 2 prints
+                        miniters[0] = max(miniters[0], delta_it)
 
                 # EMA rate
                 if smoothing and delta_t:
@@ -248,13 +252,17 @@ def tqdm_bare(iterable=None, desc=None, total=None, leave=True,
                         if local_maxinterval and delta_t >= local_maxinterval and local_mininterval:
                             # Set miniters to correspond to maxinterval
                             local_miniters = delta_it * local_mininterval / delta_t
-                        else:
+                        elif smoothing:
                             # EMA-weight miniters to converge
                             # towards the timeframe of mininterval
-                            temporalterm = (local_mininterval / delta_t
-                                                if local_mininterval and delta_t else 1)
-                            local_miniters = local_smoothing * delta_it * temporalterm + \
-                                       (1 - local_smoothing) * local_miniters
+                            local_miniters = local_smoothing * delta_it * \
+                                                 (local_mininterval / delta_t
+                                                 if local_mininterval and delta_t
+                                                 else 1) + \
+                                                (1 - local_smoothing) * local_miniters
+                        else:
+                            # Maximum nb of iterations between 2 prints
+                            local_miniters = max(local_miniters, delta_it)
 
                     # EMA rate
                     if local_smoothing and delta_t:
