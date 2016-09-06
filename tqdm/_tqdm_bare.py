@@ -141,7 +141,7 @@ def tqdm_bare(iterable=None, desc=None, total=None, leave=True,
 
     def update_and_print(i=1):
         """
-        Main function to update bar progress
+        Manual update bar progress
         """
         n[0] += i
         last_iteration = (n[0] == total) if total else False
