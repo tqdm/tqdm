@@ -234,9 +234,10 @@ class tqdm(object):
                             'remaining': remaining_str,
                             'l_bar': l_bar,
                             'r_bar': r_bar,
-                            'n_bars': n_bars,
+                            'n_bars': N_BARS,
                             'desc': prefix if prefix else '',
                             'ncols': ncols,
+                            'frac': frac,
                             # 'bar': full_bar  # replaced by procedure below
                             }
 
@@ -297,7 +298,7 @@ class tqdm(object):
             if bar_format:
                 l_bar = (prefix if prefix else '') + \
                             '{0}{1}'.format(n_fmt, unit)
-                r_bar = '[{2}, {3}]'.format(elapsed_str, rate_fmt)
+                r_bar = '[{0}, {1}]'.format(elapsed_str, rate_fmt)
                 N_BARS = max(1, ncols - len(l_bar) - len(r_bar)) if ncols \
                     else 10
                 # Populate dict with nototal appropriate values
@@ -318,9 +319,10 @@ class tqdm(object):
                             'remaining': '?',
                             'l_bar': l_bar,
                             'r_bar': r_bar,
-                            'n_bars': n_bars,
+                            'n_bars': N_BARS,
                             'desc': prefix if prefix else '',
                             'ncols': ncols,
+                            'frac': None,
                             }
 
                 # Interpolate supplied bar format with the dict
