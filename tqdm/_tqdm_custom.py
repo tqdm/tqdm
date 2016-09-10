@@ -11,6 +11,7 @@ from __future__ import absolute_import, division
 # import compatibility functions and utilities
 from ._utils import _supports_unicode, _environ_cols_wrapper, _range, _unich, \
     _unicode
+import string
 import sys
 
 from ._utils import _range
@@ -22,13 +23,16 @@ __author__ = {"github.com/": ["lrq3000"]}
 __all__ = ['tqdm_custom', 'tcrange']
 
 
-def mirror_chars(s):
-    """Mirror characters using translation"""
-    import string
-    ins = '()<>[]\/{}bd'
-    outs = ')(><][/\}{db'
-    trans = string.maketrans(ins,outs)
-    return s.translate(trans)
+# Characters mirror translation table
+_mirror_in = '()<>[]\/{}bd'
+_mirror_out = ')(><][/\}{db'
+
+def mirror_line(s):
+    """Mirror a line and its characters using translation"""
+    global _mirror_in, _mirror_out
+    s2 = s[::-1]
+    trans = string.maketrans(_mirror_in, _mirror_out)
+    return s2.translate(trans)
 
 
 class tqdm_custom(tqdm):
@@ -165,8 +169,10 @@ class tqdm_custom(tqdm):
                 # get ascii or unicode template
                 if ascii:
                     c_symb = bar_format['symbols_indeterminate'].get('ascii', ["====="])
+                    c_symb_rev = bar_format['symbols_indeterminate'].get('ascii_rev', c_symb)
                 else:
                     c_symb = bar_format['symbols_indeterminate'].get('unicode', ["====="])
+                    c_symb_rev = bar_format['symbols_indeterminate'].get('unicode_rev', c_symb)
                 # looping symbols: just update the symbol animation at each iteration
                 if bar_format['symbols_indeterminate'].get('loop', False):
                     # increment one step in the animation for each display
@@ -180,15 +186,16 @@ class tqdm_custom(tqdm):
                     # increment one step in the animation for each display
                     self.n_anim += 1
                     # Get current bar animation based on current iteration
-                    bar = c_symb[divmod(self.n_anim, len(c_symb))[1]]
+                    symbol_idx = divmod(self.n_anim, len(c_symb))[1]
+                    bar = c_symb[symbol_idx]
                     # Get left filling space and animation step (right pass or left?)
                     anim_step, fill_left = divmod(self.n_anim, (N_BARS - len(bar)))
                     # If anim_step is odd, then we do left pass (2nd pass)
                     if divmod(anim_step, 2)[1] == 1:
                         # Inverse the left filling space (now it's the right space)
                         fill_left = N_BARS - len(bar) - fill_left
-                        # Reverse the bar string
-                        bar = mirror_chars(bar[::-1])
+                        # Get the reversed symbol
+                        bar = c_symb_rev[symbol_idx]
 
                     # Generate bar with left filling space
                     bar = ' ' * fill_left + bar
@@ -229,6 +236,23 @@ class tqdm_custom(tqdm):
         bar_format['template'] = self.bar_format
         self.bar_format = bar_format
         self.n_anim = 0  # animation step for looping symbols
+
+        # Preprocess symbols
+        for key in self.bar_format.keys():
+            if not isinstance(self.bar_format[key], dict):
+                continue
+            # Precompute reverse strings (if not provided) for loop symbol
+            for type, type_rev in [('ascii','ascii_rev'), ('unicode', 'unicode_rev')]:
+                entry = self.bar_format[key].get(type, None)
+                entry_rev = self.bar_format[key].get(type_rev, None)
+                # If type (ascii or unicode) exists but not the reversed
+                if entry and not entry_rev:
+                    # Then reverse each symbol
+                    p_symb = []
+                    for symb in entry:
+                        p_symb.append( mirror_line(symb) )
+                    # And store the reversed symbols
+                    self.bar_format[key][type_rev] = p_symb
 
 
 def tcrange(*args, **kwargs):
