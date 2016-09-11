@@ -158,12 +158,21 @@ class tqdm_custommulti(tqdm):
                     if bar_format['symbols'].get('loop', False):
                         # increment one step in the animation for each display
                         self.n_anim += 1
-                        # get the symbol for current animation step
+                        # Get current bar animation based on current iteration
                         bar = c_symb[divmod(self.n_anim, len(c_symb))[1]]
-                        frac_bar = ''
+                        bar_lines = bar.splitlines()
+                        c_width = len(bar_lines[0])  # all lines should have same len
 
-                        bar_length = N_BARS  # avoid the filling
-                        frac_bar_length = len(frac_bar)
+                        # Generate bar with left filling space
+                        l_bar_fill = ' ' * len(l_bar)
+                        r_bar_fill = ' ' * len(r_bar)
+                        bar_lines = bar.splitlines()  # split bar again because it may have been reversed
+                        middle_bar = int(len(bar_lines) / 2)
+
+                        # Construct final bar line by line: print the bar status at the middle, otherwise print only the symbol animation on the other lines and fill with blanks to correctly position the symbol.
+                        full_bar = '\n'.join(l_bar + line + r_bar if line_nb == middle_bar else
+                                            l_bar_fill + line + r_bar_fill for line_nb, line in enumerate(bar_lines)
+                                            )
                     # normal progress symbols
                     else:
                         nb_symb = len(c_symb)
@@ -176,36 +185,6 @@ class tqdm_custommulti(tqdm):
                             else ' '
                         # update real bar length (if symbols > 1 char) for correct filler
                         bar_length = bar_length * len_filler
-
-                # ascii format
-                elif ascii:
-                    # get the remainder of the division of current fraction with number of symbols
-                    # this will tell us which symbol we should pick
-                    bar_length, frac_bar_length = divmod(
-                        int(frac * N_BARS * 10), 10)
-
-                    bar = '#' * bar_length
-                    frac_bar = chr(48 + frac_bar_length) if frac_bar_length \
-                        else ' '
-
-                # unicode format (if available)
-                else:
-                    bar_length, frac_bar_length = divmod(int(frac * N_BARS * 8), 8)
-
-                    bar = _unich(0x2588) * bar_length
-                    frac_bar = _unich(0x2590 - frac_bar_length) \
-                        if frac_bar_length else ' '
-
-                # whitespace padding
-                if bar_length < N_BARS:
-                    full_bar = bar + frac_bar + \
-                        ' ' * max(N_BARS - bar_length - len(frac_bar), 0)
-                else:
-                    full_bar = bar + \
-                        ' ' * max(N_BARS - bar_length, 0)
-
-                # Piece together the bar parts
-                return l_bar + full_bar + r_bar
 
             # no total: no progressbar, ETA, just progress stats
             else:
@@ -224,8 +203,19 @@ class tqdm_custommulti(tqdm):
                     self.n_anim += 1
                     # Get current bar animation based on current iteration
                     bar = c_symb[divmod(self.n_anim, len(c_symb))[1]]
+                    bar_lines = bar.splitlines()
+                    c_width = len(bar_lines[0])  # all lines should have same len
 
-                    bar_length = N_BARS  # avoid the filling
+                    # Generate bar with left filling space
+                    l_bar_fill = ' ' * len(l_bar)
+                    r_bar_fill = ' ' * len(r_bar)
+                    bar_lines = bar.splitlines()  # split bar again because it may have been reversed
+                    middle_bar = int(len(bar_lines) / 2)
+
+                    # Construct final bar line by line: print the bar status at the middle, otherwise print only the symbol animation on the other lines and fill with blanks to correctly position the symbol.
+                    full_bar = '\n'.join(l_bar + line + r_bar if line_nb == middle_bar else
+                                        l_bar_fill + line + r_bar_fill for line_nb, line in enumerate(bar_lines)
+                                        )
                 # indeterminate progress bar (cycle from left to right then right to left)
                 else:
                     # increment one step in the animation for each display
@@ -233,7 +223,7 @@ class tqdm_custommulti(tqdm):
                     # Get current bar animation based on current iteration
                     bar = c_symb[divmod(self.n_anim, len(c_symb))[1]]
                     bar_lines = bar.splitlines()
-                    c_width = len(bar_lines[0])
+                    c_width = len(bar_lines[0])  # all lines should have same len
                     # Get left filling space and animation step (right pass or left?)
                     anim_step, fill_left = divmod(self.n_anim, (N_BARS - c_width))
                     # If anim_step is odd, then we do left pass (2nd pass)
@@ -255,11 +245,12 @@ class tqdm_custommulti(tqdm):
                     full_bar = '\n'.join(l_bar + l_fill + line + r_fill + r_bar if line_nb == middle_bar else
                                         l_bar_fill + l_fill + line + r_fill + r_bar_fill for line_nb, line in enumerate(bar_lines)
                                         )
-                    
-                    self.last_print_height = sum(1 for line in full_bar.splitlines())
 
-                # Piece together the bar parts
-                return full_bar
+            # Memorize last print height, necessary for parallel bars
+            self.last_print_height = sum(1 for line in full_bar.splitlines())
+
+            # Piece together the bar parts
+            return full_bar
 
     def __init__(self, *args, **kwargs):
         """
