@@ -42,15 +42,16 @@ install:
   # https://docs.travis-ci.com/user/caching/#Clearing-Caches
   - pip install pandas
   # Coverage install
-  - pip install tox 'coverage<4' coveralls
+  # - pip install tox 'coverage<4' coveralls
+  - pip install tox 'coverage<4'
   # install this package (tqdm) into the environment
   - python setup.py install
 
 # run tests
 script:
   - tox
-# submit coverage
 
+# submit coverage
 after_success:
-  - coveralls
+  # - coveralls
   - codecov
