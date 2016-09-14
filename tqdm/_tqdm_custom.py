@@ -123,7 +123,7 @@ class tqdm_custom(tqdm):
                         nb_symb = len(c_symb)
                         len_filler = len(c_symb[-1])
                         bar_length, frac_bar_length = divmod(
-                            int((frac/len_filler) * N_BARS * nb_symb), nb_symb)
+                            int(frac * int(N_BARS/len_filler) * nb_symb), nb_symb)
 
                         bar = c_symb[-1] * bar_length  # last symbol is always the filler
                         frac_bar = c_symb[frac_bar_length] if frac_bar_length \
@@ -177,7 +177,7 @@ class tqdm_custom(tqdm):
                 if bar_format['symbols_indeterminate'].get('loop', False):
                     # increment one step in the animation for each display
                     self.n_anim += 1
-                    # Get current bar animation based on current iteration
+                    # Get current bar animation
                     bar = c_symb[divmod(self.n_anim, len(c_symb))[1]]
 
                     bar_length = N_BARS  # avoid the filling
@@ -185,7 +185,7 @@ class tqdm_custom(tqdm):
                 else:
                     # increment one step in the animation for each display
                     self.n_anim += 1
-                    # Get current bar animation based on current iteration
+                    # Get current bar animation
                     symbol_idx = divmod(self.n_anim, len(c_symb))[1]
                     bar = c_symb[symbol_idx]
                     # Get left filling space and animation step (right pass or left?)

@@ -11,6 +11,8 @@ from __future__ import absolute_import, division
 # import compatibility functions and utilities
 from ._utils import _supports_unicode, _environ_cols_wrapper, _range, _unich, \
     _unicode, _term_move_up
+from itertools import count
+import random
 import string
 import sys
 
@@ -158,7 +160,7 @@ class tqdm_custommulti(tqdm):
                     if bar_format['symbols'].get('loop', False):
                         # increment one step in the animation for each display
                         self.n_anim += 1
-                        # Get current bar animation based on current iteration
+                        # Get current bar animation
                         bar = c_symb[divmod(self.n_anim, len(c_symb))[1]]
                         bar_lines = bar.splitlines()
                         c_width = len(bar_lines[0])  # all lines should have same len
@@ -175,16 +177,63 @@ class tqdm_custommulti(tqdm):
                                             )
                     # normal progress symbols
                     else:
-                        nb_symb = len(c_symb)
-                        len_filler = len(c_symb[-1])
-                        bar_length, frac_bar_length = divmod(
-                            int((frac/len_filler) * N_BARS * nb_symb), nb_symb)
+                        # increment one step in the animation for each display
+                        self.n_anim += 1
 
-                        bar = c_symb[-1] * bar_length  # last symbol is always the filler
-                        frac_bar = c_symb[frac_bar_length] if frac_bar_length \
-                            else ' '
-                        # update real bar length (if symbols > 1 char) for correct filler
-                        bar_length = bar_length * len_filler
+                        # Calculate bar length given progress
+                        # last symbol is always the filler
+                        nb_symb = len(c_symb)
+                        filler_lines = c_symb[-1][0].splitlines() if isinstance(c_symb[-1], list) else c_symb[-1].splitlines()
+                        filler_width = len(filler_lines[0])
+                        bar_length, frac_bar_length = divmod(
+                            int(frac * int(N_BARS/filler_width) * nb_symb), nb_symb)
+
+                        # If animated, get what animation we will show
+                        if isinstance(c_symb[-1], list):
+                            # If random, pick frame randomly
+                            if bar_format['symbols'].get('random', False):
+                                # Need filler symbol
+                                if bar_length:
+                                    # Randomly select the frame for each filler
+                                    filler_rand = [random.choice(c_symb[-1]).splitlines() for _ in _range(bar_length)]
+                                    # Generate filler (stack lines horizontally)
+                                    filler_lines = []
+                                    for i in _range(len(filler_rand[0])):
+                                        filler_lines.append(''.join(frame[i] for frame in filler_rand))
+                                # Just started, no filler, only frac,
+                                # generate empty lines
+                                else:
+                                    filler_lines = ['' for line in filler_lines]
+                                # Generate frac randomly
+                                frac_lines = random.choice(c_symb[frac_bar_length]).splitlines()
+                            # Else advance one frame per display
+                            else:
+                                # Get current bar animation frame
+                                filler_symb = c_symb[-1][divmod(self.n_anim, len(c_symb[-1]))[1]]
+                                frac_symb = c_symb[frac_bar_length][divmod(self.n_anim, len(c_symb[frac_bar_length]))[1]]
+                                # Repeat as required
+                                filler_lines = [line * bar_length for line in filler_symb.splitlines()]
+                                frac_lines = frac_symb.splitlines()
+                        # Not animated, don't need to select a frame
+                        else:
+                            # Repeat filler to build the main part of the bar
+                            filler_symb = c_symb[-1]
+                            filler_lines = [line * bar_length for line in filler_symb.splitlines()]
+                            frac_lines = c_symb[frac_bar_length].splitlines() if frac_bar_length \
+                                else ['' for frac_line in c_symb[-1].splitlines()]
+
+                        # Generate whitespace fillers
+                        l_bar_fill = ' ' * len(l_bar)
+                        r_bar_fill = ' ' * len(r_bar)
+                        middle_bar = int(len(filler_lines) / 2)
+                        r_fill = ' ' * max(N_BARS - (filler_width * bar_length) - len(frac_lines[0]), 0)
+
+                        # Stitch up the full bar
+                        # middle bar gets the stats, the others not
+                        full_bar = '\n'.join(l_bar + filler + frac + r_fill + r_bar \
+                            if line_nb == middle_bar else \
+                            l_bar_fill + filler + frac + r_fill + r_bar_fill \
+                            for line_nb, filler, frac in zip(count(), filler_lines, frac_lines))
 
             # no total: no progressbar, ETA, just progress stats
             else:
@@ -201,7 +250,7 @@ class tqdm_custommulti(tqdm):
                 if bar_format['symbols_indeterminate'].get('loop', False):
                     # increment one step in the animation for each display
                     self.n_anim += 1
-                    # Get current bar animation based on current iteration
+                    # Get current bar animation
                     bar = c_symb[divmod(self.n_anim, len(c_symb))[1]]
                     bar_lines = bar.splitlines()
                     c_width = len(bar_lines[0])  # all lines should have same len
@@ -220,7 +269,7 @@ class tqdm_custommulti(tqdm):
                 else:
                     # increment one step in the animation for each display
                     self.n_anim += 1
-                    # Get current bar animation based on current iteration
+                    # Get current bar animation
                     bar = c_symb[divmod(self.n_anim, len(c_symb))[1]]
                     bar_lines = bar.splitlines()
                     c_width = len(bar_lines[0])  # all lines should have same len
@@ -292,15 +341,34 @@ class tqdm_custommulti(tqdm):
                 for type in ['ascii', 'unicode']:
                     p_symb = []
                     # Preprocess each symbol of the animation
-                    for symb in self.bar_format[key].get(type, []):
-                        # Break symbol into list of lines
-                        symb = docstring2lines(symb)
-                        # Find the longest line
-                        _, longest = argmax(len(line) for line in symb)
-                        # Right pad the other lines (because right facing symbol)
-                        symb = [line + ' ' * (longest - len(line)) for line in symb]
-                        # Stitch lines back together
-                        p_symb.append('\n'.join(symb))
+                    for symb_list in self.bar_format[key].get(type, []):
+                        # If symbol animated, it's a list of strings (frames)
+                        # else it's a single string, convert to a list to
+                        # streamline the preprocessing
+                        if not isinstance(symb_list, list):
+                            symb_list = [symb_list]
+                            symb_islist = False
+                        else:
+                            symb_islist = True
+
+                        # Pad
+                        symb_frames = []
+                        for symb in symb_list:
+                            # Break symbol into list of lines
+                            symb = docstring2lines(symb)
+                            # Find the longest line
+                            _, longest = argmax(len(line) for line in symb)
+                            # Right pad the other lines (because right facing symbol)
+                            symb = [line + ' ' * (longest - len(line)) for line in symb]
+                            # Stitch lines back together
+                            symb_frames.append('\n'.join(symb))
+
+                        # Convert back to a string if symbol not animated
+                        # And store
+                        if not symb_islist:
+                            p_symb.append(symb_frames[0])
+                        else:
+                            p_symb.append(symb_frames)
                     # Put the whole animation back into bar_format
                     if p_symb:
                         self.bar_format[key][type] = p_symb
