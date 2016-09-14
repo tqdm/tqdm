@@ -20,6 +20,13 @@ from ._utils import _range
 # to inherit from the tqdm class
 from ._tqdm import tqdm
 
+try:
+    from itertools import zip_longest as _zip_longest
+    from itertools import izip as _zip
+except ImportError:
+    from itertools import izip_longest as _zip_longest
+    _zip = zip
+
 
 __author__ = {"github.com/": ["lrq3000"]}
 __all__ = ['tqdm_custommulti', 'tcmrange']
@@ -75,9 +82,10 @@ class tqdm_custommulti(tqdm):
             else:
                 len_s = [len(s)]
             # For each line, clear line then print line then fill the rest depending on len of last printed line
+            # fillvalue must be '' if s_lines is shorter, or 0 if last_len is shorter
             fp_write(
               '\n'.join(
-                '\r' + line + (' ' * max(last_len_s - len(line), 0)) for last_len_s, line in zip(last_len[0], s_lines)
+                '\r' + line + (' ' * max(last_len_s - len(line), 0)) for last_len_s, line in _zip_longest(last_len[0], s_lines, fillvalue='' if len(last_len[0]) > len(len_s) else 0)
               )
             )
             # Replace cursor at the first line
@@ -233,7 +241,7 @@ class tqdm_custommulti(tqdm):
                         full_bar = '\n'.join(l_bar + filler + frac + r_fill + r_bar \
                             if line_nb == middle_bar else \
                             l_bar_fill + filler + frac + r_fill + r_bar_fill \
-                            for line_nb, filler, frac in zip(count(), filler_lines, frac_lines))
+                            for line_nb, filler, frac in _zip(count(), filler_lines, frac_lines))
 
             # no total: no progressbar, ETA, just progress stats
             else:
