@@ -398,6 +398,21 @@ class tqdm_custommulti(tqdm):
                     # And store the reversed symbols
                     self.bar_format[key][type_rev] = p_symb
 
+    def moveto(self, n):
+        """
+        Relative cursor positioning for multiline bars
+        """
+        # In core tqdm, n = self.pos usually, which also = number of lines
+        # Here it's different since it's multiline, so we walk through each
+        # tqdm instance and count the nb of lines of each multiline bar
+        instances = tqdm_custommulti._instances
+        real_n = 0
+        for inst in instances:
+            if inst.pos < abs(n):
+                real_n += inst.last_print_height
+        # We can then call super with the real number of lines
+        super(tqdm_custommulti, self).moveto(real_n if n >= 0 else -real_n)
+
     def close(self):
         """
         Cleanup for multiline bars
@@ -407,7 +422,7 @@ class tqdm_custommulti(tqdm):
             if self.pos:
                 self.moveto(self.pos)
             else:
-                self.moveto(self.last_print_height - 1)
+                self.fp.write('\n' * (self.last_print_height - 1))
 
 
 def tcmrange(*args, **kwargs):
