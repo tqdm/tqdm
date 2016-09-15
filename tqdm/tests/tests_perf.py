@@ -111,22 +111,22 @@ def simple_progress(iterable=None, total=None, file=sys.stdout, desc='',
         if (n[0] - last_n[0]) >= miniters:
             last_n[0] = n[0]
 
-            cur_t = time()
-            if (cur_t - last_t[0]) >= mininterval:
-                last_t[0] = cur_t
+            if (time() - last_t[0]) >= mininterval:
+                last_t[0] = time()  # last_t[0] == current time
 
-                spent = cur_t - start_t[0]
+                spent = last_t[0] - start_t[0]
                 spent_fmt = format_interval(spent)
-                eta = spent / n[0] * total if n[0] else 0
-                frac = n[0] / total
                 rate = n[0] / spent if spent > 0 else 0
-                eta = (total - n[0]) / rate if rate > 0 else 0
-                eta_fmt = format_interval(eta)
                 if 0.0 < rate < 1.0:
                     rate_fmt = "%.2fs/it" % (1.0 / rate)
                 else:
                     rate_fmt = "%.2fit/s" % rate
+
+                frac = n[0] / total
                 percentage = int(frac * 100)
+                eta = (total - n[0]) / rate if rate > 0 else 0
+                eta_fmt = format_interval(eta)
+
                 bar = "#" * int(frac * width)
                 barfill = " " * int((1.0 - frac) * width)
                 bar_length, frac_bar_length = divmod(
@@ -134,9 +134,11 @@ def simple_progress(iterable=None, total=None, file=sys.stdout, desc='',
                 bar = '#' * bar_length
                 frac_bar = chr(48 + frac_bar_length) if frac_bar_length \
                     else ' '
+
                 file.write("\r%s %i%%|%s%s%s| %i/%i [%s<%s, %s]"
                            % (desc, percentage, bar, frac_bar, barfill, n[0],
                               total, spent_fmt, eta_fmt, rate_fmt))
+
                 if n[0] == total and leave:
                     file.write("\n")
                 file.flush()
@@ -148,7 +150,7 @@ def simple_progress(iterable=None, total=None, file=sys.stdout, desc='',
 
     update_and_print(0)
     if iterable is not None:
-        return update_and_yield
+        return update_and_yield()
     else:
         return update_and_print
 
@@ -282,10 +284,9 @@ def test_iter_overhead_simplebar_hard():
 
         a = 0
         with relative_timer() as time_bench:
-            simplebar_iter = simple_progress(_range(total), file=our_file,
-                                             leave=True, miniters=1,
-                                             mininterval=0)
-            for i in simplebar_iter():
+            for i in simple_progress(_range(total), file=our_file,
+                                     leave=True, miniters=1,
+                                     mininterval=0):
                 a += i
 
     # Compute relative overhead of tqdm against native range()
