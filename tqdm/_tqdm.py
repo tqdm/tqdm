@@ -15,6 +15,7 @@ from __future__ import division
 from ._utils import _supports_unicode, _environ_cols_wrapper, _range, _unich, \
     _term_move_up, _unicode, WeakSet
 import sys
+from numbers import Number
 from threading import Thread
 from time import time
 from time import sleep
@@ -199,7 +200,7 @@ class tqdm(object):
     @staticmethod
     def format_meter(n, total, elapsed, ncols=None, prefix='',
                      ascii=False, unit='it', unit_scale=False, rate=None,
-                     bar_format=None):
+                     bar_format=None, postfix=None):
         """
         Return a string-based progress bar given some parameters
 
@@ -240,6 +241,8 @@ class tqdm(object):
             '| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}]'
             Possible vars: bar, n, n_fmt, total, total_fmt, percentage,
             rate, rate_fmt, elapsed, remaining, l_bar, r_bar, desc.
+        postfix  : str, optional
+            Same as prefix but will be placed at the end as additional stats.
 
         Returns
         -------
@@ -284,8 +287,9 @@ class tqdm(object):
             # format the stats displayed to the left and right sides of the bar
             l_bar = (prefix if prefix else '') + \
                 '{0:3.0f}%|'.format(percentage)
-            r_bar = '| {0}/{1} [{2}<{3}, {4}]'.format(
-                    n_fmt, total_fmt, elapsed_str, remaining_str, rate_fmt)
+            r_bar = '| {0}/{1} [{2}<{3}, {4}{5}]'.format(
+                    n_fmt, total_fmt, elapsed_str, remaining_str, rate_fmt,
+                    ', '+postfix if postfix else '')
 
             if ncols == 0:
                 return l_bar[:-1] + r_bar[1:]
@@ -310,6 +314,7 @@ class tqdm(object):
                             'l_bar': l_bar,
                             'r_bar': r_bar,
                             'desc': prefix if prefix else '',
+                            'postfix': ', '+postfix if postfix else '',
                             # 'bar': full_bar  # replaced by procedure below
                             }
 
@@ -358,8 +363,9 @@ class tqdm(object):
 
         # no total: no progressbar, ETA, just progress stats
         else:
-            return (prefix if prefix else '') + '{0}{1} [{2}, {3}]'.format(
-                n_fmt, unit, elapsed_str, rate_fmt)
+            return (prefix if prefix else '') + '{0}{1} [{2}, {3}{4}]'.format(
+                n_fmt, unit, elapsed_str, rate_fmt,
+                ', '+postfix if postfix else '')
 
     def __new__(cls, *args, **kwargs):
         # Create a new instance
@@ -540,6 +546,7 @@ class tqdm(object):
                  maxinterval=10.0, miniters=None, ascii=None, disable=False,
                  unit='it', unit_scale=False, dynamic_ncols=False,
                  smoothing=0.3, bar_format=None, initial=0, position=None,
+                 postfix=None,
                  gui=False, **kwargs):
         """
         Parameters
@@ -619,6 +626,8 @@ class tqdm(object):
             Specify the line offset to print this bar (starting from 0)
             Automatic if unspecified.
             Useful to manage multiple bars at once (eg, from threads).
+        postfix  : dict, optional
+            Specify additional stats to display at the end of the bar.
         gui  : bool, optional
             WARNING: internal parameter - do not use.
             Use tqdm_gui(...) instead. If set, will attempt to use
@@ -707,6 +716,8 @@ class tqdm(object):
         self.avg_time = None
         self._time = time
         self.bar_format = bar_format
+        self.postfix = None
+        if postfix: self.set_postfix(**postfix)
 
         # Init the iterations counters
         self.last_print_n = initial
@@ -723,7 +734,8 @@ class tqdm(object):
                 self.moveto(self.pos)
             self.sp(self.format_meter(self.n, total, 0,
                     (dynamic_ncols(file) if dynamic_ncols else ncols),
-                    self.desc, ascii, unit, unit_scale, None, bar_format))
+                    self.desc, ascii, unit, unit_scale, None, bar_format,
+                    self.postfix))
             if self.pos:
                 self.moveto(-self.pos)
 
@@ -752,7 +764,8 @@ class tqdm(object):
                                  self._time() - self.start_t,
                                  self.ncols, self.desc, self.ascii, self.unit,
                                  self.unit_scale, 1 / self.avg_time
-                                 if self.avg_time else None, self.bar_format)
+                                 if self.avg_time else None, self.bar_format,
+                                 self.postfix)
 
     def __lt__(self, other):
         return self.pos < other.pos
@@ -842,7 +855,8 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
                             (dynamic_ncols(self.fp) if dynamic_ncols
                              else ncols),
                             self.desc, ascii, unit, unit_scale,
-                            1 / avg_time if avg_time else None, bar_format))
+                            1 / avg_time if avg_time else None, bar_format,
+                            self.postfix))
 
                         if self.pos:
                             self.moveto(-self.pos)
@@ -938,7 +952,7 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
                      else self.ncols),
                     self.desc, self.ascii, self.unit, self.unit_scale,
                     1 / self.avg_time if self.avg_time else None,
-                    self.bar_format))
+                    self.bar_format, self.postfix))
 
                 if self.pos:
                     self.moveto(-self.pos)
@@ -1010,7 +1024,7 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
                     (self.dynamic_ncols(self.fp) if self.dynamic_ncols
                      else self.ncols),
                     self.desc, self.ascii, self.unit, self.unit_scale, None,
-                    self.bar_format))
+                    self.bar_format, self.postfix))
             if pos:
                 self.moveto(-pos)
             else:
@@ -1035,6 +1049,22 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
         Set/modify description of the progress bar.
         """
         self.desc = desc + ': ' if desc else ''
+
+    def set_postfix(self, **kwargs):
+        """
+        Set/modify postfix (additional stats)
+        with automatic formatting based on datatype.
+        """
+        # Preprocess stats according to datatype
+        for key in kwargs.keys():
+            # Number: limit the length of the string
+            if isinstance(kwargs[key], Number):
+                kwargs[key] = '{0:2.3g}'.format(kwargs[key])
+            # Else for any other type, try to get the string conversion
+            elif not isinstance(kwargs[key], basestring):
+                kwargs[key] = str(kwargs[key])
+        # Stitch together to get the final postfix
+        self.postfix = ', '.join('%s=%s' % (key, kwargs[key]) for key in kwargs.keys())
 
     def moveto(self, n):
         self.fp.write(_unicode('\n' * n + _term_move_up() * -n))
