@@ -398,6 +398,17 @@ class tqdm_custommulti(tqdm):
                     # And store the reversed symbols
                     self.bar_format[key][type_rev] = p_symb
 
+    def close(self):
+        """
+        Cleanup for multiline bars
+        """
+        super(tqdm_custommulti, self).close()
+        if self.leave:
+            if self.pos:
+                self.moveto(self.pos)
+            else:
+                self.moveto(self.last_print_height - 1)
+
 
 def tcmrange(*args, **kwargs):
     """
