@@ -83,11 +83,10 @@ class tqdm_custommulti(tqdm):
                 len_s = [len(s)]
             # For each line, clear line then print line then fill the rest depending on len of last printed line
             # fillvalue must be '' if s_lines is shorter, or 0 if last_len is shorter
-            fp_write(
-              '\n'.join(
-                '\r' + line + (' ' * max(last_len_s - len(line), 0)) for last_len_s, line in _zip_longest(last_len[0], s_lines, fillvalue='' if len(last_len[0]) > len(len_s) else 0)
-              )
-            )
+            out = ['\r' + line + (' ' * max(last_len_s - len(line), 0)) for last_len_s, line in _zip_longest(last_len[0], s_lines, fillvalue='' if len(last_len[0]) > len(len_s) else 0)]
+            fp_write('\n'.join(out))
+            # Update height to what was really printed
+            height = len(out)
             # Replace cursor at the first line
             if height > 1:
                 movetomulti(-height + 1)
