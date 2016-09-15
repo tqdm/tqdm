@@ -397,7 +397,7 @@ Examples and Advanced Usage
   folder;
 - import the module and run ``help()``, or
 - consult the `wiki <https://github.com/tqdm/tqdm/wiki>`__.
-    - this has an `excellent article <https://github.com/tqdm/tqdm/wiki/How-to-Make-a-Great-Progressbar>`__ on how to make a **great** progressbar.
+    - this has an `excellent article <https://github.com/tqdm/tqdm/wiki/How-to-make-a-great-Progress-Bar>`__ on how to make a **great** progressbar.
 
 Nested progress bars
 ~~~~~~~~~~~~~~~~~~~~
