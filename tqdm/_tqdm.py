@@ -728,7 +728,7 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
                         delta_it = n - last_print_n
                         elapsed = cur_t - start_t
                         # EMA (not just overall average)
-                        if smoothing and delta_t:
+                        if smoothing and delta_t and delta_it:
                             avg_time = delta_t / delta_it \
                                 if avg_time is None \
                                 else smoothing * delta_t / delta_it + \
@@ -808,7 +808,7 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
                 delta_it = self.n - self.last_print_n  # should be n?
                 elapsed = cur_t - self.start_t
                 # EMA (not just overall average)
-                if self.smoothing and delta_t:
+                if self.smoothing and delta_t and delta_it:
                     self.avg_time = delta_t / delta_it \
                         if self.avg_time is None \
                         else self.smoothing * delta_t / delta_it + \
