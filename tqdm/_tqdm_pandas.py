@@ -26,6 +26,7 @@ def tqdm_pandas(tclass, *targs, **tkwargs):
 
     Parameters
     ----------
+    tclass  : tqdm class you want to use (eg, tqdm, tqdm_notebook, etc)
     *targs, **tkwargs  : arguments for the tqdm instance
 
     Examples
