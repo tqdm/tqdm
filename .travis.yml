@@ -40,6 +40,7 @@ install:
   # install big packages (they are cached to minimize build time)
   # if issues, clear cache
   # https://docs.travis-ci.com/user/caching/#Clearing-Caches
+  - pip install numpy
   - pip install pandas
   # Coverage install
   # - pip install tox 'coverage<4' coveralls
