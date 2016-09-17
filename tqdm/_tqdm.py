@@ -453,6 +453,7 @@ class tqdm(object):
                  maxinterval=10.0, miniters=None, ascii=None, disable=False,
                  unit='it', unit_scale=False, dynamic_ncols=False,
                  smoothing=0.3, bar_format=None, initial=0, position=None,
+                 stepsize=None,
                  gui=False, **kwargs):
         """
         Parameters
@@ -524,6 +525,8 @@ class tqdm(object):
             Specify the line offset to print this bar (starting from 0)
             Automatic if unspecified.
             Useful to manage multiple bars at once (eg, from threads).
+        stepsize  : int, optional
+            Default n value when using .update() or __iter__().
         gui  : bool, optional
             WARNING: internal parameter - do not use.
             Use tqdm_gui(...) instead. If set, will attempt to use
@@ -556,6 +559,15 @@ class tqdm(object):
                 total = len(iterable)
             except (TypeError, AttributeError):
                 total = None
+        elif total is not None and iterable is not None and stepsize is None:
+            try:
+                iterable_total = len(iterable)
+                stepsize = max(int(iterable / iterable_total), 1)
+            except (TypeError, AttributeError):
+                pass
+
+        if stepsize is None:
+            stepsize = 1
 
         if ((ncols is None) and (file in (sys.stderr, sys.stdout))) or \
                 dynamic_ncols:  # pragma: no cover
@@ -608,6 +620,7 @@ class tqdm(object):
         self.avg_time = None
         self._time = time
         self.bar_format = bar_format
+        self.stepsize = stepsize
 
         # Init the iterations counters
         self.last_print_n = initial
@@ -707,6 +720,7 @@ class tqdm(object):
             bar_format = self.bar_format
             _time = self._time
             format_meter = self.format_meter
+            stepsize = self.stepsize
 
             try:
                 sp = self.sp
@@ -719,7 +733,7 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
                 yield obj
                 # Update and print the progressbar.
                 # Note: does not call self.update(1) for speed optimisation.
-                n += 1
+                n += stepsize
                 # check the counter first (avoid calls to time())
                 if n - last_print_n >= miniters:
                     delta_t = _time() - last_print_t
@@ -773,7 +787,7 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
             self.n = n
             self.close()
 
-    def update(self, n=1):
+    def update(self, n=None):
         """
         Manually update the progress bar, useful for streams
         such as reading files.
@@ -798,7 +812,7 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
 
         if n < 0:
             raise ValueError("n ({0}) cannot be negative".format(n))
-        self.n += n
+        self.n += n if n else self.stepsize
 
         if self.n - self.last_print_n >= self.miniters:
             # We check the counter first, to reduce the overhead of time()
@@ -950,9 +964,23 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
         self.moveto(-self.pos)
 
 
+def trange_preprocess(*args, **kwargs):
+    # Unpack range() arguments depending on number of args
+    if len(args) == 1:
+        kwargs['total'] = args[0]
+    elif len(args) == 2:
+        kwargs['initial'], kwargs['total'] = args
+    elif len(args) == 3:
+        kwargs['initial'], kwargs['total'], kwargs['stepsize'] = args
+    # Return preprocessed kwargs for tqdm
+    return kwargs
+
 def trange(*args, **kwargs):
     """
     A shortcut for tqdm(xrange(*args), **kwargs).
     On Python3+ range is used instead of xrange.
     """
+    # Preprocess range() arguments to get additional params for tqdm
+    kwargs = trange_preprocess(*args, **kwargs)
+    # Return range() wrapped in tqdm bar
     return tqdm(_range(*args), **kwargs)
