@@ -251,7 +251,8 @@ Documentation
                    file=sys.stderr, ncols=None, mininterval=0.1,
                    maxinterval=10.0, miniters=None, ascii=None, disable=False,
                    unit='it', unit_scale=False, dynamic_ncols=False,
-                   smoothing=0.3, bar_format=None, initial=0, position=None):
+                   smoothing=0.3, bar_format=None, initial=0, position=None,
+                   postfix=None):
 
 Parameters
 ~~~~~~~~~~
@@ -331,6 +332,8 @@ Parameters
     Specify the line offset to print this bar (starting from 0)
     Automatic if unspecified.
     Useful to manage multiple bars at once (eg, from threads).
+* postfix  : dict, optional
+    Specify additional stats to display at the end of the bar.
 
 Extra CLI Options
 ~~~~~~~~~~~~~~~~~
@@ -392,6 +395,17 @@ Returns
           Print a message via tqdm (without overlap with bars)
           """
 
+      def set_description(self, desc=None):
+          """
+          Set/modify description of the progress bar.
+          """
+
+      def set_postfix(self, **kwargs):
+          """
+          Set/modify postfix (additional stats)
+          with automatic formatting based on datatype.
+          """
+
     def trange(*args, **kwargs):
         """
         A shortcut for tqdm(xrange(*args), **kwargs).
@@ -427,6 +441,27 @@ Examples and Advanced Usage
 - import the module and run ``help()``, or
 - consult the `wiki <https://github.com/tqdm/tqdm/wiki>`__.
     - this has an `excellent article <https://github.com/tqdm/tqdm/wiki/How-to-make-a-great-Progress-Bar>`__ on how to make a **great** progressbar.
+
+Description and additional stats
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Custom information can easily be displayed on ``tqdm`` bars by using the
+``desc`` and ``postfix`` arguments. They can also be updated dynamically
+inside your loops:
+
+.. code:: python
+
+    from tqdm import trange
+    from random import random, randint
+    from time import sleep
+
+    t = trange(100)
+    for i in t:
+        # Description will be displayed at the left
+        t.set_description('GEN %i' % i)
+        # Postfix will choose the formatting based on argument's datatype
+        # and will display them as additional info at the right
+        t.set_postfix(loss=random(), gen=randint(1,999), str='h', lst=[1, 2])
+        sleep(0.1)
 
 Nested progress bars
 ~~~~~~~~~~~~~~~~~~~~
