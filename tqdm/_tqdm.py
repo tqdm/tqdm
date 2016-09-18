@@ -717,7 +717,8 @@ class tqdm(object):
         self._time = time
         self.bar_format = bar_format
         self.postfix = None
-        if postfix: self.set_postfix(**postfix)
+        if postfix:
+            self.set_postfix(**postfix)
 
         # Init the iterations counters
         self.last_print_n = initial
@@ -1063,8 +1064,10 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
             # Else for any other type, try to get the string conversion
             elif not isinstance(kwargs[key], basestring):
                 kwargs[key] = str(kwargs[key])
+            # Else if it's a string, don't need to preprocess anything
         # Stitch together to get the final postfix
-        self.postfix = ', '.join('%s=%s' % (key, kwargs[key]) for key in kwargs.keys())
+        self.postfix = ', '.join('%s=%s' % (key, kwargs[key])
+                                 for key in kwargs.keys())
 
     def moveto(self, n):
         self.fp.write(_unicode('\n' * n + _term_move_up() * -n))
