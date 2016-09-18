@@ -562,11 +562,11 @@ class tqdm(object):
         elif total is not None and iterable is not None and stepsize is None:
             try:
                 iterable_total = len(iterable)
-                stepsize = max(int(iterable / iterable_total), 1)
+                stepsize = max(int(total / iterable_total), 1)
             except (TypeError, AttributeError):
                 pass
 
-        if stepsize is None:
+        if stepsize is None or stepsize <= 0:
             stepsize = 1
 
         if ((ncols is None) and (file in (sys.stderr, sys.stdout))) or \
@@ -810,7 +810,7 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
         if self.disable:
             return
 
-        if n < 0:
+        if n is not None and n < 0:
             raise ValueError("n ({0}) cannot be negative".format(n))
         self.n += n if n else self.stepsize
 
