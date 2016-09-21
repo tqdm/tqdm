@@ -8,6 +8,7 @@ IS_NIX = (not IS_WIN) and any(
     ['CYGWIN', 'MSYS', 'Linux', 'Darwin', 'SunOS', 'FreeBSD'])
 
 
+# Py2/3 compatiibility code is inside an empty conditional to avoid coverage
 if True:  # pragma: no cover
     try:
         _range = xrange
@@ -37,6 +38,11 @@ if True:  # pragma: no cover
         from weakref import WeakSet
     except ImportError:
         WeakSet = set
+
+    try:
+        _basestring = basestring
+    except NameError:
+        _basestring = str
 
 
 def _is_utf(encoding):

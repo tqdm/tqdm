@@ -13,7 +13,7 @@ from __future__ import absolute_import
 from __future__ import division
 # import compatibility functions and utilities
 from ._utils import _supports_unicode, _environ_cols_wrapper, _range, _unich, \
-    _term_move_up, _unicode, WeakSet
+    _term_move_up, _unicode, WeakSet, _basestring
 import sys
 from numbers import Number
 from threading import Thread
@@ -1062,7 +1062,7 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
             if isinstance(kwargs[key], Number):
                 kwargs[key] = '{0:2.3g}'.format(kwargs[key])
             # Else for any other type, try to get the string conversion
-            elif not isinstance(kwargs[key], basestring):
+            elif not isinstance(kwargs[key], _basestring):
                 kwargs[key] = str(kwargs[key])
             # Else if it's a string, don't need to preprocess anything
         # Stitch together to get the final postfix
