@@ -26,3 +26,9 @@ def tnrange(*args, **kwargs):  # pragma: no cover
     """
     from ._tqdm_notebook import tnrange as _tnrange
     return _tnrange(*args, **kwargs)
+
+
+try:
+    import ._dask as dask
+except ImportError:
+    pass
