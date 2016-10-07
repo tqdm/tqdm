@@ -2,7 +2,7 @@ from dask.callbacks import Callback
 from ._tqdm import tqdm
 
 
-class ProgressBar(Callback):
+class tqdm_dask(Callback):
     def __init__(self, tclass=tqdm, *targs, **tkwargs):
         """
         Progress bar class to use with dask.
@@ -13,7 +13,7 @@ class ProgressBar(Callback):
         targs, tkwargs  : arguments for the tqdm instance
         """
         if not isinstance(tclass, type):
-            tclass = type(class)
+            tclass = type(tclass)
         self._tclass = tclass
         self._targs = targs
         self._tkwargs = tkwargs
