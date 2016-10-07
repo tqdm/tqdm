@@ -29,6 +29,6 @@ def tnrange(*args, **kwargs):  # pragma: no cover
 
 
 try:
-    import ._dask as dask
+    from ._dask import tqdm_dask
 except ImportError:
     pass
