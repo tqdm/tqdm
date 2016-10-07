@@ -280,8 +280,29 @@ class tqdm(object):
 
         # no total: no progressbar, ETA, just progress stats
         else:
-            return (prefix if prefix else '') + '{0}{1} [{2}, {3}]'.format(
-                n_fmt, unit, elapsed_str, rate_fmt)
+            if bar_format:
+                l_bar = (prefix if prefix else '')
+                r_bar = '{0}{1} [{2}, {3}]'.format(
+                    n_fmt, unit, elapsed_str, rate_fmt)
+                bar_args = {'n': n,
+                            'n_fmt': n_fmt,
+                            'rate': rate if inv_rate is None else inv_rate,
+                            'rate_noinv': rate,
+                            'rate_noinv_fmt': ((format_sizeof(rate)
+                                               if unit_scale else
+                                               '{0:5.2f}'.format(rate))
+                                               if rate else '?') + unit + '/s',
+                            'rate_fmt': rate_fmt,
+                            'elapsed': elapsed_str,
+                            'l_bar': l_bar,
+                            'r_bar': r_bar,
+                            'desc': prefix if prefix else '',
+                            'bar': '',
+                            }
+                return bar_format.format(**bar_args)
+            else:
+                return (prefix if prefix else '') + '{0}{1} [{2}, {3}]'.format(
+                    n_fmt, unit, elapsed_str, rate_fmt)
 
     def __new__(cls, *args, **kwargs):
         # Create a new instance
@@ -512,11 +533,17 @@ class tqdm(object):
             (current/instantaneous speed) [default: 0.3].
         bar_format  : str, optional
             Specify a custom bar string formatting. May impact performance.
-            If unspecified, will use '{l_bar}{bar}{r_bar}', where l_bar is
+            If unspecified, will use '{l_bar}{bar}{r_bar}'.  If total is
+            specified or len(iterable) is available,  l_bar is
             '{desc}{percentage:3.0f}%|' and r_bar is
-            '| {n_fmt}/{total_fmt} [{elapsed_str}<{remaining_str}, {rate_fmt}]'
-            Possible vars: bar, n, n_fmt, total, total_fmt, percentage,
-            rate, rate_fmt, elapsed, remaining, l_bar, r_bar, desc.
+            '| {n_fmt}/{total_fmt} [{elapsed_str}<{remaining_str}, {rate_fmt}]'.
+            If total is not specified and len(iterable) is not available,
+            l_bar is '{desc}' and r_bar is
+            '{n_fmt}{unit} [{elapsed_str}, {rate_fmt}]'.
+            Possible vars are: bar, n, n_fmt, rate, rate_fmt, elapsed, l_bar,
+            r_bar, desc.
+            If total or len(iterator), possible vars also include: total,
+            total_fmt, percentage, remaining.
         initial  : int, optional
             The initial counter value. Useful when restarting a progress
             bar [default: 0].
