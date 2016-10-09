@@ -450,7 +450,7 @@ class tqdm(object):
 
     def __init__(self, iterable=None, desc=None, total=None, leave=True,
                  file=sys.stderr, ncols=None, mininterval=0.1,
-                 maxinterval=10.0, miniters=None, ascii=None, disable=None,
+                 maxinterval=10.0, miniters=None, ascii=None, disable=False,
                  unit='it', unit_scale=False, dynamic_ncols=False,
                  smoothing=0.3, bar_format=None, initial=0, position=None,
                  gui=False, **kwargs):
@@ -492,9 +492,9 @@ class tqdm(object):
         ascii  : bool, optional
             If unspecified or False, use unicode (smooth blocks) to fill
             the meter. The fallback is to use ASCII characters `1-9 #`.
-        disable  : bool, optional
-            Whether to disable the entire progressbar wrapper. If not set,
-            disable on non-TTY.
+        disable  : bool or None, optional
+            Whether to disable the entire progressbar wrapper
+            [default: False]. If set to None, disable on non-TTY.
         unit  : str, optional
             String that will be used to define the unit of each iteration
             [default: it].
