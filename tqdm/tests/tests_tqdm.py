@@ -1119,6 +1119,16 @@ def test_clear():
 
 
 @with_setup(pretest, posttest)
+def test_clear():
+    """ Test clearing bar display """
+    with closing(StringIO()) as our_file:
+        with tqdm(total=10, file=our_file, desc='pos0 bar', disable=True,
+                  bar_format='{l_bar}') as t:
+            t.clear()
+        assert our_file.getvalue() == ''
+
+
+@with_setup(pretest, posttest)
 def test_refresh():
     """ Test refresh bar display """
     with closing(StringIO()) as our_file:
@@ -1138,6 +1148,18 @@ def test_refresh():
         # Check that refreshing indeed forced the display to use realtime state
         assert before == [u'pos0 bar:   0%|', u'pos1 bar:   0%|']
         assert after == [u'pos0 bar:  10%|', u'pos1 bar:  10%|']
+
+
+@with_setup(pretest, posttest)
+def test_disabled_refresh():
+    """ Test refresh bar display """
+    with closing(StringIO()) as our_file:
+        with tqdm(total=10, file=our_file, desc='pos0 bar', disable=True,
+                  bar_format='{l_bar}', mininterval=999, miniters=999) as t:
+            t.update()
+            t.refresh()
+
+        assert our_file.getvalue() == ''
 
 
 @with_setup(pretest, posttest)

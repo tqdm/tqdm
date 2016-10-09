@@ -929,6 +929,9 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
         """
         Clear current bar display
         """
+        if self.disable:
+            return
+
         if not nomove:
             self.moveto(self.pos)
         # clear up the bar (can't rely on sp(''))
@@ -942,6 +945,9 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
         """
         Force refresh the display of this bar
         """
+        if self.disable:
+            return
+
         self.moveto(self.pos)
         # clear up this line's content (whatever there was)
         self.clear(nomove=True)
