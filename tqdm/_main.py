@@ -35,8 +35,21 @@ def posix_pipe(fin, fout, delim='\n', buf_size=256,
     """
     fp_write = fout.write
 
-    buf = ''
     tmp = ''
+    if not delim:
+        while True:
+            tmp = fin.read(buf_size)
+
+            # flush at EOF
+            if not tmp:
+                getattr(fout, 'flush', lambda: None)()  # pragma: no cover
+                return
+
+            fp_write(tmp)
+            callback(len(tmp))
+        return
+
+    buf = ''
     # n = 0
     while True:
         tmp = fin.read(buf_size)
@@ -80,6 +93,8 @@ CLI_EXTRA_DOC = r"""
         buf_size  : int, optional
             String buffer size in bytes [default: 256]
             used when `delim` is specified.
+        bytes  : bool, optional
+            If true, will count bytes and ignore `delim`.
 """
 
 
@@ -131,9 +146,14 @@ Options:
             sys.stdout.write(i)
         raise
     else:
-        delim = tqdm_args.pop('delim', '\n')
         buf_size = tqdm_args.pop('buf_size', 256)
-        if delim == '\n':
+        delim = tqdm_args.pop('delim', '\n')
+        bytes = tqdm_args.pop('bytes', False)
+        if bytes:
+            with tqdm(**tqdm_args) as t:
+                posix_pipe(sys.stdin, sys.stdout,
+                           '', buf_size, t.update)
+        elif delim == '\n':
             for i in tqdm(sys.stdin, **tqdm_args):
                 sys.stdout.write(i)
         else:
