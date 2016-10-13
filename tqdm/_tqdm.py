@@ -427,8 +427,8 @@ class tqdm(object):
         fp.write(end)
         # Force refresh display of bars we cleared
         for inst in inst_cleared:
-            # Avoid racing conditions by checking that the instance started
-            if hasattr(inst, 'started') and inst.started:
+            # Avoid race conditions by checking that the instance started
+            if hasattr(inst, 'start_t'):
                 inst.refresh()
         # TODO: make list of all instances incl. absolutely positioned ones?
 
@@ -720,10 +720,8 @@ class tqdm(object):
                 self.moveto(-self.pos)
 
         # Init the time counter
+        # NB: Avoid race conditions by setting this at the very end of init
         self.start_t = self.last_print_t = self._time()
-
-        # Avoid race conditions by setting a flag at the very end of init
-        self.started = True
 
     def __len__(self):
         return (self.iterable.shape[0] if hasattr(self.iterable, 'shape')
