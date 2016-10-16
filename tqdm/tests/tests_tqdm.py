@@ -1255,3 +1255,22 @@ def test_len():
     with closing(StringIO()) as f:
         with tqdm(np.zeros((3, 4)), file=f) as t:
             assert len(t) == 3
+
+
+@with_setup(pretest, posttest)
+def test_autodisable_disable():
+    """Test autodisable will disable on non-TTY"""
+    with closing(StringIO()) as our_file:
+        with tqdm(total=10, disable=None, file=our_file) as t:
+            pass
+        assert our_file.getvalue() == ''
+
+
+@with_setup(pretest, posttest)
+def test_autodisable_enable():
+    """Test autodisable will not disable on TTY"""
+    with closing(StringIO()) as our_file:
+        setattr(our_file, "isatty", lambda: True)
+        with tqdm(total=10, disable=None, file=our_file) as t:
+            pass
+        assert our_file.getvalue() != ''

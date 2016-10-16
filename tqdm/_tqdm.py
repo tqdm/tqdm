@@ -492,9 +492,9 @@ class tqdm(object):
         ascii  : bool, optional
             If unspecified or False, use unicode (smooth blocks) to fill
             the meter. The fallback is to use ASCII characters `1-9 #`.
-        disable  : bool, optional
+        disable  : bool or None, optional
             Whether to disable the entire progressbar wrapper
-            [default: False].
+            [default: False]. If set to None, disable on non-TTY.
         unit  : str, optional
             String that will be used to define the unit of each iteration
             [default: it].
@@ -533,6 +533,10 @@ class tqdm(object):
         -------
         out  : decorated iterator.
         """
+
+        if disable is None and hasattr(file, "isatty") and not file.isatty():
+            disable = True
+
         if disable:
             self.iterable = iterable
             self.disable = disable
