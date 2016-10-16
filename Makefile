@@ -1,6 +1,7 @@
 # IMPORTANT: for compatibility with `python setup.py make [alias]`, ensure:
 # 1. Every alias is preceded by @[+]make (eg: @make alias)
 # 2. A maximum of one @make alias or command per line
+# 3. Only use tabs, not spaces to indent (compatibility with linux make)
 #
 # Sample makefile compatible with `python setup.py make`:
 #```
