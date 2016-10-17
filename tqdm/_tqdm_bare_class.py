@@ -4,15 +4,15 @@ For developers porting to other languages or speed freaks.
 Includes a default (x)range iterator printing to stderr.
 
 Usage:
-  >>> from tqdm import tbrange[, tqdm_bare]
-  >>> for i in tbrange(10): #same as: for i in tqdm_bare(xrange(10))
+  >>> from tqdm import tbcrange[, tqdm_bare_class]
+  >>> for i in tbcrange(10): #same as: for i in tqdm_bare_class(xrange(10))
   ...     ...
 """
 # future division is important to divide integers and get as
 # a result precise floating numbers (instead of truncated int)
 from __future__ import division
 # import colorama to support move up character in windows term
-# can't be included here because conflicts if both tqdm and tqdm_bare imported
+# can't be included here because conflicts if both tqdm and tqdm_bare_class imported
 from ._utils import IS_WIN, colorama
 # import utilities
 import sys
@@ -34,10 +34,10 @@ _term_move_up = '' if IS_WIN and (colorama is None) else '\x1b[A'
 
 __author__ = {"github.com/": ["noamraph", "obiwanus", "kmike", "hadim",
                               "casperdcl", "lrq3000"]}
-__all__ = ['tqdm_bare', 'tbrange']
+__all__ = ['tqdm_bare_class', 'tbcrange']
 
 
-class tqdm_bare(object):
+class tqdm_bare_class(object):
     """
     Minimalist barebone progress bar reproducing tqdm's major features.
     Decorate an iterable object, returning an iterator which acts exactly
@@ -113,8 +113,8 @@ class tqdm_bare(object):
         Return a string-based progress bar given some parameters
         """
         # faster access by inlining static call
-        format_interval = tqdm_bare.format_interval
-        format_sizeof = tqdm_bare.format_sizeof
+        format_interval = self.format_interval
+        format_sizeof = self.format_sizeof
 
         elapsed_fmt = format_interval(elapsed)
         if unit_scale:
@@ -206,14 +206,14 @@ class tqdm_bare(object):
             maxinterval = 0
 
         # Position automagic management (aka nested bars)
-        if not hasattr(tqdm_bare, '_instances'):
+        if not hasattr(tqdm_bare_class, '_instances'):
             # Create function variable if not existent
             # use a class property to share amongst all instances
-            tqdm_bare._instances = set()
+            tqdm_bare_class._instances = set()
         if position is None:
             # Automatic position number generation
             prev_pos = -1  # position just before the hole
-            for p in tqdm_bare._instances:
+            for p in tqdm_bare_class._instances:
                 # If there's a hole between two instances pos, pick this position
                 if (p - prev_pos) > 1:
                     break
@@ -221,7 +221,7 @@ class tqdm_bare(object):
             # Pick next position to the one before the hole
             position = prev_pos+1
         # Store position in the list (just to know which ones are taken)
-        tqdm_bare._instances.add(position)
+        tqdm_bare_class._instances.add(position)
 
         # Store in instance for later access in methods
         self.iterable = iterable
@@ -427,12 +427,12 @@ class tqdm_bare(object):
         self.moveto(-pos)
 
         # Remove oneself from the list of positions
-        tqdm_bare._instances.remove(self.pos)
+        tqdm_bare_class._instances.remove(self.pos)
 
 
-def tbrange(*args, **kwargs):
+def tbcrange(*args, **kwargs):
     """
     A shortcut for tqdm_bare(xrange(*args), **kwargs).
     On Python3+ range is used instead of xrange.
     """
-    return tqdm_bare(_range(*args), **kwargs)
+    return tqdm_bare_class(_range(*args), **kwargs)
