@@ -2,8 +2,8 @@ from ._tqdm import tqdm
 from ._tqdm import trange
 from ._tqdm_gui import tqdm_gui
 from ._tqdm_gui import tgrange
-from ._tqdm_bare import tqdm_bare_class
-from ._tqdm_bare import tbcrange
+from ._tqdm_bare_class import tqdm_bare_class
+from ._tqdm_bare_class import tbcrange
 from ._tqdm_pandas import tqdm_pandas
 from ._tqdm_bare import tqdm_bare
 from ._tqdm_bare import tbrange

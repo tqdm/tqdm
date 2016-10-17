@@ -113,8 +113,8 @@ class tqdm_bare_class(object):
         Return a string-based progress bar given some parameters
         """
         # faster access by inlining static call
-        format_interval = self.format_interval
-        format_sizeof = self.format_sizeof
+        format_interval = tqdm_bare_class.format_interval
+        format_sizeof = tqdm_bare_class.format_sizeof
 
         elapsed_fmt = format_interval(elapsed)
         if unit_scale:
