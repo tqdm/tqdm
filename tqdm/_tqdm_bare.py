@@ -38,7 +38,7 @@ __all__ = ['tqdm_bare', 'tbrange']
 
 
 def tqdm_bare(iterable=None, desc=None, total=None, leave=True,
-                    file=sys.stdout, width=78, mininterval=0.1,
+                    file=None, width=78, mininterval=0.1,
                     maxinterval=10, miniters=None, disable=False,
                     unit='it', unit_scale=False,
                     smoothing=0.3, initial=0, position=None,
@@ -326,6 +326,10 @@ def tqdm_bare(iterable=None, desc=None, total=None, leave=True,
 
 
     # -- Initialization
+    # Define file default value at instanciation rather than class import
+    # (ease file redirection)
+    if file is None:
+        file = sys.stdout
     n = [initial]  # use a closure to store and modify within subfunctions
     start_t = time()  # simple variable enough for access in subfunctions
     last_print_n = [initial]
