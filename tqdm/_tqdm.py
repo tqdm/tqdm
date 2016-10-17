@@ -418,11 +418,11 @@ class tqdm(object):
             pass
 
     @classmethod
-    def write(cls, s, file=sys.stdout, end="\n"):
+    def write(cls, s, file=None, end="\n"):
         """
         Print a message via tqdm (without overlap with bars)
         """
-        fp = file
+        fp = file if file is not None else sys.stdout
 
         # Clear all bars
         inst_cleared = []
@@ -548,7 +548,7 @@ class tqdm(object):
         GroupBy.progress_transform = inner_generator('transform')
 
     def __init__(self, iterable=None, desc=None, total=None, leave=True,
-                 file=sys.stderr, ncols=None, mininterval=0.1,
+                 file=None, ncols=None, mininterval=0.1,
                  maxinterval=10.0, miniters=None, ascii=None, disable=False,
                  unit='it', unit_scale=False, dynamic_ncols=False,
                  smoothing=0.3, bar_format=None, initial=0, position=None,
@@ -653,6 +653,11 @@ class tqdm(object):
             self.pos = self._get_free_pos(self)
             self._instances.remove(self)
             return
+
+        # Define file default value at instanciation rather than class import
+        # (ease file redirection)
+        if file is None:
+            file = sys.stderr
 
         if kwargs:
             self.disable = True
