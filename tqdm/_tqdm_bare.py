@@ -166,7 +166,7 @@ class tqdm_bare(object):
         self.fp.write(_unicode('\n' * pos + _term_move_up * -pos))
     
     def __init__(self, iterable=None, desc=None, total=None, leave=True,
-                    file=sys.stdout, width=78, mininterval=0.1,
+                    file=None, width=78, mininterval=0.1,
                     maxinterval=10, miniters=None, disable=False,
                     unit='it', unit_scale=False,
                     smoothing=0.3, initial=0, position=None,
@@ -177,6 +177,11 @@ class tqdm_bare(object):
             self.iterable = iterable
             self.disable = disable
             return
+
+        # Define file default value at instanciation rather than class import
+        # (ease file redirection)
+        if file is None:
+            file = sys.stdout
 
         # Preprocess the arguments
         if total is None and iterable is not None:
