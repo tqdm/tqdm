@@ -16,7 +16,7 @@ from tqdm import TqdmDeprecationWarning
 
 try:
     from StringIO import StringIO
-except:
+except ImportError:
     from io import StringIO
 
 from io import IOBase  # to support unicode strings
@@ -1119,7 +1119,7 @@ def test_clear():
 
 
 @with_setup(pretest, posttest)
-def test_clear():
+def test_clear_disabled():
     """ Test clearing bar display """
     with closing(StringIO()) as our_file:
         with tqdm(total=10, file=our_file, desc='pos0 bar', disable=True,

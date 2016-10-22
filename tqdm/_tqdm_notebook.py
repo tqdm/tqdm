@@ -215,7 +215,7 @@ class tqdm_notebook(tqdm):
                 else:
                     self.sp(close=True)
 
-    def moveto(*args, **kwargs):
+    def moveto(self, *args, **kwargs):
         # void -> avoid extraneous `\n` in IPython output cell
         return
 

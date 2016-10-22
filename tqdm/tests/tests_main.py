@@ -1,7 +1,6 @@
 import sys
 import subprocess
 from tqdm import main, TqdmKeyError, TqdmTypeError
-from copy import deepcopy
 
 from tests_tqdm import with_setup, pretest, posttest, _range, closing, UnicodeIO
 
@@ -29,10 +28,7 @@ def test_main():
     assert (ls_out in res.replace('\r\n', '\n'))
 
     # semi-fake test which gets coverage:
-    try:
-        _SYS = (deepcopy(sys.stdin), deepcopy(sys.argv))
-    except:
-        pass
+    _SYS = sys.stdin, sys.argv
 
     with closing(UnicodeIO()) as sys.stdin:
         sys.argv = ['', '--desc', 'Test CLI delims',
@@ -85,7 +81,4 @@ def test_main():
             pass
 
     # clean up
-    try:
-        sys.stdin, sys.argv = _SYS
-    except:
-        pass
+    sys.stdin, sys.argv = _SYS
