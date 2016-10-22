@@ -1263,7 +1263,6 @@ def test_autodisable_disable():
     with closing(StringIO()) as our_file:
         with tqdm(total=10, disable=None, file=our_file) as t:
             t.update(3)
-            pass
         assert our_file.getvalue() == ''
 
 
