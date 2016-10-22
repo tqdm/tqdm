@@ -303,7 +303,7 @@ def test_iterate_over_csv_rows():
         reader = csv.DictReader(test_csv_file,
                                 fieldnames=('row1', 'row2', 'row3'))
         with closing(StringIO()) as our_file:
-            for row in tqdm(reader, file=our_file):
+            for _ in tqdm(reader, file=our_file):
                 pass
 
 
@@ -841,7 +841,7 @@ def test_bar_format():
     """ Test custom bar formatting """
     with closing(StringIO()) as our_file:
         bar_format = r'{l_bar}{bar}|{n_fmt}/{total_fmt}-{n}/{total}{percentage}{rate}{rate_fmt}{elapsed}{remaining}'  # NOQA
-        for i in trange(2, file=our_file, leave=True, bar_format=bar_format):
+        for _ in trange(2, file=our_file, leave=True, bar_format=bar_format):
             pass
         out = our_file.getvalue()
     assert "\r  0%|          |0/2-0/20.0None?it/s00:00?\r" in out
@@ -902,11 +902,11 @@ def test_position():
 
     # Test iteration-based tqdm positioning
     our_file = StringIO()
-    for i in trange(2, file=our_file, miniters=1, mininterval=0,
+    for _ in trange(2, file=our_file, miniters=1, mininterval=0,
                     maxinterval=0, desc='pos0 bar', position=0):
-        for j in trange(2, file=our_file, miniters=1, mininterval=0,
+        for _ in trange(2, file=our_file, miniters=1, mininterval=0,
                         maxinterval=0, desc='pos1 bar', position=1):
-            for k in trange(2, file=our_file, miniters=1, mininterval=0,
+            for _ in trange(2, file=our_file, miniters=1, mininterval=0,
                             maxinterval=0, desc='pos2 bar', position=2):
                 pass
     our_file.seek(0)
@@ -1262,6 +1262,7 @@ def test_autodisable_disable():
     """Test autodisable will disable on non-TTY"""
     with closing(StringIO()) as our_file:
         with tqdm(total=10, disable=None, file=our_file) as t:
+            t.update(3)
             pass
         assert our_file.getvalue() == ''
 
@@ -1272,5 +1273,5 @@ def test_autodisable_enable():
     with closing(StringIO()) as our_file:
         setattr(our_file, "isatty", lambda: True)
         with tqdm(total=10, disable=None, file=our_file) as t:
-            pass
+            t.update()
         assert our_file.getvalue() != ''
