@@ -7,7 +7,7 @@ tqdm
 
 |Build-Status| |Coverage-Status| |Branch-Coverage-Status| |Codacy-Grade|
 
-|DOI-URI| |LICENCE|
+|DOI-URI| |LICENSE|
 
 
 ``tqdm`` (read taqadum, تقدّم) means "progress" in arabic.
@@ -634,10 +634,10 @@ See the
 file for more information.
 
 
-LICENCE
+LICENSE
 -------
 
-Open Source (OSI approved): |LICENCE|
+Open Source (OSI approved): |LICENSE|
 
 Citation information: |DOI-URI|
 
@@ -680,8 +680,8 @@ Ranked by contributions.
    :target: https://pypi.python.org/pypi/tqdm
 .. |PyPI-Versions| image:: https://img.shields.io/pypi/pyversions/tqdm.svg
    :target: https://pypi.python.org/pypi/tqdm
-.. |LICENCE| image:: https://img.shields.io/pypi/l/tqdm.svg
-   :target: https://raw.githubusercontent.com/tqdm/tqdm/master/LICENCE
+.. |LICENSE| image:: https://img.shields.io/pypi/l/tqdm.svg
+   :target: https://raw.githubusercontent.com/tqdm/tqdm/master/LICENSE
 .. |DOI-URI| image:: https://zenodo.org/badge/21637/tqdm/tqdm.svg
    :target: https://zenodo.org/badge/latestdoi/21637/tqdm/tqdm
 .. |Screenshot-Jupyter1| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/tqdm-jupyter-1.gif

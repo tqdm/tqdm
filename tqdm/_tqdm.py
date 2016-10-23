@@ -17,6 +17,10 @@ from ._utils import _supports_unicode, _environ_cols_wrapper, _range, _unich, \
 import sys
 from time import time
 
+# For parallel bars
+import multiprocessing as mp
+import threading as th
+
 
 __author__ = {"github.com/": ["noamraph", "obiwanus", "kmike", "hadim",
                               "casperdcl", "lrq3000"]}
@@ -290,6 +294,11 @@ class tqdm(object):
         if "_instances" not in cls.__dict__:
             cls._instances = WeakSet()
         cls._instances.add(instance)
+        # Create writing lock to avoid racing issues with parallel bars
+        if "_write_lock" not in cls.__dict__:
+            cls._write_lock = mp.Lock()
+        if "_thread_write_lock" not in cls.__dict__:
+            cls._thread_write_lock = th.Lock()
         # Return the instance
         return instance
 
@@ -323,6 +332,11 @@ class tqdm(object):
         """
         Print a message via tqdm (without overlap with bars)
         """
+        # Acquire lock to avoid racing issues when printing parallel bars
+        cls._write_lock.acquire()
+        cls._thread_write_lock.acquire()
+
+        # Rename argument for internal consistency
         fp = file
 
         # Clear all bars
@@ -344,6 +358,10 @@ class tqdm(object):
             if hasattr(inst, 'started') and inst.started:
                 inst.refresh()
         # TODO: make list of all instances incl. absolutely positioned ones?
+
+        # Release writing locks
+        cls._thread_write_lock.release()
+        cls._write_lock.release()
 
     @classmethod
     def pandas(tclass, *targs, **tkwargs):
@@ -738,6 +756,10 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
                                 else smoothing * delta_t / delta_it + \
                                 (1 - smoothing) * avg_time
 
+                        # Acquire locks if parallel bars
+                        self._write_lock.acquire()
+                        self._thread_write_lock.acquire()
+                        # Move writing cursor to bar position
                         if self.pos:
                             self.moveto(self.pos)
 
@@ -749,8 +771,12 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
                             self.desc, ascii, unit, unit_scale,
                             1 / avg_time if avg_time else None, bar_format))
 
+                        # Move writing cursor back to origin
                         if self.pos:
                             self.moveto(-self.pos)
+                        # Release locks
+                        self._thread_write_lock.release()
+                        self._write_lock.release()
 
                         # If no `miniters` was specified, adjust automatically
                         # to the maximum iteration rate seen so far.
@@ -823,6 +849,10 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
 Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
 """, fp_write=getattr(self.fp, 'write', sys.stderr.write))
 
+                # Acquire locks if parallel bars
+                self._write_lock.acquire()
+                self._thread_write_lock.acquire()
+                # Move writing cursor to bar position
                 if self.pos:
                     self.moveto(self.pos)
 
@@ -835,8 +865,12 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
                     1 / self.avg_time if self.avg_time else None,
                     self.bar_format))
 
+                # Move writing cursor back to origin
                 if self.pos:
                     self.moveto(-self.pos)
+                # Release locks
+                self._thread_write_lock.release()
+                self._write_lock.release()
 
                 # If no `miniters` was specified, adjust automatically to the
                 # maximum iteration rate seen so far.
