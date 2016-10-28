@@ -1,13 +1,12 @@
 """
 GUI progressbar decorator for iterators.
-Includes a default (x)range iterator printing to stderr.
 
 Based on the progress_meter module by Michael Lange, Thomas Kluyver,
 licensed under MIT: https://bitbucket.org/takluyver/progress_meter
 
 Usage:
-  >>> from tqdm_gui import tgrange[, tqdm_gui]
-  >>> for i in tgrange(10): #same as: for i in tqdm_gui(xrange(10))
+  >>> from tqdm_gui import tqdm_gui
+  >>> for i in tqdm_gui(range(10)):
   ...     ...
 """
 # future division is important to divide integers and get as
