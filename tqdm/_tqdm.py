@@ -16,7 +16,8 @@ from ._utils import _supports_unicode, _environ_cols_wrapper, _range, _unich, \
     _term_move_up, _unicode, WeakSet
 import sys
 from threading import Thread
-from time import time, sleep
+from time import time
+from time import sleep
 
 
 __author__ = {"github.com/": ["noamraph", "obiwanus", "kmike", "hadim",
@@ -816,7 +817,7 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
                     if delta_t >= mininterval:
                         cur_t = _time()
                         delta_it = n - last_print_n
-                        elapsed = cur_t - start_t  # optimized if in inner loop
+                        elapsed = cur_t - start_t  # optimised if in inner loop
                         # EMA (not just overall average)
                         if smoothing and delta_t and delta_it:
                             avg_time = delta_t / delta_it \

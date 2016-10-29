@@ -79,14 +79,14 @@ class DiscreteTimer(object):
 
 
 class FakeSleep(object):
-        '''Wait until the discrete timer reached the required time'''
-        def __init__(self, dtimer):
-            self.dtimer = dtimer
+    '''Wait until the discrete timer reached the required time'''
+    def __init__(self, dtimer):
+        self.dtimer = dtimer
 
-        def sleep(self, t):
-            end = t + self.dtimer.t
-            while(self.dtimer.t < end):
-                sleep(0.0000001)  # sleep a bit to interrupt (instead of pass)
+    def sleep(self, t):
+        end = t + self.dtimer.t
+        while(self.dtimer.t < end):
+            sleep(0.0000001)  # sleep a bit to interrupt (instead of pass)
 
 
 def cpu_timify(t, timer=None):

@@ -626,40 +626,35 @@ A reusable canonical example is given below:
 
 Monitoring thread, intervals and miniters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-``tqdm`` tries to be as efficient as possible by reducing its overhead on your loops,
-using a few tricks:
 
-1. Avoid refreshing bar status all the time, but rather when there is something new.
-To do that, ``mininterval`` defines how much time to wait between each refresh. ``tqdm``
-always gets updated in the background, but it will display only every ``mininterval``.
+``tqdm`` implements a few tricks to to increase efficiency and reduce overhead.
 
-2. Checking time all the time is costly. Thus, ``tqdm`` avoid that by checking time only
-every ``miniters`` iterations, which is way more efficient (it's just a few simple math
-operations).
+1. Avoid unnecessary frequent bar refreshing: ``mininterval`` defines how long
+   to wait between each refresh. ``tqdm`` always gets updated in the background,
+   but it will diplay only every ``mininterval``.
+2. Reduce number of calls to check system clock/time.
+3. ``mininterval`` is more intuitive to configure than ``miniters``.
+   A clever adjustment system ``dynamic_miniters`` will automatically adjust
+   ``miniters`` to the amount of iterations that fit into time ``mininterval``.
+   Essentially, ``tqdm`` will check if it's time to print without actually
+   checking time. This behavior can be still be bypassed by manually setting
+   ``miniters``.
 
-3. Configuring ``miniters`` is complicated, ``mininterval`` is much more intuitive,
-so a clever adjustment system ``dynamic_miniters`` was devised: after a few iterations,
-``miniters`` is automatically adjusted to the amount of iterations that equal to
-``mininterval`` time interval. In other words, we try to check if it's time to print
-without checking time at all! Of course, this behavior can be bypassed by setting
-``miniters`` to the value you want.
+However, consider a case with a combination of fast and slow iterations.
+After a few fast interations, ``dynamic_miniters`` will set ``miniters`` to a
+large number. When interation rate subsequently slows, ``miniters`` will
+remain large and thus reduce display update frequency. To address this:
 
-4. But what if you have fast iterations and then slow iterations? That's the issue with
-``dynamic_miniters``, it will set ``miniters`` to a high number of iterations that will
-be slow to reach with the slow iterations afterwards. A double solution was implemented:
-``maxinterval`` defines the maximum time you should wait before the bar gets a forced
-refresh, and there is a monitoring thread that runs concurrently to ``tqdm`` to check
-if any bar is way over its due refreshing (by comparing to ``maxinterval``), and refresh
-it forcibly.
+4. ``maxinterval`` defines the maximum time between display refreshes.
+   A concurrent monitoring thread checks for overdue updates and forces one
+   where necessary.
 
-The monitoring thread should not have a noticeable overhead, and it ensures that
-you will never wait more than 10 seconds by default. This value can be changed
-by setting ``tqdm.tqdm.monitor_interval = x`` where x is the interval (in seconds)
-for the monitor to refresh, and ``maxinterval = x`` for each ``tqdm`` bar.
-
-If you really need to disable any thread for your application, you can set
-``tqdm.tqdm.monitor_interval = 0`` before instantiating any ``tqdm`` bar,
-this will disable the monitoring threshold.
+The monitoring thread should not have a noticeable overhead, and guarantees
+updates at least every 10 seconds by default.
+This value can be directly changed by setting the ``monitor_interval`` of
+any ``tqdm`` instance (i.e. ``t = tqdm.tqdm(...); t.monitor_interval = 2``).
+The monitor thread may be disabled application-wide by setting
+``tqdm.tqdm.monitor_interval = 0`` before instantiatiation of any ``tqdm`` bar.
 
 
 Contributions
