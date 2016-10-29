@@ -498,8 +498,10 @@ class tqdm(object):
                 func  : function
                     To be applied on the (grouped) data.
                 **kwargs  : optional
-                    Transmitted to `df.apply()`. *args not intentionally supported.
+                    Transmitted to `df.apply()`.
                 """
+                # *args intentionally not supported (see #244, #299)
+
                 # Precompute total iterations
                 total = getattr(df, 'ngroups', None)
                 if total is None:  # not grouped
