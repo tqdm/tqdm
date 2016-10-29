@@ -624,6 +624,38 @@ A reusable canonical example is given below:
     # After the `with`, printing is restored
     print('Done!')
 
+Monitoring thread, intervals and miniters
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``tqdm`` implements a few tricks to to increase efficiency and reduce overhead.
+
+1. Avoid unnecessary frequent bar refreshing: ``mininterval`` defines how long
+   to wait between each refresh. ``tqdm`` always gets updated in the background,
+   but it will diplay only every ``mininterval``.
+2. Reduce number of calls to check system clock/time.
+3. ``mininterval`` is more intuitive to configure than ``miniters``.
+   A clever adjustment system ``dynamic_miniters`` will automatically adjust
+   ``miniters`` to the amount of iterations that fit into time ``mininterval``.
+   Essentially, ``tqdm`` will check if it's time to print without actually
+   checking time. This behavior can be still be bypassed by manually setting
+   ``miniters``.
+
+However, consider a case with a combination of fast and slow iterations.
+After a few fast iterations, ``dynamic_miniters`` will set ``miniters`` to a
+large number. When iteration rate subsequently slows, ``miniters`` will
+remain large and thus reduce display update frequency. To address this:
+
+4. ``maxinterval`` defines the maximum time between display refreshes.
+   A concurrent monitoring thread checks for overdue updates and forces one
+   where necessary.
+
+The monitoring thread should not have a noticeable overhead, and guarantees
+updates at least every 10 seconds by default.
+This value can be directly changed by setting the ``monitor_interval`` of
+any ``tqdm`` instance (i.e. ``t = tqdm.tqdm(...); t.monitor_interval = 2``).
+The monitor thread may be disabled application-wide by setting
+``tqdm.tqdm.monitor_interval = 0`` before instantiatiation of any ``tqdm`` bar.
+
 
 Contributions
 -------------
