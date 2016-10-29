@@ -721,7 +721,7 @@ class tqdm(object):
 
         # Init the time counter
         # NB: Avoid race conditions by setting this at the very end of init
-        self.start_t = self.last_print_t = self._time()
+        self.last_print_t = self.start_t = self._time()
 
     def __len__(self):
         return (self.iterable.shape[0] if hasattr(self.iterable, 'shape')
