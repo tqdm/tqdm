@@ -246,15 +246,15 @@ Parameters
     The number of expected iterations. If (default: None),
     len(iterable) is used if possible. As a last resort, only basic
     progress statistics are displayed (no ETA, no progressbar).
-    If `gui` is True and this parameter needs subsequent updating,
+    If ``gui`` is True and this parameter needs subsequent updating,
     specify an initial arbitrary large positive integer,
     e.g. int(9e9).
 * leave  : bool, optional  
     If [default: True], keeps all traces of the progressbar
     upon termination of iteration.
-* file  : `io.TextIOWrapper` or `io.StringIO`, optional  
+* file  : ``io.TextIOWrapper`` or ``io.StringIO``, optional  
     Specifies where to output the progress messages
-    [default: sys.stderr]. Uses `file.write(str)` and `file.flush()`
+    [default: sys.stderr]. Uses ``file.write(str)`` and ``file.flush()``
     methods.
 * ncols  : int, optional  
     The width of the entire output message. If specified,
@@ -268,10 +268,10 @@ Parameters
     Maximum progress update interval, in seconds [default: 10.0].
 * miniters  : int, optional  
     Minimum progress update interval, in iterations.
-    If specified, will set `mininterval` to 0.
+    If specified, will set ``mininterval`` to 0.
 * ascii  : bool, optional  
     If unspecified or False, use unicode (smooth blocks) to fill
-    the meter. The fallback is to use ASCII characters `1-9 #`.
+    the meter. The fallback is to use ASCII characters ``1-9 #``.
 * disable  : bool, optional  
     Whether to disable the entire progressbar wrapper
     [default: False].
@@ -284,7 +284,7 @@ Parameters
     International System of Units standard will be added
     (kilo, mega, etc.) [default: False].
 * dynamic_ncols  : bool, optional  
-    If set, constantly alters `ncols` to the environment (allowing
+    If set, constantly alters ``ncols`` to the environment (allowing
     for window resizes) [default: False].
 * smoothing  : float, optional  
     Exponential moving average smoothing factor for speed estimates
@@ -313,7 +313,9 @@ Extra CLI Options
     N.B.: on Windows systems, Python converts '\n' to '\r\n'.
 * buf_size  : int, optional  
     String buffer size in bytes [default: 256]
-    used when `delim` is specified.
+    used when ``delim`` is specified.
+* bytes  : bool, optional  
+    If true, will count bytes and ignore ``delim``.
 
 Returns
 ~~~~~~~
@@ -333,7 +335,7 @@ Returns
           ...    t.update(len(current_buffer))
           >>> t.close()
           The last line is highly recommended, but possibly not necessary if
-          `t.update()` will be called in such a way that `filesize` will be
+          ``t.update()`` will be called in such a way that ``filesize`` will be
           exactly reached and printed.
 
           Parameters

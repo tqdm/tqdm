@@ -98,7 +98,12 @@ CLI_EXTRA_DOC = r"""
 """
 
 
-def main():
+def main(fp=sys.stderr):
+    """
+    Paramters (internal use only)
+    ---------
+    fp  : file-like object for tqdm
+    """
     d = tqdm.__init__.__doc__ + CLI_EXTRA_DOC
 
     opt_types = dict(RE_OPTS.findall(d))
@@ -132,24 +137,24 @@ Options:
     argv = RE_SHLEX.split(' '.join(sys.argv))
     opts = dict(zip(argv[1::2], argv[2::2]))
 
-    tqdm_args = {}
+    tqdm_args = {'file': fp}
     try:
         for (o, v) in opts.items():
             try:
                 tqdm_args[o] = cast(v, opt_types[o])
             except KeyError as e:
                 raise TqdmKeyError(str(e))
-        # sys.stderr.write('\ndebug | args: ' + str(tqdm_args) + '\n')
+        # fp.write('\ndebug | args: ' + str(tqdm_args) + '\n')
     except:
-        sys.stderr.write('\nError:\nUsage:\n  tqdm [--help | options]\n')
+        fp.write('\nError:\nUsage:\n  tqdm [--help | options]\n')
         for i in sys.stdin:
             sys.stdout.write(i)
         raise
     else:
         buf_size = tqdm_args.pop('buf_size', 256)
         delim = tqdm_args.pop('delim', '\n')
-        bytes = tqdm_args.pop('bytes', False)
-        if bytes:
+        delim_per_char = tqdm_args.pop('bytes', False)
+        if delim_per_char:
             with tqdm(**tqdm_args) as t:
                 posix_pipe(sys.stdin, sys.stdout,
                            '', buf_size, t.update)
