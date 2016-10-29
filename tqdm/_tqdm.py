@@ -789,6 +789,7 @@ class tqdm(object):
             ncols = self.ncols
             mininterval = self.mininterval
             maxinterval = self.maxinterval
+            miniters = self.miniters
             dynamic_miniters = self.dynamic_miniters
             unit = self.unit
             unit_scale = self.unit_scale
