@@ -246,15 +246,15 @@ Parameters
     The number of expected iterations. If (default: None),
     len(iterable) is used if possible. As a last resort, only basic
     progress statistics are displayed (no ETA, no progressbar).
-    If `gui` is True and this parameter needs subsequent updating,
+    If ``gui`` is True and this parameter needs subsequent updating,
     specify an initial arbitrary large positive integer,
     e.g. int(9e9).
 * leave  : bool, optional  
     If [default: True], keeps all traces of the progressbar
     upon termination of iteration.
-* file  : `io.TextIOWrapper` or `io.StringIO`, optional  
+* file  : ``io.TextIOWrapper`` or ``io.StringIO``, optional  
     Specifies where to output the progress messages
-    [default: sys.stderr]. Uses `file.write(str)` and `file.flush()`
+    [default: sys.stderr]. Uses ``file.write(str)`` and ``file.flush()``
     methods.
 * ncols  : int, optional  
     The width of the entire output message. If specified,
@@ -268,10 +268,10 @@ Parameters
     Maximum progress update interval, in seconds [default: 10.0].
 * miniters  : int, optional  
     Minimum progress update interval, in iterations.
-    If specified, will set `mininterval` to 0.
+    If specified, will set ``mininterval`` to 0.
 * ascii  : bool, optional  
     If unspecified or False, use unicode (smooth blocks) to fill
-    the meter. The fallback is to use ASCII characters `1-9 #`.
+    the meter. The fallback is to use ASCII characters ``1-9 #``.
 * disable  : bool, optional  
     Whether to disable the entire progressbar wrapper
     [default: False].
@@ -284,7 +284,7 @@ Parameters
     International System of Units standard will be added
     (kilo, mega, etc.) [default: False].
 * dynamic_ncols  : bool, optional  
-    If set, constantly alters `ncols` to the environment (allowing
+    If set, constantly alters ``ncols`` to the environment (allowing
     for window resizes) [default: False].
 * smoothing  : float, optional  
     Exponential moving average smoothing factor for speed estimates
@@ -313,7 +313,9 @@ Extra CLI Options
     N.B.: on Windows systems, Python converts '\n' to '\r\n'.
 * buf_size  : int, optional  
     String buffer size in bytes [default: 256]
-    used when `delim` is specified.
+    used when ``delim`` is specified.
+* bytes  : bool, optional  
+    If true, will count bytes and ignore ``delim``.
 
 Returns
 ~~~~~~~
@@ -333,7 +335,7 @@ Returns
           ...    t.update(len(current_buffer))
           >>> t.close()
           The last line is highly recommended, but possibly not necessary if
-          `t.update()` will be called in such a way that `filesize` will be
+          ``t.update()`` will be called in such a way that ``filesize`` will be
           exactly reached and printed.
 
           Parameters
@@ -621,6 +623,38 @@ A reusable canonical example is given below:
 
     # After the `with`, printing is restored
     print('Done!')
+
+Monitoring thread, intervals and miniters
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``tqdm`` implements a few tricks to to increase efficiency and reduce overhead.
+
+1. Avoid unnecessary frequent bar refreshing: ``mininterval`` defines how long
+   to wait between each refresh. ``tqdm`` always gets updated in the background,
+   but it will diplay only every ``mininterval``.
+2. Reduce number of calls to check system clock/time.
+3. ``mininterval`` is more intuitive to configure than ``miniters``.
+   A clever adjustment system ``dynamic_miniters`` will automatically adjust
+   ``miniters`` to the amount of iterations that fit into time ``mininterval``.
+   Essentially, ``tqdm`` will check if it's time to print without actually
+   checking time. This behavior can be still be bypassed by manually setting
+   ``miniters``.
+
+However, consider a case with a combination of fast and slow iterations.
+After a few fast iterations, ``dynamic_miniters`` will set ``miniters`` to a
+large number. When iteration rate subsequently slows, ``miniters`` will
+remain large and thus reduce display update frequency. To address this:
+
+4. ``maxinterval`` defines the maximum time between display refreshes.
+   A concurrent monitoring thread checks for overdue updates and forces one
+   where necessary.
+
+The monitoring thread should not have a noticeable overhead, and guarantees
+updates at least every 10 seconds by default.
+This value can be directly changed by setting the ``monitor_interval`` of
+any ``tqdm`` instance (i.e. ``t = tqdm.tqdm(...); t.monitor_interval = 2``).
+The monitor thread may be disabled application-wide by setting
+``tqdm.tqdm.monitor_interval = 0`` before instantiatiation of any ``tqdm`` bar.
 
 
 Contributions

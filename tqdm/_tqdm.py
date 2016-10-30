@@ -15,7 +15,9 @@ from __future__ import division
 from ._utils import _supports_unicode, _environ_cols_wrapper, _range, _unich, \
     _term_move_up, _unicode, WeakSet
 import sys
+from threading import Thread
 from time import time
+from time import sleep
 
 
 __author__ = {"github.com/": ["noamraph", "obiwanus", "kmike", "hadim",
@@ -41,12 +43,88 @@ class TqdmDeprecationWarning(Exception):
             super(TqdmDeprecationWarning, self).__init__(msg, *a, **k)
 
 
+class TMonitor(Thread):
+    """
+    Monitoring thread for tqdm bars.
+    Monitors if tqdm bars are taking too much time to display
+    and readjusts miniters automatically if necessary.
+
+    Parameters
+    ----------
+    tqdm_cls  : class
+        tqdm class to use (can be core tqdm or a submodule).
+    sleep_interval  : fload
+        Time to sleep between monitoring checks.
+    """
+
+    # internal vars for unit testing
+    _time = None
+    _sleep = None
+
+    def __init__(self, tqdm_cls, sleep_interval):
+        sys.setcheckinterval(100)
+        Thread.__init__(self)
+        self.daemon = True  # kill thread when main killed (KeyboardInterrupt)
+        self.was_killed = False
+        self.woken = 0  # last time woken up, to sync with monitor
+        self.tqdm_cls = tqdm_cls
+        self.sleep_interval = sleep_interval
+        if TMonitor._time is not None:
+            self._time = TMonitor._time
+        else:
+            self._time = time
+        if TMonitor._sleep is not None:
+            self._sleep = TMonitor._sleep
+        else:
+            self._sleep = sleep
+        self.start()
+
+    def exit(self):
+        self.was_killed = True
+        # self.join()  # DO NOT, blocking event, slows down tqdm at closing
+        return self.report()
+
+    def run(self):
+        cur_t = self._time()
+        while True:
+            # After processing and before sleeping, notify that we woke
+            # Need to be done just before sleeping
+            self.woken = cur_t
+            # Sleep some time...
+            self._sleep(self.sleep_interval)
+            # Quit if killed
+            # if self.exit_event.is_set():  # TODO: should work but does not...
+            if self.was_killed:
+                return
+            # Then monitor!
+            cur_t = self._time()
+            # Check for each tqdm instance if one is waiting too long to print
+            for instance in self.tqdm_cls._instances:
+                # Only if mininterval > 1 (else iterations are just slow)
+                # and last refresh was longer than maxinterval in this instance
+                if instance.miniters > 1 and \
+                  (cur_t - instance.last_print_t) >= instance.maxinterval:
+                    # We force bypassing miniters on next iteration
+                    # dynamic_miniters should adjust mininterval automatically
+                    instance.miniters = 1
+                    # Refresh now! (works only for manual tqdm)
+                    instance.refresh()
+
+    def report(self):
+        # return self.is_alive()  # TODO: does not work...
+        return not self.was_killed
+
+
 class tqdm(object):
     """
     Decorate an iterable object, returning an iterator which acts exactly
     like the original iterable, but prints a dynamically updating
     progressbar every time a value is requested.
     """
+
+    monitor_interval = 10  # set to 0 to disable the thread
+    monitor = None
+
     @staticmethod
     def format_sizeof(num, suffix=''):
         """
@@ -290,6 +368,10 @@ class tqdm(object):
         if "_instances" not in cls.__dict__:
             cls._instances = WeakSet()
         cls._instances.add(instance)
+        # Create the monitoring thread
+        if cls.monitor_interval and (cls.monitor is None or
+                                     not cls.monitor.report()):
+            cls.monitor = TMonitor(cls, cls.monitor_interval)
         # Return the instance
         return instance
 
@@ -315,6 +397,11 @@ class tqdm(object):
             for inst in cls._instances:
                 if inst.pos > instance.pos:
                     inst.pos -= 1
+            # Kill monitor if no instances are left
+            if not cls._instances and cls.monitor:
+                cls.monitor.exit()
+                del cls.monitor
+                cls.monitor = None
         except KeyError:
             pass
 
@@ -696,7 +783,6 @@ class tqdm(object):
             ncols = self.ncols
             mininterval = self.mininterval
             maxinterval = self.maxinterval
-            miniters = self.miniters
             dynamic_miniters = self.dynamic_miniters
             unit = self.unit
             unit_scale = self.unit_scale
@@ -725,12 +811,13 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
                 # Note: does not call self.update(1) for speed optimisation.
                 n += 1
                 # check the counter first (avoid calls to time())
-                if n - last_print_n >= miniters:
+                if n - last_print_n >= self.miniters:
+                    miniters = self.miniters  # watch monitoring thread changes
                     delta_t = _time() - last_print_t
                     if delta_t >= mininterval:
                         cur_t = _time()
                         delta_it = n - last_print_n
-                        elapsed = cur_t - start_t
+                        elapsed = cur_t - start_t  # optimised if in inner loop
                         # EMA (not just overall average)
                         if smoothing and delta_t and delta_it:
                             avg_time = delta_t / delta_it \
@@ -770,6 +857,7 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
                         # Store old values for next call
                         self.n = self.last_print_n = last_print_n = n
                         self.last_print_t = last_print_t = cur_t
+                        self.miniters = miniters
 
             # Closing the progress bar.
             # Update some internal variables for close().
