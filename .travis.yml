@@ -37,13 +37,16 @@ before_install:
   - pip install codecov
 
 install:
-  # install big packages (they are cached to minimize build time)
+  # Install tox first, before dependencies (to get per-env deps)
+  - pip install tox
+  # Coverage install
+  # - pip install 'coverage<4' coveralls
+  - pip install 'coverage<4'
+  # Install big packages (they are cached to minimize build time)
   # if issues, clear cache
   # https://docs.travis-ci.com/user/caching/#Clearing-Caches
+  - pip install numpy
   - pip install pandas
-  # Coverage install
-  # - pip install tox 'coverage<4' coveralls
-  - pip install tox 'coverage<4'
   # install this package (tqdm) into the environment
   - python setup.py install
 
