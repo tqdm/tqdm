@@ -276,8 +276,9 @@ Parameters
     Minimum progress display update interval, in seconds [default: 0.1].
 * maxinterval  : float, optional  
     Maximum progress display update interval, in seconds [default: 10].
-    Automatically adjusts miniters to mininterval after a too long
-    update. Only works if ``dynamic_miniters`` or monitor thread enabled.
+    Automatically adjusts ``miniters`` to correspond to ``mininterval``
+    after long display update lag. Only works if ``dynamic_miniters``
+    or monitor thread is enabled.
 * miniters  : int, optional  
     Minimum progress display update interval, in iterations.
     If 0 and ``dynamic_miniters``, will automatically adjust to equal

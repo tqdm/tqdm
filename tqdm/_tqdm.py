@@ -573,8 +573,9 @@ class tqdm(object):
             Minimum progress display update interval, in seconds [default: 0.1].
         maxinterval  : float, optional
             Maximum progress display update interval, in seconds [default: 10].
-            Automatically adjusts miniters to mininterval after a too long
-            update. Only works if `dynamic_miniters` or monitor thread enabled.
+            Automatically adjusts `miniters` to correspond to `mininterval`
+            after long display update lag. Only works if `dynamic_miniters`
+            or monitor thread is enabled.
         miniters  : int, optional
             Minimum progress display update interval, in iterations.
             If 0 and `dynamic_miniters`, will automatically adjust to equal
@@ -846,8 +847,8 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
                         if self.pos:
                             self.moveto(-self.pos)
 
-                        # If no miniters was specified, adjust automatically to
-                        # the max iteration rate seen so far between 2 prints.
+                        # If no `miniters` was specified, adjust automatically
+                        # to the max iteration rate seen so far between 2 prints
                         if dynamic_miniters:
                             if maxinterval and delta_t >= maxinterval:
                                 # Adjust miniters to time interval by rule of 3

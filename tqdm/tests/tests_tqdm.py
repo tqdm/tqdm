@@ -480,7 +480,7 @@ def test_max_interval():
                                (total/2)*maxinterval/(maxinterval*2)
                                ]
 
-    # Same with iteratable based tqdm
+    # Same with iterable based tqdm
     timer1 = DiscreteTimer()  # need 2 timers for each bar because zip not work
     timer2 = DiscreteTimer()
     total = 100
