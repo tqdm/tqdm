@@ -249,6 +249,32 @@ cannot re-upload another with the same version number
 updating just the metadata is possible: `[python setup.py] make pypimeta`
 
 
+UPDATING GH-PAGES
+-----------------
+
+The most important file is README.rst, which sould always be kept up-to-date
+and in sync with the in-line source documentation. This will affect all of the
+following:
+
+- The [main repository site](https://github.com/tqdm/tqdm) which automatically
+  serves the latest README.rst as well as links to all of github's features.
+  This is the preferred online referral link for tqdm.
+- The [PyPi mirror](https://pypi.python.org/pypi/tqdm) which automatically
+  serves the latest release built from README.rst as well as links to past
+  releases.
+- Many external web crawlers.
+
+
+Additionally (less maintained), there exists:
+
+- A [wiki](https://github.com/tqdm/tqdm/wiki) which is publicly editable.
+- The [gh-pages project](https://tqdm.github.io/tqdm/) which is built from the
+  [gh-pages branch](https://github.com/tqdm/tqdm/tree/gh-pages), which is
+  built using [asv](https://github.com/spacetelescope/asv/).
+- The [gh-pages root](https://tqdm.github.io/) which is built from a separate
+  outdated [github.io repo](https://github.com/tqdm/tqdm.github.io).
+
+
 QUICK DEV SUMMARY
 -----------------
 
