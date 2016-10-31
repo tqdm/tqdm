@@ -1323,7 +1323,6 @@ def test_monitoring_thread():
     # And a fake tqdm
     class fake_tqdm(object):
         _instances = []
-        pass
 
     # Instanciate the monitor
     monitor = TMonitor(fake_tqdm, maxinterval)
