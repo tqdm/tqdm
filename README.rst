@@ -3,14 +3,15 @@
 tqdm
 ====
 
-|PyPI-Status| |PyPI-Versions|
+|PyPI-Status| |PyPI-Versions| |Conda-Forge-Status|
 
 |Build-Status| |Coverage-Status| |Branch-Coverage-Status| |Codacy-Grade|
 
 |DOI-URI| |LICENCE|
 
 
-``tqdm`` (read taqadum, تقدّم) means "progress" in arabic.
+``tqdm`` means "progress" in Arabic (taqadum, تقدّم)
+and an abbreviation for "I love you so much" in Spanish (te quiero demasiado).
 
 Instantly make your loops show a smart progress meter - just wrap any
 iterable with ``tqdm(iterable)``, and you're done!
@@ -85,6 +86,15 @@ Pull and install in the current directory:
 .. code:: sh
 
     pip install -e git+https://github.com/tqdm/tqdm.git@master#egg=tqdm
+
+Latest Conda release
+~~~~~~~~~~~~~~~~~~~~
+
+|Conda-Forge-Status|
+
+.. code:: sh
+
+    conda install -c conda-forge tqdm
 
 
 Changelog
@@ -714,6 +724,8 @@ Ranked by contributions.
    :target: https://pypi.python.org/pypi/tqdm
 .. |PyPI-Versions| image:: https://img.shields.io/pypi/pyversions/tqdm.svg
    :target: https://pypi.python.org/pypi/tqdm
+.. |Conda-Forge-Status| image:: https://anaconda.org/conda-forge/tqdm/badges/version.svg
+   :target: https://anaconda.org/conda-forge/tqdm
 .. |LICENCE| image:: https://img.shields.io/pypi/l/tqdm.svg
    :target: https://raw.githubusercontent.com/tqdm/tqdm/master/LICENCE
 .. |DOI-URI| image:: https://zenodo.org/badge/21637/tqdm/tqdm.svg

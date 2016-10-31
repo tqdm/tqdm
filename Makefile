@@ -70,6 +70,18 @@ testperf:  # do not use coverage (which is extremely slow)
 testtimer:
 	nosetests tqdm --with-timer -d -v
 
+testasv:
+	asv run -j 8 HEAD~3..HEAD
+	@make viewasv
+
+testasvfull:
+	asv run -j 8 v1.0.0..master
+	@make testasv
+
+viewasv:
+	asv publish
+	asv preview
+
 distclean:
 	@+make coverclean
 	@+make prebuildclean

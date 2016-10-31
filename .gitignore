@@ -39,3 +39,7 @@ nosetests.xml
 
 # PyCharm
 .idea
+
+# asv
+.asv/
+benchmarks/*.pyc
