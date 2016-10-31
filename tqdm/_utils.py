@@ -95,7 +95,6 @@ def _environ_cols_windows(fp):  # pragma: no cover
 def _environ_cols_tput(*args):  # pragma: no cover
     """ cygwin xterm (windows) """
     try:
-        import subprocess
         import shlex
         cols = int(subprocess.check_call(shlex.split('tput cols')))
         # rows = int(subprocess.check_call(shlex.split('tput lines')))

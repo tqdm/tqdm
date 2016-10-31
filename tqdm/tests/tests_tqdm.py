@@ -50,7 +50,7 @@ nt_and_no_colorama = False
 if os.name == 'nt':
     try:
         import colorama  # NOQA
-    except:
+    except ImportError:
         nt_and_no_colorama = True
 
 # Regex definitions
@@ -961,7 +961,7 @@ def test_position():
               maxinterval=0, desc='pos1 bar', position=1)
     t3 = tqdm(total=2, file=our_file, miniters=1, mininterval=0,
               maxinterval=0, desc='pos2 bar', position=2)
-    for i in _range(2):
+    for _ in _range(2):
         t1.update()
         t3.update()
         t2.update()
