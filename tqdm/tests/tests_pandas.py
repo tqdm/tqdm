@@ -108,7 +108,7 @@ def test_pandas_deprecation():
     """ Test bar object instance as argument deprecation """
     try:
         from numpy.random import randint
-        from tqdm import tqdm_pandas
+        from tqdm.pandas import tqdm_pandas
         import pandas as pd
     except:
         raise SkipTest

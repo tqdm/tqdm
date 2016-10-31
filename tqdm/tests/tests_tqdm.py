@@ -15,7 +15,7 @@ from time import sleep
 from tqdm import tqdm
 from tqdm import trange
 from tqdm import TqdmDeprecationWarning
-from tqdm._tqdm import TMonitor
+from tqdm.core import TMonitor
 
 try:
     from StringIO import StringIO

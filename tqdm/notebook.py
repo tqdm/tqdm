@@ -3,8 +3,8 @@ IPython/Jupyter Notebook progressbar decorator for iterators.
 Includes a default (x)range iterator printing to stderr.
 
 Usage:
-  >>> from tqdm_notebook import tnrange[, tqdm_notebook]
-  >>> for i in tnrange(10): #same as: for i in tqdm_notebook(xrange(10))
+  >>> from tqdm.notebook import trange[, tqdm]
+  >>> for i in trange(10): #same as: for i in tqdm(xrange(10))
   ...     ...
 """
 # future division is important to divide integers and get as
@@ -14,7 +14,7 @@ from __future__ import division, absolute_import
 import sys
 from ._utils import _range
 # to inherit from the tqdm class
-from ._tqdm import tqdm
+from .core import tqdm
 
 
 if True:  # pragma: no cover
@@ -71,10 +71,10 @@ if True:  # pragma: no cover
 
 
 __author__ = {"github.com/": ["lrq3000", "casperdcl", "alexanderkuk"]}
-__all__ = ['tqdm_notebook', 'tnrange']
+__all__ = ['tqdm', 'trange']
 
 
-class tqdm_notebook(tqdm):
+class tqdm(tqdm):
     """
     Experimental IPython/Jupyter Notebook widget using tqdm!
     """
@@ -220,9 +220,9 @@ class tqdm_notebook(tqdm):
         return
 
 
-def tnrange(*args, **kwargs):
+def trange(*args, **kwargs):
     """
-    A shortcut for tqdm_notebook(xrange(*args), **kwargs).
+    A shortcut for notebook.tqdm(xrange(*args), **kwargs).
     On Python3+ range is used instead of xrange.
     """
     return tqdm_notebook(_range(*args), **kwargs)
