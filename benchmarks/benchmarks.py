@@ -19,7 +19,7 @@ class FractionalOverheadSuite:
         self.tqdm = tqdm
         try:
             self.iterable = xrange(int(6e6))
-        except:
+        except NameError:
             self.iterable = range(int(6e6))
 
         t0 = self.time()
@@ -27,9 +27,16 @@ class FractionalOverheadSuite:
         t1 = self.time()
         self.t = t1 - t0
 
-
     def track_tqdm(self):
         t0 = self.time()
         [0 for _ in self.tqdm(self.iterable)]
         t1 = self.time()
-        return (t1 - t0 - self.t) / self.t  # fractional overhead
+        return (t1 - t0 - self.t) / self.t
+
+    def track_optimsed(self):
+        t0 = self.time()
+        [0 for _ in self.tqdm(self.iterable,
+                              miniters=6e5, smoothing=0)]
+        # TODO: miniters=None, mininterval=0.1, smoothing=0)]
+        t1 = self.time()
+        return (t1 - t0 - self.t) / self.t
