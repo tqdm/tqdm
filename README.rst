@@ -30,7 +30,7 @@ Here's what the output looks like:
 ``tqdm(xrange(N))``.
 
 |Screenshot|
-    Screenshot using `bpython <http://www.bpython-interpreter.org/>`__
+    REPL: `ptpython <https://github.com/jonathanslenders/ptpython>`__
 
 It can also be executed as a module with pipes:
 
