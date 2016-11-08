@@ -23,9 +23,10 @@ import logging as log
 import subprocess
 import re
 from tqdm import tqdm
+from distutils.spawn import find_executable
 __author__ = "Casper da Costa-Luis <casper.dcl@physics.org>"
 __licence__ = "MPLv2.0"
-__version__ = "0.0.0"
+__version__ = "0.1.0"
 __license__ = __licence__
 
 
@@ -61,15 +62,22 @@ def main():
     cmd7zx = ["7z", "x", "-bd"]
     if args['--yes']:
         cmd7zx += ["-y"]
+    if find_executable("stdbuf"):
+        # Force 7z to flush per-line (finer progress)
+        cmd7zx = ["stdbuf", "-oL"] + cmd7zx
     log.info("Extracting from {:d} file(s)".format(len(zips)))
     with tqdm(total=sum(s for fcomp in zips.values()
                         for (_, s) in fcomp.items()),
               unit="B", unit_scale=True) as t:
         for fn, fcomp in zips.items():
             ex = subprocess.Popen(cmd7zx + [fn],
+                                  bufsize=1,
                                   stdout=subprocess.PIPE,
                                   stderr=subprocess.STDOUT)
-            for l_raw in ex.stdout:
+            while True:
+                l_raw = ex.stdout.readline()
+                if not l_raw:
+                    break
                 l = l_raw.strip()
                 if l.startswith("Extracting"):
                     exname = l.lstrip("Extracting").lstrip()
