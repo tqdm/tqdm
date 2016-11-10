@@ -3,11 +3,11 @@ include .coveragerc
 include CONTRIBUTE
 include LICENCE
 include logo.png
+# include images/logo.gif
 include Makefile
 include README.rst
 include RELEASE
 include tox.ini
-# include tqdm.gif # too big...
 
 # Test suite
 recursive-include tqdm/tests *.py

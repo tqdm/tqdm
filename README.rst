@@ -710,7 +710,7 @@ Ranked by contributions.
 
 |README-Hits| (Since 19 May 2016)
 
-.. |Logo| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/logo.png
+.. |Logo| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/logo.gif
 .. |Screenshot| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/tqdm.gif
 .. |Build-Status| image:: https://travis-ci.org/tqdm/tqdm.svg?branch=master
    :target: https://travis-ci.org/tqdm/tqdm
