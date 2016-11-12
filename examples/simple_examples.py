@@ -28,8 +28,22 @@ for i in tqdm.tgrange(int(1e8)):
     pass
 
 # Comparison to https://code.google.com/p/python-progressbar/
-from progressbar.progressbar import ProgressBar
-for i in ProgressBar()(_range(int(1e8))):
+try:
+    from progressbar.progressbar import ProgressBar
+except ImportError:
+    pass
+else:
+    for i in ProgressBar()(_range(int(1e8))):
+        pass
+
+# Dynamic miniters benchmark
+from tqdm import trange
+for i in trange(int(1e8), miniters=None, mininterval=0.1, smoothing=0):
+    pass
+
+# Fixed miniters benchmark
+from tqdm import trange
+for i in trange(int(1e8), miniters=4500000, mininterval=0.1, smoothing=0):
     pass
 """
 

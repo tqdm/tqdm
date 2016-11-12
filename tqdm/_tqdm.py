@@ -570,12 +570,20 @@ class tqdm(object):
             fallback is a meter width of 10 and no limit for the counter and
             statistics. If 0, will not print any meter (only stats).
         mininterval  : float, optional
-            Minimum progress update interval, in seconds [default: 0.1].
+            Minimum progress display update interval, in seconds [default: 0.1].
         maxinterval  : float, optional
-            Maximum progress update interval, in seconds [default: 10.0].
+            Maximum progress display update interval, in seconds [default: 10].
+            Automatically adjusts `miniters` to correspond to `mininterval`
+            after long display update lag. Only works if `dynamic_miniters`
+            or monitor thread is enabled.
         miniters  : int, optional
-            Minimum progress update interval, in iterations.
-            If specified, will set `mininterval` to 0.
+            Minimum progress display update interval, in iterations.
+            If 0 and `dynamic_miniters`, will automatically adjust to equal
+            `mininterval` (more CPU efficient, good for tight loops).
+            If > 0, will skip display of specified number of iterations.
+            Tweak this and `mininterval` to get very efficient loops.
+            If your progress is erratic with both fast and slow iterations
+            (network, skipping items, etc) you should set miniters=1.
         ascii  : bool, optional
             If unspecified or False, use unicode (smooth blocks) to fill
             the meter. The fallback is to use ASCII characters `1-9 #`.
@@ -782,6 +790,7 @@ class tqdm(object):
             ncols = self.ncols
             mininterval = self.mininterval
             maxinterval = self.maxinterval
+            miniters = self.miniters
             dynamic_miniters = self.dynamic_miniters
             unit = self.unit
             unit_scale = self.unit_scale
@@ -839,19 +848,27 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
                             self.moveto(-self.pos)
 
                         # If no `miniters` was specified, adjust automatically
-                        # to the maximum iteration rate seen so far.
+                        # to the max iteration rate seen so far between 2 prints
                         if dynamic_miniters:
-                            if maxinterval and delta_t > maxinterval:
-                                # Set miniters to correspond to maxinterval
-                                miniters = delta_it * maxinterval / delta_t
-                            elif mininterval and delta_t:
+                            if maxinterval and delta_t >= maxinterval:
+                                # Adjust miniters to time interval by rule of 3
+                                if mininterval:
+                                    # Set miniters to correspond to mininterval
+                                    miniters = delta_it * mininterval / delta_t
+                                else:
+                                    # Set miniters to correspond to maxinterval
+                                    miniters = delta_it * maxinterval / delta_t
+                            elif smoothing:
                                 # EMA-weight miniters to converge
                                 # towards the timeframe of mininterval
-                                miniters = smoothing * delta_it * mininterval \
-                                    / delta_t + (1 - smoothing) * miniters
+                                miniters = smoothing * delta_it * \
+                                              (mininterval / delta_t
+                                               if mininterval and delta_t
+                                               else 1) + \
+                                              (1 - smoothing) * miniters
                             else:
-                                miniters = smoothing * delta_it + \
-                                           (1 - smoothing) * miniters
+                                # Maximum nb of iterations between 2 prints
+                                miniters = max(miniters, delta_it)
 
                         # Store old values for next call
                         self.n = self.last_print_n = last_print_n = n
@@ -862,6 +879,7 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
             # Update some internal variables for close().
             self.last_print_n = last_print_n
             self.n = n
+            self.miniters = miniters
             self.close()
 
     def update(self, n=1):
@@ -926,21 +944,26 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
                     self.moveto(-self.pos)
 
                 # If no `miniters` was specified, adjust automatically to the
-                # maximum iteration rate seen so far.
+                # maximum iteration rate seen so far between two prints.
                 # e.g.: After running `tqdm.update(5)`, subsequent
                 # calls to `tqdm.update()` will only cause an update after
                 # at least 5 more iterations.
                 if self.dynamic_miniters:
-                    if self.maxinterval and delta_t > self.maxinterval:
-                        self.miniters = self.miniters * self.maxinterval \
+                    if self.maxinterval and delta_t >= self.maxinterval:
+                        if self.mininterval:
+                            self.miniters = delta_it * self.mininterval \
                                         / delta_t
-                    elif self.mininterval and delta_t:
-                        self.miniters = self.smoothing * delta_it \
-                                        * self.mininterval / delta_t + \
+                        else:
+                            self.miniters = delta_it * self.maxinterval \
+                                        / delta_t
+                    elif self.smoothing:
+                        self.miniters = self.smoothing * delta_it * \
+                                        (self.mininterval / delta_t
+                                         if self.mininterval and delta_t
+                                         else 1) + \
                                         (1 - self.smoothing) * self.miniters
                     else:
-                        self.miniters = self.smoothing * delta_it + \
-                                        (1 - self.smoothing) * self.miniters
+                        self.miniters = max(self.miniters, delta_it)
 
                 # Store old values for next call
                 self.last_print_n = self.n
