@@ -19,10 +19,8 @@ iterable with ``tqdm(iterable)``, and you're done!
 .. code:: python
 
     from tqdm import tqdm
-    for i in tqdm(range(9)):
+    for i in tqdm(range(10000)):
         ...
-
-Here's what the output looks like:
 
 ``76%|████████████████████████████         | 7568/10000 [00:33<00:10, 229.00it/s]``
 
@@ -30,7 +28,7 @@ Here's what the output looks like:
 ``tqdm(xrange(N))``.
 
 |Screenshot|
-    Screenshot using `bpython <http://www.bpython-interpreter.org/>`__
+    REPL: `ptpython <https://github.com/jonathanslenders/ptpython>`__
 
 It can also be executed as a module with pipes:
 
@@ -39,6 +37,9 @@ It can also be executed as a module with pipes:
     $ seq 9999999 | tqdm --unit_scale | wc -l
     10.0Mit [00:02, 3.58Mit/s]
     9999999
+    $ 7z a -bd -r backup.7z docs/ | grep Compressing | \
+        tqdm --total $(find docs/ -type f | wc -l) --unit files >> backup.log
+    100%|███████████████████████████████▉| 8014/8014 [01:37<00:00, 82.29files/s]
 
 Overhead is low -- about 60ns per iteration (80ns with ``tqdm_gui``), and is
 unit tested against performance regression.
@@ -710,7 +711,7 @@ Ranked by contributions.
 
 |README-Hits| (Since 19 May 2016)
 
-.. |Logo| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/logo.png
+.. |Logo| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/logo.gif
 .. |Screenshot| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/tqdm.gif
 .. |Build-Status| image:: https://travis-ci.org/tqdm/tqdm.svg?branch=master
    :target: https://travis-ci.org/tqdm/tqdm
