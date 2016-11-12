@@ -33,17 +33,18 @@ before_install:
   # fix a crash with multiprocessing on Travis
   - sudo rm -rf /dev/shm
   - sudo ln -s /run/shm /dev/shm
-  # install codecov
+  # coverage submission packages
   - pip install codecov
+  # - pip install coveralls
 
 install:
-  # install big packages (they are cached to minimize build time)
+  # Install tox first, before dependencies (to get per-env deps)
+  - pip install tox
+  # Install big packages (they are cached to minimize build time)
   # if issues, clear cache
   # https://docs.travis-ci.com/user/caching/#Clearing-Caches
-  - pip install pandas
-  # Coverage install
-  # - pip install tox 'coverage<4' coveralls
-  - pip install tox 'coverage<4'
+  # - pip install numpy
+  # - pip install pandas
   # install this package (tqdm) into the environment
   - python setup.py install
 
