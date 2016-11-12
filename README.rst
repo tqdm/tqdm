@@ -514,19 +514,36 @@ for ``DataFrame.progress_apply`` and ``DataFrameGroupBy.progress_apply``:
 
     import pandas as pd
     import numpy as np
-    from tqdm import tqdm
+    from tqdm import tqdm, tqdm_pandas
 
-    df = pd.DataFrame(np.random.randint(0, 100, (100000, 6)))
+    df = pd.DataFrame(np.random.randint(0, 100, (6, 100000)))
 
-    # Register `pandas.progress_apply` and `pandas.Series.map_apply` with `tqdm`
+    # Register `tqdm` callbacks in `pandas`
+    # This monkeypatch `pandas` to add methods that will callback `tqdm`
     # (can use `tqdm_gui`, `tqdm_notebook`, optional kwargs, etc.)
-    tqdm.pandas(desc="my bar!")
+    # You need to do this only once, all `pandas` calls will have `tqdm`.
+    tqdm_pandas(tqdm, desc="my bar!")
 
     # Now you can use `progress_apply` instead of `apply`
     # and `progress_map` instead of `map`
     df.progress_apply(lambda x: x**2)
     # can also groupby:
     # df.groupby(0).progress_apply(lambda x: x**2)
+
+Here is the list of `tqdm` callbacks in `pandas`:
+
+* `progress_apply`
+* `progress_map`
+* `progress_applymap`
+* `progress_aggregate` (for GroupBy)
+* `progress_transform` (for GroupBy)
+
+List of supported `pandas` datatypes:
+
+* `Series` and `SeriesGroupBy`
+* `DataFrame` and `DataFrameGroupBy`
+* `Panels` (partially)
+* `GroupBy`
 
 In case you're interested in how this works (and how to modify it for your
 own callbacks), see the
