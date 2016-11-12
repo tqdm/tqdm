@@ -72,7 +72,7 @@ def retry_on_except(n=3):
                 try:
                     checkCpuTime()
                     fn()
-                except:
+                except SkipTest:
                     if i >= n:
                         raise
                 else:

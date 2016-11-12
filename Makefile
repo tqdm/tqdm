@@ -96,6 +96,7 @@ clean:
 	@+python -c "import os; import glob; [os.remove(i) for i in glob.glob('*.py[co]')]"
 	@+python -c "import os; import glob; [os.remove(i) for i in glob.glob('tqdm/*.py[co]')]"
 	@+python -c "import os; import glob; [os.remove(i) for i in glob.glob('tqdm/tests/*.py[co]')]"
+	@+python -c "import os; import glob; [os.remove(i) for i in glob.glob('tqdm/examples/*.py[co]')]"
 
 installdev:
 	python setup.py develop --uninstall

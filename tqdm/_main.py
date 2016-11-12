@@ -117,7 +117,7 @@ def main(fp=sys.stderr):
     d = ''.join('\n  --{0}=<{0}>  : {1}{2}'.format(*otd)
                 for otd in opt_types_desc if otd[0] not in UNSUPPORTED_OPTS)
 
-    __doc__ = """Usage:
+    d = """Usage:
   tqdm [--help | options]
 
 Options:
@@ -126,12 +126,12 @@ Options:
 
 """ + d.strip('\n') + '\n'
 
-    # opts = docopt(__doc__, version=__version__)
+    # opts = docopt(d, version=__version__)
     if any(v in sys.argv for v in ('-v', '--version')):
         sys.stdout.write(__version__ + '\n')
         sys.exit(0)
     elif any(v in sys.argv for v in ('-h', '--help')):
-        sys.stdout.write(__doc__ + '\n')
+        sys.stdout.write(d + '\n')
         sys.exit(0)
 
     argv = RE_SHLEX.split(' '.join(sys.argv))

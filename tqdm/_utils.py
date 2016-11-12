@@ -83,8 +83,8 @@ def _environ_cols_windows(fp):  # pragma: no cover
         csbi = create_string_buffer(22)
         res = windll.kernel32.GetConsoleScreenBufferInfo(h, csbi)
         if res:
-            (bufx, bufy, curx, cury, wattr, left, top, right, bottom,
-             maxx, maxy) = struct.unpack("hhhhHhhhhhh", csbi.raw)
+            (_bufx, _bufy, _curx, _cury, _wattr, left, _top, right, _bottom,
+             _maxx, _maxy) = struct.unpack("hhhhHhhhhhh", csbi.raw)
             # nlines = bottom - top + 1
             return right - left  # +1
     except:
