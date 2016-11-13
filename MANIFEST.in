@@ -1,6 +1,6 @@
 # Misc
 include .coveragerc
-include CONTRIBUTE
+include .github/CONTRIBUTING.md
 include LICENCE
 include logo.png
 # include images/logo.gif

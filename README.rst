@@ -683,7 +683,7 @@ All source code is hosted on `GitHub <https://github.com/tqdm/tqdm>`__.
 Contributions are welcome.
 
 See the
-`CONTRIBUTE <https://raw.githubusercontent.com/tqdm/tqdm/master/CONTRIBUTE>`__
+`CONTRIBUTING <https://raw.githubusercontent.com/tqdm/tqdm/master/.github/CONTRIBUTING.md>`__
 file for more information.
 
 
