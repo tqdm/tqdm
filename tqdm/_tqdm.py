@@ -13,7 +13,7 @@ from __future__ import absolute_import
 from __future__ import division
 # import compatibility functions and utilities
 from ._utils import _supports_unicode, _environ_cols_wrapper, _range, _unich, \
-    _term_move_up, _unicode, WeakSet
+    _term_move_up, _unicode, WeakSet, _force_encoding
 import sys
 from threading import Thread
 from time import time
@@ -103,7 +103,7 @@ class TMonitor(Thread):
                 # Only if mininterval > 1 (else iterations are just slow)
                 # and last refresh was longer than maxinterval in this instance
                 if instance.miniters > 1 and \
-                  (cur_t - instance.last_print_t) >= instance.maxinterval:
+                        (cur_t - instance.last_print_t) >= instance.maxinterval:
                     # We force bypassing miniters on next iteration
                     # dynamic_miniters should adjust mininterval automatically
                     instance.miniters = 1
@@ -181,7 +181,8 @@ class tqdm(object):
         Note that if the string is longer than a line, then in-place
         updating may not work (it will print a new line at each refresh).
         """
-        fp = file
+        fp = _force_encoding(file) if file in (sys.stdout, sys.stderr) \
+            else file
         fp_flush = getattr(fp, 'flush', lambda: None)  # pragma: no cover
 
         def fp_write(s):
@@ -862,10 +863,9 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
                                 # EMA-weight miniters to converge
                                 # towards the timeframe of mininterval
                                 miniters = smoothing * delta_it * \
-                                              (mininterval / delta_t
-                                               if mininterval and delta_t
-                                               else 1) + \
-                                              (1 - smoothing) * miniters
+                                    (mininterval / delta_t
+                                     if mininterval and delta_t else 1) + \
+                                    (1 - smoothing) * miniters
                             else:
                                 # Maximum nb of iterations between 2 prints
                                 miniters = max(miniters, delta_it)
@@ -952,16 +952,15 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
                     if self.maxinterval and delta_t >= self.maxinterval:
                         if self.mininterval:
                             self.miniters = delta_it * self.mininterval \
-                                        / delta_t
+                                / delta_t
                         else:
                             self.miniters = delta_it * self.maxinterval \
-                                        / delta_t
+                                / delta_t
                     elif self.smoothing:
                         self.miniters = self.smoothing * delta_it * \
-                                        (self.mininterval / delta_t
-                                         if self.mininterval and delta_t
-                                         else 1) + \
-                                        (1 - self.smoothing) * self.miniters
+                            (self.mininterval / delta_t
+                             if self.mininterval and delta_t else 1) + \
+                            (1 - self.smoothing) * self.miniters
                     else:
                         self.miniters = max(self.miniters, delta_it)
 
