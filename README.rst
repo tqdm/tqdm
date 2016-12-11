@@ -742,4 +742,4 @@ Ranked by contributions.
 .. |Screenshot-Jupyter1| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/tqdm-jupyter-1.gif
 .. |Screenshot-Jupyter2| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/tqdm-jupyter-2.gif
 .. |Screenshot-Jupyter3| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/tqdm-jupyter-3.gif
-.. |README-Hits| image:: http://hitt.herokuapp.com/tqdm/tqdm.svg
+.. |README-Hits| image:: http://caspersci.uk.to/cgi-bin/hits.cgi?q=tqdm&colorA=FFC107&colorB=2196F3
