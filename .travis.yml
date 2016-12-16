@@ -25,7 +25,9 @@ env:
   - TOXENV=py34
   - TOXENV=py35
   - TOXENV=pypy
-  - TOXENV=pypy3
+  # TODO: re-enable when Travis is fixed
+  # - TOXENV=pypy3
+  - TOXENV=pypy3.3-5.2-alpha1
   - TOXENV=flake8
   - TOXENV=perf
 
