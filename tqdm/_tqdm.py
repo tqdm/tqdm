@@ -1068,6 +1068,7 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
         # Print current/last bar state
         self.fp.write(self.__repr__())
         self.moveto(-self.pos)
+        self.fp.flush()
 
 
 def trange(*args, **kwargs):
