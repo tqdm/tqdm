@@ -78,7 +78,7 @@ class TqdmDefaultWriteLock(object):
             lock.release()
     def __enter__(self):
         self.acquire()
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, *exc):
         self.release()
 
 
