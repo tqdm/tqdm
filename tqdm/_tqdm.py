@@ -61,15 +61,9 @@ class TqdmDefaultWriteLock(object):
     On Windows, you need to supply the lock from the parent to the children as
     an argument to joblib or the parallelism lib you use.
     """
-    def __init__(self, lock=None):
-        if lock is not None:
-            if isinstance(lock, list):
-                self.locks = lock
-            else:
-                self.locks = [lock]
-        else:
-            global mp_lock, th_lock
-            self.locks = [mp_lock, th_lock]
+    def __init__(self):
+        global mp_lock, th_lock
+        self.locks = [mp_lock, th_lock]
     def acquire(self):
         for lock in self.locks:
             lock.acquire()
@@ -136,10 +130,9 @@ class TMonitor(Thread):
                 return
             # Then monitor!
             with self.tqdm_cls.get_lock():  # Acquire lock (to access _instances)
-                cur_t = self._time()
+                cur_t = self._time()  # Get current time (after acquiring lock)
                 # Check for each tqdm instance if one is waiting too long to print
-                # NB: copy avoids size change during iteration RuntimeError
-                for instance in self.tqdm_cls._instances.copy():
+                for instance in self.tqdm_cls._instances:
                     # Only if mininterval > 1 (else iterations are just slow)
                     # and last refresh was longer than maxinterval in this instance
                     if instance.miniters > 1 and \
@@ -148,7 +141,7 @@ class TMonitor(Thread):
                         # dynamic_miniters should adjust mininterval automatically
                         instance.miniters = 1
                         # Refresh now! (works only for manual tqdm)
-                        instance.refresh()
+                        instance.refresh(nolock=True)
 
     def report(self):
         # return self.is_alive()  # TODO: does not work...
@@ -439,7 +432,7 @@ class tqdm(object):
     def __new__(cls, *args, **kwargs):
         # Create default lock if none set
         if "_lock" not in cls.__dict__:
-            cls._lock = TqdmDefaultWriteLock()
+            cls.set_lock(TqdmDefaultWriteLock())
         # Create a new instance
         instance = object.__new__(cls)
         # Add to the list of instances
@@ -517,14 +510,14 @@ class tqdm(object):
                 # sys.stdout or sys.stderr (because both are mixed in terminal)
                 if inst.fp == fp or all(
                         f in (sys.stdout, sys.stderr) for f in (fp, inst.fp)):
-                    inst.clear()
+                    inst.clear(nolock=True)
                     inst_cleared.append(inst)
             yield
             # Force refresh display of bars we cleared
             for inst in inst_cleared:
                 # Avoid race conditions by checking that the instance started
                 if hasattr(inst, 'start_t'):  # pragma: nocover
-                    inst.refresh()
+                    inst.refresh(nolock=True)
         # TODO: make list of all instances incl. absolutely positioned ones?
 
     @classmethod
@@ -1235,37 +1228,43 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
     def moveto(self, n):
         self.fp.write(_unicode('\n' * n + _term_move_up() * -n))
 
-    def clear(self, nomove=False):
+    def clear(self, nomove=False, nolock=False):
         """
         Clear current bar display
         """
         if self.disable:
             return
 
-        with self._lock:
-            if not nomove:
-                self.moveto(self.pos)
-            # clear up the bar (can't rely on sp(''))
-            self.fp.write('\r')
-            self.fp.write(' ' * (self.ncols if self.ncols else 10))
-            self.fp.write('\r')  # place cursor back at the beginning of line
-            if not nomove:
-                self.moveto(-self.pos)
+        if not nolock:
+            self._lock.acquire()
+        if not nomove:
+            self.moveto(self.pos)
+        # clear up the bar (can't rely on sp(''))
+        self.fp.write('\r')
+        self.fp.write(' ' * (self.ncols if self.ncols else 10))
+        self.fp.write('\r')  # place cursor back at the beginning of line
+        if not nomove:
+            self.moveto(-self.pos)
+        if not nolock:
+            self._lock.release()
 
-    def refresh(self):
+    def refresh(self, nolock=False):
         """
         Force refresh the display of this bar
         """
         if self.disable:
             return
 
-        with self._lock:
-            self.moveto(self.pos)
-            # clear up this line's content (whatever there was)
-            self.clear(nomove=True)
-            # Print current/last bar state
-            self.fp.write(self.__repr__())
-            self.moveto(-self.pos)
+        if not nolock:
+            self._lock.acquire()
+        self.moveto(self.pos)
+        # clear up this line's content (whatever there was)
+        self.clear(nomove=True, nolock=True)
+        # Print current/last bar state
+        self.fp.write(self.__repr__())
+        self.moveto(-self.pos)
+        if not nolock:
+            self._lock.release()
 
 
 def trange(*args, **kwargs):
