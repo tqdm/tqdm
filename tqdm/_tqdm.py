@@ -63,9 +63,9 @@ class TMonitor(Thread):
 
     def __init__(self, tqdm_cls, sleep_interval):
         if hasattr(sys, 'setswitchinterval'):
-          sys.setswitchinterval(100) # new
+            sys.setswitchinterval(100) # new
         else:
-          sys.setcheckinterval(100) # deprecated
+            sys.setcheckinterval(100) # deprecated
         Thread.__init__(self)
         self.daemon = True  # kill thread when main killed (KeyboardInterrupt)
         self.was_killed = False
