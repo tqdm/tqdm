@@ -1,10 +1,6 @@
 # Definition of the version number
-try:
-    from ._utils import _sh
-except:  # pragma: no cover
-    _sh = None
+import os
 
-from subprocess import STDOUT
 __all__ = ["__version__"]
 
 # major, minor, patch, -extra
@@ -15,18 +11,35 @@ __version__ = '.'.join(map(str, version_info))
 
 
 # auto -extra based on commit hash (if not tagged as release)
-if (_sh is not None) and (len(version_info) < 4):  # pragma: no cover
-    def commit_hash(*args):
-        try:
-            res = _sh('git', 'log', '-n', '1', '--oneline', *args,
-                      stderr=STDOUT).lstrip().split()[0]
-            return None if res.startswith('fatal') else res
-        except:
-            return None
-
-    cur_hash = commit_hash()
-    if cur_hash is not None:
-        last_release = commit_hash('v' + __version__)
-
-        if (last_release is None) or (cur_hash not in last_release):
-            __version__ += '-' + cur_hash
+res = None
+scriptdir = os.path.dirname(__file__)
+gitdir = os.path.abspath(scriptdir + '/../.git')
+if os.path.isdir(gitdir):
+    # Open the HEAD file
+    with open(os.path.join(gitdir,'HEAD'), 'r') as fh_head:
+        res = fh_head.readline().strip()
+    # If we are in a branch, HEAD will point to a file containing the latest commit
+    if 'ref:' in res:
+        # Get reference file path
+        ref_file = res[5:]
+        # Get branch name
+        branch_name = ref_file.split('/')[-1]
+        # Sanitize path of ref file
+        # get full path to ref file
+        ref_file_path = os.path.abspath(os.path.join(gitdir, ref_file))
+        # check that we are in git folder (by stripping the git folder from the ref file path)
+        if os.path.relpath(ref_file_path, gitdir).replace('\\', '/') != ref_file:
+            # Trying to get out of git folder, not good!
+            res = None
+        else:
+            # Else the file file is inside git, all good
+            # Open the ref file
+            with open(ref_file_path, 'r') as fh_branch:
+                commit_hash = fh_branch.readline().strip()
+                res = commit_hash[:8] + ' (branch: ' + branch_name + ')'
+    # Else we are in detached HEAD mode, we directly have a commit hash
+    else:
+        res = res[:8]
+    # Append to version string
+    if res is not None:
+        __version__ += '-' + res
