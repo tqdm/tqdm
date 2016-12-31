@@ -113,7 +113,7 @@ def execute_makefile_commands(commands, alias, verbose=False):
             if verbose:
                 print("Running command: " + cmd)
             # Launch the command and wait to finish (synchronized call)
-            check_call(parsed_cmd)
+            check_call(parsed_cmd, cwd=os.path.dirname(os.path.abspath(__file__)))
 
 
 # Main setup.py config #
@@ -127,7 +127,7 @@ with io_open(version_file, mode='r') as fd:
 # Executing makefile commands if specified
 if sys.argv[1].lower().strip() == 'make':
     # Filename of the makefile
-    fpath = 'Makefile'
+    fpath = os.path.join(os.path.dirname(__file__), 'Makefile')
     # Parse the makefile, substitute the aliases and extract the commands
     commands = parse_makefile_aliases(fpath)
 
@@ -157,14 +157,15 @@ if sys.argv[1].lower().strip() == 'make':
 # Python package config #
 
 README_rst = ''
-with io_open('README.rst', mode='r', encoding='utf-8') as fd:
+fndoc = os.path.join(os.path.dirname(__file__), 'README.rst')
+with io_open(fndoc, mode='r', encoding='utf-8') as fd:
     README_rst = fd.read()
 
 setup(
     name='tqdm',
     version=__version__,
-    description='A Fast, Extensible Progress Meter',
-    license='MPLv2.0, MIT Licenses',
+    description='Fast, Extensible Progress Meter',
+    license='MPLv2.0, MIT Licences',
     author='Noam Yorav-Raphael',
     author_email='noamraph@gmail.com',
     url='https://github.com/tqdm/tqdm',
