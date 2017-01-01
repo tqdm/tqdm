@@ -14,7 +14,9 @@ from __future__ import division
 # import compatibility functions and utilities
 from ._utils import _supports_unicode, _environ_cols_wrapper, _range, _unich, \
     _term_move_up, _unicode, WeakSet, _basestring
+# import native libraries
 import sys
+from collections import OrderedDict
 from numbers import Number
 from threading import Thread
 from time import time
@@ -1051,23 +1053,27 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
         """
         self.desc = desc + ': ' if desc else ''
 
-    def set_postfix(self, **kwargs):
+    def set_postfix(self, ordered_dict=None, **kwargs):
         """
         Set/modify postfix (additional stats)
         with automatic formatting based on datatype.
         """
+        # Sort in alphabetical order to be more deterministic
+        postfix = OrderedDict([] if ordered_dict is None else ordered_dict)
+        for key in sorted(kwargs.keys()):
+            postfix[key] = kwargs[key]
         # Preprocess stats according to datatype
-        for key in kwargs.keys():
+        for key in postfix.keys():
             # Number: limit the length of the string
-            if isinstance(kwargs[key], Number):
-                kwargs[key] = '{0:2.3g}'.format(kwargs[key])
+            if isinstance(postfix[key], Number):
+                postfix[key] = '{0:2.3g}'.format(postfix[key])
             # Else for any other type, try to get the string conversion
-            elif not isinstance(kwargs[key], _basestring):
-                kwargs[key] = str(kwargs[key])
+            elif not isinstance(postfix[key], _basestring):
+                postfix[key] = str(postfix[key])
             # Else if it's a string, don't need to preprocess anything
         # Stitch together to get the final postfix
-        self.postfix = ', '.join('%s=%s' % (key, kwargs[key])
-                                 for key in kwargs.keys())
+        self.postfix = ', '.join('%s=%s' % (key, postfix[key].strip())
+                                 for key in postfix.keys())
 
     def moveto(self, n):
         self.fp.write(_unicode('\n' * n + _term_move_up() * -n))

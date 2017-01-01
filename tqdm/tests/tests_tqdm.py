@@ -7,6 +7,7 @@ import sys
 import csv
 import re
 import os
+from collections import OrderedDict
 from nose import with_setup
 from nose.plugins.skip import SkipTest
 from nose.tools import assert_raises
@@ -1514,8 +1515,10 @@ def test_monitoring_thread():
 @with_setup(pretest, posttest)
 def test_postfix():
     """ Test postfix """
-    postfix = {'float': 0.321034, 'gen': 543, 'str': 'h', 'lst': [1, 2]}
-    expected = ['lst=[1, 2]', 'float=0.321', 'gen=543', 'str=h']
+    postfix = {'float': 0.321034, 'gen': 543, 'str': 'h', 'lst': [2]}
+    postfix_order = OrderedDict((('w', 'w'), ('a', 0)))
+    expected = ['float=0.321', 'gen=543', 'lst=[2]', 'str=h']
+    expected_order = ['w=w', 'a=0', 'float=0.321', 'gen=543', 'lst=[2]', 'str=h']
 
     # Test postfix set at init
     with closing(StringIO()) as our_file:
@@ -1536,3 +1539,14 @@ def test_postfix():
     for res in expected:
         assert res in out
         assert res in out2
+
+    # Test postfix set after init and with ordered dict
+    with closing(StringIO()) as our_file:
+        with trange(10, file=our_file, desc='pos2 bar',
+                    bar_format='{r_bar}', postfix=None) as t3:
+            t3.set_postfix(postfix_order, **postfix)
+            t3.refresh()
+            out3 = our_file.getvalue()
+
+    out3 = out3[1:-1].split(', ')[3:]
+    assert out3 == expected_order
