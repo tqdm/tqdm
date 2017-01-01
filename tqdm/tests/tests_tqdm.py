@@ -1345,8 +1345,7 @@ def test_write():
             assert after_err_res == [u'\rpos0 bar:   0%',
                                      u'\rpos0 bar:  10%',
                                      u'\r      ',
-                                     u'\r\r      ',
-                                     u'\rpos0 bar:  10%']
+                                     u'\r\r\r\rpos0 bar:  10%']
             assert after_out == s + '\n'
     # Restore stdout and stderr
     sys.stderr = stde
