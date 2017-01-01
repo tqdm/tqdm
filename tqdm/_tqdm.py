@@ -233,8 +233,9 @@ class tqdm(object):
         rate  : float, optional
             Manual override for iteration rate.
             If [default: None], uses n/elapsed.
-        bar_format  : str, optional
+        bar_format  : str or callable, optional
             Specify a custom bar string formatting. May impact performance.
+            Can be a callable that will handle bar display.
             [default: '{l_bar}{bar}{r_bar}'], where l_bar is
             '{desc}{percentage:3.0f}%|' and r_bar is
             '| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}]'
@@ -287,8 +288,10 @@ class tqdm(object):
             r_bar = '| {0}/{1} [{2}<{3}, {4}]'.format(
                     n_fmt, total_fmt, elapsed_str, remaining_str, rate_fmt)
 
-            if ncols == 0:
-                return l_bar[:-1] + r_bar[1:]
+            # Formatting progress bar
+            # space available for bar's display
+            N_BARS = max(1, ncols - len(l_bar) - len(r_bar)) if ncols \
+                else 10
 
             if bar_format:
                 # Custom bar formatting
@@ -309,25 +312,35 @@ class tqdm(object):
                             'remaining': remaining_str,
                             'l_bar': l_bar,
                             'r_bar': r_bar,
+                            'n_bars': n_bars,
                             'desc': prefix if prefix else '',
+                            'ncols': ncols,
                             # 'bar': full_bar  # replaced by procedure below
                             }
 
                 # Interpolate supplied bar format with the dict
-                if '{bar}' in bar_format:
+                if hasattr(bar_format, '__call__'):
+                    # Callback user provided function/method to handle display
+                    bar_format(bar_args)
+                elif bar_format is True:
+                    # Just return the parameters dict
+                    return bar_args
+                elif '{bar}' in bar_format:
                     # Format left/right sides of the bar, and format the bar
                     # later in the remaining space (avoid breaking display)
                     l_bar_user, r_bar_user = bar_format.split('{bar}')
                     l_bar = l_bar_user.format(**bar_args)
                     r_bar = r_bar_user.format(**bar_args)
+                    # recompute bar's length
+                    N_BARS = max(1, ncols - len(l_bar) - len(r_bar)) if ncols \
+                        else 10
                 else:
                     # Else no progress bar, we can just format and return
                     return bar_format.format(**bar_args)
 
-            # Formatting progress bar
-            # space available for bar's display
-            N_BARS = max(1, ncols - len(l_bar) - len(r_bar)) if ncols \
-                else 10
+            # No space? Don't display a bar
+            if ncols == 0:
+                return l_bar + r_bar
 
             # format bar depending on availability of unicode/ascii chars
             if ascii:
@@ -356,10 +369,59 @@ class tqdm(object):
             # Piece together the bar parts
             return l_bar + full_bar + r_bar
 
-        # no total: no progressbar, ETA, just progress stats
+        # No total: no progressbar nor ETA, just progress stats
         else:
-            return (prefix if prefix else '') + '{0}{1} [{2}, {3}]'.format(
-                n_fmt, unit, elapsed_str, rate_fmt)
+            # Custom formatting?
+            if bar_format:
+                l_bar = (prefix if prefix else '') + \
+                            '{0}{1}'.format(n_fmt, unit)
+                r_bar = '[{2}, {3}]'.format(elapsed_str, rate_fmt)
+                N_BARS = max(1, ncols - len(l_bar) - len(r_bar)) if ncols \
+                    else 10
+                # Populate dict with nototal appropriate values
+                # (must contain same set of params as with-total dict above)
+                bar_args = {'n': n,
+                            'n_fmt': n_fmt,
+                            'total': total,
+                            'total_fmt': '?',
+                            'percentage': '?',
+                            'rate': rate if inv_rate is None else inv_rate,
+                            'rate_noinv': rate,
+                            'rate_noinv_fmt': ((format_sizeof(rate)
+                                               if unit_scale else
+                                               '{0:5.2f}'.format(rate))
+                                               if rate else '?') + unit + '/s',
+                            'rate_fmt': rate_fmt,
+                            'elapsed': elapsed_str,
+                            'remaining': '?',
+                            'l_bar': l_bar,
+                            'r_bar': r_bar,
+                            'n_bars': n_bars,
+                            'desc': prefix if prefix else '',
+                            'ncols': ncols,
+                            }
+
+                # Interpolate supplied bar format with the dict
+                if hasattr(bar_format, '__call__'):
+                    # Callback user provided function/method to handle display
+                    bar_format(bar_args)
+                elif bar_format is True:
+                    # Just return the parameters dict
+                    return bar_args
+                elif '{bar}' in bar_format:
+                    # Format left/right sides of the bar, and format the bar
+                    # later in the remaining space (avoid breaking display)
+                    l_bar_user, r_bar_user = bar_format.split('{bar}')
+                    l_bar = l_bar_user.format(**bar_args)
+                    r_bar = r_bar_user.format(**bar_args)
+                    return l_bar + ' ' + r_bar
+                else:
+                    # Else no progress bar, we can just format and return
+                    return bar_format.format(**bar_args)
+            # No bar_format, just return a simple "no ETA" progress status
+            else:
+                return (prefix if prefix else '') + '{0}{1} [{2}, {3}]'.format(
+                    n_fmt, unit, elapsed_str, rate_fmt)
 
     def __new__(cls, *args, **kwargs):
         # Create a new instance
@@ -605,8 +667,9 @@ class tqdm(object):
             Exponential moving average smoothing factor for speed estimates
             (ignored in GUI mode). Ranges from 0 (average speed) to 1
             (current/instantaneous speed) [default: 0.3].
-        bar_format  : str, optional
+        bar_format  : str or callable, optional
             Specify a custom bar string formatting. May impact performance.
+            Can be a callable that will handle bar display.
             If unspecified, will use '{l_bar}{bar}{r_bar}', where l_bar is
             '{desc}{percentage:3.0f}%|' and r_bar is
             '| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}]'

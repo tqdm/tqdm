@@ -309,8 +309,9 @@ Parameters
     Exponential moving average smoothing factor for speed estimates
     (ignored in GUI mode). Ranges from 0 (average speed) to 1
     (current/instantaneous speed) [default: 0.3].
-* bar_format  : str, optional  
+* bar_format  : str or callable, optional  
     Specify a custom bar string formatting. May impact performance.
+    Can be a callable that will handle bar display.
     If unspecified, will use '{l_bar}{bar}{r_bar}', where l_bar is
     '{desc}{percentage:3.0f}%|' and r_bar is
     '| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}]'
@@ -504,6 +505,34 @@ Here's an example with ``urllib``:
 It is recommend to use ``miniters=1`` whenever there is potentially
 large differences in iteration speed (e.g. downloading a file over
 a patchy connection).
+
+Integration in a GUI
+~~~~~~~~~~~~~~~~~~~~
+``tqdm`` can easily be integrated in your own GUI by providing ``bar_format`` with
+a callback function that will update your GUI bar display:
+
+.. code:: python
+
+    from tqdm import tqdm
+    from time import sleep
+    from awesome import GUI
+    
+    class my_gui_bar(object):
+        '''Toy GUI bar'''
+        def __init__(self):
+            self.gui_bar = GUI()
+            self.gui_bar.init()
+            # etc.
+
+        def update(self, bar_args={}):
+            '''Callback for tqdm to update the bar display'''
+            self.gui_bar.set_text = "{n_fmt}/{n_total} [{elapsed}>{remaining}]".format(bar_args)
+            self.gui_bar.set_progress = bar_args['n']
+
+    gbar = my_gui_bar()
+    for i in tqdm(range(100), bar_format=gbar.update):
+        sleep(0.1)
+
 
 Pandas Integration
 ~~~~~~~~~~~~~~~~~~
