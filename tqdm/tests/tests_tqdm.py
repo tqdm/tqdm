@@ -7,7 +7,6 @@ import sys
 import csv
 import re
 import os
-from collections import OrderedDict
 from nose import with_setup
 from nose.plugins.skip import SkipTest
 from nose.tools import assert_raises
@@ -1516,7 +1515,7 @@ def test_monitoring_thread():
 def test_postfix():
     """ Test postfix """
     postfix = {'float': 0.321034, 'gen': 543, 'str': 'h', 'lst': [2]}
-    postfix_order = OrderedDict((('w', 'w'), ('a', 0)))
+    postfix_order = (('w', 'w'), ('a', 0))  # no need for a OrderedDict, set is OK
     expected = ['float=0.321', 'gen=543', 'lst=[2]', 'str=h']
     expected_order = ['w=w', 'a=0', 'float=0.321', 'gen=543', 'lst=[2]', 'str=h']
 

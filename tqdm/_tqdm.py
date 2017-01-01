@@ -13,10 +13,9 @@ from __future__ import absolute_import
 from __future__ import division
 # import compatibility functions and utilities
 from ._utils import _supports_unicode, _environ_cols_wrapper, _range, _unich, \
-    _term_move_up, _unicode, WeakSet, _basestring
+    _term_move_up, _unicode, WeakSet, _basestring, _OrderedDict
 # import native libraries
 import sys
-from collections import OrderedDict
 from numbers import Number
 from threading import Thread
 from time import time
@@ -1059,7 +1058,7 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
         with automatic formatting based on datatype.
         """
         # Sort in alphabetical order to be more deterministic
-        postfix = OrderedDict([] if ordered_dict is None else ordered_dict)
+        postfix = _OrderedDict([] if ordered_dict is None else ordered_dict)
         for key in sorted(kwargs.keys()):
             postfix[key] = kwargs[key]
         # Preprocess stats according to datatype
