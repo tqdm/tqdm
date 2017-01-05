@@ -1342,11 +1342,14 @@ def test_write():
             assert before_err == '\rpos0 bar:   0%|\rpos0 bar:  10%|'
             assert before_out == ''
             after_err_res = [m[0] for m in RE_pos.findall(after_err)]
-            assert after_err_res == [u'\rpos0 bar:   0%',
-                                     u'\rpos0 bar:  10%',
-                                     u'\r      ',
-                                     u'\r\r      ',
-                                     u'\rpos0 bar:  10%']
+            try:
+                assert after_err_res == [u'\rpos0 bar:   0%',
+                                         u'\rpos0 bar:  10%',
+                                         u'\r      ',
+                                         u'\r\r      ',
+                                         u'\rpos0 bar:  10%']
+            except AssertionError:
+                raise AssertionError(after_err_res)
             assert after_out == s + '\n'
     # Restore stdout and stderr
     sys.stderr = stde

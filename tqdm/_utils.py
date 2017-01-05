@@ -1,6 +1,8 @@
 import os
 import subprocess
 from platform import system as _curos
+import locale
+import codecs
 CUR_OS = _curos()
 IS_WIN = CUR_OS in ['Windows', 'cli']
 IS_NIX = (not IS_WIN) and any(
@@ -43,11 +45,15 @@ def _is_utf(encoding):
     return encoding.lower().startswith('utf-') or ('U8' == encoding)
 
 
-def _supports_unicode(file):
-    return _is_utf(file.encoding) if (
-        getattr(file, 'encoding', None) or
+def _supports_unicode(fp):
+    return _is_utf(fp.encoding) if (
+        getattr(fp, 'encoding', None) or
         # FakeStreams from things like bpython-curses can lie
-        getattr(file, 'interface', None)) else False  # pragma: no cover
+        getattr(fp, 'interface', None)) else False  # pragma: no cover
+
+
+def _force_encoding(fp):
+    return codecs.getwriter(locale.getpreferredencoding())(fp)
 
 
 def _environ_cols_wrapper():  # pragma: no cover
