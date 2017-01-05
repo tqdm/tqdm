@@ -206,8 +206,8 @@ Backing up a large directory?
     100%|███████████████████████████████▉| 8014/8014 [01:37<00:00, 82.29files/s]
 
 
-Help!
------
+FAQ and Known Issues
+--------------------
 
 The most common issues relate to excessive output on multiple lines, instead
 of a neat one-line progress bar.
@@ -215,12 +215,20 @@ of a neat one-line progress bar.
 - Consoles in general: require support for carriage return (``CR``, ``\r``).
 - Nested progress bars:
     * Consoles in general: require support for moving cursors up to the
-      previous line. For example, `IDLE won't work <https://github.com/tqdm/tqdm/issues/191#issuecomment-230168030>`__.
+      previous line. For example, `IDLE <https://github.com/tqdm/tqdm/issues/191#issuecomment-230168030>`__,
+      `ConEmu <https://github.com/tqdm/tqdm/issues/254>`__ and
+      `PyCharm <https://github.com/tqdm/tqdm/issues/203>`__ (also
+      `here <https://github.com/tqdm/tqdm/issues/208>`__ and
+      `here <https://github.com/tqdm/tqdm/issues/307>`__)
+      lack full support.
     * Windows: additionally may require the python module ``colorama``.
 - Wrapping enumerated iterables: use ``enumerate(tqdm(...))`` instead of
-  ``tqdm(enumerate(...))``. The same applies to ``numpy.ndenumerate``.
+  ``tqdm(enumerate(...))`. The same applies to ``numpy.ndenumerate``.
   This is because enumerate functions tend to hide the length of iterables.
   ``tqdm`` does not.
+- Wrapping zipped iterables has similar issues due to internal optimisations.
+  ``tqdm(zip(a, b))`` should be replaced with ``zip(tqdm(a), b)`` or even
+  ``zip(tqdm(a), tqdm(b))``
 
 If you come across any other difficulties, browse/open issues
 `here <https://github.com/tqdm/tqdm/issues?q=is%3Aissue>`__.
@@ -683,7 +691,7 @@ All source code is hosted on `GitHub <https://github.com/tqdm/tqdm>`__.
 Contributions are welcome.
 
 See the
-`CONTRIBUTE <https://raw.githubusercontent.com/tqdm/tqdm/master/CONTRIBUTE>`__
+`CONTRIBUTING <https://raw.githubusercontent.com/tqdm/tqdm/master/CONTRIBUTING.md>`__
 file for more information.
 
 
