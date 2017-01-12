@@ -1509,3 +1509,43 @@ def test_monitoring_thread():
                     sleep(0.000001)
                 assert t1.miniters == 1  # check that monitor corrected miniters
                 assert t2.miniters == 500  # check that t2 was not adjusted
+
+
+@with_setup(pretest, posttest)
+def test_postfix():
+    """Test postfix"""
+    postfix = {'float': 0.321034, 'gen': 543, 'str': 'h', 'lst': [2]}
+    postfix_order = (('w', 'w'), ('a', 0))  # no need for a OrderedDict, set is OK
+    expected = ['float=0.321', 'gen=543', 'lst=[2]', 'str=h']
+    expected_order = ['w=w', 'a=0', 'float=0.321', 'gen=543', 'lst=[2]', 'str=h']
+
+    # Test postfix set at init
+    with closing(StringIO()) as our_file:
+        with tqdm(total=10, file=our_file, desc='pos0 bar',
+                  bar_format='{r_bar}', postfix=postfix) as t1:
+            t1.refresh()
+            out = our_file.getvalue()
+
+    # Test postfix set after init
+    with closing(StringIO()) as our_file:
+        with trange(10, file=our_file, desc='pos1 bar',
+                    bar_format='{r_bar}', postfix=None) as t2:
+            t2.set_postfix(**postfix)
+            t2.refresh()
+            out2 = our_file.getvalue()
+
+    # Order of items in dict may change, so need a loop to check per item
+    for res in expected:
+        assert res in out
+        assert res in out2
+
+    # Test postfix set after init and with ordered dict
+    with closing(StringIO()) as our_file:
+        with trange(10, file=our_file, desc='pos2 bar',
+                    bar_format='{r_bar}', postfix=None) as t3:
+            t3.set_postfix(postfix_order, **postfix)
+            t3.refresh()
+            out3 = our_file.getvalue()
+
+    out3 = out3[1:-1].split(', ')[3:]
+    assert out3 == expected_order
