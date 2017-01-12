@@ -8,13 +8,12 @@ Usage:
   ...     ...
 """
 from __future__ import absolute_import
-# future division is important to divide integers and get as
-# a result precise floating numbers (instead of truncated int)
+# integer division / : float, // : int
 from __future__ import division
-# import compatibility functions and utilities
+# compatibility functions and utilities
 from ._utils import _supports_unicode, _environ_cols_wrapper, _range, _unich, \
     _term_move_up, _unicode, WeakSet, _basestring, _OrderedDict
-# import native libraries
+# native libraries
 import sys
 from numbers import Number
 from threading import Thread
@@ -1071,7 +1070,7 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
                 postfix[key] = str(postfix[key])
             # Else if it's a string, don't need to preprocess anything
         # Stitch together to get the final postfix
-        self.postfix = ', '.join('%s=%s' % (key, postfix[key].strip())
+        self.postfix = ', '.join(key + '=' + postfix[key].strip()
                                  for key in postfix.keys())
 
     def moveto(self, n):

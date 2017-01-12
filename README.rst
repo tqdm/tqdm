@@ -332,7 +332,7 @@ Parameters
     Specify the line offset to print this bar (starting from 0)
     Automatic if unspecified.
     Useful to manage multiple bars at once (eg, from threads).
-* postfix  : dict, optional
+* postfix  : dict, optional  
     Specify additional stats to display at the end of the bar.
 
 Extra CLI Options
@@ -444,9 +444,9 @@ Examples and Advanced Usage
 
 Description and additional stats
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Custom information can easily be displayed on ``tqdm`` bars by using the
-``desc`` and ``postfix`` arguments. They can also be updated dynamically
-inside your loops:
+
+Custom information can be displayed and updated dynamically on ``tqdm`` bars
+with the ``desc`` and ``postfix`` arguments:
 
 .. code:: python
 
@@ -456,10 +456,10 @@ inside your loops:
 
     t = trange(100)
     for i in t:
-        # Description will be displayed at the left
+        # Description will be displayed on the left
         t.set_description('GEN %i' % i)
-        # Postfix will choose the formatting based on argument's datatype
-        # and will display them as additional info at the right
+        # Postfix will be displayed on the right, and will format automatically 
+        # based on argument's datatype
         t.set_postfix(loss=random(), gen=randint(1,999), str='h', lst=[1, 2])
         sleep(0.1)
 

@@ -8,7 +8,7 @@ IS_NIX = (not IS_WIN) and any(
     ['CYGWIN', 'MSYS', 'Linux', 'Darwin', 'SunOS', 'FreeBSD'])
 
 
-# Py2/3 compatiibility code is inside an empty conditional to avoid coverage
+# Py2/3 compat. Empty conditional to avoid coverage
 if True:  # pragma: no cover
     try:
         _range = xrange
@@ -44,13 +44,13 @@ if True:  # pragma: no cover
     except NameError:
         _basestring = str
 
-    try:  # >= Py2.7 or >= Py3.1
+    try:  # py>=2.7,>=3.1
         from collections import OrderedDict as _OrderedDict
     except ImportError:
         try:  # older Python versions with backported ordereddict lib
             from ordereddict import OrderedDict as _OrderedDict
         except ImportError:  # older Python versions without ordereddict lib
-            # Py2.6 and 3.0 compatible code, from PEP 372
+            # Py2.6,3.0 compat, from PEP 372
             from collections import MutableMapping
             class _OrderedDict(dict, MutableMapping):
                 # Methods with direct access to underlying attributes
@@ -94,7 +94,6 @@ if True:  # pragma: no cover
                     return (self.__class__, (items,), inst_dict)
 
                 # Methods with indirect access via the above methods
-
                 setdefault = MutableMapping.setdefault
                 update = MutableMapping.update
                 pop = MutableMapping.pop
