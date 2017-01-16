@@ -1,7 +1,7 @@
 sudo: required
 dist: trusty
 language: python
-python: 3.5
+python: 3.6
 
 # use cache for big builds like pandas
 cache:
@@ -24,6 +24,7 @@ env:
   - TOXENV=py33
   - TOXENV=py34
   - TOXENV=py35
+  - TOXENV=py36
   - TOXENV=pypy
   # TODO: re-enable when Travis is fixed
   # - TOXENV=pypy3
