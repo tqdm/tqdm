@@ -100,7 +100,8 @@ class TMonitor(Thread):
             # Then monitor!
             cur_t = self._time()
             # Check for each tqdm instance if one is waiting too long to print
-            for instance in self.tqdm_cls._instances:
+            # NB: copy avoids size change during iteration RuntimeError
+            for instance in self.tqdm_cls._instances.copy():
                 # Only if mininterval > 1 (else iterations are just slow)
                 # and last refresh was longer than maxinterval in this instance
                 if instance.miniters > 1 and \
