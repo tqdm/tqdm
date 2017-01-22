@@ -52,11 +52,13 @@ if True:  # pragma: no cover
         except ImportError:  # older Python versions without ordereddict lib
             # Py2.6,3.0 compat, from PEP 372
             from collections import MutableMapping
+
             class _OrderedDict(dict, MutableMapping):
                 # Methods with direct access to underlying attributes
                 def __init__(self, *args, **kwds):
                     if len(args) > 1:
-                        raise TypeError('expected at 1 argument, got %d', len(args))
+                        raise TypeError('expected at 1 argument, got %d',
+                                        len(args))
                     if not hasattr(self, '_keys'):
                         self._keys = []
                     self.update(*args, **kwds)

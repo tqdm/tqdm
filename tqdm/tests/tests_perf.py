@@ -48,6 +48,8 @@ def checkCpuTime(sleeptime=0.2):
     if (abs(t1) < 0.0001 and (t1 < t2 / 10)):
         return True
     raise SkipTest
+
+
 checkCpuTime.passed = False
 
 

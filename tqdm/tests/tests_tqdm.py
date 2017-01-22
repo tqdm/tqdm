@@ -28,6 +28,7 @@ from io import IOBase  # to support unicode strings
 class DeprecationError(Exception):
     pass
 
+
 # Ensure we can use `with closing(...) as ... :` syntax
 if getattr(StringIO, '__exit__', False) and \
    getattr(StringIO, '__enter__', False):
@@ -1515,9 +1516,10 @@ def test_monitoring_thread():
 def test_postfix():
     """Test postfix"""
     postfix = {'float': 0.321034, 'gen': 543, 'str': 'h', 'lst': [2]}
-    postfix_order = (('w', 'w'), ('a', 0))  # no need for a OrderedDict, set is OK
+    postfix_order = (('w', 'w'), ('a', 0))  # no need for OrderedDict
     expected = ['float=0.321', 'gen=543', 'lst=[2]', 'str=h']
-    expected_order = ['w=w', 'a=0', 'float=0.321', 'gen=543', 'lst=[2]', 'str=h']
+    expected_order = ['w=w', 'a=0', 'float=0.321', 'gen=543', 'lst=[2]',
+                      'str=h']
 
     # Test postfix set at init
     with closing(StringIO()) as our_file:
