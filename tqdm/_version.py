@@ -47,6 +47,9 @@ if os.path.isdir(gitdir):  # pragma: nocover
             else:
                 extra = extra[:8]
 
-    # Append to version string
+    # Append commit hash (and branch) to version string if not tagged
     if extra is not None:
-        __version__ += '-' + extra
+        with io_open(os.path.join(gitdir, "refs", "tags",
+                                  'v' + __version__)) as fdv:
+            if fdv.readline().strip()[:8] != extra[:8]:
+                __version__ += '-' + extra
