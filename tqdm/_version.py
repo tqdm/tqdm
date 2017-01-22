@@ -14,7 +14,7 @@ __version__ = '.'.join(map(str, version_info))
 # auto -extra based on commit hash (if not tagged as release)
 scriptdir = os.path.dirname(__file__)
 gitdir = os.path.abspath(os.path.join(scriptdir, "..", ".git"))
-if os.path.isdir(gitdir):
+if os.path.isdir(gitdir):  # pragma: nocover
     extra = None
     # Open config file to check if we are in tqdm project
     with io_open(os.path.join(gitdir, "config"), 'r') as fh_config:
