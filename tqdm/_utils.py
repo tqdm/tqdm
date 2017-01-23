@@ -52,11 +52,13 @@ if True:  # pragma: no cover
         except ImportError:  # older Python versions without ordereddict lib
             # Py2.6,3.0 compat, from PEP 372
             from collections import MutableMapping
+
             class _OrderedDict(dict, MutableMapping):
                 # Methods with direct access to underlying attributes
                 def __init__(self, *args, **kwds):
                     if len(args) > 1:
-                        raise TypeError('expected at 1 argument, got %d', len(args))
+                        raise TypeError('expected at 1 argument, got %d',
+                                        len(args))
                     if not hasattr(self, '_keys'):
                         self._keys = []
                     self.update(*args, **kwds)
@@ -203,8 +205,3 @@ def _environ_cols_linux(fp):  # pragma: no cover
 
 def _term_move_up():  # pragma: no cover
     return '' if (os.name == 'nt') and (colorama is None) else '\x1b[A'
-
-
-def _sh(*cmd, **kwargs):
-    return subprocess.Popen(cmd, stdout=subprocess.PIPE,
-                            **kwargs).communicate()[0].decode('utf-8')

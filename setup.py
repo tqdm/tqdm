@@ -113,7 +113,8 @@ def execute_makefile_commands(commands, alias, verbose=False):
             if verbose:
                 print("Running command: " + cmd)
             # Launch the command and wait to finish (synchronized call)
-            check_call(parsed_cmd, cwd=os.path.dirname(os.path.abspath(__file__)))
+            check_call(parsed_cmd,
+                       cwd=os.path.dirname(os.path.abspath(__file__)))
 
 
 # Main setup.py config #

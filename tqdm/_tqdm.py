@@ -437,7 +437,7 @@ class tqdm(object):
         # Force refresh display of bars we cleared
         for inst in inst_cleared:
             # Avoid race conditions by checking that the instance started
-            if hasattr(inst, 'start_t'):
+            if hasattr(inst, 'start_t'):  # pragma: nocover
                 inst.refresh()
         # TODO: make list of all instances incl. absolutely positioned ones?
 
