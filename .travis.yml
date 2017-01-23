@@ -39,6 +39,7 @@ before_install:
   # coverage submission packages
   - pip install codecov
   # - pip install coveralls
+  - git fetch --tags
 
 install:
   # Install tox first, before dependencies (to get per-env deps)
