@@ -409,7 +409,10 @@ class tqdm(object):
             # Kill monitor if no instances are left
             if not cls._instances and cls.monitor:
                 cls.monitor.exit()
-                del cls.monitor
+                try:
+                    del cls.monitor
+                except AttributeError:
+                    pass
                 cls.monitor = None
         except KeyError:
             pass
