@@ -107,7 +107,7 @@ class TMonitor(Thread):
                 # Only if mininterval > 1 (else iterations are just slow)
                 # and last refresh was longer than maxinterval in this instance
                 if instance.miniters > 1 and \
-                  (cur_t - instance.last_print_t) >= instance.maxinterval:
+                        (cur_t - instance.last_print_t) >= instance.maxinterval:
                     # We force bypassing miniters on next iteration
                     # dynamic_miniters should adjust mininterval automatically
                     instance.miniters = 1
@@ -292,7 +292,7 @@ class tqdm(object):
                 '{0:3.0f}%|'.format(percentage)
             r_bar = '| {0}/{1} [{2}<{3}, {4}{5}]'.format(
                     n_fmt, total_fmt, elapsed_str, remaining_str, rate_fmt,
-                    ', '+postfix if postfix else '')
+                    ', ' + postfix if postfix else '')
 
             if ncols == 0:
                 return l_bar[:-1] + r_bar[1:]
@@ -317,7 +317,7 @@ class tqdm(object):
                             'l_bar': l_bar,
                             'r_bar': r_bar,
                             'desc': prefix if prefix else '',
-                            'postfix': ', '+postfix if postfix else '',
+                            'postfix': ', ' + postfix if postfix else '',
                             # 'bar': full_bar  # replaced by procedure below
                             }
 
@@ -368,7 +368,7 @@ class tqdm(object):
         else:
             return (prefix if prefix else '') + '{0}{1} [{2}, {3}{4}]'.format(
                 n_fmt, unit, elapsed_str, rate_fmt,
-                ', '+postfix if postfix else '')
+                ', ' + postfix if postfix else '')
 
     def __new__(cls, *args, **kwargs):
         # Create a new instance
@@ -883,10 +883,10 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
                                 # EMA-weight miniters to converge
                                 # towards the timeframe of mininterval
                                 miniters = smoothing * delta_it * \
-                                              (mininterval / delta_t
-                                               if mininterval and delta_t
-                                               else 1) + \
-                                              (1 - smoothing) * miniters
+                                    (mininterval / delta_t
+                                     if mininterval and delta_t
+                                     else 1) + \
+                                    (1 - smoothing) * miniters
                             else:
                                 # Maximum nb of iterations between 2 prints
                                 miniters = max(miniters, delta_it)
@@ -973,16 +973,16 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
                     if self.maxinterval and delta_t >= self.maxinterval:
                         if self.mininterval:
                             self.miniters = delta_it * self.mininterval \
-                                        / delta_t
+                                / delta_t
                         else:
                             self.miniters = delta_it * self.maxinterval \
-                                        / delta_t
+                                / delta_t
                     elif self.smoothing:
                         self.miniters = self.smoothing * delta_it * \
-                                        (self.mininterval / delta_t
-                                         if self.mininterval and delta_t
-                                         else 1) + \
-                                        (1 - self.smoothing) * self.miniters
+                            (self.mininterval / delta_t
+                             if self.mininterval and delta_t
+                             else 1) + \
+                            (1 - self.smoothing) * self.miniters
                     else:
                         self.miniters = max(self.miniters, delta_it)
 
