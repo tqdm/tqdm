@@ -336,6 +336,8 @@ Parameters
     Useful to manage multiple bars at once (eg, from threads).
 * postfix  : dict, optional  
     Specify additional stats to display at the end of the bar.
+* unit_divisor  : float, optional  
+    [default: 1000], ignored unless `unit_scale` is True.
 
 Extra CLI Options
 ~~~~~~~~~~~~~~~~~
