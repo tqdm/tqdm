@@ -224,6 +224,7 @@ class tqdm(object):
             will not print any meter (only stats).
         prefix  : str, optional
             Prefix message (included in total width) [default: ''].
+            Use as {desc in bar_format string.
         ascii  : bool, optional
             If not set, use unicode (smooth blocks) to fill the meter
             [default: False]. The fallback is to use ASCII characters
@@ -239,13 +240,14 @@ class tqdm(object):
             If [default: None], uses n/elapsed.
         bar_format  : str, optional
             Specify a custom bar string formatting. May impact performance.
-            [default: '{l_bar}{bar}{r_bar}'], where l_bar is
-            '{desc}{percentage:3.0f}%|' and r_bar is
-            '| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}]'
-            Possible vars: bar, n, n_fmt, total, total_fmt, percentage,
-            rate, rate_fmt, elapsed, remaining, l_bar, r_bar, desc.
+            [default: '{l_bar}{bar}{r_bar}'],
+            where l_bar is '{desc}{percentage:3.0f}%|' and 
+            r_bar='| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}{postfix}]'
+            Possible vars: l_bar, bar, r_bar, n, n_fmt, total, total_fmt,
+                percentage, rate, rate_fmt, elapsed, remaining, desc, postfix.
         postfix  : str, optional
-            Same as prefix but will be placed at the end as additional stats.
+            Similar to prefix, but placed at the end as additional stats.
+            Note: postfix is a string for this function. Not a dict.
 
         Returns
         -------
@@ -634,6 +636,7 @@ class tqdm(object):
             Useful to manage multiple bars at once (eg, from threads).
         postfix  : dict, optional
             Specify additional stats to display at the end of the bar.
+            Note: postfix is a dict ({'key':value} pairs) for this method. Not a string.
         gui  : bool, optional
             WARNING: internal parameter - do not use.
             Use tqdm_gui(...) instead. If set, will attempt to use
@@ -1079,6 +1082,9 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
         self.postfix = ', '.join(key + '=' + postfix[key].strip()
                                  for key in postfix.keys())
 
+    def set_postfix_direct(self, s=''): # for e.g. status messages
+        self.postfix = str(s)
+        
     def moveto(self, n):
         self.fp.write(_unicode('\n' * n + _term_move_up() * -n))
 
