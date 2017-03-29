@@ -241,7 +241,7 @@ class tqdm(object):
         bar_format  : str, optional
             Specify a custom bar string formatting. May impact performance.
             [default: '{l_bar}{bar}{r_bar}'],
-            where l_bar is '{desc}{percentage:3.0f}%|' and 
+            where l_bar is '{desc}{percentage:3.0f}%|' and
             r_bar='| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}{postfix}]'
             Possible vars: l_bar, bar, r_bar, n, n_fmt, total, total_fmt,
                 percentage, rate, rate_fmt, elapsed, remaining, desc, postfix.
@@ -1062,7 +1062,7 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
 
     def set_postfix(self, ordered_dict=None, **kwargs):
         """
-        Set/modify postfix (additional stats) given 'key':value pairs 
+        Set/modify postfix (additional stats) given 'key':value pairs
         (and other arbitrary parameters with their values)
         with automatic formatting based on datatype.
         """
@@ -1085,7 +1085,7 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
 
     def set_postfix_direct(self, s=''): # for e.g. status messages
         self.postfix = str(s)
-        
+
     def moveto(self, n):
         self.fp.write(_unicode('\n' * n + _term_move_up() * -n))
 
