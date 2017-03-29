@@ -224,7 +224,7 @@ class tqdm(object):
             will not print any meter (only stats).
         prefix  : str, optional
             Prefix message (included in total width) [default: ''].
-            Use as {desc in bar_format string.
+            Use as {desc} in bar_format string.
         ascii  : bool, optional
             If not set, use unicode (smooth blocks) to fill the meter
             [default: False]. The fallback is to use ASCII characters
@@ -246,8 +246,8 @@ class tqdm(object):
             Possible vars: l_bar, bar, r_bar, n, n_fmt, total, total_fmt,
                 percentage, rate, rate_fmt, elapsed, remaining, desc, postfix.
         postfix  : str, optional
-            Similar to prefix, but placed at the end as additional stats.
-            Note: postfix is a string for this function. Not a dict.
+            Similar to prefix, but placed at the end (e.g. for additional stats).
+            Note: postfix is a string for this method. Not a dict.
 
         Returns
         -------
@@ -1062,7 +1062,8 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
 
     def set_postfix(self, ordered_dict=None, **kwargs):
         """
-        Set/modify postfix (additional stats)
+        Set/modify postfix (additional stats) given 'key':value pairs 
+        (and other arbitrary parameters with their values)
         with automatic formatting based on datatype.
         """
         # Sort in alphabetical order to be more deterministic
