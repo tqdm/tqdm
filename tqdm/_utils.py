@@ -35,6 +35,22 @@ if True:  # pragma: no cover
         colorama = None
 
     try:
+        if IS_WIN:
+            import win32console
+            h_stdout = win32console.GetStdHandle(-11)
+            cm_stdout = h_stdout.GetConsoleMode()
+            h_stdout.SetConsoleMode(cm_stdout | 4) # ENABLE_VIRTUAL_TERMINAL_PROCESSING
+            h_stderr = win32console.GetStdHandle(-12)
+            cm_stderr = h_stderr.GetConsoleMode()
+            h_stderr.SetConsoleMode(cm_stderr | 4)
+        else:
+            cm_stdout = None
+            h_stdout = None
+    except ImportError:
+        cm_stdout = None
+        h_stdout = None
+        
+    try:
         from weakref import WeakSet
     except ImportError:
         WeakSet = set
@@ -170,6 +186,12 @@ def _environ_cols_windows(fp):  # pragma: no cover
         pass
     return None
 
+def _reset_mode_stdconsoles(h_stdout, cm_stdout, h_stderr, cm_stderr):
+    _reset_console_mode_win(h_stderr, cm_stderr) # do this one first in case the stdout mode changed the default stderr mode
+    _reset_console_mode_win(h_stdout, cm_stdout)
+
+def _reset_console_mode_win(h, cm):
+    h.SetConsoleMode(cm)
 
 def _environ_cols_tput(*args):  # pragma: no cover
     """ cygwin xterm (windows) """
