@@ -44,11 +44,9 @@ if True:  # pragma: no cover
             cm_stderr = h_stderr.GetConsoleMode()
             h_stderr.SetConsoleMode(cm_stderr | 4)
         else:
-            cm_stdout = None
-            h_stdout = None
+            (cm_stdout, h_stdout, cm_stderr, h_stderr) = (None, None, None, None)            
     except ImportError:
-        cm_stdout = None
-        h_stdout = None
+        (cm_stdout, h_stdout, cm_stderr, h_stderr) = (None, None, None, None)
         
     try:
         from weakref import WeakSet
