@@ -186,7 +186,7 @@ def _environ_cols_windows(fp):  # pragma: no cover
         else:  # assume stderr
             io_handle = -12
         (_, _, _, _, _, left, _, right, _, _, _) = _GetInfoIO(io_handle)
-        return right - left if not (left is None or right is None) else None 
+        return right - left if not (left is None or right is None) else None
     # +1, but we don't want to put a character there or the cursor goes to the next line
     except Exception:
         pass
