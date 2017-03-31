@@ -33,6 +33,7 @@ if True:  # pragma: no cover
             colorama = None
     except ImportError:
         colorama = None
+
     try:
         IS_WIN10 = False
         if IS_WIN:
@@ -46,12 +47,12 @@ if True:  # pragma: no cover
             h_stderr.SetConsoleMode(cm_stderr | 4)
             IS_WIN10 = True
         else:
-            (cm_stdout, h_stdout, cm_stderr, h_stderr) = (None, None, None, None)
-    except pywintypes.error:
-        (cm_stdout, h_stdout, cm_stderr, h_stderr) = (None, None, None, None)
+            (cm_stdout, h_stdout, cm_stderr, h_stderr) = (None)*4
     except ImportError:
-        (cm_stdout, h_stdout, cm_stderr, h_stderr) = (None, None, None, None)
-        
+        (cm_stdout, h_stdout, cm_stderr, h_stderr) = (None)*4
+    except pywintypes.error:
+        (cm_stdout, h_stdout, cm_stderr, h_stderr) = (None)*4
+
     try:
         from weakref import WeakSet
     except ImportError:
@@ -135,17 +136,14 @@ if True:  # pragma: no cover
                         d[key] = value
                     return d
 
-
 def _is_utf(encoding):
     return encoding.lower().startswith('utf-') or ('U8' == encoding)
-
 
 def _supports_unicode(file):
     return _is_utf(file.encoding) if (
         getattr(file, 'encoding', None) or
         # FakeStreams from things like bpython-curses can lie
         getattr(file, 'interface', None)) else False  # pragma: no cover
-
 
 def _environ_cols_wrapper():  # pragma: no cover
     """
@@ -161,6 +159,17 @@ def _environ_cols_wrapper():  # pragma: no cover
         _environ_cols = _environ_cols_linux
     return _environ_cols
 
+def _GetInfoIO(io_handle): # pragma: no cover # returns (_bufx, _bufy, _curx, _cury, _wattr, left, _top, right, _bottom, _maxx, _maxy)
+    try:
+        from ctypes import windll, create_string_buffer
+        import struct
+        h = windll.kernel32.GetStdHandle(io_handle)
+        csbi = create_string_buffer(22)
+        res = windll.kernel32.GetConsoleScreenBufferInfo(h, csbi)
+        return struct.unpack("hhhhHhhhhhh", csbi.raw) if res else None
+    except Exception:
+        raise # punt to next level
+    return (None)*11
 
 def _environ_cols_windows(fp):  # pragma: no cover
     """
@@ -169,35 +178,25 @@ def _environ_cols_windows(fp):  # pragma: no cover
     sb.SetConsoleCursorPosition(win32console.PyCoordType(X,Y)) allows you to change the position
     """
     try:
-        from ctypes import windll, create_string_buffer
-        import struct
         from sys import stdin, stdout
-
-        io_handle = None
         if fp == stdin:
             io_handle = -10
         elif fp == stdout:
             io_handle = -11
         else:  # assume stderr
             io_handle = -12
-
-        h = windll.kernel32.GetStdHandle(io_handle)
-        csbi = create_string_buffer(22)
-        res = windll.kernel32.GetConsoleScreenBufferInfo(h, csbi)
-        if res:
-            (_bufx, _bufy, _curx, _cury, _wattr, left, _top, right, _bottom,
-             _maxx, _maxy) = struct.unpack("hhhhHhhhhhh", csbi.raw)
-            # nlines = bottom - top + 1
-            return right - left  # +1
-    except:
+        (_, _, _, _, _, left, _, right, _, _, _) = _GetInfoIO(io_handle)
+        return right - left if not (left is None or right is None) else None 
+    # +1, but we don't want to put a character there or the cursor goes to the next line
+    except Exception:
         pass
     return None
 
-def _reset_mode_stdconsoles(h_stdout, cm_stdout, h_stderr, cm_stderr):
-    _reset_console_mode_win(h_stderr, cm_stderr) # do this one first in case the stdout mode changed the default stderr mode
-    _reset_console_mode_win(h_stdout, cm_stdout)
+def _reset_mode_stdconsoles(h_stdout, cm_stdout, h_stderr, cm_stderr): # pragma: no cover
+    _set_console_mode_win(h_stderr, cm_stderr) # do this one first in case the stdout mode changed the default stderr mode
+    _set_console_mode_win(h_stdout, cm_stdout)
 
-def _reset_console_mode_win(h, cm):
+def _set_console_mode_win(h, cm): # pragma: no cover
     h.SetConsoleMode(cm)
 
 def _environ_cols_tput(*args):  # pragma: no cover
@@ -211,9 +210,7 @@ def _environ_cols_tput(*args):  # pragma: no cover
         pass
     return None
 
-
 def _environ_cols_linux(fp):  # pragma: no cover
-
     try:
         from termios import TIOCGWINSZ
         from fcntl import ioctl
@@ -233,21 +230,13 @@ def _environ_cols_linux(fp):  # pragma: no cover
 
 def _console_get_pos_windows(): # pragma: no cover
     try:
-        from ctypes import windll, create_string_buffer
-        import struct
-        h = windll.kernel32.GetStdHandle(-11)
-        csbi = create_string_buffer(22)
-        res = windll.kernel32.GetConsoleScreenBufferInfo(h, csbi)
-        if res:
-            (_bufx, _bufy, _curx, _cury, _wattr, left, _top, right, _bottom,
-             _maxx, _maxy) = struct.unpack("hhhhHhhhhhh", csbi.raw)
-            # nlines = bottom - top + 1
-            return _cury*65536 + _curx  # +1
+        (_, _, curx, cury, _, _, _, _, _, _, _) = _GetInfoIO(-11)
+        return cury*65536 + curx if not (curx is None or cury is None) else None
     except:
         pass
     return None
 
-def _move_relative(fp, lines):
+def _move_relative(fp, lines): # pragma: no cover
     from sys import stdout, stderr
     if (fp == stdout or fp == stderr): # otherwise don't bother moving
         if lines > 0:
@@ -258,32 +247,28 @@ def _move_relative(fp, lines):
             elif IS_WIN:
                 _console_move_cursor_up_windows(-lines)
 
-def _move_absolute(fp, xy = None, x = None, y = None):
+def _move_absolute(fp, xy = None, x = None, y = None): # pragma: no cover
     from sys import stdout, stderr
     from ctypes import windll
     if (fp == stdout or fp == stderr):
         if xy is None:
             xy = y*65536 + x
-        if y is None: # someone probably put x into xy and y into x by positional arguments
+        if y is None: # user probably used positional args and put x into xy and y into x
             xy = x*65536 + xy
         if xy is not None:
-            suc = windll.kernel32.SetConsoleCursorPosition(windll.kernel32.GetStdHandle(-11),xy)
-            if suc: return xy
+            suc = windll.kernel32.SetConsoleCursorPosition(windll.kernel32.GetStdHandle(-11), xy)
+            return xy if suc else None
     return None
 
-def _console_move_cursor_up_windows(lines=0, cp=None):
+def _console_move_cursor_up_windows(lines=0, cp=None): # pragma: no cover
     from ctypes import windll
-#    from sys import stdout
-    h = windll.kernel32.GetStdHandle(-11)
     if cp is None:
         cp = _console_get_pos_windows()
     if cp:
+        h = windll.kernel32.GetStdHandle(-11)
         new_coords = cp - (lines*65536)
-        suc = windll.kernel32.SetConsoleCursorPosition(h,new_coords)
-        if suc:
-            return new_coords
-        else: # failure to move. Consider raising an exception.
-            return cp
+        suc = windll.kernel32.SetConsoleCursorPosition(h, new_coords)
+        return new_coords if suc else cp # cp = failure to move. Consider raising an exception.
     return None
 
 def _term_move_up():  # pragma: no cover

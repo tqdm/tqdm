@@ -11,7 +11,7 @@ from __future__ import absolute_import
 from __future__ import division
 # compatibility functions and utilities
 from ._utils import _supports_unicode, _environ_cols_wrapper, _range, _unich, \
-    _unicode, WeakSet, _basestring, _OrderedDict, _move_relative, _move_absolute # , _console_get_pos_windows
+    _unicode, WeakSet, _basestring, _OrderedDict, _move_relative # , _move_absolute, _console_get_pos_windows
 # native libraries
 import sys
 from numbers import Number
