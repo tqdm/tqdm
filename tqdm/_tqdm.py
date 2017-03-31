@@ -241,13 +241,16 @@ class tqdm(object):
             If [default: None], uses n/elapsed.
         bar_format  : str, optional
             Specify a custom bar string formatting. May impact performance.
-            [default: '{l_bar}{bar}{r_bar}'],
-            where l_bar is '{desc}{percentage:3.0f}%|' and
-            r_bar='| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}{postfix}]'
+            [default: '{l_bar}{bar}{r_bar}'], where
+            l_bar='{desc}{percentage:3.0f}%|' and
+            r_bar='| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, '
+                  '{rate_fmt}{postfix}]'
             Possible vars: l_bar, bar, r_bar, n, n_fmt, total, total_fmt,
-                percentage, rate, rate_fmt, elapsed, remaining, desc, postfix.
+                percentage, rate, rate_fmt, elapsed, remaining, desc,
+                postfix.
         postfix  : str, optional
-            Similar to prefix, but placed at the end (e.g. for additional stats).
+            Similar to `prefix`, but placed at the end
+            (e.g. for additional stats).
             Note: postfix is a string for this method. Not a dict.
         unit_divisor  : float, optional
             [default: 1000], ignored unless `unit_scale` is True.
@@ -652,7 +655,8 @@ class tqdm(object):
             Useful to manage multiple bars at once (eg, from threads).
         postfix  : dict, optional
             Specify additional stats to display at the end of the bar.
-            Note: postfix is a dict ({'key':value} pairs) for this method. Not a string.
+            Note: postfix is a dict ({'key': value} pairs) for this method,
+            not a string.
         unit_divisor  : float, optional
             [default: 1000], ignored unless `unit_scale` is True.
         gui  : bool, optional
@@ -1089,9 +1093,15 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
         """
         self.desc = desc + ': ' if desc else ''
 
+    def set_description_str(self, desc=None):
+        """
+        Set/modify description without ': ' appended.
+        """
+        self.desc = desc or ''
+
     def set_postfix(self, ordered_dict=None, **kwargs):
         """
-        Set/modify postfix (additional stats) given 'key':value pairs
+        Set/modify postfix (additional stats) given 'key': value pairs
         (and other arbitrary parameters with their values)
         with automatic formatting based on datatype.
         """
@@ -1112,7 +1122,10 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
         self.postfix = ', '.join(key + '=' + postfix[key].strip()
                                  for key in postfix.keys())
 
-    def set_postfix_direct(self, s=''): # for e.g. status messages
+    def set_postfix_str(self, s=''):
+        """
+        Postfix without dictionary expansion, similar to prefix handling.
+        """
         self.postfix = str(s)
 
     def moveto(self, n):

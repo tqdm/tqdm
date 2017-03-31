@@ -338,6 +338,8 @@ Parameters
     Useful to manage multiple bars at once (eg, from threads).
 * postfix  : dict, optional  
     Specify additional stats to display at the end of the bar.
+    Note: postfix is a dict ({'key': value} pairs) for this method,
+    not a string.
 * unit_divisor  : float, optional  
     [default: 1000], ignored unless `unit_scale` is True.
 
