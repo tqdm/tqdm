@@ -1,7 +1,6 @@
 """
 Customisable progressbar decorator for iterators.
 Includes a default (x)range iterator printing to stderr.
-
 Usage:
   >>> from tqdm import trange[, tqdm]
   >>> for i in trange(10): #same as: for i in tqdm(xrange(10))
@@ -12,7 +11,7 @@ from __future__ import absolute_import
 from __future__ import division
 # compatibility functions and utilities
 from ._utils import _supports_unicode, _environ_cols_wrapper, _range, _unich, \
-    _term_move_up, _unicode, WeakSet, _basestring, _OrderedDict
+    _unicode, WeakSet, _basestring, _OrderedDict, _move_relative, _move_absolute # , _console_get_pos_windows
 # native libraries
 import sys
 from numbers import Number
@@ -49,7 +48,6 @@ class TMonitor(Thread):
     Monitoring thread for tqdm bars.
     Monitors if tqdm bars are taking too much time to display
     and readjusts miniters automatically if necessary.
-
     Parameters
     ----------
     tqdm_cls  : class
@@ -134,14 +132,12 @@ class tqdm(object):
         """
         Formats a number (greater than unity) with SI Order of Magnitude
         prefixes.
-
         Parameters
         ----------
         num  : float
             Number ( >= 1) to format.
         suffix  : str, optional
             Post-postfix [default: ''].
-
         Returns
         -------
         out  : str
@@ -161,7 +157,6 @@ class tqdm(object):
     def format_interval(t):
         """
         Formats a number of seconds as a clock time, [H:]MM:SS
-
         Parameters
         ----------
         t  : int
@@ -206,7 +201,6 @@ class tqdm(object):
                      bar_format=None, postfix=None):
         """
         Return a string-based progress bar given some parameters
-
         Parameters
         ----------
         n  : int
@@ -248,7 +242,6 @@ class tqdm(object):
         postfix  : str, optional
             Similar to prefix, but placed at the end (e.g. for additional stats).
             Note: postfix is a string for this method. Not a dict.
-
         Returns
         -------
         out  : Formatted meter and stats, ready to display.
@@ -456,14 +449,11 @@ class tqdm(object):
             | groupby.DataFrameGroupBy
             | groupby.SeriesGroupBy
             ).progress_apply
-
         A new instance will be create every time `progress_apply` is called,
         and each instance will automatically close() upon completion.
-
         Parameters
         ----------
         targs, tkwargs  : arguments for the tqdm instance
-
         Examples
         --------
         >>> import pandas as pd
@@ -474,7 +464,6 @@ class tqdm(object):
         >>> tqdm.pandas(ncols=50)  # can use tqdm_gui, optional kwargs, etc
         >>> # Now you can use `progress_apply` instead of `apply`
         >>> df.groupby(0).progress_apply(lambda x: x**2)
-
         References
         ----------
         https://stackoverflow.com/questions/18603270/
@@ -641,7 +630,6 @@ class tqdm(object):
             WARNING: internal parameter - do not use.
             Use tqdm_gui(...) instead. If set, will attempt to use
             matplotlib animations for a graphical output [default: False].
-
         Returns
         -------
         out  : decorated iterator.
@@ -919,7 +907,6 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
         The last line is highly recommended, but possibly not necessary if
         `t.update()` will be called in such a way that `filesize` will be
         exactly reached and printed.
-
         Parameters
         ----------
         n  : int
@@ -958,8 +945,7 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
                 # Print bar's update
                 self.sp(self.format_meter(
                     self.n, self.total, elapsed,
-                    (self.dynamic_ncols(self.fp) if self.dynamic_ncols
-                     else self.ncols),
+                    (self.dynamic_ncols(self.fp) if self.dynamic_ncols else self.ncols),
                     self.desc, self.ascii, self.unit, self.unit_scale,
                     1 / self.avg_time if self.avg_time else None,
                     self.bar_format, self.postfix))
@@ -1087,7 +1073,7 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
         self.postfix = str(s)
 
     def moveto(self, n):
-        self.fp.write(_unicode('\n' * n + _term_move_up() * -n))
+        _move_relative(self.fp, n)
 
     def clear(self, nomove=False):
         """
