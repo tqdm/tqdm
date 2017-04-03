@@ -27,7 +27,7 @@ if True:  # pragma: no cover
 
     try:
         from pywintypes import error as _pywintypesErr
-    else:
+    except ImportError:
         _pywintypesErr = Exception
         
     try:
