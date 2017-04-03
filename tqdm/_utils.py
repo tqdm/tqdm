@@ -56,19 +56,19 @@ if True:  # pragma: no cover
                 # v[3] == 2 is NT series. 
                 # sure where winCE (wv[3]==3) falls along the ansi support continuum, so we may as well try to enable the console mode
                 import win32console
-                h_stdout = win32console.GetStdHandle(-11)
-                cm_stdout = h_stdout.GetConsoleMode()
-                h_stdout.SetConsoleMode(cm_stdout | 4) # ENABLE_VIRTUAL_TERMINAL_PROCESSING
-                h_stderr = win32console.GetStdHandle(-12)
-                cm_stderr = h_stderr.GetConsoleMode()
-                h_stderr.SetConsoleMode(cm_stderr | 4)
+                _h_stdout = win32console.GetStdHandle(-11)
+                _cm_stdout = _h_stdout.GetConsoleMode()
+                _h_stdout.SetConsoleMode(_cm_stdout | 4) # ENABLE_VIRTUAL_TERMINAL_PROCESSING
+                _h_stderr = win32console.GetStdHandle(-12)
+                _cm_stderr = _h_stderr.GetConsoleMode()
+                _h_stderr.SetConsoleMode(_cm_stderr | 4)
                 IS_WINANSI = True
         else:
-            (cm_stdout, h_stdout, cm_stderr, h_stderr) = (None)*4
+            (_cm_stdout, _h_stdout, _cm_stderr, _h_stderr) = [None]*4
     except ImportError:
-        (cm_stdout, h_stdout, cm_stderr, h_stderr) = (None)*4
+        (_cm_stdout, _h_stdout, _cm_stderr, _h_stderr) = [None]*4
     except _pywintypesErr:
-        (cm_stdout, h_stdout, cm_stderr, h_stderr) = (None)*4
+        (_cm_stdout, _h_stdout, _cm_stderr, _h_stderr) = [None]*4
 
     try:
         from weakref import WeakSet
@@ -186,7 +186,7 @@ def _GetInfoIO(io_handle): # pragma: no cover # returns (_bufx, _bufy, _curx, _c
         return struct.unpack("hhhhHhhhhhh", csbi.raw) if res else None
     except Exception:
         raise # punt to next level
-    return (None)*11
+    return [None]*11
 
 def _environ_cols_windows(fp):  # pragma: no cover
     """
@@ -209,7 +209,7 @@ def _environ_cols_windows(fp):  # pragma: no cover
         pass
     return None
 
-def _reset_mode_stdconsoles(h_stdout, cm_stdout, h_stderr, cm_stderr): # pragma: no cover
+def _reset_mode_stdconsoles(h_stdout = _h_stdout, cm_stdout = _cm_stdout, h_stderr = _h_stderr, cm_stderr = _cm_stderr): # pragma: no cover
     _set_console_mode_win(h_stderr, cm_stderr) # do this one first in case the stdout mode changed the default stderr mode
     _set_console_mode_win(h_stdout, cm_stdout)
 
