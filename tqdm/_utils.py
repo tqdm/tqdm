@@ -26,7 +26,7 @@ if True:  # pragma: no cover
         _unicode = str
 
     try:
-        import error from pywintypes as _pywintypesErr
+        from pywintypes import error as _pywintypesErr
     else:
         _pywintypesErr = Exception
         
