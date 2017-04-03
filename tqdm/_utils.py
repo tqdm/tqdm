@@ -29,7 +29,7 @@ if True:  # pragma: no cover
         from pywintypes import error as _pywintypesErr
     except ImportError:
         _pywintypesErr = Exception
-        
+
     try:
         if IS_WIN:
             import colorama
@@ -50,11 +50,11 @@ if True:  # pragma: no cover
             # (wv[3] < 2) # windows 3.1 through 95/98/ME
             # (wv[0] < 5) or # windows NT 4.0 or earlier
             # (wv[0] == 5 and wv[1]<2): # windows 2000, XP (32 bit)
-            if (wv[3] < 2) or (wv[0] < 5) or (wv[0] == 5 and wv[1]<2): # windows 2000, XP (32 bit)
+            if (wv[3] < 2) or (wv[0] < 5) or (wv[0] == 5 and wv[1]<2):
                 IS_WINANSI = True # we should really do something to check if ANSI.sys is loaded and functional, but on these OSes it is at least available
-            else: 
-                # v[3] == 2 is NT series. 
-                # sure where winCE (wv[3]==3) falls along the ansi support continuum, so we may as well try to enable the console mode
+            else:
+                # v[3] == 2 is NT series.
+                # I'm not sure where winCE (wv[3]==3) falls along the ansi support continuum, so we may as well try to enable the console mode
                 import win32console
                 _h_stdout = win32console.GetStdHandle(-11)
                 _cm_stdout = _h_stdout.GetConsoleMode()
