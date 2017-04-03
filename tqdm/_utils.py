@@ -26,31 +26,46 @@ if True:  # pragma: no cover
         _unicode = str
 
     try:
+        import error from pywintypes as _pywintypesErr
+    else:
+        _pywintypesErr = Exception
+        
+    try:
         if IS_WIN:
             import colorama
-            colorama.init()
+            colorama.init()  # this loading does not nec. mean that ANSI escapes work in windows.
         else:
             colorama = None
     except ImportError:
         colorama = None
 
     try:
-        IS_WIN10 = False
+        IS_WINANSI = False
         if IS_WIN:
-            import pywintypes
-            import win32console
-            h_stdout = win32console.GetStdHandle(-11)
-            cm_stdout = h_stdout.GetConsoleMode()
-            h_stdout.SetConsoleMode(cm_stdout | 4) # ENABLE_VIRTUAL_TERMINAL_PROCESSING
-            h_stderr = win32console.GetStdHandle(-12)
-            cm_stderr = h_stderr.GetConsoleMode()
-            h_stderr.SetConsoleMode(cm_stderr | 4)
-            IS_WIN10 = True
+            from sys import getwindowsversion
+            wv = getwindowsversion()
+            # To check: if using ansicom instead of standard cmd shell, set IS_WINANSI to True
+            # check also: what about DOSBOX? windows powershell?
+            if (wv[3] < 2) or  # windows 3.1 through 95/98/ME
+                (wv[0] < 5) or # windows NT 4.0 or earlier
+                (wv[0] == 5 and wv[1]<2): # windows 2000, XP (32 bit)
+                IS_WINANSI = True # we should really do something to check if ANSI.sys is loaded and functional, but on these OSes it is at least available
+            else: 
+                # v[3] == 2 is NT series. 
+                # sure where winCE (wv[3]==3) falls along the ansi support continuum, so we may as well try to enable the console mode
+                import win32console
+                h_stdout = win32console.GetStdHandle(-11)
+                cm_stdout = h_stdout.GetConsoleMode()
+                h_stdout.SetConsoleMode(cm_stdout | 4) # ENABLE_VIRTUAL_TERMINAL_PROCESSING
+                h_stderr = win32console.GetStdHandle(-12)
+                cm_stderr = h_stderr.GetConsoleMode()
+                h_stderr.SetConsoleMode(cm_stderr | 4)
+                IS_WINANSI = True
         else:
             (cm_stdout, h_stdout, cm_stderr, h_stderr) = (None)*4
     except ImportError:
         (cm_stdout, h_stdout, cm_stderr, h_stderr) = (None)*4
-    except pywintypes.error:
+    except _pywintypesErr:
         (cm_stdout, h_stdout, cm_stderr, h_stderr) = (None)*4
 
     try:
@@ -242,7 +257,7 @@ def _move_relative(fp, lines): # pragma: no cover
         if lines > 0:
             fp.write(_unicode('\n' * lines))
         elif lines < 0:
-            if IS_NIX or IS_WIN10 or not (fp == stdout or fp == stderr):
+            if IS_NIX or IS_WINANSI or not (fp == stdout or fp == stderr):
                 fp.write(_term_move_up() * -lines)
             elif IS_WIN:
                 _console_move_cursor_up_windows(-lines)
