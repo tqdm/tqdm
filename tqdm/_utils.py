@@ -46,9 +46,11 @@ if True:  # pragma: no cover
             wv = getwindowsversion()
             # To check: if using ansicom instead of standard cmd shell, set IS_WINANSI to True
             # check also: what about DOSBOX? windows powershell?
-            if (wv[3] < 2) or  # windows 3.1 through 95/98/ME
-                (wv[0] < 5) or # windows NT 4.0 or earlier
-                (wv[0] == 5 and wv[1]<2): # windows 2000, XP (32 bit)
+            # specifics of checks below:
+            # (wv[3] < 2) # windows 3.1 through 95/98/ME
+            # (wv[0] < 5) or # windows NT 4.0 or earlier
+            # (wv[0] == 5 and wv[1]<2): # windows 2000, XP (32 bit)
+            if (wv[3] < 2) or (wv[0] < 5) or (wv[0] == 5 and wv[1]<2): # windows 2000, XP (32 bit)
                 IS_WINANSI = True # we should really do something to check if ANSI.sys is loaded and functional, but on these OSes it is at least available
             else: 
                 # v[3] == 2 is NT series. 
