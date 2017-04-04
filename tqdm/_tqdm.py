@@ -504,7 +504,10 @@ class tqdm(object):
                 total = getattr(df, 'ngroups', None)
                 if total is None:  # not grouped
                     # apply can be on either axis
-                    total = df.shape[0] if kwargs.get('axis', 0) else df.shape[1]
+                    if kwargs.get('axis', 0) or isinstance(df, Series):
+                        total = df.shape[0]
+                    else:
+                        total = df.shape[1]
                 else:
                     total += 1  # pandas calls update once too many
 
