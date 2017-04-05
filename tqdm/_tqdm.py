@@ -243,7 +243,7 @@ class tqdm(object):
             '{desc}{percentage:3.0f}%|' and r_bar is
             '| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}]'
             Possible vars: bar, n, n_fmt, total, total_fmt, percentage,
-            rate, rate_fmt, elapsed, remaining, l_bar, r_bar, desc.
+            rate, rate_fmt, elapsed, remaining, l_bar, r_bar, desc, unit.
         postfix  : str, optional
             Same as prefix but will be placed at the end as additional stats.
 
@@ -318,6 +318,7 @@ class tqdm(object):
                             'r_bar': r_bar,
                             'desc': prefix if prefix else '',
                             'postfix': ', '+postfix if postfix else '',
+                            'unit': unit,
                             # 'bar': full_bar  # replaced by procedure below
                             }
 
@@ -624,7 +625,7 @@ class tqdm(object):
             '{desc}{percentage:3.0f}%|' and r_bar is
             '| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}]'
             Possible vars: bar, n, n_fmt, total, total_fmt, percentage,
-            rate, rate_fmt, elapsed, remaining, l_bar, r_bar, desc.
+            rate, rate_fmt, elapsed, remaining, l_bar, r_bar, desc, unit.
         initial  : int, optional
             The initial counter value. Useful when restarting a progress
             bar [default: 0].
