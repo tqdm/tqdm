@@ -46,8 +46,6 @@ if True:  # pragma: no cover
     else:
         colorama = None
 
-    (IS_WINANSI, ((_cm_stdout, _h_stdout), (_cm_stderr, _h_stderr))) = _set_winansi_plus_handles()
-
     try:
         from weakref import WeakSet
     except ImportError:
@@ -131,6 +129,42 @@ if True:  # pragma: no cover
                         d[key] = value
                     return d
 
+    (IS_WINANSI, ((_cm_stdout, _h_stdout), (_cm_stderr, _h_stderr))) = _set_winansi_plus_handles()
+
+def _set_winansi_plus_handles(): # pragma: no cover
+    try:
+        IS_WINANSI = False
+        (cm_stdout, h_stdout, cm_stderr, h_stderr) = [None]*4 # used for resetting back to normal after execution if desired
+        if IS_WIN: # ???? and not ((os.name == 'nt') and (colorama is None))
+            from sys import getwindowsversion
+            wv = getwindowsversion()
+            # To check: if using ansicom instead of standard cmd shell, set IS_WINANSI to True
+            # check also: what about DOSBOX? windows powershell?
+            # specifics of checks below:
+            # (wv[3] < 2) # windows 3.1 through 95/98/ME
+            # (wv[0] < 5) or # windows NT 4.0 or earlier
+            # (wv[0] == 5 and wv[1]<2): # windows 2000, XP (32 bit)
+            if (wv[3] < 2) or (wv[0] < 5) or (wv[0] == 5 and wv[1]<2):
+                IS_WINANSI = True
+                # we should really do something to check if ANSI.sys is loaded and functional, but on these OSes it is at least available
+                # should be tested on a 32-bit system w/o colorama (both in the NT and 9x series)
+            else:
+                # v[3] == 2 is NT series.
+                # I'm not sure where winCE (wv[3]==3) falls along the ansi support continuum, so we may as well try to enable the console mode
+#                import win32console
+                h_stdout = win32console.GetStdHandle(-11) # stdout
+                cm_stdout = h_stdout.GetConsoleMode()
+                h_stderr = win32console.GetStdHandle(-12) # stderr
+                cm_stderr = h_stderr.GetConsoleMode()
+                if (cm_stdout | 0x04) > cm_stdout:
+                    _set_console_mode_windows(h_stdout, cm_stdout | 4) # ENABLE_VIRTUAL_TERMINAL_PROCESSING
+                if ((cm_stderr | 0x04) > cm_stderr) and (h_stderr.GetConsoleMode() == cm_stderr): # if it was altered by the above, we  don't really need to set it to that same value
+                    _set_console_mode_windows(h_stderr, cm_stderr | 4)
+                IS_WINANSI = True
+    except (ImportError, _pywintypesErr):
+        pass # (cm_stdout, h_stdout, cm_stderr, h_stderr) = [None]*4
+    return (IS_WINANSI, ((cm_stdout, h_stdout), (cm_stderr, h_stderr)))
+
 def _is_utf(encoding):
     return encoding.lower().startswith('utf-') or ('U8' == encoding)
 
@@ -205,40 +239,6 @@ def _environ_cols_windows(fp):  # pragma: no cover
     # +1, but we don't want to put a character there or the cursor goes to the next line
     except Exception:
         return None
-
-def _set_winansi_plus_handles():
-    try:
-        IS_WINANSI = False
-        (cm_stdout, h_stdout, cm_stderr, h_stderr) = [None]*4 # used for resetting back to normal after execution if desired
-        if IS_WIN: # ???? and not ((os.name == 'nt') and (colorama is None))
-            from sys import getwindowsversion
-            wv = getwindowsversion()
-            # To check: if using ansicom instead of standard cmd shell, set IS_WINANSI to True
-            # check also: what about DOSBOX? windows powershell?
-            # specifics of checks below:
-            # (wv[3] < 2) # windows 3.1 through 95/98/ME
-            # (wv[0] < 5) or # windows NT 4.0 or earlier
-            # (wv[0] == 5 and wv[1]<2): # windows 2000, XP (32 bit)
-            if (wv[3] < 2) or (wv[0] < 5) or (wv[0] == 5 and wv[1]<2):
-                IS_WINANSI = True
-                # we should really do something to check if ANSI.sys is loaded and functional, but on these OSes it is at least available
-                # should be tested on a 32-bit system w/o colorama (both in the NT and 9x series)
-            else:
-                # v[3] == 2 is NT series.
-                # I'm not sure where winCE (wv[3]==3) falls along the ansi support continuum, so we may as well try to enable the console mode
-#                import win32console
-                h_stdout = win32console.GetStdHandle(-11) # stdout
-                cm_stdout = h_stdout.GetConsoleMode()
-                h_stderr = win32console.GetStdHandle(-12) # stderr
-                cm_stderr = h_stderr.GetConsoleMode()
-                if (cm_stdout | 0x04) > cm_stdout:
-                    _set_console_mode_windows(h_stdout, cm_stdout | 4) # ENABLE_VIRTUAL_TERMINAL_PROCESSING
-                if ((cm_stderr | 0x04) > cm_stderr) and (h_stderr.GetConsoleMode() == cm_stderr): # if it was altered by the above, we  don't really need to set it to that same value
-                    _set_console_mode_windows(h_stderr, cm_stderr | 4)
-                IS_WINANSI = True
-    except (ImportError, _pywintypesErr):
-        pass # (cm_stdout, h_stdout, cm_stderr, h_stderr) = [None]*4
-    return (IS_WINANSI, ((cm_stdout, h_stdout), (cm_stderr, h_stderr)))
 
 def _reset_mode_stdconsoles_windows(h_stdout = _h_stdout, cm_stdout = _cm_stdout, h_stderr = _h_stderr, cm_stderr = _cm_stderr): # pragma: no cover
     if cm_stderr != h_stderr.GetConsoleMode():
