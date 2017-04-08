@@ -129,8 +129,6 @@ if True:  # pragma: no cover
                         d[key] = value
                     return d
 
-    (IS_WINANSI, ((_cm_stdout, _h_stdout), (_cm_stderr, _h_stderr))) = _set_winansi_plus_handles()
-
 def _set_winansi_plus_handles(): # pragma: no cover
     try:
         IS_WINANSI = False
@@ -164,6 +162,8 @@ def _set_winansi_plus_handles(): # pragma: no cover
     except (ImportError, _pywintypesErr):
         pass # (cm_stdout, h_stdout, cm_stderr, h_stderr) = [None]*4
     return (IS_WINANSI, ((cm_stdout, h_stdout), (cm_stderr, h_stderr)))
+
+(IS_WINANSI, ((_cm_stdout, _h_stdout), (_cm_stderr, _h_stderr))) = _set_winansi_plus_handles() # pragma: no cover
 
 def _is_utf(encoding):
     return encoding.lower().startswith('utf-') or ('U8' == encoding)
