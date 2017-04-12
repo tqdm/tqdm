@@ -143,7 +143,8 @@ class tqdm_notebook(tqdm):
 
             # Special signal to close the bar
             if close and pbar.bar_style != 'danger':  # hide only if no error
-                container.visible = False
+                # container.visible = False
+                container.close()
 
         return print_status
 
