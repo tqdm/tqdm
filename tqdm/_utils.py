@@ -8,162 +8,9 @@ IS_NIX = (not IS_WIN) and any(
     CUR_OS.startswith(i) for i in
     ['CYGWIN', 'MSYS', 'Linux', 'Darwin', 'SunOS', 'FreeBSD', 'NetBSD'])
 
+(_cm_stdout, _h_stdout, _cm_stderr, _h_stderr) = [None]*4 # needed before declaration of  _reset_mode_stdconsoles_windows
+
 # Py2/3 compat. Empty conditional to avoid coverage
-if True:  # pragma: no cover
-    try:
-        _range = xrange
-    except NameError:
-        _range = range
-
-    try:
-        _unich = unichr
-    except NameError:
-        _unich = chr
-
-    try:
-        _unicode = unicode
-    except NameError:
-        _unicode = str
-
-    try:
-        from pywintypes import error as _pywintypesErr
-    except ImportError:
-        _pywintypesErr = Exception
-
-    if IS_WIN:
-        try:
-            from sys import stderr #, getwindowsversion
-#           import struct # only needed in one method each, returned objects not from these classes
-            from ctypes import windll, create_string_buffer
-            import win32console # an object from this py is returned by _set_winansi_plus_handles():
-        except ImportError:
-            pass # must be cygwin? bad install of python?
-        try:
-            import colorama
-            colorama.init()  # this loading does not nec. mean that ANSI escapes work in windows.
-        except ImportError:
-            colorama = None
-    else:
-        colorama = None
-
-    try:
-        from weakref import WeakSet
-    except ImportError:
-        WeakSet = set
-
-    try:
-        _basestring = basestring
-    except NameError:
-        _basestring = str
-
-    try:  # py>=2.7,>=3.1
-        from collections import OrderedDict as _OrderedDict
-    except ImportError:
-        try:  # older Python versions with backported ordereddict lib
-            from ordereddict import OrderedDict as _OrderedDict
-        except ImportError:  # older Python versions without ordereddict lib
-            # Py2.6,3.0 compat, from PEP 372
-            from collections import MutableMapping
-
-            class _OrderedDict(dict, MutableMapping):
-                # Methods with direct access to underlying attributes
-                def __init__(self, *args, **kwds):
-                    if len(args) > 1:
-                        raise TypeError('expected at 1 argument, got %d',
-                                        len(args))
-                    if not hasattr(self, '_keys'):
-                        self._keys = []
-                    self.update(*args, **kwds)
-
-                def clear(self):
-                    del self._keys[:]
-                    dict.clear(self)
-
-                def __setitem__(self, key, value):
-                    if key not in self:
-                        self._keys.append(key)
-                    dict.__setitem__(self, key, value)
-
-                def __delitem__(self, key):
-                    dict.__delitem__(self, key)
-                    self._keys.remove(key)
-
-                def __iter__(self):
-                    return iter(self._keys)
-
-                def __reversed__(self):
-                    return reversed(self._keys)
-
-                def popitem(self):
-                    if not self:
-                        raise KeyError
-                    key = self._keys.pop()
-                    value = dict.pop(self, key)
-                    return key, value
-
-                def __reduce__(self):
-                    items = [[k, self[k]] for k in self]
-                    inst_dict = vars(self).copy()
-                    inst_dict.pop('_keys', None)
-                    return (self.__class__, (items,), inst_dict)
-
-                # Methods with indirect access via the above methods
-                setdefault = MutableMapping.setdefault
-                update = MutableMapping.update
-                pop = MutableMapping.pop
-                keys = MutableMapping.keys
-                values = MutableMapping.values
-                items = MutableMapping.items
-
-                def __repr__(self):
-                    pairs = ', '.join(map('%r: %r'.__mod__, self.items()))
-                    return '%s({%s})' % (self.__class__.__name__, pairs)
-
-                def copy(self):
-                    return self.__class__(self)
-
-                @classmethod
-                def fromkeys(cls, iterable, value=None):
-                    d = cls()
-                    for key in iterable:
-                        d[key] = value
-                    return d
-
-def _set_winansi_plus_handles(): # pragma: no cover
-    try:
-        IS_WINANSI = False
-        (cm_stdout, h_stdout, cm_stderr, h_stderr) = [None]*4 # used for resetting back to normal after execution if desired
-        if IS_WIN: # ???? and not ((os.name == 'nt') and (colorama is None))
-            from sys import getwindowsversion
-            wv = getwindowsversion()
-            # To check: if using ansicom instead of standard cmd shell, set IS_WINANSI to True
-            # check also: what about DOSBOX? windows powershell?
-            # specifics of checks below:
-            # (wv[3] < 2) # windows 3.1 through 95/98/ME
-            # (wv[0] < 5) or # windows NT 4.0 or earlier
-            # (wv[0] == 5 and wv[1]<2): # windows 2000, XP (32 bit)
-            if (wv[3] < 2) or (wv[0] < 5) or (wv[0] == 5 and wv[1]<2):
-                IS_WINANSI = True
-                # we should really do something to check if ANSI.sys is loaded and functional, but on these OSes it is at least available
-                # should be tested on a 32-bit system w/o colorama (both in the NT and 9x series)
-            else:
-                # v[3] == 2 is NT series.
-                # I'm not sure where winCE (wv[3]==3) falls along the ansi support continuum, so we may as well try to enable the console mode
-#                import win32console
-                h_stdout = win32console.GetStdHandle(-11) # stdout
-                cm_stdout = h_stdout.GetConsoleMode()
-                h_stderr = win32console.GetStdHandle(-12) # stderr
-                cm_stderr = h_stderr.GetConsoleMode()
-                if (cm_stdout | 0x04) > cm_stdout:
-                    _set_console_mode_windows(h_stdout, cm_stdout | 4) # ENABLE_VIRTUAL_TERMINAL_PROCESSING
-                if ((cm_stderr | 0x04) > cm_stderr) and (h_stderr.GetConsoleMode() == cm_stderr): # if it was altered by the above, we  don't really need to set it to that same value
-                    _set_console_mode_windows(h_stderr, cm_stderr | 4)
-                IS_WINANSI = True
-    except (ImportError, _pywintypesErr):
-        pass # (cm_stdout, h_stdout, cm_stderr, h_stderr) = [None]*4
-    return (IS_WINANSI, ((cm_stdout, h_stdout), (cm_stderr, h_stderr)))
-
-(IS_WINANSI, ((_cm_stdout, _h_stdout), (_cm_stderr, _h_stderr))) = _set_winansi_plus_handles() # pragma: no cover
 
 def _is_utf(encoding):
     return encoding.lower().startswith('utf-') or ('U8' == encoding)
@@ -219,6 +66,50 @@ def _environ_cols_linux(fp):  # pragma: no cover
                 return int(get('COLUMNS', 1)) - 1
 
 ## MS Windows-specific modules below
+
+def _set_winansi_plus_handles(): # pragma: no cover
+    """
+    input: none
+    output items:
+        IS_WINANSI = is it Windows and if so does it have ANSI.sys capabilities built into the shell to be used for navigation (and color)?
+        cm_stdout = console mode of stdout stream at program start. Specifically useful for windows 10+.
+        h_stdout = OS-level file handle for stdout (to this window)
+        cm_stderr, h_stderr = console mode and file handle for stderr
+    output form: IS_WINANSI, ((cm_stdout, h_stdout), (cm_stderr, h_stderr))
+    """
+    # vars are used for resetting back to normal after execution if desired;
+    try:
+        IS_WINANSI = False
+        (cm_stdout, h_stdout, cm_stderr, h_stderr) = [None]*4 # value None as default for non-Windows cases
+        if IS_WIN: # ???? and not ((os.name == 'nt') and (colorama is None))
+            from sys import getwindowsversion
+            wv = getwindowsversion()
+            # To check: if using ansicom instead of standard cmd shell, set IS_WINANSI to True
+            # check also: what about DOSBOX? windows powershell?
+            # specifics of checks below:
+            # (wv[3] < 2) # windows 3.1 through 95/98/ME
+            # (wv[0] < 5) or # windows NT 4.0 or earlier
+            # (wv[0] == 5 and wv[1]<2): # windows 2000, XP (32 bit)
+            if (wv[3] < 2) or (wv[0] < 5) or (wv[0] == 5 and wv[1]<2):
+                IS_WINANSI = True
+                # we should really do something to check if ANSI.sys is loaded and functional, but on these OSes it is at least available
+                # should be tested on a 32-bit system w/o colorama (both in the NT and 9x series)
+            else:
+                # v[3] == 2 is NT series.
+                # I'm not sure where winCE (wv[3]==3) falls along the ansi support continuum, so we may as well try to enable the console mode
+#                import win32console
+                h_stdout = win32console.GetStdHandle(-11) # -11 = stdout
+                cm_stdout = h_stdout.GetConsoleMode()
+                h_stderr = win32console.GetStdHandle(-12) # -12 = stderr
+                cm_stderr = h_stderr.GetConsoleMode()
+                if (cm_stdout | 0x04) > cm_stdout: # if ENABLE_VIRTUAL_TERMINAL_PROCESSING (win10+) not already set
+                    _set_console_mode_windows(h_stdout, cm_stdout | 4)
+                if ((cm_stderr | 0x04) > cm_stderr) and (h_stderr.GetConsoleMode() == cm_stderr): # if stderr was altered by the change to stdout, we  don't really need to set it to that same value
+                    _set_console_mode_windows(h_stderr, cm_stderr | 4)
+                IS_WINANSI = True
+    except (ImportError, _pywintypesErr):
+        pass # (cm_stdout, h_stdout, cm_stderr, h_stderr) = [None]*4
+    return (IS_WINANSI, ((cm_stdout, h_stdout), (cm_stderr, h_stderr)))
 
 def _environ_cols_tput(*args):  # pragma: no cover
     """ cygwin xterm (windows) """
@@ -333,3 +224,125 @@ def _console_move_cursor_up_windows(fp, lines=0, cp=None, bol = False): # pragma
                 return 0
     except Exception:
         return None
+
+if True:  # pragma: no cover
+    try:
+        _range = xrange
+    except NameError:
+        _range = range
+
+    try:
+        _unich = unichr
+    except NameError:
+        _unich = chr
+
+    try:
+        _unicode = unicode
+    except NameError:
+        _unicode = str
+
+    try:
+        from pywintypes import error as _pywintypesErr
+    except ImportError:
+        _pywintypesErr = Exception
+
+    if IS_WIN:
+        try:
+            from sys import stderr #, getwindowsversion
+#           import struct # only needed in one method each, returned objects not from these classes
+            from ctypes import windll, create_string_buffer
+            import win32console # an object from this py is returned by _set_winansi_plus_handles():
+        except ImportError:
+            pass # must be cygwin? bad install of python?
+        try:
+            import colorama
+            colorama.init()  # this loading does not nec. mean that ANSI escapes work in windows.
+        except ImportError:
+            colorama = None
+    else:
+        colorama = None
+
+    (IS_WINANSI, ((_cm_stdout, _h_stdout), (_cm_stderr, _h_stderr))) = _set_winansi_plus_handles() # pragma: no cover
+
+    try:
+        from weakref import WeakSet
+    except ImportError:
+        WeakSet = set
+
+    try:
+        _basestring = basestring
+    except NameError:
+        _basestring = str
+
+    try:  # py>=2.7,>=3.1
+        from collections import OrderedDict as _OrderedDict
+    except ImportError:
+        try:  # older Python versions with backported ordereddict lib
+            from ordereddict import OrderedDict as _OrderedDict
+        except ImportError:  # older Python versions without ordereddict lib
+            # Py2.6,3.0 compat, from PEP 372
+            from collections import MutableMapping
+
+            class _OrderedDict(dict, MutableMapping):
+                # Methods with direct access to underlying attributes
+                def __init__(self, *args, **kwds):
+                    if len(args) > 1:
+                        raise TypeError('expected at 1 argument, got %d',
+                                        len(args))
+                    if not hasattr(self, '_keys'):
+                        self._keys = []
+                    self.update(*args, **kwds)
+
+                def clear(self):
+                    del self._keys[:]
+                    dict.clear(self)
+
+                def __setitem__(self, key, value):
+                    if key not in self:
+                        self._keys.append(key)
+                    dict.__setitem__(self, key, value)
+
+                def __delitem__(self, key):
+                    dict.__delitem__(self, key)
+                    self._keys.remove(key)
+
+                def __iter__(self):
+                    return iter(self._keys)
+
+                def __reversed__(self):
+                    return reversed(self._keys)
+
+                def popitem(self):
+                    if not self:
+                        raise KeyError
+                    key = self._keys.pop()
+                    value = dict.pop(self, key)
+                    return key, value
+
+                def __reduce__(self):
+                    items = [[k, self[k]] for k in self]
+                    inst_dict = vars(self).copy()
+                    inst_dict.pop('_keys', None)
+                    return (self.__class__, (items,), inst_dict)
+
+                # Methods with indirect access via the above methods
+                setdefault = MutableMapping.setdefault
+                update = MutableMapping.update
+                pop = MutableMapping.pop
+                keys = MutableMapping.keys
+                values = MutableMapping.values
+                items = MutableMapping.items
+
+                def __repr__(self):
+                    pairs = ', '.join(map('%r: %r'.__mod__, self.items()))
+                    return '%s({%s})' % (self.__class__.__name__, pairs)
+
+                def copy(self):
+                    return self.__class__(self)
+
+                @classmethod
+                def fromkeys(cls, iterable, value=None):
+                    d = cls()
+                    for key in iterable:
+                        d[key] = value
+                    return d
