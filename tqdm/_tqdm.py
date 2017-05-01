@@ -242,12 +242,14 @@ class tqdm(object):
         bar_format  : str, optional
             Specify a custom bar string formatting. May impact performance.
             [default: '{l_bar}{bar}{r_bar}'], where
-            l_bar='{desc}{percentage:3.0f}%|' and
+            l_bar='{desc}: {percentage:3.0f}%|' and
             r_bar='| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, '
                   '{rate_fmt}{postfix}]'
             Possible vars: l_bar, bar, r_bar, n, n_fmt, total, total_fmt,
                 percentage, rate, rate_fmt, elapsed, remaining, desc,
                 postfix.
+            Note that a trailing ": " is automatically removed after {desc}
+            if the latter is empty.
         postfix  : str, optional
             Similar to `prefix`, but placed at the end
             (e.g. for additional stats).
@@ -303,7 +305,7 @@ class tqdm(object):
                 if rate else '?'
 
             # format the stats displayed to the left and right sides of the bar
-            l_bar = (prefix if prefix else '') + \
+            l_bar = ((prefix + ": ") if prefix else '') + \
                 '{0:3.0f}%|'.format(percentage)
             r_bar = '| {0}/{1} [{2}<{3}, {4}{5}]'.format(
                 n_fmt, total_fmt, elapsed_str, remaining_str, rate_fmt,
@@ -331,10 +333,14 @@ class tqdm(object):
                             'remaining': remaining_str,
                             'l_bar': l_bar,
                             'r_bar': r_bar,
-                            'desc': prefix if prefix else '',
-                            'postfix': ', ' + postfix if postfix else '',
+                            'desc': prefix or '',
+                            'postfix': ', '+postfix if postfix else '',
                             # 'bar': full_bar  # replaced by procedure below
                             }
+
+                # auto-remove colon for empty `desc`
+                if not prefix:
+                    bar_format = bar_format.replace("{desc}: ", '')
 
                 # Interpolate supplied bar format with the dict
                 if '{bar}' in bar_format:
@@ -381,9 +387,10 @@ class tqdm(object):
 
         # no total: no progressbar, ETA, just progress stats
         else:
-            return (prefix if prefix else '') + '{0}{1} [{2}, {3}{4}]'.format(
-                n_fmt, unit, elapsed_str, rate_fmt,
-                ', ' + postfix if postfix else '')
+            return ((prefix + ": ") if prefix else '') + \
+                '{0}{1} [{2}, {3}{4}]'.format(
+                    n_fmt, unit, elapsed_str, rate_fmt,
+                    ', ' + postfix if postfix else '')
 
     def __new__(cls, *args, **kwargs):
         # Create a new instance
@@ -642,10 +649,12 @@ class tqdm(object):
         bar_format  : str, optional
             Specify a custom bar string formatting. May impact performance.
             If unspecified, will use '{l_bar}{bar}{r_bar}', where l_bar is
-            '{desc}{percentage:3.0f}%|' and r_bar is
+            '{desc}: {percentage:3.0f}%|' and r_bar is
             '| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}]'
             Possible vars: bar, n, n_fmt, total, total_fmt, percentage,
             rate, rate_fmt, elapsed, remaining, l_bar, r_bar, desc.
+            Note that a trailing ": " is automatically removed after {desc}
+            if the latter is empty.
         initial  : int, optional
             The initial counter value. Useful when restarting a progress
             bar [default: 0].
@@ -737,7 +746,7 @@ class tqdm(object):
 
         # Store the arguments
         self.iterable = iterable
-        self.desc = desc + ': ' if desc else ''
+        self.desc = desc or ''
         self.total = total
         self.leave = leave
         self.fp = file
