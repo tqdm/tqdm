@@ -574,7 +574,7 @@ class tqdm(object):
             upon termination of iteration.
         file  : `io.TextIOWrapper` or `io.StringIO`, optional
             Specifies where to output the progress messages
-            [default: sys.stderr]. Uses `file.write(str)` and `file.flush()`
+            (default: sys.stderr). Uses `file.write(str)` and `file.flush()`
             methods.
         ncols  : int, optional
             The width of the entire output message. If specified,
@@ -600,7 +600,7 @@ class tqdm(object):
         ascii  : bool, optional
             If unspecified or False, use unicode (smooth blocks) to fill
             the meter. The fallback is to use ASCII characters `1-9 #`.
-        disable  : bool or None, optional
+        disable  : bool, optional
             Whether to disable the entire progressbar wrapper
             [default: False]. If set to None, disable on non-TTY.
         unit  : str, optional
@@ -654,8 +654,6 @@ class tqdm(object):
             self._instances.remove(self)
             return
 
-        # Define file default value at instanciation rather than class import
-        # (ease file redirection)
         if file is None:
             file = sys.stderr
 
