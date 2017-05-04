@@ -380,7 +380,7 @@ Returns
 
           Parameters
           ----------
-          n  : int
+          n  : int, optional
               Increment to add to the internal counter of iterations
               [default: 1].
           """
@@ -390,7 +390,12 @@ Returns
           Cleanup and (if leave=False) close the progressbar.
           """
 
-      def clear(self):
+      def unpause(self):
+          """
+          Restart tqdm timer from last print time.
+          """
+
+      def clear(self, nomove=False):
           """
           Clear current bar display
           """
@@ -405,15 +410,26 @@ Returns
           Print a message via tqdm (without overlap with bars)
           """
 
-      def set_description(self, desc=None):
+      def set_description(self, desc=None, refresh=True):
           """
           Set/modify description of the progress bar.
+
+          Parameters
+          ----------
+          desc  : str, optional
+          refresh  : bool, optional
+              Forces refresh [default: True].
           """
 
-      def set_postfix(self, **kwargs):
+      def set_postfix(self, ordered_dict=None, refresh=True, **kwargs):
           """
           Set/modify postfix (additional stats)
           with automatic formatting based on datatype.
+
+          Parameters
+          ----------
+          refresh  : bool, optional
+              Forces refresh [default: True].
           """
 
     def trange(*args, **kwargs):
@@ -470,7 +486,7 @@ with the ``desc`` and ``postfix`` arguments:
     for i in t:
         # Description will be displayed on the left
         t.set_description('GEN %i' % i)
-        # Postfix will be displayed on the right, and will format automatically 
+        # Postfix will be displayed on the right, and will format automatically
         # based on argument's datatype
         t.set_postfix(loss=random(), gen=randint(1,999), str='h', lst=[1, 2])
         sleep(0.1)
