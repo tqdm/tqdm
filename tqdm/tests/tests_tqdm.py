@@ -235,6 +235,8 @@ def test_format_meter():
 
     assert format_meter(0, 1000, 13) == \
         "  0%|          | 0/1000 [00:13<?, ?it/s]"
+    # If not implementing any changes to _tqdm.py, set prefix='desc'
+    # or else ": : " will be in output, so assertion should change
     assert format_meter(0, 1000, 13, ncols=68, prefix='desc: ') == \
         "desc:   0%|                                | 0/1000 [00:13<?, ?it/s]"
     assert format_meter(231, 1000, 392) == \
@@ -1120,18 +1122,18 @@ def test_position():
         t3.close()
         t1.close()
 
-
-@with_setup(pretest, posttest)
-def test_set_description():
-    """Test set description"""
-    with closing(StringIO()) as our_file:
-        with tqdm(desc='Hello', file=our_file) as t:
-            assert t.desc == 'Hello: '
-            t.set_description('World')
-            assert t.desc == 'World: '
-            t.set_description()
-            assert t.desc == ''
-
+# test removed 2017-05-05 MPagel as per lack of
+# set_description function, desc no longer explicitly containing :
+# @with_setup(pretest, posttest)
+# def test_set_description():
+#    """Test set description"""
+#    with closing(StringIO()) as our_file:
+#        with tqdm(desc='Hello', file=our_file) as t:
+#            assert t.desc == 'Hello: '
+#            t.set_description('World')
+#            assert t.desc == 'World: '
+#            t.set_description()
+#            assert t.desc == ''
 
 @with_setup(pretest, posttest)
 def test_deprecated_gui():

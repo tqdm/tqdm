@@ -305,8 +305,12 @@ class tqdm(object):
                 if rate else '?'
 
             # format the stats displayed to the left and right sides of the bar
-            l_bar = ((prefix + ": ") if prefix else '') + \
-                '{0:3.0f}%|'.format(percentage)
+            bool_prefix_colon_already = (prefix[-2:] == ": ") # old prefix setup work around
+            if prefix:
+              l_bar = prefix if bool_prefix_colon_already else prefix + ": "
+            else:
+              l_bar = ''
+            l_bar += '{0:3.0f}%|'.format(percentage)
             r_bar = '| {0}/{1} [{2}<{3}, {4}{5}]'.format(
                 n_fmt, total_fmt, elapsed_str, remaining_str, rate_fmt,
                 ', ' + postfix if postfix else '')
