@@ -190,7 +190,7 @@ class tqdm(object):
 
         def fp_write(s):
             fp.write(_unicode(s))
-            fp_flush()
+            fp.flush()
 
         last_len = [0]
 
@@ -267,8 +267,8 @@ class tqdm(object):
         format_sizeof = tqdm.format_sizeof
         rate_fmt = ((format_sizeof(inv_rate if inv_rate else rate)
                     if unit_scale else
-                    '{0:5.2f}'.format(inv_rate if inv_rate else rate))
-                    if rate else '?') \
+                    '{0:5.2f} '.format(inv_rate if inv_rate else rate))
+                    if rate else '? ') \
             + ('s' if inv_rate else unit) + '/' + (unit if inv_rate else 's')
 
         if unit_scale:
@@ -289,9 +289,20 @@ class tqdm(object):
 
             # format the stats displayed to the left and right sides of the bar
             l_bar = (prefix if prefix else '') + \
-                '{0:3.0f}%|'.format(percentage)
-            r_bar = '| {0}/{1} [{2}<{3}, {4}{5}]'.format(
-                    n_fmt, total_fmt, elapsed_str, remaining_str, rate_fmt,
+                '{0:6.2f}%|'.format(percentage)
+
+            idle = "idlelib" in sys.modules
+            if idle and percentage == 100:
+                r_bar = '| {0:>{1}}/{2} [{3}<{4}, {5}]'.format(
+                    n_fmt, len(total_fmt), total_fmt, elapsed_str, remaining_str, rate_fmt,
+                    ', '+postfix if postfix else '')
+            elif idle and percentage != 100:
+                r_bar = '| {0:>{1}}/{2} [{3}<{4}, {5}]\n'.format(
+                    n_fmt, len(total_fmt), total_fmt, elapsed_str, remaining_str, rate_fmt,
+                    ', '+postfix if postfix else '')
+            else:
+                r_bar = '| {0:>{1}}/{2} [{3}<{4}, {5}]'.format(
+                    n_fmt, len(total_fmt), total_fmt, elapsed_str, remaining_str, rate_fmt,
                     ', '+postfix if postfix else '')
 
             if ncols == 0:
@@ -342,7 +353,7 @@ class tqdm(object):
                 bar_length, frac_bar_length = divmod(
                     int(frac * N_BARS * 10), 10)
 
-                bar = '#' * bar_length
+                bar = '█' * bar_length
                 frac_bar = chr(48 + frac_bar_length) if frac_bar_length \
                     else ' '
 
@@ -355,8 +366,11 @@ class tqdm(object):
 
             # whitespace padding
             if bar_length < N_BARS:
-                full_bar = bar + frac_bar + \
-                    ' ' * max(N_BARS - bar_length - 1, 0)
+                full_bar = bar + \
+                    ' ' * max(N_BARS - bar_length, 0)
+            # Originally
+            #    full_bar = bar + frac_bar + \
+            #        ' ' * max(N_BARS - bar_length - 1, 0)
             else:
                 full_bar = bar + \
                     ' ' * max(N_BARS - bar_length, 0)
@@ -409,10 +423,7 @@ class tqdm(object):
             # Kill monitor if no instances are left
             if not cls._instances and cls.monitor:
                 cls.monitor.exit()
-                try:
-                    del cls.monitor
-                except AttributeError:
-                    pass
+                del cls.monitor
                 cls.monitor = None
         except KeyError:
             pass
@@ -550,7 +561,7 @@ class tqdm(object):
     def __init__(self, iterable=None, desc=None, total=None, leave=True,
                  file=sys.stderr, ncols=None, mininterval=0.1,
                  maxinterval=10.0, miniters=None, ascii=None, disable=False,
-                 unit='it', unit_scale=False, dynamic_ncols=False,
+                 unit='it', unit_scale=False, dynamic_ncols=True,
                  smoothing=0.3, bar_format=None, initial=0, position=None,
                  postfix=None,
                  gui=False, **kwargs):
@@ -752,10 +763,9 @@ class tqdm(object):
         self.start_t = self.last_print_t
 
     def __len__(self):
-        return self.total if self.iterable is None else \
-                (self.iterable.shape[0] if hasattr(self.iterable, "shape")
-                 else len(self.iterable) if hasattr(self.iterable, "__len__")
-                 else self.total)
+        return (self.iterable.shape[0] if hasattr(self.iterable, 'shape')
+                else len(self.iterable)) if self.iterable is not None \
+            else self.total
 
     def __enter__(self):
         return self
@@ -770,9 +780,7 @@ class tqdm(object):
     def __repr__(self):
         return self.format_meter(self.n, self.total,
                                  self._time() - self.start_t,
-                                 self.dynamic_ncols(self.fp)
-                                 if self.dynamic_ncols else self.ncols,
-                                 self.desc, self.ascii, self.unit,
+                                 self.ncols, self.desc, self.ascii, self.unit,
                                  self.unit_scale, 1 / self.avg_time
                                  if self.avg_time else None, self.bar_format,
                                  self.postfix)
@@ -956,7 +964,13 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
                     self.moveto(self.pos)
 
                 # Print bar's update
-                self.sp(self.__repr__())
+                self.sp(self.format_meter(
+                    self.n, self.total, elapsed,
+                    (self.dynamic_ncols(self.fp) if self.dynamic_ncols
+                     else self.ncols),
+                    self.desc, self.ascii, self.unit, self.unit_scale,
+                    1 / self.avg_time if self.avg_time else None,
+                    self.bar_format, self.postfix))
 
                 if self.pos:
                     self.moveto(-self.pos)
