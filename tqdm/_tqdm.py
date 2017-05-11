@@ -290,9 +290,10 @@ class tqdm(object):
             # format the stats displayed to the left and right sides of the bar
             l_bar = (prefix if prefix else '') + \
                 '{0:3.0f}%|'.format(percentage)
-            r_bar = '| {0}/{1} [{2}<{3}, {4}{5}]'.format(
+            r_bar = '| {0:>{6}}/{1} [{2}<{3}, {4}{5}]{7}'.format(
                     n_fmt, total_fmt, elapsed_str, remaining_str, rate_fmt,
-                    ', '+postfix if postfix else '')
+                    ', '+postfix if postfix else '', len(total_fmt),
+                    '\n' if "idlelib" in sys.modules and n != total else '')
 
             if ncols == 0:
                 return l_bar[:-1] + r_bar[1:]
