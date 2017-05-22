@@ -739,7 +739,11 @@ class tqdm(object):
 
         # if nested, at initial sp() call we replace '\r' by '\n' to
         # not overwrite the outer progress bar
-        self.pos = self._get_free_pos(self) if position is None else position
+        if position is None:
+            self.pos = self._get_free_pos(self)
+        else:
+            self.pos = position
+            self._instances.remove(self)
 
         if not gui:
             # Initialize the screen printer
