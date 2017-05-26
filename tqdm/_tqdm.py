@@ -1018,7 +1018,7 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
                 cur_t = self._time()
                 # stats for overall rate (no weighted average)
                 self.elapsed = cur_t - self.start_t
-                self.sp(self.__repr__)
+                self.sp(self.__repr__())
             if pos:
                 self.moveto(-pos)
             else:
