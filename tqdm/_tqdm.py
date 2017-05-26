@@ -767,7 +767,7 @@ class tqdm(object):
     def __repr__(self):
 # self.elapsed replaces self._time() - self.start_t
 # self._time() - self.start_t added to fns prior to __repr__ call where elapsed otherwise undefined.
-      return self.format_meter(self.n, self.total,
+        return self.format_meter(self.n, self.total,
                                  self.elapsed,
                                  self.dynamic_ncols(self.fp)
                                  if self.dynamic_ncols else self.ncols,
