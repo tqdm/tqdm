@@ -752,9 +752,10 @@ class tqdm(object):
         self.start_t = self.last_print_t
 
     def __len__(self):
-        return (self.iterable.shape[0] if hasattr(self.iterable, 'shape')
-                else len(self.iterable)) if self.iterable is not None \
-            else self.total
+        return self.total if self.iterable is None else \
+                (self.iterable.shape[0] if hasattr(self.iterable, "shape")
+                 else len(self.iterable) if hasattr(self.iterable, "__len__")
+                 else self.total)
 
     def __enter__(self):
         return self
@@ -769,7 +770,9 @@ class tqdm(object):
     def __repr__(self):
         return self.format_meter(self.n, self.total,
                                  self._time() - self.start_t,
-                                 self.ncols, self.desc, self.ascii, self.unit,
+                                 self.dynamic_ncols(self.fp)
+                                 if self.dynamic_ncols else self.ncols,
+                                 self.desc, self.ascii, self.unit,
                                  self.unit_scale, 1 / self.avg_time
                                  if self.avg_time else None, self.bar_format,
                                  self.postfix)
@@ -953,13 +956,7 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
                     self.moveto(self.pos)
 
                 # Print bar's update
-                self.sp(self.format_meter(
-                    self.n, self.total, elapsed,
-                    (self.dynamic_ncols(self.fp) if self.dynamic_ncols
-                     else self.ncols),
-                    self.desc, self.ascii, self.unit, self.unit_scale,
-                    1 / self.avg_time if self.avg_time else None,
-                    self.bar_format, self.postfix))
+                self.sp(self.__repr__())
 
                 if self.pos:
                     self.moveto(-self.pos)
