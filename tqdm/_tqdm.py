@@ -675,9 +675,13 @@ class tqdm(object):
                 dynamic_ncols:  # pragma: no cover
             if dynamic_ncols:
                 dynamic_ncols = _environ_cols_wrapper()
-                ncols = dynamic_ncols(file)
+                if dynamic_ncols:
+                    ncols = dynamic_ncols(file)
+                else:
+                    ncols = ncols or 79
             else:
-                ncols = _environ_cols_wrapper()(file)
+                _dynamic_ncols = _environ_cols_wrapper()
+                ncols = _dynamic_ncols(file) if _dynamic_ncols else 79
 
         if miniters is None:
             miniters = 0
