@@ -14,12 +14,13 @@ Options:
     Print this help message and exit
 -u URL, --url URL  : string, optional
     The url to fetch.
-    [default: http://www.doc.ic.ac.uk/~cod11/matryoshka.zip]
+    [default: https://caspersci.uk.to/matryoshka.zip]
 -o FILE, --output FILE  : string, optional
     The local file path in which to save the url [default: /dev/null].
 """
 
 import urllib
+from os import devnull
 from tqdm import tqdm
 from docopt import docopt
 
@@ -59,7 +60,8 @@ opts = docopt(__doc__)
 
 eg_link = opts['--url']
 eg_file = eg_link.replace('/', ' ').split()[-1]
+eg_out = opts['--output'].replace("/dev/null", devnull)
 with tqdm(unit='B', unit_scale=True, leave=True, miniters=1,
           desc=eg_file) as t:  # all optional kwargs
-    urllib.urlretrieve(eg_link, filename=opts['--output'],
+    urllib.urlretrieve(eg_link, filename=eg_out,
                        reporthook=my_hook(t), data=None)

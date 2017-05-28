@@ -51,12 +51,13 @@ In addition to its low overhead, ``tqdm`` uses smart algorithms to predict
 the remaining time and to skip unnecessary iteration displays, which allows
 for a negligible overhead in most cases.
 
-``tqdm`` works on any platform (Linux, Windows, Mac, FreeBSD, Solaris/SunOS),
+``tqdm`` works on any platform
+(Linux, Windows, Mac, FreeBSD, NetBSD, Solaris/SunOS),
 in any console or in a GUI, and is also friendly with IPython/Jupyter notebooks.
 
-``tqdm`` does not require any library (not even curses!) to run, just a
-vanilla Python interpreter will do and an environment supporting ``carriage
-return \r`` and ``line feed \n`` control characters.
+``tqdm`` does not require any dependecies (not even ``curses``!), just
+Python and an environment supporting ``carriage return \r`` and
+``line feed \n`` control characters.
 
 ------------------------------------------
 
@@ -215,7 +216,8 @@ of a neat one-line progress bar.
 - Consoles in general: require support for carriage return (``CR``, ``\r``).
 - Nested progress bars:
     * Consoles in general: require support for moving cursors up to the
-      previous line. For example, `IDLE <https://github.com/tqdm/tqdm/issues/191#issuecomment-230168030>`__,
+      previous line. For example,
+      `IDLE <https://github.com/tqdm/tqdm/issues/191#issuecomment-230168030>`__,
       `ConEmu <https://github.com/tqdm/tqdm/issues/254>`__ and
       `PyCharm <https://github.com/tqdm/tqdm/issues/203>`__ (also
       `here <https://github.com/tqdm/tqdm/issues/208>`__ and
@@ -223,12 +225,12 @@ of a neat one-line progress bar.
       lack full support.
     * Windows: additionally may require the python module ``colorama``.
 - Wrapping enumerated iterables: use ``enumerate(tqdm(...))`` instead of
-  ``tqdm(enumerate(...))`. The same applies to ``numpy.ndenumerate``.
+  ``tqdm(enumerate(...))``. The same applies to ``numpy.ndenumerate``.
   This is because enumerate functions tend to hide the length of iterables.
   ``tqdm`` does not.
 - Wrapping zipped iterables has similar issues due to internal optimisations.
   ``tqdm(zip(a, b))`` should be replaced with ``zip(tqdm(a), b)`` or even
-  ``zip(tqdm(a), tqdm(b))``
+  ``zip(tqdm(a), tqdm(b))``.
 
 If you come across any other difficulties, browse/open issues
 `here <https://github.com/tqdm/tqdm/issues?q=is%3Aissue>`__.
@@ -440,7 +442,9 @@ Examples and Advanced Usage
   folder;
 - import the module and run ``help()``, or
 - consult the `wiki <https://github.com/tqdm/tqdm/wiki>`__.
-    - this has an `excellent article <https://github.com/tqdm/tqdm/wiki/How-to-make-a-great-Progress-Bar>`__ on how to make a **great** progressbar.
+    - this has an
+      `excellent article <https://github.com/tqdm/tqdm/wiki/How-to-make-a-great-Progress-Bar>`__
+      on how to make a **great** progressbar.
 
 Description and additional stats
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -482,8 +486,8 @@ On Windows `colorama <https://github.com/tartley/colorama>`__ will be used if
 available to produce a beautiful nested display.
 
 For manual control over positioning (e.g. for multi-threaded use),
-you may specify `position=n` where `n=0` for the outermost bar,
-`n=1` for the next, and so on.
+you may specify ``position=n`` where ``n=0`` for the outermost bar,
+``n=1`` for the next, and so on.
 
 Hooks and callbacks
 ~~~~~~~~~~~~~~~~~~~
@@ -495,17 +499,14 @@ Here's an example with ``urllib``:
 
     | [...]
     | If present, the hook function will be called once
-    | on establishment of the network connection and once after each
-      block read
-    | thereafter. The hook will be passed three arguments; a count of
-      blocks
-    | transferred so far, a block size in bytes, and the total size of
-      the file.
+    | on establishment of the network connection and once after each block read
+    | thereafter. The hook will be passed three arguments; a count of blocks
+    | transferred so far, a block size in bytes, and the total size of the file.
     | [...]
 
 .. code:: python
 
-    import urllib
+    import urllib, os
     from tqdm import tqdm
 
     def my_hook(t):
@@ -538,10 +539,10 @@ Here's an example with ``urllib``:
         last_b[0] = b
       return inner
 
-    eg_link = 'http://www.doc.ic.ac.uk/~cod11/matryoshka.zip'
+    eg_link = "https://caspersci.uk.to/matryoshka.zip"
     with tqdm(unit='B', unit_scale=True, miniters=1,
               desc=eg_link.split('/')[-1]) as t:  # all optional kwargs
-        urllib.urlretrieve(eg_link, filename='/dev/null',
+        urllib.urlretrieve(eg_link, filename=os.devnull,
                            reporthook=my_hook(t), data=None)
 
 It is recommend to use ``miniters=1`` whenever there is potentially
@@ -580,7 +581,7 @@ folder or import the module and run ``help()``.
 IPython/Jupyter Integration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-IPython/Jupyter is supported via the `tqdm_notebook` submodule:
+IPython/Jupyter is supported via the ``tqdm_notebook`` submodule:
 
 .. code:: python
 
@@ -591,7 +592,7 @@ IPython/Jupyter is supported via the `tqdm_notebook` submodule:
         for j in tqdm_notebook(xrange(100), desc='2nd loop'):
             sleep(0.01)
 
-In addition to `tqdm` features, the submodule provides a native Jupyter
+In addition to ``tqdm`` features, the submodule provides a native Jupyter
 widget (compatible with IPython v1-v4 and Jupyter), fully working nested bars
 and color hints (blue: normal, green: completed, red: error/interrupt,
 light blue: no ETA); as demonstrated below.
@@ -604,7 +605,8 @@ Writing messages
 ~~~~~~~~~~~~~~~~
 
 Since ``tqdm`` uses a simple printing mechanism to display progress bars,
-you should not write any message in the terminal using ``print()``.
+you should not write any message in the terminal using ``print()`` while
+a progressbar is open.
 
 To write messages in the terminal without any collision with ``tqdm`` bar
 display, a ``.write()`` method is provided:
