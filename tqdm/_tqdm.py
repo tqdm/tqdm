@@ -677,11 +677,14 @@ class tqdm(object):
                 dynamic_ncols = _environ_cols_wrapper()
                 if dynamic_ncols:
                     ncols = dynamic_ncols(file)
-                else:
-                    ncols = ncols or 79
+                # elif ncols is not None:
+                #     ncols = 79
             else:
                 _dynamic_ncols = _environ_cols_wrapper()
-                ncols = _dynamic_ncols(file) if _dynamic_ncols else 79
+                if _dynamic_ncols:
+                    ncols = _dynamic_ncols(file)
+                # else:
+                #     ncols = 79
 
         if miniters is None:
             miniters = 0
