@@ -107,7 +107,7 @@ class TMonitor(Thread):
                 # Only if mininterval > 1 (else iterations are just slow)
                 # and last refresh was longer than maxinterval in this instance
                 if instance.miniters > 1 and \
-                  (cur_t - instance.last_print_t) >= instance.maxinterval:
+                   (cur_t - instance.last_print_t) >= instance.maxinterval:
                     # We force bypassing miniters on next iteration
                     # dynamic_miniters should adjust mininterval automatically
                     instance.miniters = 1
@@ -292,7 +292,7 @@ class tqdm(object):
                 '{0:3.0f}%|'.format(percentage)
             r_bar = '| {0}/{1} [{2}<{3}, {4}{5}]'.format(
                     n_fmt, total_fmt, elapsed_str, remaining_str, rate_fmt,
-                    ', '+postfix if postfix else '')
+                    ', ' + postfix if postfix else '')
 
             if ncols == 0:
                 return l_bar[:-1] + r_bar[1:]
@@ -317,7 +317,7 @@ class tqdm(object):
                             'l_bar': l_bar,
                             'r_bar': r_bar,
                             'desc': prefix if prefix else '',
-                            'postfix': ', '+postfix if postfix else '',
+                            'postfix': ', ' + postfix if postfix else '',
                             # 'bar': full_bar  # replaced by procedure below
                             }
 
@@ -368,7 +368,7 @@ class tqdm(object):
         else:
             return (prefix if prefix else '') + '{0}{1} [{2}, {3}{4}]'.format(
                 n_fmt, unit, elapsed_str, rate_fmt,
-                ', '+postfix if postfix else '')
+                ', ' + postfix if postfix else '')
 
     def __new__(cls, *args, **kwargs):
         # Create a new instance
@@ -675,9 +675,16 @@ class tqdm(object):
                 dynamic_ncols:  # pragma: no cover
             if dynamic_ncols:
                 dynamic_ncols = _environ_cols_wrapper()
-                ncols = dynamic_ncols(file)
+                if dynamic_ncols:
+                    ncols = dynamic_ncols(file)
+                # elif ncols is not None:
+                #     ncols = 79
             else:
-                ncols = _environ_cols_wrapper()(file)
+                _dynamic_ncols = _environ_cols_wrapper()
+                if _dynamic_ncols:
+                    ncols = _dynamic_ncols(file)
+                # else:
+                #     ncols = 79
 
         if miniters is None:
             miniters = 0
@@ -753,9 +760,9 @@ class tqdm(object):
 
     def __len__(self):
         return self.total if self.iterable is None else \
-                (self.iterable.shape[0] if hasattr(self.iterable, "shape")
-                 else len(self.iterable) if hasattr(self.iterable, "__len__")
-                 else self.total)
+            (self.iterable.shape[0] if hasattr(self.iterable, "shape")
+             else len(self.iterable) if hasattr(self.iterable, "__len__")
+             else self.total)
 
     def __enter__(self):
         return self
@@ -886,10 +893,10 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
                                 # EMA-weight miniters to converge
                                 # towards the timeframe of mininterval
                                 miniters = smoothing * delta_it * \
-                                              (mininterval / delta_t
-                                               if mininterval and delta_t
-                                               else 1) + \
-                                              (1 - smoothing) * miniters
+                                    (mininterval / delta_t
+                                     if mininterval and delta_t
+                                     else 1) + \
+                                    (1 - smoothing) * miniters
                             else:
                                 # Maximum nb of iterations between 2 prints
                                 miniters = max(miniters, delta_it)
@@ -939,7 +946,7 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
             if delta_t >= self.mininterval:
                 cur_t = self._time()
                 delta_it = self.n - self.last_print_n  # should be n?
-                elapsed = cur_t - self.start_t
+                # elapsed = cur_t - self.start_t
                 # EMA (not just overall average)
                 if self.smoothing and delta_t and delta_it:
                     self.avg_time = delta_t / delta_it \
@@ -970,16 +977,16 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
                     if self.maxinterval and delta_t >= self.maxinterval:
                         if self.mininterval:
                             self.miniters = delta_it * self.mininterval \
-                                        / delta_t
+                                / delta_t
                         else:
                             self.miniters = delta_it * self.maxinterval \
-                                        / delta_t
+                                / delta_t
                     elif self.smoothing:
                         self.miniters = self.smoothing * delta_it * \
-                                        (self.mininterval / delta_t
-                                         if self.mininterval and delta_t
-                                         else 1) + \
-                                        (1 - self.smoothing) * self.miniters
+                            (self.mininterval / delta_t
+                             if self.mininterval and delta_t
+                             else 1) + \
+                            (1 - self.smoothing) * self.miniters
                     else:
                         self.miniters = max(self.miniters, delta_it)
 
