@@ -37,8 +37,6 @@ before_install:
   - sudo rm -rf /dev/shm
   - sudo ln -s /run/shm /dev/shm
   # coverage submission packages
-  - pip install codecov
-  # - pip install coveralls
   - git fetch --tags
 
 install:
@@ -55,8 +53,3 @@ install:
 # run tests
 script:
   - tox
-
-# submit coverage
-after_success:
-  # - coveralls
-  - codecov
