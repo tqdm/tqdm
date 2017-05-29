@@ -84,11 +84,11 @@ opts = docopt(__doc__)
 eg_link = opts['--url']
 eg_file = eg_link.replace('/', ' ').split()[-1]
 eg_out = opts['--output'].replace("/dev/null", devnull)
-# with tqdm(unit='B', unit_scale=True, leave=True, miniters=1,
+# with tqdm(unit='B', unit_scale=True, unit_divisor=1024, miniters=1,
 #           desc=eg_file) as t:  # all optional kwargs
 #     urllib.urlretrieve(eg_link, filename=eg_out,
 #                        reporthook=my_hook(t), data=None)
-with TqdmUpTo(unit='B', unit_scale=True, leave=True, miniters=1,
+with TqdmUpTo(unit='B', unit_scale=True, unit_divisor=1024, miniters=1,
               desc=eg_file) as t:  # all optional kwargs
     urllib.urlretrieve(eg_link, filename=eg_out,
                        reporthook=t.update_to, data=None)
