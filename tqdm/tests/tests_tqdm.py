@@ -11,6 +11,7 @@ from nose import with_setup
 from nose.plugins.skip import SkipTest
 from nose.tools import assert_raises
 from time import sleep
+from contextlib import contextmanager
 
 from tqdm import tqdm
 from tqdm import trange
@@ -1549,3 +1550,48 @@ def test_postfix():
 
     out3 = out3[1:-1].split(', ')[3:]
     assert out3 == expected_order
+
+
+class DummyTqdmFile(object):
+    """Dummy file-like that will write to tqdm"""
+    file = None
+
+    def __init__(self, file):
+        self.file = file
+
+    def write(self, x):
+        # Avoid print() second call (useless \n)
+        if len(x.rstrip()) > 0:
+            tqdm.write(x, file=self.file)
+
+
+@contextmanager
+def stdout_stderr_redirect_to_tqdm(tqdm_file=sys.stderr):
+    save_stdout = sys.stdout
+    save_stderr = sys.stderr
+    try:
+        sys.stdout = DummyTqdmFile(tqdm_file)
+        sys.stderr = DummyTqdmFile(tqdm_file)
+        yield save_stdout, save_stderr
+    # Relay exceptions
+    except Exception as exc:
+        raise exc
+    # Always restore sys.stdout if necessary
+    finally:
+        sys.stdout = save_stdout
+        sys.stderr = save_stderr
+
+
+@with_setup(pretest, posttest)
+def test_file_redirection():
+    """Test redirection of output"""
+    with closing(StringIO()) as our_file:
+        # Redirect stdout to tqdm.write()
+        with stdout_stderr_redirect_to_tqdm(tqdm_file=our_file):
+            # as (stdout, stderr)
+            for _ in trange(3):
+                print("Such fun")
+        res = our_file.getvalue()
+        assert res.count("Such fun\n") == 3
+        assert "0/3" in res
+        assert "3/3" in res
