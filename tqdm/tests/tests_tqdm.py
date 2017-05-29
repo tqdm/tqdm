@@ -11,6 +11,7 @@ from nose import with_setup
 from nose.plugins.skip import SkipTest
 from nose.tools import assert_raises
 from time import sleep
+from contextlib import contextmanager
 
 from tqdm import tqdm
 from tqdm import trange
@@ -467,19 +468,17 @@ def test_max_interval():
 
                 # Fast iterations, check if dynamic_miniters triggers
                 timer.sleep(mininterval)  # to force update for t1
-                tm1.update(total/2)
-                tm2.update(total/2)
-                assert int(tm1.miniters) == tm2.miniters == total/2
+                tm1.update(total / 2)
+                tm2.update(total / 2)
+                assert int(tm1.miniters) == tm2.miniters == total / 2
 
                 # Slow iterations, check different miniters if mininterval
-                timer.sleep(maxinterval*2)
-                tm1.update(total/2)
-                tm2.update(total/2)
+                timer.sleep(maxinterval * 2)
+                tm1.update(total / 2)
+                tm2.update(total / 2)
                 res = [tm1.miniters, tm2.miniters]
-                assert res == [
-                               (total/2)*mininterval/(maxinterval*2),
-                               (total/2)*maxinterval/(maxinterval*2)
-                               ]
+                assert res == [(total / 2) * mininterval / (maxinterval * 2),
+                               (total / 2) * maxinterval / (maxinterval * 2)]
 
     # Same with iterable based tqdm
     timer1 = DiscreteTimer()  # need 2 timers for each bar because zip not work
@@ -497,16 +496,16 @@ def test_max_interval():
         cpu_timify(t2, timer2)
 
         for i in t1:
-            if i == ((total/2)-2):
+            if i == ((total / 2) - 2):
                 timer1.sleep(mininterval)
-            if i == (total-1):
-                timer1.sleep(maxinterval*2)
+            if i == (total - 1):
+                timer1.sleep(maxinterval * 2)
 
         for i in t2:
-            if i == ((total/2)-2):
+            if i == ((total / 2) - 2):
                 timer2.sleep(mininterval)
-            if i == (total-1):
-                timer2.sleep(maxinterval*2)
+            if i == (total - 1):
+                timer2.sleep(maxinterval * 2)
 
         assert t1.miniters == 0.255
         assert t2.miniters == 0.5
@@ -1423,7 +1422,7 @@ def test_monitoring_thread():
     # Test if alive, then killed
     assert monitor.report()
     monitor.exit()
-    timer.sleep(maxinterval*2)  # need to go out of the sleep to die
+    timer.sleep(maxinterval * 2)  # need to go out of the sleep to die
     assert not monitor.report()
     # assert not monitor.is_alive()  # not working dunno why, thread not killed
     del monitor
@@ -1445,12 +1444,12 @@ def test_monitoring_thread():
             cpu_timify(t, timer)
             # Do a lot of iterations in a small timeframe
             # (smaller than monitor interval)
-            timer.sleep(maxinterval/2)  # monitor won't wake up
+            timer.sleep(maxinterval / 2)  # monitor won't wake up
             t.update(500)
             # check that our fixed miniters is still there
             assert t.miniters == 500
             # Then do 1 it after monitor interval, so that monitor kicks in
-            timer.sleep(maxinterval*2)
+            timer.sleep(maxinterval * 2)
             t.update(1)
             # Wait for the monitor to get out of sleep's loop and update tqdm..
             timeend = timer.time()
@@ -1464,7 +1463,7 @@ def test_monitoring_thread():
             # to ensure that monitor wakes up at some point.
 
             # Try again but already at miniters = 1 so nothing will be done
-            timer.sleep(maxinterval*2)
+            timer.sleep(maxinterval * 2)
             t.update(2)
             timeend = timer.time()
             while not (t.monitor.woken >= timeend):
@@ -1500,7 +1499,7 @@ def test_monitoring_thread():
                 assert t1.miniters == 500
                 assert t2.miniters == 500
                 # Then do 1 it after monitor interval, so that monitor kicks in
-                timer.sleep(maxinterval*2)
+                timer.sleep(maxinterval * 2)
                 t1.update(1)
                 t2.update(1)
                 # Wait for the monitor to get out of sleep and update tqdm
@@ -1551,3 +1550,48 @@ def test_postfix():
 
     out3 = out3[1:-1].split(', ')[3:]
     assert out3 == expected_order
+
+
+class DummyTqdmFile(object):
+    """Dummy file-like that will write to tqdm"""
+    file = None
+
+    def __init__(self, file):
+        self.file = file
+
+    def write(self, x):
+        # Avoid print() second call (useless \n)
+        if len(x.rstrip()) > 0:
+            tqdm.write(x, file=self.file)
+
+
+@contextmanager
+def stdout_stderr_redirect_to_tqdm(tqdm_file=sys.stderr):
+    save_stdout = sys.stdout
+    save_stderr = sys.stderr
+    try:
+        sys.stdout = DummyTqdmFile(tqdm_file)
+        sys.stderr = DummyTqdmFile(tqdm_file)
+        yield save_stdout, save_stderr
+    # Relay exceptions
+    except Exception as exc:
+        raise exc
+    # Always restore sys.stdout if necessary
+    finally:
+        sys.stdout = save_stdout
+        sys.stderr = save_stderr
+
+
+@with_setup(pretest, posttest)
+def test_file_redirection():
+    """Test redirection of output"""
+    with closing(StringIO()) as our_file:
+        # Redirect stdout to tqdm.write()
+        with stdout_stderr_redirect_to_tqdm(tqdm_file=our_file):
+            # as (stdout, stderr)
+            for _ in trange(3):
+                print("Such fun")
+        res = our_file.getvalue()
+        assert res.count("Such fun\n") == 3
+        assert "0/3" in res
+        assert "3/3" in res

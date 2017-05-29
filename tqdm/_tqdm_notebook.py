@@ -148,10 +148,12 @@ class tqdm_notebook(tqdm):
         return print_status
 
     @classmethod
-    def write(cls, s, file=sys.stdout, end="\n"):
+    def write(cls, s, file=None, end="\n"):
         """
         Print a message via tqdm_notebook (just an alias for print)
         """
+        if file is None:
+            file = sys.stdout
         # Just an alias for print because overlap is impossible with ipywidgets
         file.write(s)
         file.write(end)

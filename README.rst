@@ -250,7 +250,7 @@ Documentation
       """
 
       def __init__(self, iterable=None, desc=None, total=None, leave=True,
-                   file=sys.stderr, ncols=None, mininterval=0.1,
+                   file=None, ncols=None, mininterval=0.1,
                    maxinterval=10.0, miniters=None, ascii=None, disable=False,
                    unit='it', unit_scale=False, dynamic_ncols=False,
                    smoothing=0.3, bar_format=None, initial=0, position=None,
@@ -276,7 +276,7 @@ Parameters
     upon termination of iteration.
 * file  : ``io.TextIOWrapper`` or ``io.StringIO``, optional  
     Specifies where to output the progress messages
-    [default: sys.stderr]. Uses ``file.write(str)`` and ``file.flush()``
+    (default: sys.stderr). Uses ``file.write(str)`` and ``file.flush()``
     methods.
 * ncols  : int, optional  
     The width of the entire output message. If specified,

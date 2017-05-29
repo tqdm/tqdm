@@ -418,11 +418,11 @@ class tqdm(object):
             pass
 
     @classmethod
-    def write(cls, s, file=sys.stdout, end="\n"):
+    def write(cls, s, file=None, end="\n"):
         """
         Print a message via tqdm (without overlap with bars)
         """
-        fp = file
+        fp = file if file is not None else sys.stdout
 
         # Clear all bars
         inst_cleared = []
@@ -548,7 +548,7 @@ class tqdm(object):
         GroupBy.progress_transform = inner_generator('transform')
 
     def __init__(self, iterable=None, desc=None, total=None, leave=True,
-                 file=sys.stderr, ncols=None, mininterval=0.1,
+                 file=None, ncols=None, mininterval=0.1,
                  maxinterval=10.0, miniters=None, ascii=None, disable=False,
                  unit='it', unit_scale=False, dynamic_ncols=False,
                  smoothing=0.3, bar_format=None, initial=0, position=None,
@@ -574,7 +574,7 @@ class tqdm(object):
             upon termination of iteration.
         file  : `io.TextIOWrapper` or `io.StringIO`, optional
             Specifies where to output the progress messages
-            [default: sys.stderr]. Uses `file.write(str)` and `file.flush()`
+            (default: sys.stderr). Uses `file.write(str)` and `file.flush()`
             methods.
         ncols  : int, optional
             The width of the entire output message. If specified,
@@ -600,7 +600,7 @@ class tqdm(object):
         ascii  : bool, optional
             If unspecified or False, use unicode (smooth blocks) to fill
             the meter. The fallback is to use ASCII characters `1-9 #`.
-        disable  : bool or None, optional
+        disable  : bool, optional
             Whether to disable the entire progressbar wrapper
             [default: False]. If set to None, disable on non-TTY.
         unit  : str, optional
@@ -653,6 +653,9 @@ class tqdm(object):
             self.pos = self._get_free_pos(self)
             self._instances.remove(self)
             return
+
+        if file is None:
+            file = sys.stderr
 
         if kwargs:
             self.disable = True
