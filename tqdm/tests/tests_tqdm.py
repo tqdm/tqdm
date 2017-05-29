@@ -467,19 +467,17 @@ def test_max_interval():
 
                 # Fast iterations, check if dynamic_miniters triggers
                 timer.sleep(mininterval)  # to force update for t1
-                tm1.update(total/2)
-                tm2.update(total/2)
-                assert int(tm1.miniters) == tm2.miniters == total/2
+                tm1.update(total / 2)
+                tm2.update(total / 2)
+                assert int(tm1.miniters) == tm2.miniters == total / 2
 
                 # Slow iterations, check different miniters if mininterval
-                timer.sleep(maxinterval*2)
-                tm1.update(total/2)
-                tm2.update(total/2)
+                timer.sleep(maxinterval * 2)
+                tm1.update(total / 2)
+                tm2.update(total / 2)
                 res = [tm1.miniters, tm2.miniters]
-                assert res == [
-                               (total/2)*mininterval/(maxinterval*2),
-                               (total/2)*maxinterval/(maxinterval*2)
-                               ]
+                assert res == [(total / 2) * mininterval / (maxinterval * 2),
+                               (total / 2) * maxinterval / (maxinterval * 2)]
 
     # Same with iterable based tqdm
     timer1 = DiscreteTimer()  # need 2 timers for each bar because zip not work
@@ -497,16 +495,16 @@ def test_max_interval():
         cpu_timify(t2, timer2)
 
         for i in t1:
-            if i == ((total/2)-2):
+            if i == ((total / 2) - 2):
                 timer1.sleep(mininterval)
-            if i == (total-1):
-                timer1.sleep(maxinterval*2)
+            if i == (total - 1):
+                timer1.sleep(maxinterval * 2)
 
         for i in t2:
-            if i == ((total/2)-2):
+            if i == ((total / 2) - 2):
                 timer2.sleep(mininterval)
-            if i == (total-1):
-                timer2.sleep(maxinterval*2)
+            if i == (total - 1):
+                timer2.sleep(maxinterval * 2)
 
         assert t1.miniters == 0.255
         assert t2.miniters == 0.5
@@ -1423,7 +1421,7 @@ def test_monitoring_thread():
     # Test if alive, then killed
     assert monitor.report()
     monitor.exit()
-    timer.sleep(maxinterval*2)  # need to go out of the sleep to die
+    timer.sleep(maxinterval * 2)  # need to go out of the sleep to die
     assert not monitor.report()
     # assert not monitor.is_alive()  # not working dunno why, thread not killed
     del monitor
@@ -1445,12 +1443,12 @@ def test_monitoring_thread():
             cpu_timify(t, timer)
             # Do a lot of iterations in a small timeframe
             # (smaller than monitor interval)
-            timer.sleep(maxinterval/2)  # monitor won't wake up
+            timer.sleep(maxinterval / 2)  # monitor won't wake up
             t.update(500)
             # check that our fixed miniters is still there
             assert t.miniters == 500
             # Then do 1 it after monitor interval, so that monitor kicks in
-            timer.sleep(maxinterval*2)
+            timer.sleep(maxinterval * 2)
             t.update(1)
             # Wait for the monitor to get out of sleep's loop and update tqdm..
             timeend = timer.time()
@@ -1464,7 +1462,7 @@ def test_monitoring_thread():
             # to ensure that monitor wakes up at some point.
 
             # Try again but already at miniters = 1 so nothing will be done
-            timer.sleep(maxinterval*2)
+            timer.sleep(maxinterval * 2)
             t.update(2)
             timeend = timer.time()
             while not (t.monitor.woken >= timeend):
@@ -1500,7 +1498,7 @@ def test_monitoring_thread():
                 assert t1.miniters == 500
                 assert t2.miniters == 500
                 # Then do 1 it after monitor interval, so that monitor kicks in
-                timer.sleep(maxinterval*2)
+                timer.sleep(maxinterval * 2)
                 t1.update(1)
                 t2.update(1)
                 # Wait for the monitor to get out of sleep and update tqdm
