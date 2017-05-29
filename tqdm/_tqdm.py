@@ -508,8 +508,11 @@ class tqdm(object):
                 # Precompute total iterations
                 total = getattr(df, 'ngroups', None)
                 if total is None:  # not grouped
-                    total = len(df) if isinstance(df, Series) \
-                        else df.size // len(df)
+                    # apply can be on either axis
+                    if kwargs.get('axis', 0) or isinstance(df, Series):
+                        total = df.shape[0]
+                    else:
+                        total = df.shape[1]
                 else:
                     total += 1  # pandas calls update once too many
 
