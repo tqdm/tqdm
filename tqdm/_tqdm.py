@@ -650,7 +650,7 @@ class tqdm(object):
         -------
         out  : decorated iterator.
         """
-        
+
         if file is None:
             file = sys.stderr
 
