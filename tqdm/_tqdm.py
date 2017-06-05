@@ -651,6 +651,9 @@ class tqdm(object):
         out  : decorated iterator.
         """
 
+        if file is None:
+            file = sys.stderr
+
         if disable is None and hasattr(file, "isatty") and not file.isatty():
             disable = True
 
@@ -660,9 +663,6 @@ class tqdm(object):
             self.pos = self._get_free_pos(self)
             self._instances.remove(self)
             return
-
-        if file is None:
-            file = sys.stderr
 
         if kwargs:
             self.disable = True
