@@ -1215,8 +1215,7 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
 
     def moveto(self, n):
         self.fp.write(_unicode('\n' * n + _term_move_up() * -n))
-        if n:
-            self.fp.flush()
+        self.fp.flush()
 
     def clear(self, nolock=False):
         """
