@@ -4,5 +4,5 @@
 - [ ] If applicable, I have mentioned the relevant/related issue(s) in this PR
 
   [source website]: https://github.com/tqdm/tqdm/
-  [known issues]: https://github.com/tqdm/tqdm/#help
+  [known issues]: https://github.com/tqdm/tqdm/#faq-and-known-issues
   [issue tracker]: https://github.com/tqdm/tqdm/issues?q=
