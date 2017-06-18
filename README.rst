@@ -43,7 +43,7 @@ It can also be executed as a module with pipes:
 
 Overhead is low -- about 60ns per iteration (80ns with ``tqdm_gui``), and is
 unit tested against performance regression.
-By comparison, the well established
+By comparison, the well-established
 `ProgressBar <https://github.com/niltonvolpato/python-progressbar>`__ has
 an 800ns/iter overhead.
 
@@ -55,7 +55,7 @@ for a negligible overhead in most cases.
 (Linux, Windows, Mac, FreeBSD, NetBSD, Solaris/SunOS),
 in any console or in a GUI, and is also friendly with IPython/Jupyter notebooks.
 
-``tqdm`` does not require any dependecies (not even ``curses``!), just
+``tqdm`` does not require any dependencies (not even ``curses``!), just
 Python and an environment supporting ``carriage return \r`` and
 ``line feed \n`` control characters.
 
@@ -78,7 +78,7 @@ Latest PyPI stable release
 
     pip install tqdm
 
-Latest development release on github
+Latest development release on GitHub
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 |GitHub-Status| |GitHub-Stars| |GitHub-Forks|
@@ -170,7 +170,7 @@ Perhaps the most wonderful use of ``tqdm`` is in a script or on the command
 line. Simply inserting ``tqdm`` (or ``python -m tqdm``) between pipes will pass
 through all ``stdin`` to ``stdout`` while printing progress to ``stderr``.
 
-The example below demonstrated counting the number of lines in all python files
+The example below demonstrated counting the number of lines in all Python files
 in the current directory, with timing information included.
 
 .. code:: sh
@@ -223,7 +223,7 @@ of a neat one-line progress bar.
       `here <https://github.com/tqdm/tqdm/issues/208>`__ and
       `here <https://github.com/tqdm/tqdm/issues/307>`__)
       lack full support.
-    * Windows: additionally may require the python module ``colorama``.
+    * Windows: additionally may require the Python module ``colorama``.
 - Wrapping enumerated iterables: use ``enumerate(tqdm(...))`` instead of
   ``tqdm(enumerate(...))``. The same applies to ``numpy.ndenumerate``.
   This is because enumerate functions tend to hide the length of iterables.
