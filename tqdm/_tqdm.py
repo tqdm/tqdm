@@ -820,6 +820,10 @@ class tqdm(object):
     def __hash__(self):
         return id(self)
 
+    def __getattr__(self, name):
+        if self.iterable is not None:
+            return getattr(self.iterable, name)
+
     def __iter__(self):
         ''' Backward-compatibility to use: for x in tqdm(iterable) '''
 
