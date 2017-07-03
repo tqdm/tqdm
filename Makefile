@@ -87,6 +87,12 @@ viewasv:
 	asv publish
 	asv preview
 
+tqdm.1: tqdm.1.md
+	python -m tqdm --help | tail -n+5 | cat "$<" - |\
+    sed -r 's/^  (--.*)=<(.*)>  : (.*)$$/\n\\\1=*\2*\n: \3./' |\
+    sed -r 's/  (-.*, --.*)  /\n\1\n: /' |\
+    pandoc -o "$@" -s -t man
+
 distclean:
 	@+make coverclean
 	@+make prebuildclean
@@ -96,12 +102,12 @@ prebuildclean:
 	@+python -c "import shutil; shutil.rmtree('dist', True)"
 	@+python -c "import shutil; shutil.rmtree('tqdm.egg-info', True)"
 coverclean:
-	@+python -c "import os; os.remove('.coverage') if os.path.exists('.coverage') else None"
+	@+python -c "import os, glob; [os.remove(i) for i in glob.glob('.coverage')]"
 clean:
-	@+python -c "import os; import glob; [os.remove(i) for i in glob.glob('*.py[co]')]"
-	@+python -c "import os; import glob; [os.remove(i) for i in glob.glob('tqdm/*.py[co]')]"
-	@+python -c "import os; import glob; [os.remove(i) for i in glob.glob('tqdm/tests/*.py[co]')]"
-	@+python -c "import os; import glob; [os.remove(i) for i in glob.glob('tqdm/examples/*.py[co]')]"
+	@+python -c "import os, glob; [os.remove(i) for i in glob.glob('*.py[co]')]"
+	@+python -c "import os, glob; [os.remove(i) for i in glob.glob('tqdm/*.py[co]')]"
+	@+python -c "import os, glob; [os.remove(i) for i in glob.glob('tqdm/tests/*.py[co]')]"
+	@+python -c "import os, glob; [os.remove(i) for i in glob.glob('tqdm/examples/*.py[co]')]"
 
 installdev:
 	python setup.py develop --uninstall

@@ -1,0 +1,37 @@
+% TQDM(1) tqdm User Manuals
+% tqdm developers <https://github.com/tqdm>
+% 2015-2017
+
+# NAME
+
+tqdm - fast, extensible progress bar for Python and CLI
+
+# SYNOPSIS
+
+tqdm [*options*]
+
+# DESCRIPTION
+
+See <https://github.com/tqdm/tqdm>. Can be used as a pipe:
+
+```sh
+$ # count lines of code
+$ cat *.py | tqdm | wc -l
+327it [00:00, 981773.38it/s]
+327
+
+$ # find all files
+$ find . -name "*.py" | tqdm | wc -l
+432it [00:00, 833842.30it/s]
+432
+
+# ... and more info
+$ find . -name '*.py' -exec wc -l \{} \; \
+  | tqdm --total 432 --unit files --desc counting \
+  | awk '{ sum += $1 }; END { print sum }'
+counting: 100%|█████████| 432/432 [00:00<00:00, 794361.83files/s]
+131998
+```
+
+# OPTIONS
+
