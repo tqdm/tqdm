@@ -286,6 +286,7 @@ def _term_move_up():  # pragma: no cover
 
 
 def _text_width(s):  # pragma: no cover
+    # TODO consider using wcswidth third-party package for 0-width characters
     try:
         from unicodedata import east_asian_width
     except ImportError:

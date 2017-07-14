@@ -490,7 +490,7 @@ class tqdm(Comparable):
                 return nobar
             full_bar = Bar(
                 0,
-                max(1, ncols - len(RE_ANSI.sub('', nobar))) if ncols else 10,
+                max(1, ncols - _text_width(RE_ANSI.sub('', nobar))) if ncols else 10,
                 charset=Bar.BLANK)
             return bar_format.format(bar=full_bar, **format_dict)
         else:
