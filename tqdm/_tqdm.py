@@ -13,7 +13,8 @@ from __future__ import division
 # compatibility functions and utilities
 from ._utils import _supports_unicode, _environ_cols_wrapper, _range, _unich, \
     _term_move_up, _unicode, WeakSet, _basestring, _OrderedDict, \
-    Comparable, RE_ANSI, _is_ascii, SimpleTextIOWrapper, FormatReplace
+    Comparable, RE_ANSI, _is_ascii, SimpleTextIOWrapper, FormatReplace, \
+    _text_width
 from ._monitor import TMonitor
 # native libraries
 import sys
@@ -300,7 +301,7 @@ class tqdm(Comparable):
         last_len = [0]
 
         def print_status(s):
-            len_s = len(s)
+            len_s = _text_width(s)
             fp_write('\r' + s + (' ' * max(last_len[0] - len_s, 0)))
             last_len[0] = len_s
 
@@ -469,9 +470,10 @@ class tqdm(Comparable):
                 return nobar
 
             # Formatting progress bar space available for bar's display
+            bar_size = max(1, ncols - _text_width(RE_ANSI.sub('', nobar))) \
+                if ncols else 10
             full_bar = Bar(
-                frac,
-                max(1, ncols - len(RE_ANSI.sub('', nobar))) if ncols else 10,
+                frac, bar_size,
                 charset=Bar.ASCII if ascii is True else ascii or Bar.UTF)
             if not _is_ascii(full_bar.charset) and _is_ascii(bar_format):
                 bar_format = _unicode(bar_format)
