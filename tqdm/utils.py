@@ -293,6 +293,6 @@ def _text_width(s):  # pragma: no cover
     else:
         try:
             return len(s) + sum(east_asian_width(ch) in 'FW' for ch in s)
-        except UnicodeDecodeError:  # Py2
+        except TypeError:  # Py2
             s = s.decode('utf-8')
             return len(s) + sum(east_asian_width(ch) in 'FW' for ch in s)
