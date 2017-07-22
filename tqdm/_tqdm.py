@@ -229,10 +229,11 @@ class tqdm(object):
             (1-9 #).
         unit  : str, optional
             The iteration unit [default: 'it'].
-        unit_scale  : bool, optional
-            If set, the number of iterations will printed with an
+        unit_scale  : bool or int or float, optional
+            If 1 or True, the number of iterations will be printed with an
             appropriate SI metric prefix (K = 10^3, M = 10^6, etc.)
-            [default: False].
+            [default: False]. If any other non-zero number, will scale
+            `total` and `n`.
         rate  : float, optional
             Manual override for iteration rate.
             If [default: None], uses n/elapsed.
@@ -256,6 +257,12 @@ class tqdm(object):
         # sanity check: total
         if total and n > total:
             total = None
+
+        # apply custom scale if necessary
+        if unit_scale and unit_scale not in (True, 1):
+            total *= unit_scale
+            n *= unit_scale
+            unit_scale = False
 
         format_interval = tqdm.format_interval
         elapsed_str = format_interval(elapsed)
@@ -613,11 +620,12 @@ class tqdm(object):
         unit  : str, optional
             String that will be used to define the unit of each iteration
             [default: it].
-        unit_scale  : bool, optional
-            If set, the number of iterations will be reduced/scaled
+        unit_scale  : bool or int or float, optional
+            If 1 or True, the number of iterations will be reduced/scaled
             automatically and a metric prefix following the
             International System of Units standard will be added
-            (kilo, mega, etc.) [default: False].
+            (kilo, mega, etc.) [default: False]. If any other non-zero
+            number, will scale `total` and `n`.
         dynamic_ncols  : bool, optional
             If set, constantly alters `ncols` to the environment (allowing
             for window resizes) [default: False].

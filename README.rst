@@ -309,11 +309,12 @@ Parameters
 * unit  : str, optional  
     String that will be used to define the unit of each iteration
     [default: it].
-* unit_scale  : bool, optional  
-    If set, the number of iterations will be reduced/scaled
+* unit_scale  : bool or int or float, optional  
+    If 1 or True, the number of iterations will be reduced/scaled
     automatically and a metric prefix following the
     International System of Units standard will be added
-    (kilo, mega, etc.) [default: False].
+    (kilo, mega, etc.) [default: False]. If any other non-zero
+    number, will scale `total` and `n`.
 * dynamic_ncols  : bool, optional  
     If set, constantly alters ``ncols`` to the environment (allowing
     for window resizes) [default: False].
