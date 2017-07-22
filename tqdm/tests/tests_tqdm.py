@@ -1599,3 +1599,13 @@ def test_file_redirection():
         assert res.count("Such fun\n") == 3
         assert "0/3" in res
         assert "3/3" in res
+
+
+@with_setup(pretest, posttest)
+def test_unit_scale():
+    """Test numeric `unit_scale`"""
+    with closing(StringIO()) as our_file:
+        for _ in tqdm(_range(100), unit_scale=9, file=our_file):
+            pass
+        out = our_file.getvalue()
+        assert '900/900' in out
