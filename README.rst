@@ -223,7 +223,8 @@ of a neat one-line progress bar.
       `here <https://github.com/tqdm/tqdm/issues/208>`__ and
       `here <https://github.com/tqdm/tqdm/issues/307>`__)
       lack full support.
-    * Windows: additionally may require the Python module ``colorama``.
+    * Windows: additionally may require the Python module ``colorama``
+      to ensure nested bars stay within their respective lines.
 - Wrapping enumerated iterables: use ``enumerate(tqdm(...))`` instead of
   ``tqdm(enumerate(...))``. The same applies to ``numpy.ndenumerate``.
   This is because enumerate functions tend to hide the length of iterables.
@@ -485,7 +486,7 @@ Nested progress bars
                 sleep(0.01)
 
 On Windows `colorama <https://github.com/tartley/colorama>`__ will be used if
-available to produce a beautiful nested display.
+available to keep nested bars on their respective lines.
 
 For manual control over positioning (e.g. for multi-threaded use),
 you may specify ``position=n`` where ``n=0`` for the outermost bar,
