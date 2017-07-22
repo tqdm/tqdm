@@ -25,14 +25,14 @@ def get_relative_time(prevtime=0):
 
 
 def cpu_sleep(t):
-    '''Sleep the given amount of cpu time'''
+    """Sleep the given amount of cpu time"""
     start = process_time()
     while((process_time() - start) < t):
         pass
 
 
 def checkCpuTime(sleeptime=0.2):
-    '''Check if cpu time works correctly'''
+    """Check if cpu time works correctly"""
     if checkCpuTime.passed:
         return True
     # First test that sleeping does not consume cputime
@@ -85,14 +85,14 @@ def retry_on_except(n=3):
 
 
 class MockIO(StringIO):
-    """ Wraps StringIO to mock a file with no I/O """
+    """Wraps StringIO to mock a file with no I/O"""
     def write(self, data):
         return
 
 
 def simple_progress(iterable=None, total=None, file=sys.stdout, desc='',
                     leave=False, miniters=1, mininterval=0.1, width=60):
-    """ Simple progress bar reproducing tqdm's major features """
+    """Simple progress bar reproducing tqdm's major features"""
     n = [0]  # use a closure
     start_t = [time()]
     last_n = [0]
@@ -160,7 +160,7 @@ def simple_progress(iterable=None, total=None, file=sys.stdout, desc='',
 @with_setup(pretest, posttest)
 @retry_on_except()
 def test_iter_overhead():
-    """ Test overhead of iteration based tqdm """
+    """Test overhead of iteration based tqdm"""
 
     total = int(1e6)
 
@@ -186,7 +186,7 @@ def test_iter_overhead():
 @with_setup(pretest, posttest)
 @retry_on_except()
 def test_manual_overhead():
-    """ Test overhead of manual tqdm """
+    """Test overhead of manual tqdm"""
 
     total = int(1e6)
 
@@ -213,7 +213,7 @@ def test_manual_overhead():
 @with_setup(pretest, posttest)
 @retry_on_except()
 def test_iter_overhead_hard():
-    """ Test overhead of iteration based tqdm (hard) """
+    """Test overhead of iteration based tqdm (hard)"""
 
     total = int(1e5)
 
@@ -242,7 +242,7 @@ def test_iter_overhead_hard():
 @with_setup(pretest, posttest)
 @retry_on_except()
 def test_manual_overhead_hard():
-    """ Test overhead of manual tqdm (hard) """
+    """Test overhead of manual tqdm (hard)"""
 
     total = int(1e5)
 
@@ -272,7 +272,7 @@ def test_manual_overhead_hard():
 @with_setup(pretest, posttest)
 @retry_on_except()
 def test_iter_overhead_simplebar_hard():
-    """ Test overhead of iteration based tqdm vs simple progress bar (hard) """
+    """Test overhead of iteration based tqdm vs simple progress bar (hard)"""
 
     total = int(1e4)
 
@@ -302,7 +302,7 @@ def test_iter_overhead_simplebar_hard():
 @with_setup(pretest, posttest)
 @retry_on_except()
 def test_manual_overhead_simplebar_hard():
-    """ Test overhead of manual tqdm vs simple progress bar (hard) """
+    """Test overhead of manual tqdm vs simple progress bar (hard)"""
 
     total = int(1e4)
 

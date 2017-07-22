@@ -6,7 +6,7 @@ from tests_tqdm import with_setup, pretest, posttest, StringIO, closing
 
 @with_setup(pretest, posttest)
 def test_pandas_groupby_apply():
-    """ Test pandas.DataFrame.groupby(...).progress_apply """
+    """Test pandas.DataFrame.groupby(...).progress_apply"""
     try:
         from numpy.random import randint
         import pandas as pd
@@ -36,7 +36,7 @@ def test_pandas_groupby_apply():
 
 @with_setup(pretest, posttest)
 def test_pandas_apply():
-    """ Test pandas.DataFrame[.series].progress_apply """
+    """Test pandas.DataFrame[.series].progress_apply"""
     try:
         from numpy.random import randint
         import pandas as pd
@@ -62,7 +62,7 @@ def test_pandas_apply():
 
 @with_setup(pretest, posttest)
 def test_pandas_map():
-    """ Test pandas.Series.progress_map """
+    """Test pandas.Series.progress_map"""
     try:
         from numpy.random import randint
         import pandas as pd
@@ -82,7 +82,7 @@ def test_pandas_map():
 
 @with_setup(pretest, posttest)
 def test_pandas_leave():
-    """ Test pandas with `leave=True` """
+    """Test pandas with `leave=True`"""
     try:
         from numpy.random import randint
         import pandas as pd
@@ -105,7 +105,7 @@ def test_pandas_leave():
 
 @with_setup(pretest, posttest)
 def test_pandas_deprecation():
-    """ Test bar object instance as argument deprecation """
+    """Test bar object instance as argument deprecation"""
     try:
         from numpy.random import randint
         from tqdm import tqdm_pandas

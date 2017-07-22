@@ -157,7 +157,7 @@ class UnicodeIO(IOBase):
 
 
 def get_bar(all_bars, i):
-    """ Get a specific update from a whole bar traceback """
+    """Get a specific update from a whole bar traceback"""
     # Split according to any used control characters
     bars_split = RE_ctrlchr_excl.split(all_bars)
     bars_split = list(filter(None, bars_split))  # filter out empty splits
@@ -169,7 +169,7 @@ def progressbar_rate(bar_str):
 
 
 def squash_ctrlchars(s):
-    """ Apply control characters in a string just like a terminal display """
+    """Apply control characters in a string just like a terminal display"""
     # List of supported control codes
     ctrlcodes = [r'\r', r'\n', r'\x1b\[A']
 
@@ -214,7 +214,7 @@ def squash_ctrlchars(s):
 
 
 def test_format_interval():
-    """ Test time interval format """
+    """Test time interval format"""
     format_interval = tqdm.format_interval
 
     assert format_interval(60) == '01:00'
@@ -223,7 +223,7 @@ def test_format_interval():
 
 
 def test_format_meter():
-    """ Test statistics and progress bar formatting """
+    """Test statistics and progress bar formatting"""
     try:
         unich = unichr
     except NameError:
@@ -267,7 +267,7 @@ def test_format_meter():
 
 
 def test_si_format():
-    """ Test SI unit prefixes """
+    """Test SI unit prefixes"""
     format_meter = tqdm.format_meter
 
     assert '9.00 ' in format_meter(1, 9, 1, unit_scale=True, unit='B')
@@ -296,7 +296,7 @@ def test_si_format():
 
 @with_setup(pretest, posttest)
 def test_all_defaults():
-    """ Test default kwargs """
+    """Test default kwargs"""
     with closing(UnicodeIO()) as our_file:
         with tqdm(range(10), file=our_file) as progressbar:
             assert len(progressbar) == 10
@@ -312,7 +312,7 @@ def test_all_defaults():
 
 @with_setup(pretest, posttest)
 def test_iterate_over_csv_rows():
-    """ Test csv iterator """
+    """Test csv iterator"""
     # Create a test csv pseudo file
     with closing(StringIO()) as test_csv_file:
         writer = csv.writer(test_csv_file)
@@ -330,7 +330,7 @@ def test_iterate_over_csv_rows():
 
 @with_setup(pretest, posttest)
 def test_file_output():
-    """ Test output to arbitrary file-like objects """
+    """Test output to arbitrary file-like objects"""
     with closing(StringIO()) as our_file:
         for i in tqdm(_range(3), file=our_file):
             if i == 1:
@@ -340,7 +340,7 @@ def test_file_output():
 
 @with_setup(pretest, posttest)
 def test_leave_option():
-    """ Test `leave=True` always prints info about the last iteration """
+    """Test `leave=True` always prints info about the last iteration"""
     with closing(StringIO()) as our_file:
         for _ in tqdm(_range(3), file=our_file, leave=True):
             pass
@@ -358,7 +358,7 @@ def test_leave_option():
 
 @with_setup(pretest, posttest)
 def test_trange():
-    """ Test trange """
+    """Test trange"""
     with closing(StringIO()) as our_file:
         for _ in trange(3, file=our_file, leave=True):
             pass
@@ -374,7 +374,7 @@ def test_trange():
 
 @with_setup(pretest, posttest)
 def test_min_interval():
-    """ Test mininterval """
+    """Test mininterval"""
     with closing(StringIO()) as our_file:
         for _ in tqdm(_range(3), file=our_file, mininterval=1e-10):
             pass
@@ -384,7 +384,7 @@ def test_min_interval():
 
 @with_setup(pretest, posttest)
 def test_max_interval():
-    """ Test maxinterval """
+    """Test maxinterval"""
     total = 100
     bigstep = 10
     smallstep = 5
@@ -520,7 +520,7 @@ def test_max_interval():
 
 @with_setup(pretest, posttest)
 def test_min_iters():
-    """ Test miniters """
+    """Test miniters"""
     with closing(StringIO()) as our_file:
         for _ in tqdm(_range(3), file=our_file, leave=True, miniters=4):
             our_file.write('blank\n')
@@ -537,7 +537,7 @@ def test_min_iters():
 
 @with_setup(pretest, posttest)
 def test_dynamic_min_iters():
-    """ Test purely dynamic miniters (and manual updates and __del__) """
+    """Test purely dynamic miniters (and manual updates and __del__)"""
     with closing(StringIO()) as our_file:
         total = 10
         t = tqdm(total=total, file=our_file, miniters=None, mininterval=0,
@@ -606,7 +606,7 @@ def test_dynamic_min_iters():
 
 @with_setup(pretest, posttest)
 def test_big_min_interval():
-    """ Test large mininterval """
+    """Test large mininterval"""
     with closing(StringIO()) as our_file:
         for _ in tqdm(_range(2), file=our_file, mininterval=1E10):
             pass
@@ -623,7 +623,7 @@ def test_big_min_interval():
 
 @with_setup(pretest, posttest)
 def test_smoothed_dynamic_min_iters():
-    """ Test smoothed dynamic miniters """
+    """Test smoothed dynamic miniters"""
     timer = DiscreteTimer()
 
     with closing(StringIO()) as our_file:
@@ -654,7 +654,7 @@ def test_smoothed_dynamic_min_iters():
 
 @with_setup(pretest, posttest)
 def test_smoothed_dynamic_min_iters_with_min_interval():
-    """ Test smoothed dynamic miniters with mininterval """
+    """Test smoothed dynamic miniters with mininterval"""
     timer = DiscreteTimer()
 
     # In this test, `miniters` should gradually decline
@@ -699,7 +699,7 @@ def test_smoothed_dynamic_min_iters_with_min_interval():
 
 @with_setup(pretest, posttest)
 def test_disable():
-    """ Test disable """
+    """Test disable"""
     with closing(StringIO()) as our_file:
         for _ in tqdm(_range(3), file=our_file, disable=True):
             pass
@@ -716,7 +716,7 @@ def test_disable():
 
 @with_setup(pretest, posttest)
 def test_unit():
-    """ Test SI unit prefix """
+    """Test SI unit prefix"""
     with closing(StringIO()) as our_file:
         for _ in tqdm(_range(3), file=our_file, miniters=1, unit="bytes"):
             pass
@@ -726,7 +726,7 @@ def test_unit():
 
 @with_setup(pretest, posttest)
 def test_ascii():
-    """ Test ascii/unicode bar """
+    """Test ascii/unicode bar"""
     # Test ascii autodetection
     with closing(StringIO()) as our_file:
         with tqdm(total=10, file=our_file, ascii=None) as t:
@@ -757,7 +757,7 @@ def test_ascii():
 
 @with_setup(pretest, posttest)
 def test_update():
-    """ Test manual creation and updates """
+    """Test manual creation and updates"""
     with closing(StringIO()) as our_file:
         with tqdm(total=2, file=our_file, miniters=1, mininterval=0) \
                 as progressbar:
@@ -783,7 +783,7 @@ def test_update():
 
 @with_setup(pretest, posttest)
 def test_close():
-    """ Test manual creation and closure and n_instances """
+    """Test manual creation and closure and n_instances"""
 
     # With `leave` option
     with closing(StringIO()) as our_file:
@@ -831,7 +831,7 @@ def test_close():
 
 @with_setup(pretest, posttest)
 def test_smoothing():
-    """ Test exponential weighted average smoothing """
+    """Test exponential weighted average smoothing"""
     timer = DiscreteTimer()
 
     # -- Test disabling smoothing
@@ -930,7 +930,7 @@ def test_smoothing():
 
 @with_setup(pretest, posttest)
 def test_deprecated_nested():
-    """ Test nested progress bars """
+    """Test nested progress bars"""
     if nt_and_no_colorama:
         raise SkipTest
     # TODO: test degradation on windows without colorama?
@@ -950,7 +950,7 @@ def test_deprecated_nested():
 
 @with_setup(pretest, posttest)
 def test_bar_format():
-    """ Test custom bar formatting """
+    """Test custom bar formatting"""
     with closing(StringIO()) as our_file:
         bar_format = r'{l_bar}{bar}|{n_fmt}/{total_fmt}-{n}/{total}{percentage}{rate}{rate_fmt}{elapsed}{remaining}'  # NOQA
         for _ in trange(2, file=our_file, leave=True, bar_format=bar_format):
@@ -967,7 +967,7 @@ def test_bar_format():
 
 @with_setup(pretest, posttest)
 def test_unpause():
-    """ Test unpause """
+    """Test unpause"""
     timer = DiscreteTimer()
     with closing(StringIO()) as our_file:
         t = trange(10, file=our_file, leave=True, mininterval=0)
@@ -990,7 +990,7 @@ def test_unpause():
 
 @with_setup(pretest, posttest)
 def test_position():
-    """ Test positioned progress bars """
+    """Test positioned progress bars"""
     if nt_and_no_colorama:
         raise SkipTest
 
@@ -1123,7 +1123,7 @@ def test_position():
 
 @with_setup(pretest, posttest)
 def test_set_description():
-    """ Test set description """
+    """Test set description"""
     with closing(StringIO()) as our_file:
         with tqdm(desc='Hello', file=our_file) as t:
             assert t.desc == 'Hello: '
@@ -1135,7 +1135,7 @@ def test_set_description():
 
 @with_setup(pretest, posttest)
 def test_deprecated_gui():
-    """ Test internal GUI properties """
+    """Test internal GUI properties"""
     # Check: StatusPrinter iff gui is disabled
     with closing(StringIO()) as our_file:
         t = tqdm(total=2, gui=True, file=our_file, miniters=1, mininterval=0)
@@ -1177,7 +1177,7 @@ def test_deprecated_gui():
 
 @with_setup(pretest, posttest)
 def test_cmp():
-    """ Test comparison functions """
+    """Test comparison functions"""
     with closing(StringIO()) as our_file:
         t0 = tqdm(total=10, file=our_file)
         t1 = tqdm(total=10, file=our_file)
@@ -1206,7 +1206,7 @@ def test_cmp():
 
 @with_setup(pretest, posttest)
 def test_repr():
-    """ Test representation """
+    """Test representation"""
     with closing(StringIO()) as our_file:
         with tqdm(total=10, ascii=True, file=our_file) as t:
             assert str(t) == '  0%|          | 0/10 [00:00<?, ?it/s]'
@@ -1214,7 +1214,7 @@ def test_repr():
 
 @with_setup(pretest, posttest)
 def test_clear():
-    """ Test clearing bar display """
+    """Test clearing bar display"""
     with closing(StringIO()) as our_file:
         t1 = tqdm(total=10, file=our_file, desc='pos0 bar',
                   bar_format='{l_bar}')
@@ -1232,7 +1232,7 @@ def test_clear():
 
 @with_setup(pretest, posttest)
 def test_clear_disabled():
-    """ Test clearing bar display """
+    """Test clearing bar display"""
     with closing(StringIO()) as our_file:
         with tqdm(total=10, file=our_file, desc='pos0 bar', disable=True,
                   bar_format='{l_bar}') as t:
@@ -1242,7 +1242,7 @@ def test_clear_disabled():
 
 @with_setup(pretest, posttest)
 def test_refresh():
-    """ Test refresh bar display """
+    """Test refresh bar display"""
     with closing(StringIO()) as our_file:
         t1 = tqdm(total=10, file=our_file, desc='pos0 bar',
                   bar_format='{l_bar}', mininterval=999, miniters=999)
@@ -1264,7 +1264,7 @@ def test_refresh():
 
 @with_setup(pretest, posttest)
 def test_disabled_refresh():
-    """ Test refresh bar display """
+    """Test refresh bar display"""
     with closing(StringIO()) as our_file:
         with tqdm(total=10, file=our_file, desc='pos0 bar', disable=True,
                   bar_format='{l_bar}', mininterval=999, miniters=999) as t:
@@ -1276,7 +1276,7 @@ def test_disabled_refresh():
 
 @with_setup(pretest, posttest)
 def test_write():
-    """ Test write messages """
+    """Test write messages"""
     s = "Hello world"
     with closing(StringIO()) as our_file:
         # Change format to keep only left part w/o bar and it/s rate

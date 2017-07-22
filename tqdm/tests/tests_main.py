@@ -13,7 +13,7 @@ def _sh(*cmd, **kwargs):
 # WARNING: this should be the last test as it messes with sys.stdin, argv
 @with_setup(pretest, posttest)
 def test_main():
-    """ Test command line pipes """
+    """Test command line pipes"""
     ls_out = _sh('ls').replace('\r\n', '\n')
     ls = subprocess.Popen(('ls'),
                           stdout=subprocess.PIPE,
