@@ -54,6 +54,7 @@ def my_hook(t):
             t.total = tsize
         t.update((b - last_b[0]) * bsize)
         last_b[0] = b
+
     return update_to
 
 
@@ -65,6 +66,7 @@ class TqdmUpTo(tqdm):
     Inspired by [twine#242](https://github.com/pypa/twine/pull/242),
     [here](https://github.com/pypa/twine/commit/42e55e06).
     """
+
     def update_to(self, b=1, bsize=1, tsize=None):
         """
         b  : int, optional
@@ -90,5 +92,5 @@ eg_out = opts['--output'].replace("/dev/null", devnull)
 #                        reporthook=my_hook(t), data=None)
 with TqdmUpTo(unit='B', unit_scale=True, unit_divisor=1024, miniters=1,
               desc=eg_file) as t:  # all optional kwargs
-    urllib.urlretrieve(eg_link, filename=eg_out,
-                       reporthook=t.update_to, data=None)
+    urllib.urlretrieve(eg_link, filename=eg_out, reporthook=t.update_to,
+                       data=None)

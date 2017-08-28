@@ -32,7 +32,6 @@ __licence__ = "MPLv2.0"
 __version__ = "0.2.0"
 __license__ = __licence__
 
-
 RE_SCN = re.compile("([0-9]+)\s+([0-9]+)\s+(.*)$", flags=re.M)
 
 
@@ -55,7 +54,7 @@ def main():
         totals = map(int, finfo[-1][:2])
         # log.debug(totals)
         for s in range(2):
-            assert(sum(map(int, (inf[s] for inf in finfo[:-1]))) == totals[s])
+            assert (sum(map(int, (inf[s] for inf in finfo[:-1]))) == totals[s])
         fcomp = dict((n, int(c if args['--compressed'] else u))
                      for (u, c, n) in finfo[:-1])
         # log.debug(fcomp)
@@ -71,10 +70,11 @@ def main():
               unit="B", unit_scale=True) as tall:
         for fn, fcomp in zips.items():
             md, sd = pty.openpty()
-            ex = subprocess.Popen(cmd7zx + [fn],
-                                  bufsize=1,
-                                  stdout=md,  # subprocess.PIPE,
-                                  stderr=subprocess.STDOUT)
+            ex = subprocess.Popen(
+                cmd7zx + [fn],
+                bufsize=1,
+                stdout=md,  # subprocess.PIPE,
+                stderr=subprocess.STDOUT)
             os.close(sd)
             with io.open(md, mode="rU", buffering=1) as m:
                 with tqdm(total=sum(fcomp.values()), disable=len(zips) < 2,
@@ -91,26 +91,24 @@ def main():
                             t.update(s)
                             tall.update(s)
                         elif l:
-                            if not any(l.startswith(i) for i in
-                                       ("7-Zip ",
-                                        "p7zip Version ",
-                                        "Everything is Ok",
-                                        "Folders: ",
-                                        "Files: ",
-                                        "Size: ",
-                                        "Compressed: ")):
+                            if not any(
+                                    l.startswith(i)
+                                    for i in ("7-Zip ", "p7zip Version ",
+                                              "Everything is Ok", "Folders: ",
+                                              "Files: ", "Size: ",
+                                              "Compressed: ")):
                                 if l.startswith("Processing archive: "):
                                     if not args['--silent']:
-                                        t.write(t.format_interval(
-                                            t.start_t - tall.start_t) + ' ' +
-                                            l.lstrip("Processing archive: "))
+                                        t.write(
+                                            t.format_interval(
+                                                t.start_t - tall.start_t) + ' '
+                                            + l.lstrip("Processing archive: "))
                                 else:
                                     t.write(l)
             ex.wait()
 
 
 main.__doc__ = __doc__
-
 
 if __name__ == "__main__":
     main()

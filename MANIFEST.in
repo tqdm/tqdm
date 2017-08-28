@@ -6,11 +6,10 @@ include logo.png
 # include images/logo.gif
 include Makefile
 include README.rst
-include RELEASE
 include tox.ini
 
 # Test suite
 recursive-include tqdm/tests *.py
 
 # Examples/Documentation
-recursive-include examples *
+recursive-include examples *.py

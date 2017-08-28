@@ -33,6 +33,7 @@ class DeprecationError(Exception):
 # Ensure we can use `with closing(...) as ... :` syntax
 if getattr(StringIO, '__exit__', False) and \
    getattr(StringIO, '__enter__', False):
+
     def closing(arg):
         return arg
 else:
@@ -62,7 +63,8 @@ CTRLCHR = [r'\r', r'\n', r'\x1b\[A']  # Need to escape [ for regex
 RE_rate = re.compile(r'(\d+\.\d+)it/s')
 RE_ctrlchr = re.compile("(%s)" % '|'.join(CTRLCHR))  # Match control chars
 RE_ctrlchr_excl = re.compile('|'.join(CTRLCHR))  # Match and exclude ctrl chars
-RE_pos = re.compile(r'((\x1b\[A|\r|\n)+((pos\d+) bar:\s+\d+%|\s{3,6})?)')  # NOQA
+RE_pos = re.compile(
+    r'((\x1b\[A|\r|\n)+((pos\d+) bar:\s+\d+%|\s{3,6})?)')  # NOQA
 
 
 class DiscreteTimer(object):
@@ -82,12 +84,13 @@ class DiscreteTimer(object):
 
 class FakeSleep(object):
     '''Wait until the discrete timer reached the required time'''
+
     def __init__(self, dtimer):
         self.dtimer = dtimer
 
     def sleep(self, t):
         end = t + self.dtimer.t
-        while(self.dtimer.t < end):
+        while (self.dtimer.t < end):
             sleep(0.0000001)  # sleep a bit to interrupt (instead of pass)
 
 
@@ -103,8 +106,7 @@ def cpu_timify(t, timer=None):
 
 def pretest():
     # setcheckinterval is deprecated
-    getattr(sys, 'setswitchinterval',
-            getattr(sys, 'setcheckinterval'))(100)
+    getattr(sys, 'setswitchinterval', getattr(sys, 'setcheckinterval'))(100)
 
     if getattr(tqdm, "_instances", False):
         n = len(tqdm._instances)
@@ -399,8 +401,8 @@ def test_max_interval():
             cpu_timify(t, timer)
 
             # without maxinterval
-            t2 = tqdm(total=total, file=our_file2, miniters=None,
-                      mininterval=0, smoothing=1, maxinterval=None)
+            t2 = tqdm(total=total, file=our_file2, miniters=None, mininterval=0,
+                      smoothing=1, maxinterval=None)
             cpu_timify(t2, timer)
 
             assert t.dynamic_miniters
@@ -818,8 +820,8 @@ def test_close():
         exres = res + '\n'
         if exres != our_file.read():
             our_file.seek(0)
-            raise AssertionError("\nExpected:\n{0}\nGot:{1}\n".format(
-                exres, our_file.read()))
+            raise AssertionError(
+                "\nExpected:\n{0}\nGot:{1}\n".format(exres, our_file.read()))
 
     # Closing after the output stream has closed
     with closing(StringIO()) as our_file:
@@ -997,8 +999,8 @@ def test_position():
     # Artificially test nested loop printing
     # Without leave
     our_file = StringIO()
-    t = tqdm(total=2, file=our_file, miniters=1, mininterval=0,
-             maxinterval=0, desc='pos2 bar', leave=False, position=2)
+    t = tqdm(total=2, file=our_file, miniters=1, mininterval=0, maxinterval=0,
+             desc='pos2 bar', leave=False, position=2)
     t.update()
     t.close()
     our_file.seek(0)
@@ -1014,8 +1016,8 @@ def test_position():
 
     # Test iteration-based tqdm positioning
     our_file = StringIO()
-    for _ in trange(2, file=our_file, miniters=1, mininterval=0,
-                    maxinterval=0, desc='pos0 bar', position=0):
+    for _ in trange(2, file=our_file, miniters=1, mininterval=0, maxinterval=0,
+                    desc='pos0 bar', position=0):
         for _ in trange(2, file=our_file, miniters=1, mininterval=0,
                         maxinterval=0, desc='pos1 bar', position=1):
             for _ in trange(2, file=our_file, miniters=1, mininterval=0,
@@ -1052,12 +1054,12 @@ def test_position():
 
     # Test manual tqdm positioning
     our_file = StringIO()
-    t1 = tqdm(total=2, file=our_file, miniters=1, mininterval=0,
-              maxinterval=0, desc='pos0 bar', position=0)
-    t2 = tqdm(total=2, file=our_file, miniters=1, mininterval=0,
-              maxinterval=0, desc='pos1 bar', position=1)
-    t3 = tqdm(total=2, file=our_file, miniters=1, mininterval=0,
-              maxinterval=0, desc='pos2 bar', position=2)
+    t1 = tqdm(total=2, file=our_file, miniters=1, mininterval=0, maxinterval=0,
+              desc='pos0 bar', position=0)
+    t2 = tqdm(total=2, file=our_file, miniters=1, mininterval=0, maxinterval=0,
+              desc='pos1 bar', position=1)
+    t3 = tqdm(total=2, file=our_file, miniters=1, mininterval=0, maxinterval=0,
+              desc='pos2 bar', position=2)
     for _ in _range(2):
         t1.update()
         t3.update()
@@ -1095,8 +1097,7 @@ def test_position():
                  '\x1b[A\x1b[A']
         if res != exres:
             raise AssertionError(
-                "\nExpected:\n{0}\nGot:\n{1}\n".format(
-                    str(exres), str(res)))
+                "\nExpected:\n{0}\nGot:\n{1}\n".format(str(exres), str(res)))
 
         t2.close()
         t4 = tqdm(total=10, file=our_file, desc='pos3 bar', mininterval=0)
@@ -1114,8 +1115,7 @@ def test_position():
                  '\x1b[A\x1b[A']
         if res != exres:
             raise AssertionError(
-                "\nExpected:\n{0}\nGot:\n{1}\n".format(
-                    str(exres), str(res)))
+                "\nExpected:\n{0}\nGot:\n{1}\n".format(str(exres), str(res)))
         t4.close()
         t3.close()
         t1.close()
@@ -1154,8 +1154,7 @@ def test_deprecated_gui():
             # t.close()
             # len(tqdm._instances) += 1  # undo the close() decrement
 
-        t = tqdm(_range(3), gui=True, file=our_file,
-                 miniters=1, mininterval=0)
+        t = tqdm(_range(3), gui=True, file=our_file, miniters=1, mininterval=0)
         try:
             for _ in t:
                 pass
@@ -1218,8 +1217,7 @@ def test_clear():
     with closing(StringIO()) as our_file:
         t1 = tqdm(total=10, file=our_file, desc='pos0 bar',
                   bar_format='{l_bar}')
-        t2 = trange(10, file=our_file, desc='pos1 bar',
-                    bar_format='{l_bar}')
+        t2 = trange(10, file=our_file, desc='pos1 bar', bar_format='{l_bar}')
         before = squash_ctrlchars(our_file.getvalue())
         t2.clear()
         t1.clear()
@@ -1392,9 +1390,8 @@ def test_autodisable_enable():
 def test_deprecation_exception():
     def test_TqdmDeprecationWarning():
         with closing(StringIO()) as our_file:
-            raise (TqdmDeprecationWarning('Test!',
-                                          fp_write=getattr(our_file, 'write',
-                                                           sys.stderr.write)))
+            raise (TqdmDeprecationWarning('Test!', fp_write=getattr(
+                our_file, 'write', sys.stderr.write)))
 
     def test_TqdmDeprecationWarning_nofpwrite():
         raise (TqdmDeprecationWarning('Test!', fp_write=None))
@@ -1443,8 +1440,8 @@ def test_monitoring_thread():
     # Set monitor interval
     tqdm.monitor_interval = maxinterval
     with closing(StringIO()) as our_file:
-        with tqdm(total=total, file=our_file, miniters=500,
-                  mininterval=0.1, maxinterval=maxinterval) as t:
+        with tqdm(total=total, file=our_file, miniters=500, mininterval=0.1,
+                  maxinterval=maxinterval) as t:
             cpu_timify(t, timer)
             # Do a lot of iterations in a small timeframe
             # (smaller than monitor interval)
@@ -1489,11 +1486,11 @@ def test_monitoring_thread():
     TMonitor._time = timer.time
     TMonitor._sleep = sleeper.sleep
     with closing(StringIO()) as our_file:
-        with tqdm(total=total, file=our_file, miniters=500,
-                  mininterval=0.1, maxinterval=maxinterval) as t1:
+        with tqdm(total=total, file=our_file, miniters=500, mininterval=0.1,
+                  maxinterval=maxinterval) as t1:
             # Set high maxinterval for t2 so monitor does not need to adjust it
-            with tqdm(total=total, file=our_file, miniters=500,
-                      mininterval=0.1, maxinterval=1E5) as t2:
+            with tqdm(total=total, file=our_file, miniters=500, mininterval=0.1,
+                      maxinterval=1E5) as t2:
                 cpu_timify(t1, timer)
                 cpu_timify(t2, timer)
                 # Do a lot of iterations in a small timeframe
@@ -1533,8 +1530,8 @@ def test_postfix():
 
     # Test postfix set after init
     with closing(StringIO()) as our_file:
-        with trange(10, file=our_file, desc='pos1 bar',
-                    bar_format='{r_bar}', postfix=None) as t2:
+        with trange(10, file=our_file, desc='pos1 bar', bar_format='{r_bar}',
+                    postfix=None) as t2:
             t2.set_postfix(**postfix)
             t2.refresh()
             out2 = our_file.getvalue()
@@ -1546,8 +1543,8 @@ def test_postfix():
 
     # Test postfix set after init and with ordered dict
     with closing(StringIO()) as our_file:
-        with trange(10, file=our_file, desc='pos2 bar',
-                    bar_format='{r_bar}', postfix=None) as t3:
+        with trange(10, file=our_file, desc='pos2 bar', bar_format='{r_bar}',
+                    postfix=None) as t3:
             t3.set_postfix(postfix_order, **postfix)
             t3.refresh()
             out3 = our_file.getvalue()

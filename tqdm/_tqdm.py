@@ -197,12 +197,13 @@ class tqdm(object):
             len_s = len(s)
             fp_write('\r' + s + (' ' * max(last_len[0] - len_s, 0)))
             last_len[0] = len_s
+
         return print_status
 
     @staticmethod
-    def format_meter(n, total, elapsed, ncols=None, prefix='',
-                     ascii=False, unit='it', unit_scale=False, rate=None,
-                     bar_format=None, postfix=None, unit_divisor=1000):
+    def format_meter(n, total, elapsed, ncols=None, prefix='', ascii=False,
+                     unit='it', unit_scale=False, rate=None, bar_format=None,
+                     postfix=None, unit_divisor=1000):
         """
         Return a string-based progress bar given some parameters
 
@@ -300,8 +301,8 @@ class tqdm(object):
             l_bar = (prefix if prefix else '') + \
                 '{0:3.0f}%|'.format(percentage)
             r_bar = '| {0}/{1} [{2}<{3}, {4}{5}]'.format(
-                    n_fmt, total_fmt, elapsed_str, remaining_str, rate_fmt,
-                    ', ' + postfix if postfix else '')
+                n_fmt, total_fmt, elapsed_str, remaining_str, rate_fmt,
+                ', ' + postfix if postfix else '')
 
             if ncols == 0:
                 return l_bar[:-1] + r_bar[1:]
@@ -387,8 +388,8 @@ class tqdm(object):
             cls._instances = WeakSet()
         cls._instances.add(instance)
         # Create the monitoring thread
-        if cls.monitor_interval and (cls.monitor is None or
-                                     not cls.monitor.report()):
+        if cls.monitor_interval and (cls.monitor is None
+                                     or not cls.monitor.report()):
             cls.monitor = TMonitor(cls, cls.monitor_interval)
         # Return the instance
         return instance
@@ -439,8 +440,8 @@ class tqdm(object):
             # Clear instance if in the target output file
             # or if write output + tqdm output are both either
             # sys.stdout or sys.stderr (because both are mixed in terminal)
-            if inst.fp == fp or all(f in (sys.stdout, sys.stderr)
-                                    for f in (fp, inst.fp)):
+            if inst.fp == fp or all(
+                    f in (sys.stdout, sys.stderr) for f in (fp, inst.fp)):
                 inst.clear()
                 inst_cleared.append(inst)
         # Write the message
@@ -541,6 +542,7 @@ class tqdm(object):
                 # Close bar and return pandas calculation result
                 t.close()
                 return result
+
             return inner
 
         # Monkeypatch pandas to provide easy methods
@@ -562,12 +564,11 @@ class tqdm(object):
         GroupBy.progress_transform = inner_generator('transform')
 
     def __init__(self, iterable=None, desc=None, total=None, leave=True,
-                 file=None, ncols=None, mininterval=0.1,
-                 maxinterval=10.0, miniters=None, ascii=None, disable=False,
-                 unit='it', unit_scale=False, dynamic_ncols=False,
-                 smoothing=0.3, bar_format=None, initial=0, position=None,
-                 postfix=None, unit_divisor=1000,
-                 gui=False, **kwargs):
+                 file=None, ncols=None, mininterval=0.1, maxinterval=10.0,
+                 miniters=None, ascii=None, disable=False, unit='it',
+                 unit_scale=False, dynamic_ncols=False, smoothing=0.3,
+                 bar_format=None, initial=0, position=None, postfix=None,
+                 unit_divisor=1000, gui=False, **kwargs):
         """
         Parameters
         ----------
@@ -680,9 +681,8 @@ class tqdm(object):
             self._instances.remove(self)
             raise (TqdmDeprecationWarning("""\
 `nested` is deprecated and automated. Use position instead for manual control.
-""", fp_write=getattr(file, 'write', sys.stderr.write))
-                if "nested" in kwargs else
-                TqdmKeyError("Unknown argument(s): " + str(kwargs)))
+""", fp_write=getattr(file, 'write', sys.stderr.write)) if "nested" in kwargs
+                   else TqdmKeyError("Unknown argument(s): " + str(kwargs)))
 
         # Preprocess the arguments
         if total is None and iterable is not None:
@@ -800,14 +800,13 @@ class tqdm(object):
         self.close()
 
     def __repr__(self):
-        return self.format_meter(self.n, self.total,
-                                 self._time() - self.start_t,
-                                 self.dynamic_ncols(self.fp)
-                                 if self.dynamic_ncols else self.ncols,
-                                 self.desc, self.ascii, self.unit,
-                                 self.unit_scale, 1 / self.avg_time
-                                 if self.avg_time else None, self.bar_format,
-                                 self.postfix)
+        return self.format_meter(
+            self.n, self.total, self._time() - self.start_t,
+            self.dynamic_ncols(self.fp)
+            if self.dynamic_ncols else self.ncols, self.desc, self.ascii,
+            self.unit, self.unit_scale,
+            1 / self.avg_time if self.avg_time else None,
+            self.bar_format, self.postfix)
 
     def __lt__(self, other):
         return self.pos < other.pos
