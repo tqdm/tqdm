@@ -19,6 +19,7 @@ from numbers import Number
 from threading import Thread
 from time import time
 from time import sleep
+from contextlib import contextmanager
 
 
 __author__ = {"github.com/": ["noamraph", "obiwanus", "kmike", "hadim",
@@ -449,6 +450,19 @@ class tqdm(object):
         Print a message via tqdm (without overlap with bars)
         """
         fp = file if file is not None else sys.stdout
+        with cls.external_write_mode(file=file):
+            # Write the message
+            fp.write(s)
+            fp.write(end)
+
+    @classmethod
+    @contextmanager
+    def external_write_mode(cls, file=None):
+        """
+        Disable tqdm within context and refresh tqdm when exits.
+        Useful when writing to standard output stream
+        """
+        fp = file if file is not None else sys.stdout
 
         # Clear all bars
         inst_cleared = []
@@ -460,9 +474,7 @@ class tqdm(object):
                     f in (sys.stdout, sys.stderr) for f in (fp, inst.fp)):
                 inst.clear()
                 inst_cleared.append(inst)
-        # Write the message
-        fp.write(s)
-        fp.write(end)
+        yield
         # Force refresh display of bars we cleared
         for inst in inst_cleared:
             # Avoid race conditions by checking that the instance started
