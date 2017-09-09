@@ -784,7 +784,7 @@ class tqdm(object):
         self.bar_format = bar_format
         self.postfix = None
         if postfix:
-            self.set_postfix(**postfix)
+            self.set_postfix(refresh=False, **postfix)
 
         # Init the iterations counters
         self.last_print_n = initial
@@ -902,10 +902,10 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
 
             for obj in iterable:
                 yield obj
-                # Update and print the progressbar.
+                # Update and possibly print the progressbar.
                 # Note: does not call self.update(1) for speed optimisation.
                 n += 1
-                # check the counter first (avoid calls to time())
+                # check counter first to avoid calls to time()
                 if n - last_print_n >= self.miniters:
                     miniters = self.miniters  # watch monitoring thread changes
                     delta_t = _time() - last_print_t
@@ -923,7 +923,7 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
                         if self.pos:
                             self.moveto(self.pos)
 
-                        # Printing the bar's update
+                        # Print bar update
                         sp(format_meter(
                             n, self.total, elapsed,
                             (dynamic_ncols(self.fp) if dynamic_ncols
@@ -986,10 +986,11 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
 
         Parameters
         ----------
-        n  : int
+        n  : int, optional
             Increment to add to the internal counter of iterations
             [default: 1].
         """
+        # N.B.: see __iter__() for more comments.
         if self.disable:
             return
 
@@ -997,12 +998,12 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
             raise ValueError("n ({0}) cannot be negative".format(n))
         self.n += n
 
+        # check counter first to reduce calls to time()
         if self.n - self.last_print_n >= self.miniters:
-            # We check the counter first, to reduce the overhead of time()
             delta_t = self._time() - self.last_print_t
             if delta_t >= self.mininterval:
                 cur_t = self._time()
-                delta_it = self.n - self.last_print_n  # should be n?
+                delta_it = self.n - self.last_print_n  # >= n
                 # elapsed = cur_t - self.start_t
                 # EMA (not just overall average)
                 if self.smoothing and delta_t and delta_it:
@@ -1019,14 +1020,14 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
                 if self.pos:
                     self.moveto(self.pos)
 
-                # Print bar's update
+                # Print bar update
                 self.sp(self.__repr__())
 
                 if self.pos:
                     self.moveto(-self.pos)
 
                 # If no `miniters` was specified, adjust automatically to the
-                # maximum iteration rate seen so far between two prints.
+                # maximum iteration rate seen so far between 2 prints
                 # e.g.: After running `tqdm.update(5)`, subsequent
                 # calls to `tqdm.update()` will only cause an update after
                 # at least 5 more iterations.
@@ -1112,23 +1113,39 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
         self.start_t += cur_t - self.last_print_t
         self.last_print_t = cur_t
 
-    def set_description(self, desc=None):
+    def set_description(self, desc=None, refresh=True):
         """
         Set/modify description of the progress bar.
+
+        Parameters
+        ----------
+        desc  : str, optional
+        refresh  : bool, optional
+            Forces refresh [default: True].
         """
         self.desc = desc + ': ' if desc else ''
+        if refresh:
+            self.refresh()
 
-    def set_description_str(self, desc=None):
+    def set_description_str(self, desc=None, refresh=True):
         """
         Set/modify description without ': ' appended.
         """
         self.desc = desc or ''
+        if refresh:
+            self.refresh()
 
-    def set_postfix(self, ordered_dict=None, **kwargs):
+    def set_postfix(self, ordered_dict=None, refresh=True, **kwargs):
         """
-        Set/modify postfix (additional stats) given 'key': value pairs
-        (and other arbitrary parameters with their values)
+        Set/modify postfix (additional stats)
         with automatic formatting based on datatype.
+
+        Parameters
+        ----------
+        ordered_dict  : dict or OrderedDict, optional
+        refresh  : bool, optional
+            Forces refresh [default: True].
+        kwargs  : dict, optional
         """
         # Sort in alphabetical order to be more deterministic
         postfix = _OrderedDict([] if ordered_dict is None else ordered_dict)
@@ -1146,12 +1163,16 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
         # Stitch together to get the final postfix
         self.postfix = ', '.join(key + '=' + postfix[key].strip()
                                  for key in postfix.keys())
+        if refresh:
+            self.refresh()
 
-    def set_postfix_str(self, s=''):
+    def set_postfix_str(self, s='', refresh=True):
         """
         Postfix without dictionary expansion, similar to prefix handling.
         """
         self.postfix = str(s)
+        if refresh:
+            self.refresh()
 
     def moveto(self, n):
         self.fp.write(_unicode('\n' * n + _term_move_up() * -n))
