@@ -325,10 +325,12 @@ Parameters
 * bar_format  : str, optional  
     Specify a custom bar string formatting. May impact performance.
     If unspecified, will use '{l_bar}{bar}{r_bar}', where l_bar is
-    '{desc}{percentage:3.0f}%|' and r_bar is
+    '{desc}: {percentage:3.0f}%|' and r_bar is
     '| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}]'
     Possible vars: bar, n, n_fmt, total, total_fmt, percentage,
     rate, rate_fmt, elapsed, remaining, l_bar, r_bar, desc.
+    Note that a trailing ": " is automatically stripped after {desc}
+    if the latter is empty.
 * initial  : int, optional  
     The initial counter value. Useful when restarting a progress
     bar [default: 0].
@@ -338,6 +340,8 @@ Parameters
     Useful to manage multiple bars at once (eg, from threads).
 * postfix  : dict, optional  
     Specify additional stats to display at the end of the bar.
+    Note: postfix is a dict ({'key': value} pairs) for this method,
+    not a string.
 * unit_divisor  : float, optional  
     [default: 1000], ignored unless `unit_scale` is True.
 

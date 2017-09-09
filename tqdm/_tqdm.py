@@ -224,6 +224,7 @@ class tqdm(object):
             will not print any meter (only stats).
         prefix  : str, optional
             Prefix message (included in total width) [default: ''].
+            Use as {desc} in bar_format string.
         ascii  : bool, optional
             If not set, use unicode (smooth blocks) to fill the meter
             [default: False]. The fallback is to use ASCII characters
@@ -240,13 +241,19 @@ class tqdm(object):
             If [default: None], uses n/elapsed.
         bar_format  : str, optional
             Specify a custom bar string formatting. May impact performance.
-            [default: '{l_bar}{bar}{r_bar}'], where l_bar is
-            '{desc}{percentage:3.0f}%|' and r_bar is
-            '| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}]'
-            Possible vars: bar, n, n_fmt, total, total_fmt, percentage,
-            rate, rate_fmt, elapsed, remaining, l_bar, r_bar, desc.
+            [default: '{l_bar}{bar}{r_bar}'], where
+            l_bar='{desc}: {percentage:3.0f}%|' and
+            r_bar='| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, '
+                  '{rate_fmt}{postfix}]'
+            Possible vars: l_bar, bar, r_bar, n, n_fmt, total, total_fmt,
+                percentage, rate, rate_fmt, elapsed, remaining, desc,
+                postfix.
+            Note that a trailing ": " is automatically removed after {desc}
+            if the latter is empty.
         postfix  : str, optional
-            Same as prefix but will be placed at the end as additional stats.
+            Similar to `prefix`, but placed at the end
+            (e.g. for additional stats).
+            Note: postfix is a string for this method. Not a dict.
         unit_divisor  : float, optional
             [default: 1000], ignored unless `unit_scale` is True.
 
@@ -298,8 +305,12 @@ class tqdm(object):
                 if rate else '?'
 
             # format the stats displayed to the left and right sides of the bar
-            l_bar = (prefix if prefix else '') + \
-                '{0:3.0f}%|'.format(percentage)
+            bool_prefix_colon_already = (prefix[-2:] == ": ") # old prefix setup work around
+            if prefix:
+              l_bar = prefix if bool_prefix_colon_already else prefix + ": "
+            else:
+              l_bar = ''
+            l_bar += '{0:3.0f}%|'.format(percentage)
             r_bar = '| {0}/{1} [{2}<{3}, {4}{5}]'.format(
                 n_fmt, total_fmt, elapsed_str, remaining_str, rate_fmt,
                 ', ' + postfix if postfix else '')
@@ -326,10 +337,14 @@ class tqdm(object):
                             'remaining': remaining_str,
                             'l_bar': l_bar,
                             'r_bar': r_bar,
-                            'desc': prefix if prefix else '',
-                            'postfix': ', ' + postfix if postfix else '',
+                            'desc': prefix or '',
+                            'postfix': ', '+postfix if postfix else '',
                             # 'bar': full_bar  # replaced by procedure below
                             }
+
+                # auto-remove colon for empty `desc`
+                if not prefix:
+                    bar_format = bar_format.replace("{desc}: ", '')
 
                 # Interpolate supplied bar format with the dict
                 if '{bar}' in bar_format:
@@ -376,9 +391,10 @@ class tqdm(object):
 
         # no total: no progressbar, ETA, just progress stats
         else:
-            return (prefix if prefix else '') + '{0}{1} [{2}, {3}{4}]'.format(
-                n_fmt, unit, elapsed_str, rate_fmt,
-                ', ' + postfix if postfix else '')
+            return ((prefix + ": ") if prefix else '') + \
+                '{0}{1} [{2}, {3}{4}]'.format(
+                    n_fmt, unit, elapsed_str, rate_fmt,
+                    ', ' + postfix if postfix else '')
 
     def __new__(cls, *args, **kwargs):
         # Create a new instance
@@ -637,10 +653,12 @@ class tqdm(object):
         bar_format  : str, optional
             Specify a custom bar string formatting. May impact performance.
             If unspecified, will use '{l_bar}{bar}{r_bar}', where l_bar is
-            '{desc}{percentage:3.0f}%|' and r_bar is
+            '{desc}: {percentage:3.0f}%|' and r_bar is
             '| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}]'
             Possible vars: bar, n, n_fmt, total, total_fmt, percentage,
             rate, rate_fmt, elapsed, remaining, l_bar, r_bar, desc.
+            Note that a trailing ": " is automatically removed after {desc}
+            if the latter is empty.
         initial  : int, optional
             The initial counter value. Useful when restarting a progress
             bar [default: 0].
@@ -650,6 +668,8 @@ class tqdm(object):
             Useful to manage multiple bars at once (eg, from threads).
         postfix  : dict, optional
             Specify additional stats to display at the end of the bar.
+            Note: postfix is a dict ({'key': value} pairs) for this method,
+            not a string.
         unit_divisor  : float, optional
             [default: 1000], ignored unless `unit_scale` is True.
         gui  : bool, optional
@@ -730,7 +750,7 @@ class tqdm(object):
 
         # Store the arguments
         self.iterable = iterable
-        self.desc = desc + ': ' if desc else ''
+        self.desc = desc or ''
         self.total = total
         self.leave = leave
         self.fp = file
@@ -1086,9 +1106,16 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
         """
         self.desc = desc + ': ' if desc else ''
 
+    def set_description_str(self, desc=None):
+        """
+        Set/modify description without ': ' appended.
+        """
+        self.desc = desc or ''
+
     def set_postfix(self, ordered_dict=None, **kwargs):
         """
-        Set/modify postfix (additional stats)
+        Set/modify postfix (additional stats) given 'key': value pairs
+        (and other arbitrary parameters with their values)
         with automatic formatting based on datatype.
         """
         # Sort in alphabetical order to be more deterministic
@@ -1107,6 +1134,12 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
         # Stitch together to get the final postfix
         self.postfix = ', '.join(key + '=' + postfix[key].strip()
                                  for key in postfix.keys())
+
+    def set_postfix_str(self, s=''):
+        """
+        Postfix without dictionary expansion, similar to prefix handling.
+        """
+        self.postfix = str(s)
 
     def moveto(self, n):
         self.fp.write(_unicode('\n' * n + _term_move_up() * -n))

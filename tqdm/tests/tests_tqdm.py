@@ -235,6 +235,8 @@ def test_format_meter():
 
     assert format_meter(0, 1000, 13) == \
         "  0%|          | 0/1000 [00:13<?, ?it/s]"
+    # If not implementing any changes to _tqdm.py, set prefix='desc'
+    # or else ": : " will be in output, so assertion should change
     assert format_meter(0, 1000, 13, ncols=68, prefix='desc: ') == \
         "desc:   0%|                                | 0/1000 [00:13<?, ?it/s]"
     assert format_meter(231, 1000, 392) == \
@@ -1123,14 +1125,16 @@ def test_position():
 
 @with_setup(pretest, posttest)
 def test_set_description():
-    """Test set description"""
-    with closing(StringIO()) as our_file:
-        with tqdm(desc='Hello', file=our_file) as t:
-            assert t.desc == 'Hello: '
-            t.set_description('World')
-            assert t.desc == 'World: '
-            t.set_description()
-            assert t.desc == ''
+   """Test set description"""
+   with closing(StringIO()) as our_file:
+       with tqdm(desc='Hello', file=our_file) as t:
+           assert t.desc == 'Hello'
+           t.set_description_str('World')
+           assert t.desc == 'World'
+           t.set_description()
+           assert t.desc == ''
+           t.set_description('Bye')
+           assert t.desc == 'Bye: '
 
 
 @with_setup(pretest, posttest)
@@ -1551,6 +1555,17 @@ def test_postfix():
 
     out3 = out3[1:-1].split(', ')[3:]
     assert out3 == expected_order
+
+    # Test setting postfix string directly
+    with closing(StringIO()) as our_file:
+        with trange(10, file=our_file, desc='pos2 bar', bar_format='{r_bar}',
+                    postfix=None) as t4:
+            t4.set_postfix_str("Hello")
+            t4.refresh()
+            out4 = our_file.getvalue()
+
+    out4 = out4[1:-1].split(', ')[3:]
+    assert out4 == ["Hello"]
 
 
 class DummyTqdmFile(object):
