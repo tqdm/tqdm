@@ -1122,18 +1122,20 @@ def test_position():
         t3.close()
         t1.close()
 
-# test removed 2017-05-05 MPagel as per lack of
-# set_description function, desc no longer explicitly containing :
-# @with_setup(pretest, posttest)
-# def test_set_description():
-#    """Test set description"""
-#    with closing(StringIO()) as our_file:
-#        with tqdm(desc='Hello', file=our_file) as t:
-#            assert t.desc == 'Hello: '
-#            t.set_description('World')
-#            assert t.desc == 'World: '
-#            t.set_description()
-#            assert t.desc == ''
+
+@with_setup(pretest, posttest)
+def test_set_description():
+   """Test set description"""
+   with closing(StringIO()) as our_file:
+       with tqdm(desc='Hello', file=our_file) as t:
+           assert t.desc == 'Hello'
+           t.set_description_str('World')
+           assert t.desc == 'World'
+           t.set_description()
+           assert t.desc == ''
+           t.set_description('Bye')
+           assert t.desc == 'Bye: '
+
 
 @with_setup(pretest, posttest)
 def test_deprecated_gui():
@@ -1553,6 +1555,17 @@ def test_postfix():
 
     out3 = out3[1:-1].split(', ')[3:]
     assert out3 == expected_order
+
+    # Test setting postfix string directly
+    with closing(StringIO()) as our_file:
+        with trange(10, file=our_file, desc='pos2 bar', bar_format='{r_bar}',
+                    postfix=None) as t4:
+            t4.set_postfix_str("Hello")
+            t4.refresh()
+            out4 = our_file.getvalue()
+
+    out4 = out4[1:-1].split(', ')[3:]
+    assert out4 == ["Hello"]
 
 
 class DummyTqdmFile(object):
