@@ -1135,6 +1135,18 @@ def test_set_description():
            assert t.desc == ''
            t.set_description('Bye')
            assert t.desc == 'Bye: '
+       assert "World" in our_file.getvalue()
+
+
+   # without refresh
+   with closing(StringIO()) as our_file:
+       with tqdm(desc='Hello', file=our_file) as t:
+           assert t.desc == 'Hello'
+           t.set_description_str('World', False)
+           assert t.desc == 'World'
+           t.set_description(None, False)
+           assert t.desc == ''
+       assert "World" not in our_file.getvalue()
 
 
 @with_setup(pretest, posttest)
@@ -1571,12 +1583,13 @@ def test_postfix():
     with closing(StringIO()) as our_file:
         with trange(10, file=our_file, desc='pos2 bar', bar_format='{r_bar}',
                     postfix=None) as t5:
-            t5.set_postfix_str("Hello")
-            t5.refresh()
+            t5.set_postfix_str("Hello", False)
+            t5.set_postfix_str("World")
             out5 = our_file.getvalue()
 
+    assert "Hello" not in out5
     out5 = out5[1:-1].split(', ')[3:]
-    assert out5 == ["Hello"]
+    assert out5 == ["World"]
 
 
 class DummyTqdmFile(object):
