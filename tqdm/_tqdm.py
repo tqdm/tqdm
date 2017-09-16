@@ -908,6 +908,7 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
                 # check counter first to avoid calls to time()
                 if n - last_print_n >= self.miniters:
                     miniters = self.miniters  # watch monitoring thread changes
+                    avg_time = self.avg_time
                     delta_t = _time() - last_print_t
                     if delta_t >= mininterval:
                         cur_t = _time()
@@ -962,6 +963,7 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
                         self.n = self.last_print_n = last_print_n = n
                         self.last_print_t = last_print_t = cur_t
                         self.miniters = miniters
+                        self.avg_time = avg_time
 
             # Closing the progress bar.
             # Update some internal variables for close().
