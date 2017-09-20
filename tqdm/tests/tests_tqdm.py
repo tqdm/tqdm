@@ -1601,7 +1601,7 @@ class DummyTqdmFile(object):
     def write(self, x):
         # Avoid print() second call (useless \n)
         if len(x.rstrip()) > 0:
-            tqdm.write(x, file=self.file)
+            tqdm.write(x, file=self.file, nolock=True)
 
 
 @contextmanager
@@ -1630,6 +1630,20 @@ def test_file_redirection():
             # as (stdout, stderr)
             for _ in trange(3):
                 print("Such fun")
+        res = our_file.getvalue()
+        assert res.count("Such fun\n") == 3
+        assert "0/3" in res
+        assert "3/3" in res
+
+
+@with_setup(pretest, posttest)
+def test_external_write():
+    """Test external write mode"""
+    with closing(StringIO()) as our_file:
+        # Redirect stdout to tqdm.write()
+        for _ in trange(3, file=our_file):
+            with tqdm.external_write_mode(file=our_file):
+                our_file.write("Such fun\n")
         res = our_file.getvalue()
         assert res.count("Such fun\n") == 3
         assert "0/3" in res

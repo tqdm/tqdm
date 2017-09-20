@@ -485,42 +485,45 @@ class tqdm(object):
             pass
 
     @classmethod
-    def write(cls, s, file=None, end="\n"):
+    def write(cls, s, file=None, end="\n", nolock=False):
         """
         Print a message via tqdm (without overlap with bars)
         """
         fp = file if file is not None else sys.stdout
-        with cls.external_write_mode(file=file):
+        with cls.external_write_mode(file=file, nolock=nolock):
             # Write the message
             fp.write(s)
             fp.write(end)
 
     @classmethod
     @contextmanager
-    def external_write_mode(cls, file=None):
+    def external_write_mode(cls, file=None, nolock=False):
         """
         Disable tqdm within context and refresh tqdm when exits.
         Useful when writing to standard output stream
         """
         fp = file if file is not None else sys.stdout
 
-        with cls._lock:
-            # Clear all bars
-            inst_cleared = []
-            for inst in getattr(cls, '_instances', []):
-                # Clear instance if in the target output file
-                # or if write output + tqdm output are both either
-                # sys.stdout or sys.stderr (because both are mixed in terminal)
-                if inst.fp == fp or all(
-                        f in (sys.stdout, sys.stderr) for f in (fp, inst.fp)):
-                    inst.clear(nolock=True)
-                    inst_cleared.append(inst)
-            yield
-            # Force refresh display of bars we cleared
-            for inst in inst_cleared:
-                # Avoid race conditions by checking that the instance started
-                if hasattr(inst, 'start_t'):  # pragma: nocover
-                    inst.refresh(nolock=True)
+        if not nolock:
+            cls._lock.acquire()
+        # Clear all bars
+        inst_cleared = []
+        for inst in getattr(cls, '_instances', []):
+            # Clear instance if in the target output file
+            # or if write output + tqdm output are both either
+            # sys.stdout or sys.stderr (because both are mixed in terminal)
+            if inst.fp == fp or all(
+                    f in (sys.stdout, sys.stderr) for f in (fp, inst.fp)):
+                inst.clear(nolock=True)
+                inst_cleared.append(inst)
+        yield
+        # Force refresh display of bars we cleared
+        for inst in inst_cleared:
+            # Avoid race conditions by checking that the instance started
+            if hasattr(inst, 'start_t'):  # pragma: nocover
+                inst.refresh(nolock=True)
+        if not nolock:
+            cls._lock.release()
         # TODO: make list of all instances incl. absolutely positioned ones?
 
     @classmethod
