@@ -705,6 +705,7 @@ class tqdm(object):
             self.disable = disable
             self.pos = self._get_free_pos(self)
             self._instances.remove(self)
+            self.n = initial
             return
 
         if kwargs:
