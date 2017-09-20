@@ -1137,7 +1137,6 @@ def test_set_description():
            assert t.desc == 'Bye: '
        assert "World" in our_file.getvalue()
 
-
    # without refresh
    with closing(StringIO()) as our_file:
        with tqdm(desc='Hello', file=our_file) as t:

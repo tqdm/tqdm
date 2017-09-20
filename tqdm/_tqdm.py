@@ -64,14 +64,18 @@ class TqdmDefaultWriteLock(object):
     def __init__(self):
         global mp_lock, th_lock
         self.locks = [mp_lock, th_lock]
+
     def acquire(self):
         for lock in self.locks:
             lock.acquire()
+
     def release(self):
         for lock in self.locks[::-1]:  # Release in inverse order of acquisition
             lock.release()
+
     def __enter__(self):
         self.acquire()
+
     def __exit__(self, *exc):
         self.release()
 
@@ -129,16 +133,18 @@ class TMonitor(Thread):
             if self.was_killed:
                 return
             # Then monitor!
-            with self.tqdm_cls.get_lock():  # Acquire lock (to access _instances)
-                cur_t = self._time()  # Get current time (after acquiring lock)
-                # Check for each tqdm instance if one is waiting too long to print
+            # Acquire lock (to access _instances)
+            with self.tqdm_cls.get_lock():
+                cur_t = self._time()
+                # Check tqdm instances are waiting too long to print
                 for instance in self.tqdm_cls._instances:
                     # Only if mininterval > 1 (else iterations are just slow)
-                    # and last refresh was longer than maxinterval in this instance
+                    # and last refresh exceeded maxinterval
                     if instance.miniters > 1 and \
-                            (cur_t - instance.last_print_t) >= instance.maxinterval:
-                        # We force bypassing miniters on next iteration
-                        # dynamic_miniters should adjust mininterval automatically
+                            (cur_t - instance.last_print_t) >= \
+                            instance.maxinterval:
+                        # force bypassing miniters on next iteration
+                        # (dynamic_miniters adjusts mininterval automatically)
                         instance.miniters = 1
                         # Refresh now! (works only for manual tqdm)
                         instance.refresh(nolock=True)
@@ -371,7 +377,7 @@ class tqdm(object):
                             'l_bar': l_bar,
                             'r_bar': r_bar,
                             'desc': prefix or '',
-                            'postfix': ', '+postfix if postfix else '',
+                            'postfix': ', ' + postfix if postfix else '',
                             # 'bar': full_bar  # replaced by procedure below
                             }
 
@@ -441,8 +447,8 @@ class tqdm(object):
         with cls._lock:
             cls._instances.add(instance)
         # Create the monitoring thread
-        if cls.monitor_interval and (cls.monitor is None
-                                     or not cls.monitor.report()):
+        if cls.monitor_interval and (cls.monitor is None or not
+                                     cls.monitor.report()):
             cls.monitor = TMonitor(cls, cls.monitor_interval)
         # Return the instance
         return instance
@@ -470,14 +476,11 @@ class tqdm(object):
                 for inst in cls._instances:
                     if inst.pos > instance.pos:
                         inst.pos -= 1
-            # Kill monitor if no instances are left
-            if not cls._instances and cls.monitor:
-                cls.monitor.exit()
-                try:
+                # Kill monitor if no instances are left
+                if not cls._instances and cls.monitor:
+                    cls.monitor.exit()
                     del cls.monitor
-                except AttributeError:
-                    pass
-                cls.monitor = None
+                    cls.monitor = None
         except KeyError:
             pass
 
@@ -761,7 +764,7 @@ class tqdm(object):
             raise (TqdmDeprecationWarning("""\
 `nested` is deprecated and automated. Use position instead for manual control.
 """, fp_write=getattr(file, 'write', sys.stderr.write)) if "nested" in kwargs
-                   else TqdmKeyError("Unknown argument(s): " + str(kwargs)))
+                else TqdmKeyError("Unknown argument(s): " + str(kwargs)))
 
         # Preprocess the arguments
         if total is None and iterable is not None:
@@ -999,10 +1002,9 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
                                 # EMA-weight miniters to converge
                                 # towards the timeframe of mininterval
                                 miniters = smoothing * delta_it * \
-                                              (mininterval / delta_t
-                                               if mininterval and delta_t
-                                               else 1) + \
-                                              (1 - smoothing) * miniters
+                                    (mininterval / delta_t
+                                     if mininterval and delta_t else 1) + \
+                                    (1 - smoothing) * miniters
                             else:
                                 # Maximum nb of iterations between 2 prints
                                 miniters = max(miniters, delta_it)
