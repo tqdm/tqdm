@@ -28,10 +28,12 @@ class tqdm_gui(tqdm):  # pragma: no cover
     """
 
     @classmethod
-    def write(cls, s, file=sys.stdout, end="\n"):
+    def write(cls, s, file=None, end="\n"):
         """
         Print a message via tqdm_gui (just an alias for print)
         """
+        if file is None:
+            file = sys.stdout
         # TODO: print text on GUI?
         file.write(s)
         file.write(end)

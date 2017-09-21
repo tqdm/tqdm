@@ -43,7 +43,7 @@ It can also be executed as a module with pipes:
 
 Overhead is low -- about 60ns per iteration (80ns with ``tqdm_gui``), and is
 unit tested against performance regression.
-By comparison, the well established
+By comparison, the well-established
 `ProgressBar <https://github.com/niltonvolpato/python-progressbar>`__ has
 an 800ns/iter overhead.
 
@@ -51,12 +51,13 @@ In addition to its low overhead, ``tqdm`` uses smart algorithms to predict
 the remaining time and to skip unnecessary iteration displays, which allows
 for a negligible overhead in most cases.
 
-``tqdm`` works on any platform (Linux, Windows, Mac, FreeBSD, Solaris/SunOS),
+``tqdm`` works on any platform
+(Linux, Windows, Mac, FreeBSD, NetBSD, Solaris/SunOS),
 in any console or in a GUI, and is also friendly with IPython/Jupyter notebooks.
 
-``tqdm`` does not require any library (not even curses!) to run, just a
-vanilla Python interpreter will do and an environment supporting ``carriage
-return \r`` and ``line feed \n`` control characters.
+``tqdm`` does not require any dependencies (not even ``curses``!), just
+Python and an environment supporting ``carriage return \r`` and
+``line feed \n`` control characters.
 
 ------------------------------------------
 
@@ -77,7 +78,7 @@ Latest PyPI stable release
 
     pip install tqdm
 
-Latest development release on github
+Latest development release on GitHub
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 |GitHub-Status| |GitHub-Stars| |GitHub-Forks|
@@ -169,7 +170,7 @@ Perhaps the most wonderful use of ``tqdm`` is in a script or on the command
 line. Simply inserting ``tqdm`` (or ``python -m tqdm``) between pipes will pass
 through all ``stdin`` to ``stdout`` while printing progress to ``stderr``.
 
-The example below demonstrated counting the number of lines in all python files
+The example below demonstrated counting the number of lines in all Python files
 in the current directory, with timing information included.
 
 .. code:: sh
@@ -215,20 +216,22 @@ of a neat one-line progress bar.
 - Consoles in general: require support for carriage return (``CR``, ``\r``).
 - Nested progress bars:
     * Consoles in general: require support for moving cursors up to the
-      previous line. For example, `IDLE <https://github.com/tqdm/tqdm/issues/191#issuecomment-230168030>`__,
+      previous line. For example,
+      `IDLE <https://github.com/tqdm/tqdm/issues/191#issuecomment-230168030>`__,
       `ConEmu <https://github.com/tqdm/tqdm/issues/254>`__ and
       `PyCharm <https://github.com/tqdm/tqdm/issues/203>`__ (also
       `here <https://github.com/tqdm/tqdm/issues/208>`__ and
       `here <https://github.com/tqdm/tqdm/issues/307>`__)
       lack full support.
-    * Windows: additionally may require the python module ``colorama``.
+    * Windows: additionally may require the Python module ``colorama``
+      to ensure nested bars stay within their respective lines.
 - Wrapping enumerated iterables: use ``enumerate(tqdm(...))`` instead of
-  ``tqdm(enumerate(...))`. The same applies to ``numpy.ndenumerate``.
+  ``tqdm(enumerate(...))``. The same applies to ``numpy.ndenumerate``.
   This is because enumerate functions tend to hide the length of iterables.
   ``tqdm`` does not.
 - Wrapping zipped iterables has similar issues due to internal optimisations.
   ``tqdm(zip(a, b))`` should be replaced with ``zip(tqdm(a), b)`` or even
-  ``zip(tqdm(a), tqdm(b))``
+  ``zip(tqdm(a), tqdm(b))``.
 
 If you come across any other difficulties, browse/open issues
 `here <https://github.com/tqdm/tqdm/issues?q=is%3Aissue>`__.
@@ -248,7 +251,7 @@ Documentation
       """
 
       def __init__(self, iterable=None, desc=None, total=None, leave=True,
-                   file=sys.stderr, ncols=None, mininterval=0.1,
+                   file=None, ncols=None, mininterval=0.1,
                    maxinterval=10.0, miniters=None, ascii=None, disable=False,
                    unit='it', unit_scale=False, dynamic_ncols=False,
                    smoothing=0.3, bar_format=None, initial=0, position=None,
@@ -274,7 +277,7 @@ Parameters
     upon termination of iteration.
 * file  : ``io.TextIOWrapper`` or ``io.StringIO``, optional  
     Specifies where to output the progress messages
-    [default: sys.stderr]. Uses ``file.write(str)`` and ``file.flush()``
+    (default: sys.stderr). Uses ``file.write(str)`` and ``file.flush()``
     methods.
 * ncols  : int, optional  
     The width of the entire output message. If specified,
@@ -306,11 +309,12 @@ Parameters
 * unit  : str, optional  
     String that will be used to define the unit of each iteration
     [default: it].
-* unit_scale  : bool, optional  
-    If set, the number of iterations will be reduced/scaled
+* unit_scale  : bool or int or float, optional  
+    If 1 or True, the number of iterations will be reduced/scaled
     automatically and a metric prefix following the
     International System of Units standard will be added
-    (kilo, mega, etc.) [default: False].
+    (kilo, mega, etc.) [default: False]. If any other non-zero
+    number, will scale `total` and `n`.
 * dynamic_ncols  : bool, optional  
     If set, constantly alters ``ncols`` to the environment (allowing
     for window resizes) [default: False].
@@ -321,10 +325,12 @@ Parameters
 * bar_format  : str, optional  
     Specify a custom bar string formatting. May impact performance.
     If unspecified, will use '{l_bar}{bar}{r_bar}', where l_bar is
-    '{desc}{percentage:3.0f}%|' and r_bar is
+    '{desc}: {percentage:3.0f}%|' and r_bar is
     '| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}]'
     Possible vars: bar, n, n_fmt, total, total_fmt, percentage,
     rate, rate_fmt, elapsed, remaining, l_bar, r_bar, desc.
+    Note that a trailing ": " is automatically stripped after {desc}
+    if the latter is empty.
 * initial  : int, optional  
     The initial counter value. Useful when restarting a progress
     bar [default: 0].
@@ -334,6 +340,10 @@ Parameters
     Useful to manage multiple bars at once (eg, from threads).
 * postfix  : dict, optional  
     Specify additional stats to display at the end of the bar.
+    Note: postfix is a dict ({'key': value} pairs) for this method,
+    not a string.
+* unit_divisor  : float, optional  
+    [default: 1000], ignored unless `unit_scale` is True.
 
 Extra CLI Options
 ~~~~~~~~~~~~~~~~~
@@ -370,7 +380,7 @@ Returns
 
           Parameters
           ----------
-          n  : int
+          n  : int, optional
               Increment to add to the internal counter of iterations
               [default: 1].
           """
@@ -380,7 +390,12 @@ Returns
           Cleanup and (if leave=False) close the progressbar.
           """
 
-      def clear(self):
+      def unpause(self):
+          """
+          Restart tqdm timer from last print time.
+          """
+
+      def clear(self, nomove=False):
           """
           Clear current bar display
           """
@@ -395,15 +410,26 @@ Returns
           Print a message via tqdm (without overlap with bars)
           """
 
-      def set_description(self, desc=None):
+      def set_description(self, desc=None, refresh=True):
           """
           Set/modify description of the progress bar.
+
+          Parameters
+          ----------
+          desc  : str, optional
+          refresh  : bool, optional
+              Forces refresh [default: True].
           """
 
-      def set_postfix(self, **kwargs):
+      def set_postfix(self, ordered_dict=None, refresh=True, **kwargs):
           """
           Set/modify postfix (additional stats)
           with automatic formatting based on datatype.
+
+          Parameters
+          ----------
+          refresh  : bool, optional
+              Forces refresh [default: True].
           """
 
     def trange(*args, **kwargs):
@@ -440,7 +466,9 @@ Examples and Advanced Usage
   folder;
 - import the module and run ``help()``, or
 - consult the `wiki <https://github.com/tqdm/tqdm/wiki>`__.
-    - this has an `excellent article <https://github.com/tqdm/tqdm/wiki/How-to-make-a-great-Progress-Bar>`__ on how to make a **great** progressbar.
+    - this has an
+      `excellent article <https://github.com/tqdm/tqdm/wiki/How-to-make-a-great-Progress-Bar>`__
+      on how to make a **great** progressbar.
 
 Description and additional stats
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -458,7 +486,7 @@ with the ``desc`` and ``postfix`` arguments:
     for i in t:
         # Description will be displayed on the left
         t.set_description('GEN %i' % i)
-        # Postfix will be displayed on the right, and will format automatically 
+        # Postfix will be displayed on the right, and will format automatically
         # based on argument's datatype
         t.set_postfix(loss=random(), gen=randint(1,999), str='h', lst=[1, 2])
         sleep(0.1)
@@ -479,11 +507,11 @@ Nested progress bars
                 sleep(0.01)
 
 On Windows `colorama <https://github.com/tartley/colorama>`__ will be used if
-available to produce a beautiful nested display.
+available to keep nested bars on their respective lines.
 
 For manual control over positioning (e.g. for multi-threaded use),
-you may specify `position=n` where `n=0` for the outermost bar,
-`n=1` for the next, and so on.
+you may specify ``position=n`` where ``n=0`` for the outermost bar,
+``n=1`` for the next, and so on.
 
 Hooks and callbacks
 ~~~~~~~~~~~~~~~~~~~
@@ -495,54 +523,40 @@ Here's an example with ``urllib``:
 
     | [...]
     | If present, the hook function will be called once
-    | on establishment of the network connection and once after each
-      block read
-    | thereafter. The hook will be passed three arguments; a count of
-      blocks
-    | transferred so far, a block size in bytes, and the total size of
-      the file.
+    | on establishment of the network connection and once after each block read
+    | thereafter. The hook will be passed three arguments; a count of blocks
+    | transferred so far, a block size in bytes, and the total size of the file.
     | [...]
 
 .. code:: python
 
-    import urllib
+    import urllib, os
     from tqdm import tqdm
 
-    def my_hook(t):
-      """
-      Wraps tqdm instance. Don't forget to close() or __exit__()
-      the tqdm instance once you're done with it (easiest using `with` syntax).
+    class TqdmUpTo(tqdm):
+        """Provides `update_to(n)` which uses `tqdm.update(delta_n)`."""
+        def update_to(self, b=1, bsize=1, tsize=None):
+            """
+            b  : int, optional
+                Number of blocks transferred so far [default: 1].
+            bsize  : int, optional
+                Size of each block (in tqdm units) [default: 1].
+            tsize  : int, optional
+                Total size (in tqdm units). If [default: None] remains unchanged.
+            """
+            if tsize is not None:
+                self.total = tsize
+            self.update(b * bsize - self.n)  # will also set self.n = b * bsize
 
-      Example
-      -------
+    eg_link = "https://caspersci.uk.to/matryoshka.zip"
+    with TqdmUpTo(unit='B', unit_scale=True, miniters=1,
+                  desc=eg_link.split('/')[-1]) as t:  # all optional kwargs
+        urllib.urlretrieve(eg_link, filename=os.devnull,
+                           reporthook=t.update_to, data=None)
 
-      >>> with tqdm(...) as t:
-      ...     reporthook = my_hook(t)
-      ...     urllib.urlretrieve(..., reporthook=reporthook)
-
-      """
-      last_b = [0]
-
-      def inner(b=1, bsize=1, tsize=None):
-        """
-        b  : int, optional
-            Number of blocks just transferred [default: 1].
-        bsize  : int, optional
-            Size of each block (in tqdm units) [default: 1].
-        tsize  : int, optional
-            Total size (in tqdm units). If [default: None] remains unchanged.
-        """
-        if tsize is not None:
-            t.total = tsize
-        t.update((b - last_b[0]) * bsize)
-        last_b[0] = b
-      return inner
-
-    eg_link = 'http://www.doc.ic.ac.uk/~cod11/matryoshka.zip'
-    with tqdm(unit='B', unit_scale=True, miniters=1,
-              desc=eg_link.split('/')[-1]) as t:  # all optional kwargs
-        urllib.urlretrieve(eg_link, filename='/dev/null',
-                           reporthook=my_hook(t), data=None)
+Inspired by `twine#242 <https://github.com/pypa/twine/pull/242>`__.
+Functional alternative in
+`examples/tqdm_wget.py <https://github.com/tqdm/tqdm/blob/master/examples/tqdm_wget.py>`__.
 
 It is recommend to use ``miniters=1`` whenever there is potentially
 large differences in iteration speed (e.g. downloading a file over
@@ -580,7 +594,7 @@ folder or import the module and run ``help()``.
 IPython/Jupyter Integration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-IPython/Jupyter is supported via the `tqdm_notebook` submodule:
+IPython/Jupyter is supported via the ``tqdm_notebook`` submodule:
 
 .. code:: python
 
@@ -591,7 +605,7 @@ IPython/Jupyter is supported via the `tqdm_notebook` submodule:
         for j in tqdm_notebook(xrange(100), desc='2nd loop'):
             sleep(0.01)
 
-In addition to `tqdm` features, the submodule provides a native Jupyter
+In addition to ``tqdm`` features, the submodule provides a native Jupyter
 widget (compatible with IPython v1-v4 and Jupyter), fully working nested bars
 and color hints (blue: normal, green: completed, red: error/interrupt,
 light blue: no ETA); as demonstrated below.
@@ -604,7 +618,8 @@ Writing messages
 ~~~~~~~~~~~~~~~~
 
 Since ``tqdm`` uses a simple printing mechanism to display progress bars,
-you should not write any message in the terminal using ``print()``.
+you should not write any message in the terminal using ``print()`` while
+a progressbar is open.
 
 To write messages in the terminal without any collision with ``tqdm`` bar
 display, a ``.write()`` method is provided:

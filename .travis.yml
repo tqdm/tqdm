@@ -1,7 +1,30 @@
 sudo: required
 dist: trusty
 language: python
-python: 3.6
+matrix:
+  include:
+  - python: 2.6
+    env: TOXENV=py26
+  - python: 2.7
+    env: TOXENV=py27
+  - python: 3.3
+    env: TOXENV=py33
+  - python: 3.4
+    env: TOXENV=py34
+  - python: 3.5
+    env: TOXENV=py35
+  - python: 3.6
+    env: TOXENV=py36
+  - python: 3.7-dev
+    env: TOXENV=py37-dev
+  - python: pypy2.7-5.8.0
+    env: TOXENV=pypy
+  - python: pypy3.5-5.8.0
+    env: TOXENV=pypy3
+  - python: 3.6
+    env: TOXENV=flake8
+  - python: 2.7
+    env: TOXENV=perf
 
 # use cache for big builds like pandas
 cache:
@@ -18,27 +41,11 @@ notifications:
 #     - master
 #     - /^\d\.\d+$/
 
-env:
-  - TOXENV=py26
-  - TOXENV=py27
-  - TOXENV=py33
-  - TOXENV=py34
-  - TOXENV=py35
-  - TOXENV=py36
-  - TOXENV=pypy
-  # TODO: re-enable when Travis is fixed
-  # - TOXENV=pypy3
-  - TOXENV=pypy3.3-5.2-alpha1
-  - TOXENV=flake8
-  - TOXENV=perf
-
 before_install:
   # fix a crash with multiprocessing on Travis
   - sudo rm -rf /dev/shm
   - sudo ln -s /run/shm /dev/shm
   # coverage submission packages
-  - pip install codecov
-  # - pip install coveralls
   - git fetch --tags
 
 install:
@@ -55,8 +62,3 @@ install:
 # run tests
 script:
   - tox
-
-# submit coverage
-after_success:
-  # - coveralls
-  - codecov
