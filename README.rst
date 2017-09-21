@@ -511,7 +511,30 @@ available to keep nested bars on their respective lines.
 
 For manual control over positioning (e.g. for multi-threaded use),
 you may specify ``position=n`` where ``n=0`` for the outermost bar,
-``n=1`` for the next, and so on.
+``n=1`` for the next, and so on:
+
+.. code:: python
+
+    from time import sleep
+    from tqdm import trange
+    from multiprocessing import Pool, freeze_support, Lock
+
+    L = list(range(9))
+
+    def progresser(n):
+        interval = 0.001 / (n + 2)
+        total = 5000
+        text = "#{}, est. {:<04.2}s".format(n, interval * total)
+        for i in trange(total, desc=text, position=n):
+            sleep(interval)
+
+    if __name__ == '__main__':
+        freeze_support()  # for Windows support
+        p = Pool(len(L),
+                 # again, for Windows support
+                 initializer=tqdm.set_lock, initargs=(Lock(),))
+        p.map(progresser, L)
+        print("\n" * (len(L) - 2))
 
 Hooks and callbacks
 ~~~~~~~~~~~~~~~~~~~
