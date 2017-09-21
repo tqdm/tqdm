@@ -13,14 +13,12 @@ def _sh(*cmd, **kwargs):
 # WARNING: this should be the last test as it messes with sys.stdin, argv
 @with_setup(pretest, posttest)
 def test_main():
-    """ Test command line pipes """
+    """Test command line pipes"""
     ls_out = _sh('ls').replace('\r\n', '\n')
-    ls = subprocess.Popen(('ls'),
-                          stdout=subprocess.PIPE,
+    ls = subprocess.Popen(('ls'), stdout=subprocess.PIPE,
                           stderr=subprocess.STDOUT)
     res = _sh(sys.executable, '-c', 'from tqdm import main; main()',
-              stdin=ls.stdout,
-              stderr=subprocess.STDOUT)
+              stdin=ls.stdout, stderr=subprocess.STDOUT)
     ls.wait()
 
     # actual test:

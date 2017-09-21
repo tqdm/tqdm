@@ -119,14 +119,24 @@ if True:  # pragma: no cover
 
 
 def _is_utf(encoding):
-    return encoding.lower().startswith('utf-') or ('U8' == encoding)
+    try:
+        u'\u2588\u2589'.encode(encoding)
+    except UnicodeEncodeError:  # pragma: no cover
+        return False
+    except Exception:  # pragma: no cover
+        try:
+            return encoding.lower().startswith('utf-') or ('U8' == encoding)
+        except:
+            return False
+    else:
+        return True
 
 
-def _supports_unicode(file):
-    return _is_utf(file.encoding) if (
-        getattr(file, 'encoding', None) or
-        # FakeStreams from things like bpython-curses can lie
-        getattr(file, 'interface', None)) else False  # pragma: no cover
+def _supports_unicode(fp):
+    try:
+        return _is_utf(fp.encoding)
+    except AttributeError:
+        return False
 
 
 def _environ_cols_wrapper():  # pragma: no cover

@@ -14,7 +14,6 @@ df.progress_apply(lambda x: x**2)
 # can also groupby:
 # df.groupby(0).progress_apply(lambda x: x**2)
 
-
 # -- Source code for `tqdm_pandas` (really simple!)
 # def tqdm_pandas(t):
 #   from pandas.core.frame import DataFrame

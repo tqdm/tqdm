@@ -134,7 +134,7 @@ Options:
         sys.stdout.write(d + '\n')
         sys.exit(0)
 
-    argv = RE_SHLEX.split(' '.join(sys.argv))
+    argv = RE_SHLEX.split(' '.join(["tqdm"] + sys.argv[1:]))
     opts = dict(zip(argv[1::2], argv[2::2]))
 
     tqdm_args = {'file': fp}

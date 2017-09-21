@@ -143,15 +143,20 @@ class tqdm_notebook(tqdm):
 
             # Special signal to close the bar
             if close and pbar.bar_style != 'danger':  # hide only if no error
-                container.visible = False
+                try:
+                    container.close()
+                except AttributeError:
+                    container.visible = False
 
         return print_status
 
     @classmethod
-    def write(cls, s, file=sys.stdout, end="\n"):
+    def write(cls, s, file=None, end="\n"):
         """
         Print a message via tqdm_notebook (just an alias for print)
         """
+        if file is None:
+            file = sys.stdout
         # Just an alias for print because overlap is impossible with ipywidgets
         file.write(s)
         file.write(end)
