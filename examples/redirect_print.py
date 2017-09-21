@@ -29,6 +29,9 @@ class DummyTqdmFile(object):
         if len(x.rstrip()) > 0:
             tqdm.write(x, file=self.file)
 
+    def flush(self):
+        return getattr(self.file, "flush", lambda: None)()
+
 
 @contextlib.contextmanager
 def stdout_redirect_to_tqdm():
@@ -50,11 +53,11 @@ def blabla():
 
 # Redirect stdout to tqdm.write() (don't forget the `as save_stdout`)
 with stdout_redirect_to_tqdm() as save_stdout:
-    # tqdm call need to specify sys.stdout, not sys.stderr (default)
+    # tqdm needs the original sys.stdout
     # and dynamic_ncols=True to autodetect console width
     for _ in tqdm(range(3), file=save_stdout, dynamic_ncols=True):
-        blabla()
         sleep(.5)
+        blabla()
 
 # After the `with`, printing is restored
 print('Done!')
