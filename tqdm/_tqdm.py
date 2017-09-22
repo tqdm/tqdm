@@ -805,7 +805,7 @@ class tqdm(object):
             self.sp = self.status_printer(self.fp)
             if self.pos:
                 self.moveto(self.pos)
-            self.sp(self.__repr__()) # elapsed already set to 0
+            self.sp(self.__repr__()) # elapsed already set to 0 & total already stored in self
             if self.pos:
                 self.moveto(-self.pos)
 
@@ -838,7 +838,7 @@ class tqdm(object):
             self.dynamic_ncols(self.fp) if self.dynamic_ncols else self.ncols,
             self.desc, self.ascii, self.unit,
             self.unit_scale, 1 / self.avg_time if self.avg_time else None,
-            self.bar_format, self.postfix)
+            self.bar_format, self.postfix, self.unit_divisor)
 
     def __lt__(self, other):
         return self.pos < other.pos
@@ -913,7 +913,6 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
                         cur_t = _time()
                         delta_it = n - last_print_n
                         elapsed = cur_t - start_t  # optimised if in inner loop
-                        self.elapsed = elapsed
                         # EMA (not just overall average)
                         if smoothing and delta_t and delta_it:
                             avg_time = delta_t / delta_it \
@@ -924,7 +923,9 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
                         if self.pos:
                             self.moveto(self.pos)
 
-                        # Printing the bar's update
+                        # Print the bar update
+                        self.n = n
+                        self.elapsed = elapsed
                         sp(self.__repr__())
                         if self.pos:
                             self.moveto(-self.pos)
@@ -1082,8 +1083,9 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
         if self.leave:
             if self.last_print_n < self.n:
                 cur_t = self._time()
-                # stats for overall rate (no weighted average)
+                # stats for overall rate (no weighted average).  As we're closing, we can drop the self.avg_time then
                 self.elapsed = cur_t - self.start_t
+                self.avg_time = None
                 self.sp(self.__repr__())
             if pos:
                 self.moveto(-pos)
