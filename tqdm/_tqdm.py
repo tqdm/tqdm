@@ -306,8 +306,9 @@ class tqdm(object):
                 if rate else '?'
 
             # format the stats displayed to the left and right sides of the bar
-            bool_prefix_colon_already = (prefix[-2:] == ": ") # old prefix setup work around
             if prefix:
+              # old prefix setup work around
+              bool_prefix_colon_already = (prefix[-2:] == ": ")
               l_bar = prefix if bool_prefix_colon_already else prefix + ": "
             else:
               l_bar = ''
