@@ -1605,20 +1605,17 @@ class DummyTqdmFile(object):
 
 
 @contextmanager
-def stdout_stderr_redirect_to_tqdm(tqdm_file=sys.stderr):
-    save_stdout = sys.stdout
-    save_stderr = sys.stderr
+def std_out_err_redirect_tqdm(tqdm_file=sys.stderr):
+    orig_out_err = sys.stdout, sys.stderr
     try:
-        sys.stdout = DummyTqdmFile(tqdm_file)
-        sys.stderr = DummyTqdmFile(tqdm_file)
-        yield save_stdout, save_stderr
+        sys.stdout = sys.stderr = DummyTqdmFile(tqdm_file)
+        yield orig_out_err[0]
     # Relay exceptions
     except Exception as exc:
         raise exc
-    # Always restore sys.stdout if necessary
+    # Always restore sys.stdout/err if necessary
     finally:
-        sys.stdout = save_stdout
-        sys.stderr = save_stderr
+        sys.stdout, sys.stderr = orig_out_err
 
 
 @with_setup(pretest, posttest)
@@ -1626,8 +1623,7 @@ def test_file_redirection():
     """Test redirection of output"""
     with closing(StringIO()) as our_file:
         # Redirect stdout to tqdm.write()
-        with stdout_stderr_redirect_to_tqdm(tqdm_file=our_file):
-            # as (stdout, stderr)
+        with std_out_err_redirect_tqdm(tqdm_file=our_file):
             for _ in trange(3):
                 print("Such fun")
         res = our_file.getvalue()
