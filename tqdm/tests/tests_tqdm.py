@@ -1125,27 +1125,27 @@ def test_position():
 
 @with_setup(pretest, posttest)
 def test_set_description():
-   """Test set description"""
-   with closing(StringIO()) as our_file:
-       with tqdm(desc='Hello', file=our_file) as t:
-           assert t.desc == 'Hello'
-           t.set_description_str('World')
-           assert t.desc == 'World'
-           t.set_description()
-           assert t.desc == ''
-           t.set_description('Bye')
-           assert t.desc == 'Bye: '
-       assert "World" in our_file.getvalue()
+    """Test set description"""
+    with closing(StringIO()) as our_file:
+        with tqdm(desc='Hello', file=our_file) as t:
+            assert t.desc == 'Hello'
+            t.set_description_str('World')
+            assert t.desc == 'World'
+            t.set_description()
+            assert t.desc == ''
+            t.set_description('Bye')
+            assert t.desc == 'Bye: '
+        assert "World" in our_file.getvalue()
 
-   # without refresh
-   with closing(StringIO()) as our_file:
-       with tqdm(desc='Hello', file=our_file) as t:
-           assert t.desc == 'Hello'
-           t.set_description_str('World', False)
-           assert t.desc == 'World'
-           t.set_description(None, False)
-           assert t.desc == ''
-       assert "World" not in our_file.getvalue()
+    # without refresh
+    with closing(StringIO()) as our_file:
+        with tqdm(desc='Hello', file=our_file) as t:
+            assert t.desc == 'Hello'
+            t.set_description_str('World', False)
+            assert t.desc == 'World'
+            t.set_description(None, False)
+            assert t.desc == ''
+        assert "World" not in our_file.getvalue()
 
 
 @with_setup(pretest, posttest)
