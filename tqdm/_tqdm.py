@@ -476,10 +476,14 @@ class tqdm(object):
                 for inst in cls._instances:
                     if inst.pos > instance.pos:
                         inst.pos -= 1
-                # Kill monitor if no instances are left
-                if not cls._instances and cls.monitor:
+            # Kill monitor if no instances are left
+            if not cls._instances and cls.monitor:
+                try:
                     cls.monitor.exit()
                     del cls.monitor
+                except AttributeError:  # pragma: nocover
+                    pass
+                else:
                     cls.monitor = None
         except KeyError:
             pass
