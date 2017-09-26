@@ -861,7 +861,7 @@ class tqdm(object):
             with self._lock:
                 if self.pos:
                     self.moveto(self.pos)
-                self.sp(self.format_meter(self.__repr__()) # elapsed already set to 0 & total already stored in self
+                self.sp(self.format_meter(self.__repr__())) # elapsed already set to 0 & total already stored in self
                 if self.pos:
                     self.moveto(-self.pos)
 
