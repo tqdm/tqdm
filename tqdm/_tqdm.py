@@ -20,6 +20,9 @@ from threading import Thread
 from time import time
 from time import sleep
 from contextlib import contextmanager
+# For parallelism safety
+import multiprocessing as mp
+import threading as th
 
 
 __author__ = {"github.com/": ["noamraph", "obiwanus", "kmike", "hadim",
@@ -43,6 +46,38 @@ class TqdmDeprecationWarning(Exception):
             fp_write("\nTqdmDeprecationWarning: " + str(msg).rstrip() + '\n')
         else:
             super(TqdmDeprecationWarning, self).__init__(msg, *a, **k)
+
+
+# Create global parallelism locks to avoid racing issues with parallel bars
+# works only if fork available (Linux, MacOSX, but not on Windows)
+mp_lock = mp.Lock()  # multiprocessing lock
+th_lock = th.Lock()  # thread lock
+
+
+class TqdmDefaultWriteLock(object):
+    """
+    Provide a default write lock for thread and multiprocessing safety.
+    Works only on platforms supporting `fork` (so Windows is excluded).
+    On Windows, you need to supply the lock from the parent to the children as
+    an argument to joblib or the parallelism lib you use.
+    """
+    def __init__(self):
+        global mp_lock, th_lock
+        self.locks = [mp_lock, th_lock]
+
+    def acquire(self):
+        for lock in self.locks:
+            lock.acquire()
+
+    def release(self):
+        for lock in self.locks[::-1]:  # Release in inverse order of acquisition
+            lock.release()
+
+    def __enter__(self):
+        self.acquire()
+
+    def __exit__(self, *exc):
+        self.release()
 
 
 class TMonitor(Thread):
@@ -98,19 +133,21 @@ class TMonitor(Thread):
             if self.was_killed:
                 return
             # Then monitor!
-            cur_t = self._time()
-            # Check for each tqdm instance if one is waiting too long to print
-            # NB: copy avoids size change during iteration RuntimeError
-            for instance in self.tqdm_cls._instances.copy():
-                # Only if mininterval > 1 (else iterations are just slow)
-                # and last refresh was longer than maxinterval in this instance
-                if instance.miniters > 1 and \
-                        (cur_t - instance.last_print_t) >= instance.maxinterval:
-                    # We force bypassing miniters on next iteration
-                    # dynamic_miniters should adjust mininterval automatically
-                    instance.miniters = 1
-                    # Refresh now! (works only for manual tqdm)
-                    instance.refresh()
+            # Acquire lock (to access _instances)
+            with self.tqdm_cls.get_lock():
+                cur_t = self._time()
+                # Check tqdm instances are waiting too long to print
+                for instance in self.tqdm_cls._instances:
+                    # Only if mininterval > 1 (else iterations are just slow)
+                    # and last refresh exceeded maxinterval
+                    if instance.miniters > 1 and \
+                            (cur_t - instance.last_print_t) >= \
+                            instance.maxinterval:
+                        # force bypassing miniters on next iteration
+                        # (dynamic_miniters adjusts mininterval automatically)
+                        instance.miniters = 1
+                        # Refresh now! (works only for manual tqdm)
+                        instance.refresh(nolock=True)
 
     def report(self):
         # return self.is_alive()  # TODO: does not work...
@@ -307,11 +344,11 @@ class tqdm(object):
 
             # format the stats displayed to the left and right sides of the bar
             if prefix:
-              # old prefix setup work around
-              bool_prefix_colon_already = (prefix[-2:] == ": ")
-              l_bar = prefix if bool_prefix_colon_already else prefix + ": "
+                # old prefix setup work around
+                bool_prefix_colon_already = (prefix[-2:] == ": ")
+                l_bar = prefix if bool_prefix_colon_already else prefix + ": "
             else:
-              l_bar = ''
+                l_bar = ''
             l_bar += '{0:3.0f}%|'.format(percentage)
             r_bar = '| {0}/{1} [{2}<{3}, {4}{5}]'.format(
                 n_fmt, total_fmt, elapsed_str, remaining_str, rate_fmt,
@@ -340,7 +377,7 @@ class tqdm(object):
                             'l_bar': l_bar,
                             'r_bar': r_bar,
                             'desc': prefix or '',
-                            'postfix': ', '+postfix if postfix else '',
+                            'postfix': ', ' + postfix if postfix else '',
                             # 'bar': full_bar  # replaced by procedure below
                             }
 
@@ -399,15 +436,19 @@ class tqdm(object):
                     ', ' + postfix if postfix else '')
 
     def __new__(cls, *args, **kwargs):
+        # Create default lock if none set
+        if "_lock" not in cls.__dict__:
+            cls.set_lock(TqdmDefaultWriteLock())
         # Create a new instance
         instance = object.__new__(cls)
         # Add to the list of instances
         if "_instances" not in cls.__dict__:
             cls._instances = WeakSet()
-        cls._instances.add(instance)
+        with cls._lock:
+            cls._instances.add(instance)
         # Create the monitoring thread
-        if cls.monitor_interval and (cls.monitor is None
-                                     or not cls.monitor.report()):
+        if cls.monitor_interval and (cls.monitor is None or not
+                                     cls.monitor.report()):
             cls.monitor = TMonitor(cls, cls.monitor_interval)
         # Return the instance
         return instance
@@ -430,41 +471,45 @@ class tqdm(object):
         so that newer bars won't overlap previous bars
         """
         try:  # in case instance was explicitly positioned, it won't be in set
-            cls._instances.remove(instance)
-            for inst in cls._instances:
-                if inst.pos > instance.pos:
-                    inst.pos -= 1
+            with cls._lock:
+                cls._instances.remove(instance)
+                for inst in cls._instances:
+                    if inst.pos > instance.pos:
+                        inst.pos -= 1
             # Kill monitor if no instances are left
             if not cls._instances and cls.monitor:
-                cls.monitor.exit()
                 try:
+                    cls.monitor.exit()
                     del cls.monitor
-                except AttributeError:
+                except AttributeError:  # pragma: nocover
                     pass
-                cls.monitor = None
+                else:
+                    cls.monitor = None
         except KeyError:
             pass
 
     @classmethod
-    def write(cls, s, file=None, end="\n"):
+    def write(cls, s, file=None, end="\n", nolock=False):
         """
         Print a message via tqdm (without overlap with bars)
         """
         fp = file if file is not None else sys.stdout
-        with cls.external_write_mode(file=file):
+        with cls.external_write_mode(file=file, nolock=nolock):
             # Write the message
             fp.write(s)
             fp.write(end)
 
     @classmethod
     @contextmanager
-    def external_write_mode(cls, file=None):
+    def external_write_mode(cls, file=None, nolock=False):
         """
         Disable tqdm within context and refresh tqdm when exits.
         Useful when writing to standard output stream
         """
         fp = file if file is not None else sys.stdout
 
+        if not nolock:
+            cls._lock.acquire()
         # Clear all bars
         inst_cleared = []
         for inst in getattr(cls, '_instances', []):
@@ -473,15 +518,25 @@ class tqdm(object):
             # sys.stdout or sys.stderr (because both are mixed in terminal)
             if inst.fp == fp or all(
                     f in (sys.stdout, sys.stderr) for f in (fp, inst.fp)):
-                inst.clear()
+                inst.clear(nolock=True)
                 inst_cleared.append(inst)
         yield
         # Force refresh display of bars we cleared
         for inst in inst_cleared:
             # Avoid race conditions by checking that the instance started
             if hasattr(inst, 'start_t'):  # pragma: nocover
-                inst.refresh()
+                inst.refresh(nolock=True)
+        if not nolock:
+            cls._lock.release()
         # TODO: make list of all instances incl. absolutely positioned ones?
+
+    @classmethod
+    def set_lock(cls, lock):
+        cls._lock = lock
+
+    @classmethod
+    def get_lock(cls):
+        return cls._lock
 
     @classmethod
     def pandas(tclass, *targs, **tkwargs):
@@ -716,7 +771,7 @@ class tqdm(object):
             raise (TqdmDeprecationWarning("""\
 `nested` is deprecated and automated. Use position instead for manual control.
 """, fp_write=getattr(file, 'write', sys.stderr.write)) if "nested" in kwargs
-                   else TqdmKeyError("Unknown argument(s): " + str(kwargs)))
+                else TqdmKeyError("Unknown argument(s): " + str(kwargs)))
 
         # Preprocess the arguments
         if total is None and iterable is not None:
@@ -803,11 +858,12 @@ class tqdm(object):
         if not gui:
             # Initialize the screen printer
             self.sp = self.status_printer(self.fp)
-            if self.pos:
-                self.moveto(self.pos)
-            self.sp(self.__repr__()) # elapsed already set to 0 & total already stored in self
-            if self.pos:
-                self.moveto(-self.pos)
+            with self._lock:
+                if self.pos:
+                    self.moveto(self.pos)
+                self.sp(self.format_meter(self.__repr__()) # elapsed already set to 0 & total already stored in self
+                if self.pos:
+                    self.moveto(-self.pos)
 
         # Init the time counter
         self.last_print_t = self._time()
@@ -920,8 +976,9 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
                                 else smoothing * delta_t / delta_it + \
                                 (1 - smoothing) * avg_time
 
-                        if self.pos:
-                            self.moveto(self.pos)
+                        with self._lock:
+                            if self.pos:
+                                self.moveto(self.pos)
 
                         # Print the bar update
                         self.n = n
@@ -946,8 +1003,7 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
                                 # towards the timeframe of mininterval
                                 miniters = smoothing * delta_it * \
                                     (mininterval / delta_t
-                                     if mininterval and delta_t
-                                     else 1) + \
+                                     if mininterval and delta_t else 1) + \
                                     (1 - smoothing) * miniters
                             else:
                                 # Maximum nb of iterations between 2 prints
@@ -1013,17 +1069,18 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
 Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
 """, fp_write=getattr(self.fp, 'write', sys.stderr.write))
 
-                if self.pos:
-                    self.moveto(self.pos)
+                with self._lock:
+                    if self.pos:
+                        self.moveto(self.pos)
 
-                # Print bar update
-                self.sp(self.__repr__())
+                    # Print bar update
+                    self.sp(self.__repr__())
 
-                if self.pos:
-                    self.moveto(-self.pos)
+                    if self.pos:
+                        self.moveto(-self.pos)
 
                 # If no `miniters` was specified, adjust automatically to the
-                # maximum iteration rate seen so far between 2 prints
+                # maximum iteration rate seen so far between two prints.
                 # e.g.: After running `tqdm.update(5)`, subsequent
                 # calls to `tqdm.update()` will only cause an update after
                 # at least 5 more iterations.
@@ -1077,26 +1134,27 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
                 return
             raise  # pragma: no cover
 
-        if pos:
-            self.moveto(pos)
+        with self._lock:
+            if pos:
+                self.moveto(pos)
 
-        if self.leave:
-            if self.last_print_n < self.n:
-                cur_t = self._time()
-                # stats for overall rate (no weighted average).  As we're closing, we can drop the self.avg_time then
-                self.elapsed = cur_t - self.start_t
-                self.avg_time = None
-                self.sp(self.__repr__())
-            if pos:
-                self.moveto(-pos)
+            if self.leave:
+                if self.last_print_n < self.n:
+                    cur_t = self._time()
+                    # stats for overall rate (no weighted average). As we're closing, we can drop the self.avg_time
+                    self.elapsed = cur_t - self.start_t
+                    self.avg_time = None
+                    self.sp(self.__repr__())
+                if pos:
+                    self.moveto(-pos)
+                else:
+                    fp_write('\n')
             else:
-                fp_write('\n')
-        else:
-            self.sp('')  # clear up last bar
-            if pos:
-                self.moveto(-pos)
-            else:
-                fp_write('\r')
+                self.sp('')  # clear up last bar
+                if pos:
+                    self.moveto(-pos)
+                else:
+                    fp_write('\r')
 
     def unpause(self):
         """
@@ -1170,13 +1228,15 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
     def moveto(self, n):
         self.fp.write(_unicode('\n' * n + _term_move_up() * -n))
 
-    def clear(self, nomove=False):
+    def clear(self, nomove=False, nolock=False):
         """
         Clear current bar display
         """
         if self.disable:
             return
 
+        if not nolock:
+            self._lock.acquire()
         if not nomove:
             self.moveto(self.pos)
         # clear up the bar (can't rely on sp(''))
@@ -1185,21 +1245,27 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
         self.fp.write('\r')  # place cursor back at the beginning of line
         if not nomove:
             self.moveto(-self.pos)
+        if not nolock:
+            self._lock.release()
 
-    def refresh(self):
+    def refresh(self, nolock=False):
         """
         Force refresh the display of this bar
         """
         if self.disable:
             return
 
+        if not nolock:
+            self._lock.acquire()
         self.moveto(self.pos)
         # clear up this line's content (whatever there was)
-        self.clear(nomove=True)
+        self.clear(nomove=True, nolock=True)
         self.elapsed = self._time() - self.start_t
         # Print current/last bar state
         self.fp.write(self.__repr__())
         self.moveto(-self.pos)
+        if not nolock:
+            self._lock.release()
 
 
 def trange(*args, **kwargs):

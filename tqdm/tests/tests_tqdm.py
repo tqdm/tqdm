@@ -1125,28 +1125,27 @@ def test_position():
 
 @with_setup(pretest, posttest)
 def test_set_description():
-   """Test set description"""
-   with closing(StringIO()) as our_file:
-       with tqdm(desc='Hello', file=our_file) as t:
-           assert t.desc == 'Hello'
-           t.set_description_str('World')
-           assert t.desc == 'World'
-           t.set_description()
-           assert t.desc == ''
-           t.set_description('Bye')
-           assert t.desc == 'Bye: '
-       assert "World" in our_file.getvalue()
+    """Test set description"""
+    with closing(StringIO()) as our_file:
+        with tqdm(desc='Hello', file=our_file) as t:
+            assert t.desc == 'Hello'
+            t.set_description_str('World')
+            assert t.desc == 'World'
+            t.set_description()
+            assert t.desc == ''
+            t.set_description('Bye')
+            assert t.desc == 'Bye: '
+        assert "World" in our_file.getvalue()
 
-
-   # without refresh
-   with closing(StringIO()) as our_file:
-       with tqdm(desc='Hello', file=our_file) as t:
-           assert t.desc == 'Hello'
-           t.set_description_str('World', False)
-           assert t.desc == 'World'
-           t.set_description(None, False)
-           assert t.desc == ''
-       assert "World" not in our_file.getvalue()
+    # without refresh
+    with closing(StringIO()) as our_file:
+        with tqdm(desc='Hello', file=our_file) as t:
+            assert t.desc == 'Hello'
+            t.set_description_str('World', False)
+            assert t.desc == 'World'
+            t.set_description(None, False)
+            assert t.desc == ''
+        assert "World" not in our_file.getvalue()
 
 
 @with_setup(pretest, posttest)
@@ -1602,24 +1601,21 @@ class DummyTqdmFile(object):
     def write(self, x):
         # Avoid print() second call (useless \n)
         if len(x.rstrip()) > 0:
-            tqdm.write(x, file=self.file)
+            tqdm.write(x, file=self.file, nolock=True)
 
 
 @contextmanager
-def stdout_stderr_redirect_to_tqdm(tqdm_file=sys.stderr):
-    save_stdout = sys.stdout
-    save_stderr = sys.stderr
+def std_out_err_redirect_tqdm(tqdm_file=sys.stderr):
+    orig_out_err = sys.stdout, sys.stderr
     try:
-        sys.stdout = DummyTqdmFile(tqdm_file)
-        sys.stderr = DummyTqdmFile(tqdm_file)
-        yield save_stdout, save_stderr
+        sys.stdout = sys.stderr = DummyTqdmFile(tqdm_file)
+        yield orig_out_err[0]
     # Relay exceptions
     except Exception as exc:
         raise exc
-    # Always restore sys.stdout if necessary
+    # Always restore sys.stdout/err if necessary
     finally:
-        sys.stdout = save_stdout
-        sys.stderr = save_stderr
+        sys.stdout, sys.stderr = orig_out_err
 
 
 @with_setup(pretest, posttest)
@@ -1627,10 +1623,23 @@ def test_file_redirection():
     """Test redirection of output"""
     with closing(StringIO()) as our_file:
         # Redirect stdout to tqdm.write()
-        with stdout_stderr_redirect_to_tqdm(tqdm_file=our_file):
-            # as (stdout, stderr)
+        with std_out_err_redirect_tqdm(tqdm_file=our_file):
             for _ in trange(3):
                 print("Such fun")
+        res = our_file.getvalue()
+        assert res.count("Such fun\n") == 3
+        assert "0/3" in res
+        assert "3/3" in res
+
+
+@with_setup(pretest, posttest)
+def test_external_write():
+    """Test external write mode"""
+    with closing(StringIO()) as our_file:
+        # Redirect stdout to tqdm.write()
+        for _ in trange(3, file=our_file):
+            with tqdm.external_write_mode(file=our_file):
+                our_file.write("Such fun\n")
         res = our_file.getvalue()
         assert res.count("Such fun\n") == 3
         assert "0/3" in res
