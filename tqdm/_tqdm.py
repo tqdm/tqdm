@@ -889,8 +889,8 @@ class tqdm(object):
         self.close()
 
     def __repr__(self):
-# self.elapsed replaces self._time() - self.start_t
-# self._time() - self.start_t added to fns prior to __repr__ call where elapsed otherwise undefined.
+        # self.elapsed replaces self._time() - self.start_t
+        # self._time() - self.start_t added to fns prior to __repr__ call where elapsed otherwise undefined.
         return self.format_meter(
             self.n, self.total, self.elapsed,
             self.dynamic_ncols(self.fp) if self.dynamic_ncols else self.ncols,
@@ -978,16 +978,15 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
                                 else smoothing * delta_t / delta_it + \
                                 (1 - smoothing) * avg_time
 
+                        self.n = n
+                        self.elapsed = elapsed
                         with self._lock:
                             if self.pos:
                                 self.moveto(self.pos)
-
-                        # Print the bar update
-                        self.n = n
-                        self.elapsed = elapsed
-                        sp(self.__repr__())
-                        if self.pos:
-                            self.moveto(-self.pos)
+                            # Print the bar update
+                            sp(self.__repr__())
+                            if self.pos:
+                                self.moveto(-self.pos)
 
                         # If no `miniters` was specified, adjust automatically
                         # to the max iteration rate seen so far between 2 prints
@@ -1056,9 +1055,8 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
             delta_t = self._time() - self.last_print_t
             if delta_t >= self.mininterval:
                 cur_t = self._time()
-                delta_it = self.n - self.last_print_n  # should be n?
-                elapsed = cur_t - self.start_t
-                self.elapsed = elapsed
+                delta_it = self.n - self.last_print_n  # >= n
+                self.elapsed = cur_t - self.start_t
                 # EMA (not just overall average)
                 if self.smoothing and delta_t and delta_it:
                     self.avg_time = delta_t / delta_it \
@@ -1143,7 +1141,7 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
             if self.leave:
                 if self.last_print_n < self.n:
                     cur_t = self._time()
-                    # stats for overall rate (no weighted average). As we're closing, we can drop the self.avg_time
+                    # stats for overall rate (no weighted average)
                     self.elapsed = cur_t - self.start_t
                     self.avg_time = None
                     self.sp(self.__repr__())
