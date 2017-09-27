@@ -35,7 +35,6 @@ def posix_pipe(fin, fout, delim='\n', buf_size=256,
     """
     fp_write = fout.write
 
-    tmp = ''
     if not delim:
         while True:
             tmp = fin.read(buf_size)
