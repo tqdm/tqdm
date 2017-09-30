@@ -284,8 +284,8 @@ class tqdm(object):
             r_bar='| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, '
                   '{rate_fmt}{postfix}]'
             Possible vars: l_bar, bar, r_bar, n, n_fmt, total, total_fmt,
-                percentage, rate, rate_fmt, elapsed, remaining, desc,
-                postfix.
+                percentage, rate, rate_fmt, rate_noinv, rate_noinv_fmt,
+                rate_inv, rate_inv_fmt, elapsed, remaining, desc, postfix.
             Note that a trailing ": " is automatically removed after {desc}
             if the latter is empty.
         postfix  : str, optional
@@ -317,13 +317,15 @@ class tqdm(object):
         # (we allow manual override since predicting time is an arcane art)
         if rate is None and elapsed:
             rate = n / elapsed
-        inv_rate = 1 / rate if (rate and (rate < 1)) else None
+        inv_rate = 1 / rate if rate else None
         format_sizeof = tqdm.format_sizeof
-        rate_fmt = ((format_sizeof(inv_rate if inv_rate else rate)
-                    if unit_scale else
-                    '{0:5.2f}'.format(inv_rate if inv_rate else rate))
-                    if rate else '?') \
-            + ('s' if inv_rate else unit) + '/' + (unit if inv_rate else 's')
+        rate_noinv_fmt = ((format_sizeof(rate) if unit_scale else
+                           '{0:5.2f}'.format(rate))
+                          if rate else '?') + unit + '/s'
+        rate_inv_fmt = ((format_sizeof(inv_rate) if unit_scale else
+                         '{0:5.2f}'.format(inv_rate))
+                        if inv_rate else '?') + 's/' + unit
+        rate_fmt = rate_inv_fmt if inv_rate and inv_rate > 1 else rate_noinv_fmt
 
         if unit_scale:
             n_fmt = format_sizeof(n, divisor=unit_divisor)
@@ -365,13 +367,13 @@ class tqdm(object):
                             'total': total,
                             'total_fmt': total_fmt,
                             'percentage': percentage,
-                            'rate': rate if inv_rate is None else inv_rate,
-                            'rate_noinv': rate,
-                            'rate_noinv_fmt': ((format_sizeof(rate)
-                                               if unit_scale else
-                                               '{0:5.2f}'.format(rate))
-                                               if rate else '?') + unit + '/s',
+                            'rate': inv_rate if inv_rate and inv_rate > 1
+                            else rate,
                             'rate_fmt': rate_fmt,
+                            'rate_noinv': rate,
+                            'rate_noinv_fmt': rate_noinv_fmt,
+                            'rate_inv': inv_rate,
+                            'rate_inv_fmt': rate_inv_fmt,
                             'elapsed': elapsed_str,
                             'remaining': remaining_str,
                             'l_bar': l_bar,
@@ -861,10 +863,7 @@ class tqdm(object):
             with self._lock:
                 if self.pos:
                     self.moveto(self.pos)
-                self.sp(self.format_meter(self.n, total, 0,
-                        (dynamic_ncols(file) if dynamic_ncols else ncols),
-                        self.desc, ascii, unit, unit_scale, None, bar_format,
-                        self.postfix, unit_divisor))
+                self.sp(self.__repr__(elapsed=0))
                 if self.pos:
                     self.moveto(-self.pos)
 
@@ -889,14 +888,14 @@ class tqdm(object):
     def __del__(self):
         self.close()
 
-    def __repr__(self):
+    def __repr__(self, elapsed=None):
         return self.format_meter(
-            self.n, self.total, self._time() - self.start_t,
-            self.dynamic_ncols(self.fp)
-            if self.dynamic_ncols else self.ncols, self.desc, self.ascii,
-            self.unit, self.unit_scale,
-            1 / self.avg_time if self.avg_time else None,
-            self.bar_format, self.postfix)
+            self.n, self.total,
+            elapsed if elapsed is not None else self._time() - self.start_t,
+            self.dynamic_ncols(self.fp) if self.dynamic_ncols else self.ncols,
+            self.desc, self.ascii, self.unit,
+            self.unit_scale, 1 / self.avg_time if self.avg_time else None,
+            self.bar_format, self.postfix, self.unit_divisor)
 
     def __lt__(self, other):
         return self.pos < other.pos
@@ -931,25 +930,16 @@ class tqdm(object):
             for obj in iterable:
                 yield obj
         else:
-            ncols = self.ncols
             mininterval = self.mininterval
             maxinterval = self.maxinterval
             miniters = self.miniters
             dynamic_miniters = self.dynamic_miniters
-            unit = self.unit
-            unit_scale = self.unit_scale
-            unit_divisor = self.unit_divisor
-            ascii = self.ascii
-            start_t = self.start_t
             last_print_t = self.last_print_t
             last_print_n = self.last_print_n
             n = self.n
-            dynamic_ncols = self.dynamic_ncols
             smoothing = self.smoothing
             avg_time = self.avg_time
-            bar_format = self.bar_format
             _time = self._time
-            format_meter = self.format_meter
 
             try:
                 sp = self.sp
@@ -970,7 +960,6 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
                     if delta_t >= mininterval:
                         cur_t = _time()
                         delta_it = n - last_print_n
-                        elapsed = cur_t - start_t  # optimised if in inner loop
                         # EMA (not just overall average)
                         if smoothing and delta_t and delta_it:
                             avg_time = delta_t / delta_it \
@@ -978,19 +967,12 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
                                 else smoothing * delta_t / delta_it + \
                                 (1 - smoothing) * avg_time
 
+                        self.n = n
                         with self._lock:
                             if self.pos:
                                 self.moveto(self.pos)
-
                             # Print bar update
-                            sp(format_meter(
-                                n, self.total, elapsed,
-                                (dynamic_ncols(self.fp) if dynamic_ncols
-                                 else ncols),
-                                self.desc, ascii, unit, unit_scale,
-                                1 / avg_time if avg_time else None, bar_format,
-                                self.postfix, unit_divisor))
-
+                            sp(self.__repr__())
                             if self.pos:
                                 self.moveto(-self.pos)
 
@@ -1146,14 +1128,9 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
 
             if self.leave:
                 if self.last_print_n < self.n:
-                    cur_t = self._time()
                     # stats for overall rate (no weighted average)
-                    self.sp(self.format_meter(
-                        self.n, self.total, cur_t - self.start_t,
-                        (self.dynamic_ncols(self.fp) if self.dynamic_ncols
-                         else self.ncols),
-                        self.desc, self.ascii, self.unit, self.unit_scale, None,
-                        self.bar_format, self.postfix, self.unit_divisor))
+                    self.avg_time = None
+                    self.sp(self.__repr__())
                 if pos:
                     self.moveto(-pos)
                 else:
