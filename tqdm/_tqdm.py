@@ -930,25 +930,16 @@ class tqdm(object):
             for obj in iterable:
                 yield obj
         else:
-            ncols = self.ncols
             mininterval = self.mininterval
             maxinterval = self.maxinterval
             miniters = self.miniters
             dynamic_miniters = self.dynamic_miniters
-            unit = self.unit
-            unit_scale = self.unit_scale
-            unit_divisor = self.unit_divisor
-            ascii = self.ascii
-            start_t = self.start_t
             last_print_t = self.last_print_t
             last_print_n = self.last_print_n
             n = self.n
-            dynamic_ncols = self.dynamic_ncols
             smoothing = self.smoothing
             avg_time = self.avg_time
-            bar_format = self.bar_format
             _time = self._time
-            format_meter = self.format_meter
 
             try:
                 sp = self.sp
@@ -969,7 +960,6 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
                     if delta_t >= mininterval:
                         cur_t = _time()
                         delta_it = n - last_print_n
-                        elapsed = cur_t - start_t  # optimised if in inner loop
                         # EMA (not just overall average)
                         if smoothing and delta_t and delta_it:
                             avg_time = delta_t / delta_it \
@@ -1138,7 +1128,6 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
 
             if self.leave:
                 if self.last_print_n < self.n:
-                    cur_t = self._time()
                     # stats for overall rate (no weighted average)
                     self.avg_time = None
                     self.sp(self.__repr__())
