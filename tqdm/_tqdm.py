@@ -846,7 +846,7 @@ class tqdm(object):
         # Init the iterations counters
         self.last_print_n = initial
         self.n = initial
-
+        self.elapsed = 0
         # if nested, at initial sp() call we replace '\r' by '\n' to
         # not overwrite the outer progress bar
         if position is None:
@@ -861,10 +861,7 @@ class tqdm(object):
             with self._lock:
                 if self.pos:
                     self.moveto(self.pos)
-                self.sp(self.format_meter(self.n, total, 0,
-                        (dynamic_ncols(file) if dynamic_ncols else ncols),
-                        self.desc, ascii, unit, unit_scale, None, bar_format,
-                        self.postfix, unit_divisor))
+                self.sp(self.__repr__()) # elapsed already set to 0 & total already stored in self
                 if self.pos:
                     self.moveto(-self.pos)
 
@@ -890,13 +887,14 @@ class tqdm(object):
         self.close()
 
     def __repr__(self):
+# self.elapsed replaces self._time() - self.start_t
+# self._time() - self.start_t added to fns prior to __repr__ call where elapsed otherwise undefined.
         return self.format_meter(
-            self.n, self.total, self._time() - self.start_t,
-            self.dynamic_ncols(self.fp)
-            if self.dynamic_ncols else self.ncols, self.desc, self.ascii,
-            self.unit, self.unit_scale,
-            1 / self.avg_time if self.avg_time else None,
-            self.bar_format, self.postfix)
+            self.n, self.total, self.elapsed,
+            self.dynamic_ncols(self.fp) if self.dynamic_ncols else self.ncols,
+            self.desc, self.ascii, self.unit,
+            self.unit_scale, 1 / self.avg_time if self.avg_time else None,
+            self.bar_format, self.postfix, self.unit_divisor)
 
     def __lt__(self, other):
         return self.pos < other.pos
@@ -982,17 +980,12 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
                             if self.pos:
                                 self.moveto(self.pos)
 
-                            # Print bar update
-                            sp(format_meter(
-                                n, self.total, elapsed,
-                                (dynamic_ncols(self.fp) if dynamic_ncols
-                                 else ncols),
-                                self.desc, ascii, unit, unit_scale,
-                                1 / avg_time if avg_time else None, bar_format,
-                                self.postfix, unit_divisor))
-
-                            if self.pos:
-                                self.moveto(-self.pos)
+                        # Print the bar update
+                        self.n = n
+                        self.elapsed = elapsed
+                        sp(self.__repr__())
+                        if self.pos:
+                            self.moveto(-self.pos)
 
                         # If no `miniters` was specified, adjust automatically
                         # to the max iteration rate seen so far between 2 prints
@@ -1061,8 +1054,9 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
             delta_t = self._time() - self.last_print_t
             if delta_t >= self.mininterval:
                 cur_t = self._time()
-                delta_it = self.n - self.last_print_n  # >= n
-                # elapsed = cur_t - self.start_t
+                delta_it = self.n - self.last_print_n  # should be n?
+                elapsed = cur_t - self.start_t
+                self.elapsed = elapsed
                 # EMA (not just overall average)
                 if self.smoothing and delta_t and delta_it:
                     self.avg_time = delta_t / delta_it \
@@ -1147,13 +1141,10 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
             if self.leave:
                 if self.last_print_n < self.n:
                     cur_t = self._time()
-                    # stats for overall rate (no weighted average)
-                    self.sp(self.format_meter(
-                        self.n, self.total, cur_t - self.start_t,
-                        (self.dynamic_ncols(self.fp) if self.dynamic_ncols
-                         else self.ncols),
-                        self.desc, self.ascii, self.unit, self.unit_scale, None,
-                        self.bar_format, self.postfix, self.unit_divisor))
+                    # stats for overall rate (no weighted average). As we're closing, we can drop the self.avg_time
+                    self.elapsed = cur_t - self.start_t
+                    self.avg_time = None
+                    self.sp(self.__repr__())
                 if pos:
                     self.moveto(-pos)
                 else:
@@ -1269,6 +1260,7 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
         self.moveto(self.pos)
         # clear up this line's content (whatever there was)
         self.clear(nomove=True, nolock=True)
+        self.elapsed = self._time() - self.start_t
         # Print current/last bar state
         self.fp.write(self.__repr__())
         self.moveto(-self.pos)
