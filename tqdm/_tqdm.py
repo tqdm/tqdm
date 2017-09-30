@@ -284,8 +284,8 @@ class tqdm(object):
             r_bar='| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, '
                   '{rate_fmt}{postfix}]'
             Possible vars: l_bar, bar, r_bar, n, n_fmt, total, total_fmt,
-                percentage, rate, rate_fmt, elapsed, remaining, desc,
-                postfix.
+                percentage, rate, rate_fmt, rate_noinv, rate_noinv_fmt,
+                rate_inv, rate_inv_fmt, elapsed, remaining, desc, postfix.
             Note that a trailing ": " is automatically removed after {desc}
             if the latter is empty.
         postfix  : str, optional
@@ -317,13 +317,15 @@ class tqdm(object):
         # (we allow manual override since predicting time is an arcane art)
         if rate is None and elapsed:
             rate = n / elapsed
-        inv_rate = 1 / rate if (rate and (rate < 1)) else None
+        inv_rate = 1 / rate if rate else None
         format_sizeof = tqdm.format_sizeof
-        rate_fmt = ((format_sizeof(inv_rate if inv_rate else rate)
-                    if unit_scale else
-                    '{0:5.2f}'.format(inv_rate if inv_rate else rate))
-                    if rate else '?') \
-            + ('s' if inv_rate else unit) + '/' + (unit if inv_rate else 's')
+        rate_noinv_fmt = ((format_sizeof(rate) if unit_scale else
+                           '{0:5.2f}'.format(rate))
+                          if rate else '?') + unit + '/s'
+        rate_inv_fmt = ((format_sizeof(inv_rate) if unit_scale else
+                         '{0:5.2f}'.format(inv_rate))
+                        if inv_rate else '?') + 's/' + unit
+        rate_fmt = rate_inv_fmt if inv_rate and inv_rate > 1 else rate_noinv_fmt
 
         if unit_scale:
             n_fmt = format_sizeof(n, divisor=unit_divisor)
@@ -365,13 +367,13 @@ class tqdm(object):
                             'total': total,
                             'total_fmt': total_fmt,
                             'percentage': percentage,
-                            'rate': rate if inv_rate is None else inv_rate,
-                            'rate_noinv': rate,
-                            'rate_noinv_fmt': ((format_sizeof(rate)
-                                               if unit_scale else
-                                               '{0:5.2f}'.format(rate))
-                                               if rate else '?') + unit + '/s',
+                            'rate': inv_rate if inv_rate and inv_rate > 1
+                            else rate,
                             'rate_fmt': rate_fmt,
+                            'rate_noinv': rate,
+                            'rate_noinv_fmt': rate_noinv_fmt,
+                            'rate_inv': inv_rate,
+                            'rate_inv_fmt': rate_inv_fmt,
                             'elapsed': elapsed_str,
                             'remaining': remaining_str,
                             'l_bar': l_bar,
