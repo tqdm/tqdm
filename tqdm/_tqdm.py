@@ -163,6 +163,7 @@ class tqdm(object):
 
     monitor_interval = 10  # set to 0 to disable the thread
     monitor = None
+    _lock = TqdmDefaultWriteLock()
 
     @staticmethod
     def format_sizeof(num, suffix='', divisor=1000):
