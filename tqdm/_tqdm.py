@@ -1224,8 +1224,7 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
         if not nomove:
             self.moveto(self.pos)
         # clear up the bar (can't rely on sp(''))
-        self.fp.write('\r')
-        self.fp.write(' ' * (self.ncols if self.ncols else 10))
+        self.sp('')
         self.fp.write('\r')  # place cursor back at the beginning of line
         if not nomove:
             self.moveto(-self.pos)
@@ -1245,7 +1244,7 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
         # clear up this line's content (whatever there was)
         self.clear(nomove=True, nolock=True)
         # Print current/last bar state
-        self.fp.write(self.__repr__())
+        self.sp(self.__repr__())
         self.moveto(-self.pos)
         if not nolock:
             self._lock.release()
