@@ -163,6 +163,7 @@ class tqdm(object):
 
     monitor_interval = 10  # set to 0 to disable the thread
     monitor = None
+    _lock = TqdmDefaultWriteLock()
 
     @staticmethod
     def format_sizeof(num, suffix='', divisor=1000):
@@ -438,9 +439,6 @@ class tqdm(object):
                     ', ' + postfix if postfix else '')
 
     def __new__(cls, *args, **kwargs):
-        # Create default lock if none set
-        if "_lock" not in cls.__dict__:
-            cls.set_lock(TqdmDefaultWriteLock())
         # Create a new instance
         instance = object.__new__(cls)
         # Add to the list of instances

@@ -1654,3 +1654,11 @@ def test_unit_scale():
             pass
         out = our_file.getvalue()
         assert '900/900' in out
+
+
+@with_setup(pretest, posttest)
+def test_threading():
+    """Test multiprocess/thread-realted features"""
+    from multiprocessing import Lock
+    tqdm.set_lock(Lock())
+    # TODO: test interleaved output #445
