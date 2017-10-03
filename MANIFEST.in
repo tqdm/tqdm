@@ -5,7 +5,6 @@ include LICENCE
 include logo.png
 # include images/logo.gif
 include Makefile
-include README.rst
 include tox.ini
 
 # Test suite
@@ -13,3 +12,5 @@ recursive-include tqdm/tests *.py
 
 # Examples/Documentation
 recursive-include examples *.py
+include README.rst
+include tqdm.1
