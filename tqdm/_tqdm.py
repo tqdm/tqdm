@@ -1242,10 +1242,14 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
         if not nolock:
             self._lock.acquire()
         self.moveto(self.pos)
+
         # clear up this line's content (whatever there was)
         self.clear(nomove=True, nolock=True)
         # Print current/last bar state
-        self.fp.write(self.__repr__())
+        self.fp.write(_unicode(self.__repr__()))
+        getattr(self.fp, "flush", lambda: None)()
+        # TODO: possibly replace above block with self.sp(self.__repr__())
+
         self.moveto(-self.pos)
         if not nolock:
             self._lock.release()
