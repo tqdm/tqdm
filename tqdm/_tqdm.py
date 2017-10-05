@@ -1222,9 +1222,7 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
         if not nolock:
             self._lock.acquire()
         self.moveto(self.pos)
-        # clear up the bar (can't rely on sp(''))
-        self.fp.write('\r')
-        self.fp.write(' ' * (self.ncols if self.ncols else 10))
+        self.sp('')
         self.fp.write('\r')  # place cursor back at the beginning of line
         self.moveto(-self.pos)
         if not nolock:

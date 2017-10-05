@@ -57,8 +57,9 @@ with std_out_err_redirect_tqdm() as orig_stdout:
     # tqdm needs the original stdout
     # and dynamic_ncols=True to autodetect console width
     for i in tqdm(range(3), file=orig_stdout, dynamic_ncols=True):
-        sleep(.5)
+        # order of the following two lines should not matter
         some_fun(i)
+        sleep(.5)
 
 # After the `with`, printing is restored
 print("Done!")
