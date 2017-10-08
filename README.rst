@@ -327,10 +327,10 @@ Parameters
     [default: '{l_bar}{bar}{r_bar}'], where
     l_bar='{desc}: {percentage:3.0f}%|' and
     r_bar='| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, '
-          '{rate_fmt}{postfix}]'
+    '{rate_fmt}{postfix}]'
     Possible vars: l_bar, bar, r_bar, n, n_fmt, total, total_fmt,
-        percentage, rate, rate_fmt, rate_noinv, rate_noinv_fmt,
-        rate_inv, rate_inv_fmt, elapsed, remaining, desc, postfix.
+    percentage, rate, rate_fmt, rate_noinv, rate_noinv_fmt,
+    rate_inv, rate_inv_fmt, elapsed, remaining, desc, postfix.
     Note that a trailing ": " is automatically removed after {desc}
     if the latter is empty.
 * initial  : int, optional  
@@ -732,25 +732,25 @@ Monitoring thread, intervals and miniters
 
 ``tqdm`` implements a few tricks to to increase efficiency and reduce overhead.
 
-1. Avoid unnecessary frequent bar refreshing: ``mininterval`` defines how long
-   to wait between each refresh. ``tqdm`` always gets updated in the background,
-   but it will diplay only every ``mininterval``.
-2. Reduce number of calls to check system clock/time.
-3. ``mininterval`` is more intuitive to configure than ``miniters``.
-   A clever adjustment system ``dynamic_miniters`` will automatically adjust
-   ``miniters`` to the amount of iterations that fit into time ``mininterval``.
-   Essentially, ``tqdm`` will check if it's time to print without actually
-   checking time. This behavior can be still be bypassed by manually setting
-   ``miniters``.
+- Avoid unnecessary frequent bar refreshing: ``mininterval`` defines how long
+  to wait between each refresh. ``tqdm`` always gets updated in the background,
+  but it will diplay only every ``mininterval``.
+- Reduce number of calls to check system clock/time.
+- ``mininterval`` is more intuitive to configure than ``miniters``.
+  A clever adjustment system ``dynamic_miniters`` will automatically adjust
+  ``miniters`` to the amount of iterations that fit into time ``mininterval``.
+  Essentially, ``tqdm`` will check if it's time to print without actually
+  checking time. This behavior can be still be bypassed by manually setting
+  ``miniters``.
 
 However, consider a case with a combination of fast and slow iterations.
 After a few fast iterations, ``dynamic_miniters`` will set ``miniters`` to a
 large number. When interation rate subsequently slows, ``miniters`` will
 remain large and thus reduce display update frequency. To address this:
 
-4. ``maxinterval`` defines the maximum time between display refreshes.
-   A concurrent monitoring thread checks for overdue updates and forces one
-   where necessary.
+- ``maxinterval`` defines the maximum time between display refreshes.
+  A concurrent monitoring thread checks for overdue updates and forces one
+  where necessary.
 
 The monitoring thread should not have a noticeable overhead, and guarantees
 updates at least every 10 seconds by default.

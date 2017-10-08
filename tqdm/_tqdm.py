@@ -283,10 +283,10 @@ class tqdm(object):
             [default: '{l_bar}{bar}{r_bar}'], where
             l_bar='{desc}: {percentage:3.0f}%|' and
             r_bar='| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, '
-                  '{rate_fmt}{postfix}]'
+              '{rate_fmt}{postfix}]'
             Possible vars: l_bar, bar, r_bar, n, n_fmt, total, total_fmt,
-                percentage, rate, rate_fmt, rate_noinv, rate_noinv_fmt,
-                rate_inv, rate_inv_fmt, elapsed, remaining, desc, postfix.
+              percentage, rate, rate_fmt, rate_noinv, rate_noinv_fmt,
+              rate_inv, rate_inv_fmt, elapsed, remaining, desc, postfix.
             Note that a trailing ": " is automatically removed after {desc}
             if the latter is empty.
         postfix  : str, optional
@@ -1212,7 +1212,7 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
     def moveto(self, n):
         self.fp.write(_unicode('\n' * n + _term_move_up() * -n))
 
-    def clear(self, nomove=False, nolock=False):
+    def clear(self, nolock=False):
         """
         Clear current bar display
         """
@@ -1221,14 +1221,10 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
 
         if not nolock:
             self._lock.acquire()
-        if not nomove:
-            self.moveto(self.pos)
-        # clear up the bar (can't rely on sp(''))
-        self.fp.write('\r')
-        self.fp.write(' ' * (self.ncols if self.ncols else 10))
+        self.moveto(self.pos)
+        self.sp('')
         self.fp.write('\r')  # place cursor back at the beginning of line
-        if not nomove:
-            self.moveto(-self.pos)
+        self.moveto(-self.pos)
         if not nolock:
             self._lock.release()
 
@@ -1242,10 +1238,7 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
         if not nolock:
             self._lock.acquire()
         self.moveto(self.pos)
-        # clear up this line's content (whatever there was)
-        self.clear(nomove=True, nolock=True)
-        # Print current/last bar state
-        self.fp.write(self.__repr__())
+        self.sp(self.__repr__())
         self.moveto(-self.pos)
         if not nolock:
             self._lock.release()
