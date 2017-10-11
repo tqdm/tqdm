@@ -1659,5 +1659,9 @@ def test_unit_scale():
 def test_threading():
     """Test multiprocess/thread-realted features"""
     from multiprocessing import Lock
-    tqdm.set_lock(Lock())
+    try:
+        mp_lock = Lock()
+        tqdm.set_lock(mp_lock)
+    except OSError:
+        pass  
     # TODO: test interleaved output #445
