@@ -50,8 +50,12 @@ class TqdmDeprecationWarning(Exception):
 
 # Create global parallelism locks to avoid racing issues with parallel bars
 # works only if fork available (Linux, MacOSX, but not on Windows)
-mp_lock = mp.Lock()  # multiprocessing lock
-th_lock = th.Lock()  # thread lock
+try:
+    mp_lock = mp.RLock()  # multiprocessing lock
+    th_lock = th.RLock()  # thread lock
+except OSError:  # pragma: no cover
+    mp_lock = None
+    th_lock = None
 
 
 class TqdmDefaultWriteLock(object):
@@ -63,7 +67,7 @@ class TqdmDefaultWriteLock(object):
     """
     def __init__(self):
         global mp_lock, th_lock
-        self.locks = [mp_lock, th_lock]
+        self.locks = [lk for lk in [mp_lock, th_lock] if lk is not None]
 
     def acquire(self):
         for lock in self.locks:
@@ -917,7 +921,7 @@ class tqdm(object):
         return id(self)
 
     def __iter__(self):
-        ''' Backward-compatibility to use: for x in tqdm(iterable) '''
+        """Backward-compatibility to use: for x in tqdm(iterable)"""
 
         # Inlining instance variables as locals (speed optimisation)
         iterable = self.iterable

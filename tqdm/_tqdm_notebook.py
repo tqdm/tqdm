@@ -116,7 +116,7 @@ class tqdm_notebook(tqdm):
 
             # Get current iteration value from format_meter string
             if total:
-                n = None
+                # n = None
                 if s:
                     npos = s.find(r'/|/')  # cause we use bar_format=r'{n}|...'
                     # Check that n can be found in s (else n > total)
@@ -149,17 +149,6 @@ class tqdm_notebook(tqdm):
                     container.visible = False
 
         return print_status
-
-    @classmethod
-    def write(cls, s, file=None, end="\n"):
-        """
-        Print a message via tqdm_notebook (just an alias for print)
-        """
-        if file is None:
-            file = sys.stdout
-        # Just an alias for print because overlap is impossible with ipywidgets
-        file.write(s)
-        file.write(end)
 
     def __init__(self, *args, **kwargs):
         # Setup default output
