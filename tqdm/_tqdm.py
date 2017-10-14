@@ -921,7 +921,7 @@ class tqdm(object):
         return id(self)
 
     def __iter__(self):
-        ''' Backward-compatibility to use: for x in tqdm(iterable) '''
+        """Backward-compatibility to use: for x in tqdm(iterable)"""
 
         # Inlining instance variables as locals (speed optimisation)
         iterable = self.iterable

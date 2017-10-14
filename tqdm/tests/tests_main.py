@@ -15,7 +15,7 @@ def _sh(*cmd, **kwargs):
 def test_main():
     """Test command line pipes"""
     ls_out = _sh('ls').replace('\r\n', '\n')
-    ls = subprocess.Popen(('ls'), stdout=subprocess.PIPE,
+    ls = subprocess.Popen('ls', stdout=subprocess.PIPE,
                           stderr=subprocess.STDOUT)
     res = _sh(sys.executable, '-c', 'from tqdm import main; main()',
               stdin=ls.stdout, stderr=subprocess.STDOUT)

@@ -17,7 +17,7 @@ def cast(val, typ):
     try:
         return eval(typ + '("' + val + '")')
     except:
-        if (typ == 'chr'):
+        if typ == 'chr':
             return chr(ord(eval('"' + val + '"')))
         else:
             raise TqdmTypeError(val + ' : ' + typ)
@@ -35,7 +35,7 @@ def posix_pipe(fin, fout, delim='\n', buf_size=256,
     """
     fp_write = fout.write
 
-    tmp = ''
+    # tmp = ''
     if not delim:
         while True:
             tmp = fin.read(buf_size)
@@ -47,7 +47,7 @@ def posix_pipe(fin, fout, delim='\n', buf_size=256,
 
             fp_write(tmp)
             callback(len(tmp))
-        return
+        # return
 
     buf = ''
     # n = 0

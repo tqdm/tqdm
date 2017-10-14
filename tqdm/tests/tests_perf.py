@@ -27,7 +27,7 @@ def get_relative_time(prevtime=0):
 def cpu_sleep(t):
     """Sleep the given amount of cpu time"""
     start = process_time()
-    while ((process_time() - start) < t):
+    while (process_time() - start) < t:
         pass
 
 
@@ -45,7 +45,7 @@ def checkCpuTime(sleeptime=0.2):
     cpu_sleep(sleeptime)
     t2 = process_time() - start2
 
-    if (abs(t1) < 0.0001 and (t1 < t2 / 10)):
+    if abs(t1) < 0.0001 and (t1 < t2 / 10):
         return True
     raise SkipTest
 
@@ -132,7 +132,7 @@ def simple_progress(iterable=None, total=None, file=sys.stdout, desc='',
                 eta = (total - n[0]) / rate if rate > 0 else 0
                 eta_fmt = format_interval(eta)
 
-                bar = "#" * int(frac * width)
+                # bar = "#" * int(frac * width)
                 barfill = " " * int((1.0 - frac) * width)
                 bar_length, frac_bar_length = divmod(int(frac * width * 10), 10)
                 bar = '#' * bar_length

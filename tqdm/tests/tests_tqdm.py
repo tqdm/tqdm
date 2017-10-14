@@ -68,34 +68,34 @@ RE_pos = re.compile(
 
 
 class DiscreteTimer(object):
-    '''Virtual discrete time manager, to precisely control time for tests'''
+    """Virtual discrete time manager, to precisely control time for tests"""
 
     def __init__(self):
         self.t = 0.0
 
     def sleep(self, t):
-        '''Sleep = increment the time counter (almost no CPU used)'''
+        """Sleep = increment the time counter (almost no CPU used)"""
         self.t += t
 
     def time(self):
-        '''Get the current time'''
+        """Get the current time"""
         return self.t
 
 
 class FakeSleep(object):
-    '''Wait until the discrete timer reached the required time'''
+    """Wait until the discrete timer reached the required time"""
 
     def __init__(self, dtimer):
         self.dtimer = dtimer
 
     def sleep(self, t):
         end = t + self.dtimer.t
-        while (self.dtimer.t < end):
+        while self.dtimer.t < end:
             sleep(0.0000001)  # sleep a bit to interrupt (instead of pass)
 
 
 def cpu_timify(t, timer=None):
-    '''Force tqdm to use the specified timer instead of system-wide time()'''
+    """Force tqdm to use the specified timer instead of system-wide time()"""
     if timer is None:
         timer = DiscreteTimer()
     t._time = timer.time
@@ -126,7 +126,7 @@ def posttest():
 
 
 class UnicodeIO(IOBase):
-    ''' Unicode version of StringIO '''
+    """Unicode version of StringIO"""
 
     def __init__(self, *args, **kwargs):
         super(UnicodeIO, self).__init__(*args, **kwargs)
@@ -580,6 +580,8 @@ def test_dynamic_min_iters():
 
         our_file.seek(0)
         out = our_file.read()
+        assert all(i in out for i in ("0/10", "1/10", "3/10"))
+        assert "2/10" not in out
         assert t.dynamic_miniters and not t.smoothing
         assert t.miniters == 5
         t.close()
@@ -762,6 +764,7 @@ def test_ascii():
 @with_setup(pretest, posttest)
 def test_update():
     """Test manual creation and updates"""
+    res = None
     with closing(StringIO()) as our_file:
         with tqdm(total=2, file=our_file, miniters=1, mininterval=0) \
                 as progressbar:
@@ -1160,7 +1163,7 @@ def test_deprecated_gui():
         except TqdmDeprecationWarning as e:
             if 'Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`' \
                     not in our_file.getvalue():
-                raise
+                raise e
         else:
             raise DeprecationError('Should not allow manual gui=True without'
                                    ' overriding __iter__() and update()')

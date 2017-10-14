@@ -93,7 +93,7 @@ if True:  # pragma: no cover
                     items = [[k, self[k]] for k in self]
                     inst_dict = vars(self).copy()
                     inst_dict.pop('_keys', None)
-                    return (self.__class__, (items,), inst_dict)
+                    return self.__class__, (items,), inst_dict
 
                 # Methods with indirect access via the above methods
                 setdefault = MutableMapping.setdefault
@@ -160,13 +160,11 @@ def _environ_cols_windows(fp):  # pragma: no cover
         import struct
         from sys import stdin, stdout
 
-        io_handle = None
+        io_handle = -12  # assume stderr
         if fp == stdin:
             io_handle = -10
         elif fp == stdout:
             io_handle = -11
-        else:  # assume stderr
-            io_handle = -12
 
         h = windll.kernel32.GetStdHandle(io_handle)
         csbi = create_string_buffer(22)
@@ -181,8 +179,8 @@ def _environ_cols_windows(fp):  # pragma: no cover
     return None
 
 
-def _environ_cols_tput(*args):  # pragma: no cover
-    """ cygwin xterm (windows) """
+def _environ_cols_tput(*_):  # pragma: no cover
+    """cygwin xterm (windows)"""
     try:
         import shlex
         cols = int(subprocess.check_call(shlex.split('tput cols')))
