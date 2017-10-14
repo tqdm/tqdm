@@ -50,14 +50,12 @@ class TqdmDeprecationWarning(Exception):
 
 # Create global parallelism locks to avoid racing issues with parallel bars
 # works only if fork available (Linux, MacOSX, but not on Windows)
-parallel_locks = []
-
 try:
-    mp_lock = mp.Lock()  # multiprocessing lock
-    th_lock = th.Lock()  # thread lock
-    parallel_locks = [mp_lock, th_lock]
-except OSError:
-    pass
+    mp_lock = mp.RLock()  # multiprocessing lock
+    th_lock = th.RLock()  # thread lock
+except OSError:  # pragma: no cover
+    mp_lock = None
+    th_lock = None
 
 
 class TqdmDefaultWriteLock(object):
@@ -68,8 +66,8 @@ class TqdmDefaultWriteLock(object):
     an argument to joblib or the parallelism lib you use.
     """
     def __init__(self):
-        global parallel_locks
-        self.locks = parallel_locks
+        global mp_lock, th_lock
+        self.locks = [lk for lk in [mp_lock, th_lock] if lk is not None]
 
     def acquire(self):
         for lock in self.locks:
