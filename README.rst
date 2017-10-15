@@ -519,7 +519,7 @@ you may specify ``position=n`` where ``n=0`` for the outermost bar,
 
     from time import sleep
     from tqdm import trange
-    from multiprocessing import Pool, freeze_support, Lock
+    from multiprocessing import Pool, freeze_support, RLock
 
     L = list(range(9))
 
@@ -534,7 +534,7 @@ you may specify ``position=n`` where ``n=0`` for the outermost bar,
         freeze_support()  # for Windows support
         p = Pool(len(L),
                  # again, for Windows support
-                 initializer=tqdm.set_lock, initargs=(Lock(),))
+                 initializer=tqdm.set_lock, initargs=(RLock(),))
         p.map(progresser, L)
         print("\n" * (len(L) - 2))
 

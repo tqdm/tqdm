@@ -1,7 +1,7 @@
 from __future__ import print_function
 from time import sleep
 from tqdm import tqdm
-from multiprocessing import Pool, freeze_support, Lock
+from multiprocessing import Pool, freeze_support, RLock
 
 
 L = list(range(9))
@@ -19,7 +19,7 @@ if __name__ == '__main__':
     freeze_support()  # for Windows support
     p = Pool(len(L),
              initializer=tqdm.set_lock,
-             initargs=(Lock(),))
+             initargs=(RLock(),))
     p.map(progresser, L)
     print("\n" * (len(L) - 2))
 
