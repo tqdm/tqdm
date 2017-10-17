@@ -7,7 +7,9 @@ tqdm
 
 |Build-Status| |Coverage-Status| |Branch-Coverage-Status| |Codacy-Grade|
 
-|DOI-URI| |LICENCE|
+|DOI-URI| |LICENCE| 
+
+|Backer-Status| |Sponsor-Status|
 
 
 ``tqdm`` means "progress" in Arabic (taqadum, تقدّم)
@@ -793,6 +795,57 @@ Ranked by contributions.
 
 `*` Original author
 
+
+.. _backers
+
+backers
+-------
+
+`Become a backer <https://opencollective.com/tqdm#backer>`_ and show your support to our open source project.
+
+.. image:: https://opencollective.com/tqdm/backers.svg?width=890
+  :target: https://opencollective.com/tqdm#backers
+
+
+
+.. _sponsors
+
+sponsors
+--------
+
+Support this project by `becoming a sponsor <https://opencollective.com/tqdm#sponsor>`_.
+Your logo will show up here with a link to your website.
+
+.. image:: https://opencollective.com/tqdm/sponsor/0/avatar
+  :target: https://opencollective.com/tqdm/sponsor/0/website
+
+.. image:: https://opencollective.com/tqdm/sponsor/1/avatar
+  :target: https://opencollective.com/tqdm/sponsor/1/website
+
+.. image:: https://opencollective.com/tqdm/sponsor/2/avatar
+  :target: https://opencollective.com/tqdm/sponsor/2/website
+
+.. image:: https://opencollective.com/tqdm/sponsor/3/avatar
+  :target: https://opencollective.com/tqdm/sponsor/3/website
+
+.. image:: https://opencollective.com/tqdm/sponsor/4/avatar
+  :target: https://opencollective.com/tqdm/sponsor/4/website
+
+.. image:: https://opencollective.com/tqdm/sponsor/5/avatar
+  :target: https://opencollective.com/tqdm/sponsor/5/website
+
+.. image:: https://opencollective.com/tqdm/sponsor/6/avatar
+  :target: https://opencollective.com/tqdm/sponsor/6/website
+
+.. image:: https://opencollective.com/tqdm/sponsor/7/avatar
+  :target: https://opencollective.com/tqdm/sponsor/7/website
+
+.. image:: https://opencollective.com/tqdm/sponsor/8/avatar
+  :target: https://opencollective.com/tqdm/sponsor/8/website
+
+.. image:: https://opencollective.com/tqdm/sponsor/9/avatar
+  :target: https://opencollective.com/tqdm/sponsor/9/website
+
 |README-Hits| (Since 19 May 2016)
 
 .. |Logo| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/logo.gif
@@ -823,6 +876,10 @@ Ranked by contributions.
    :target: https://raw.githubusercontent.com/tqdm/tqdm/master/LICENCE
 .. |DOI-URI| image:: https://zenodo.org/badge/21637/tqdm/tqdm.svg
    :target: https://zenodo.org/badge/latestdoi/21637/tqdm/tqdm
+.. |Backer-Status| image:: https://opencollective.com/tqdm/backers/badge.svg
+  :target: `backers`_
+.. |Sponsor-Status| image:: https://opencollective.com/tqdm/sponsors/badge.svg
+  :target: `sponsors`_
 .. |Screenshot-Jupyter1| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/tqdm-jupyter-1.gif
 .. |Screenshot-Jupyter2| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/tqdm-jupyter-2.gif
 .. |Screenshot-Jupyter3| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/tqdm-jupyter-3.gif
