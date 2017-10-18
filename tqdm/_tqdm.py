@@ -448,6 +448,8 @@ class tqdm(object):
         # Add to the list of instances
         if "_instances" not in cls.__dict__:
             cls._instances = WeakSet()
+        if "_lock" not in cls.__dict__:
+            cls._lock = TqdmDefaultWriteLock()
         with cls._lock:
             cls._instances.add(instance)
         # Create the monitoring thread
