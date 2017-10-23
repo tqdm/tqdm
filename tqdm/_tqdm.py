@@ -337,7 +337,7 @@ class tqdm(object):
             total_fmt = format_sizeof(total, divisor=unit_divisor) \
                 if total else None
         else:
-            n_fmt = str(n)
+            n_fmt = str(round(n,5))
             total_fmt = str(total)
 
         # total is known: we can predict some stats

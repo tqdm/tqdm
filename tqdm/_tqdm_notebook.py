@@ -45,13 +45,13 @@ if True:  # pragma: no cover
 
     try:  # IPython 4.x / 3.x
         if IPY == 32:
-            from IPython.html.widgets import IntProgress, HBox, HTML
+            from IPython.html.widgets import FloatProgress, HBox, HTML
             IPY = 3
         else:
-            from ipywidgets import IntProgress, HBox, HTML
+            from ipywidgets import FloatProgress, HBox, HTML
     except ImportError:
         try:  # IPython 2.x
-            from IPython.html.widgets import IntProgressWidget as IntProgress
+            from IPython.html.widgets import FloatProgressWidget as FloatProgress
             from IPython.html.widgets import ContainerWidget as HBox
             from IPython.html.widgets import HTML
             IPY = 2
@@ -93,9 +93,9 @@ class tqdm_notebook(tqdm):
 
         # Prepare IPython progress bar
         if total:
-            pbar = IntProgress(min=0, max=total)
+            pbar = FloatProgress(min=0, max=total)
         else:  # No total? Show info style bar with no progress tqdm status
-            pbar = IntProgress(min=0, max=1)
+            pbar = FloatProgress(min=0, max=1)
             pbar.value = 1
             pbar.bar_style = 'info'
         if desc:
@@ -121,7 +121,8 @@ class tqdm_notebook(tqdm):
                     npos = s.find(r'/|/')  # cause we use bar_format=r'{n}|...'
                     # Check that n can be found in s (else n > total)
                     if npos >= 0:
-                        n = int(s[:npos])  # get n from string
+                        n = float(s[:npos])  # get n from string
+                        n = round(n, 5) # to avoid display error
                         s = s[npos + 3:]  # remove from string
 
                         # Update bar with current n value
