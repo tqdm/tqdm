@@ -337,7 +337,11 @@ class tqdm(object):
             total_fmt = format_sizeof(total, divisor=unit_divisor) \
                 if total else None
         else:
-            n_fmt = str(round(n,5))
+            n_fmt = str(n)
+            if isinstance(n, float): # fix for decimal progress
+                n_round = round(n,5)
+                n_fmt = str(int(n_round)) if n_round.is_integer() else str(n_round)
+
             total_fmt = str(total)
 
         # total is known: we can predict some stats
