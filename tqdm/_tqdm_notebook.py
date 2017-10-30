@@ -148,6 +148,7 @@ class tqdm_notebook(tqdm):
                 except AttributeError:
                     container.visible = False
             
+            # Update description
             if desc:
                 pbar.description = desc
 
