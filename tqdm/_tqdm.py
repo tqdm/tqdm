@@ -189,7 +189,7 @@ class tqdm(object):
         out  : str
             Number with Order of Magnitude SI unit postfix.
         """
-        for unit in ['', 'K', 'M', 'G', 'T', 'P', 'E', 'Z']:
+        for unit in ['', 'k', 'M', 'G', 'T', 'P', 'E', 'Z']:
             if abs(num) < 999.95:
                 if abs(num) < 99.95:
                     if abs(num) < 9.995:
@@ -276,7 +276,7 @@ class tqdm(object):
             The iteration unit [default: 'it'].
         unit_scale  : bool or int or float, optional
             If 1 or True, the number of iterations will be printed with an
-            appropriate SI metric prefix (K = 10^3, M = 10^6, etc.)
+            appropriate SI metric prefix (k = 10^3, M = 10^6, etc.)
             [default: False]. If any other non-zero number, will scale
             `total` and `n`.
         rate  : float, optional
