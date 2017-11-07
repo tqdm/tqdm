@@ -1107,13 +1107,13 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
                     # stats for overall rate (no weighted average)
                     self.avg_time = None
                     self.sp(self.__repr__())
-                if pos:
+                if pos is not None:
                     self.moveto(-pos)
                 else:
                     fp_write('\n')
             else:
                 self.sp('')  # clear up last bar
-                if pos:
+                if pos is not None:
                     self.moveto(-pos)
                 else:
                     fp_write('\r')
