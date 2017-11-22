@@ -7,7 +7,7 @@ tqdm
 
 |Build-Status| |Coverage-Status| |Branch-Coverage-Status| |Codacy-Grade|
 
-|DOI-URI| |LICENCE|
+|DOI-URI| |LICENCE| |OpenHub-Status|
 
 
 ``tqdm`` means "progress" in Arabic (taqadum, تقدّم)
@@ -764,7 +764,7 @@ The monitor thread may be disabled application-wide by setting
 Contributions
 -------------
 
-|GitHub-Commits| |GitHub-Issues| |GitHub-PRs|
+|GitHub-Commits| |GitHub-Issues| |GitHub-PRs| |OpenHub-Status|
 
 All source code is hosted on `GitHub <https://github.com/tqdm/tqdm>`__.
 Contributions are welcome.
@@ -787,7 +787,7 @@ Authors
 
 The main developers, ranked by surviving lines of code, are:
 
-- Casper da Costa-Luis (`casperdcl <https://github.com/casperdcl>`__, ~2/3)
+- Casper da Costa-Luis (`casperdcl <https://github.com/casperdcl>`__, ~2/3, |Gift-Casper|)
 - Stephen Larroque (`lrq3000 <https://github.com/lrq3000>`__, ~1/3)
 - Noam Yorav-Raphael (`noamraph <https://github.com/noamraph>`__, ~1%, original author)
 - Hadrien Mary (`hadim <https://github.com/hadim>`__, ~1%)
@@ -821,6 +821,8 @@ There are also many |GitHub-Contributions| which we are grateful for.
    :target: https://github.com/tqdm/tqdm/pulls
 .. |GitHub-Contributions| image:: https://img.shields.io/github/contributors/tqdm/tqdm.svg
    :target: https://github.com/tqdm/tqdm/graphs/contributors
+.. |Gift-Casper| image:: https://img.shields.io/badge/gift-donate-ff69b4.svg
+   :target: https://caspersci.uk.to/donate.html
 .. |PyPI-Status| image:: https://img.shields.io/pypi/v/tqdm.svg
    :target: https://pypi.python.org/pypi/tqdm
 .. |PyPI-Downloads| image:: https://img.shields.io/pypi/dm/tqdm.svg
@@ -829,6 +831,8 @@ There are also many |GitHub-Contributions| which we are grateful for.
    :target: https://pypi.python.org/pypi/tqdm
 .. |Conda-Forge-Status| image:: https://anaconda.org/conda-forge/tqdm/badges/version.svg
    :target: https://anaconda.org/conda-forge/tqdm
+.. |OpenHub-Status| image:: https://www.openhub.net/p/tqdm/widgets/project_thin_badge?format=gif
+   :target: https://www.openhub.net/p/tqdm?ref=Thin+badge
 .. |LICENCE| image:: https://img.shields.io/pypi/l/tqdm.svg
    :target: https://raw.githubusercontent.com/tqdm/tqdm/master/LICENCE
 .. |DOI-URI| image:: https://zenodo.org/badge/21637/tqdm/tqdm.svg
