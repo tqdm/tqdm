@@ -7,7 +7,7 @@ tqdm
 
 |Build-Status| |Coverage-Status| |Branch-Coverage-Status| |Codacy-Grade|
 
-|DOI-URI| |LICENCE|
+|DOI-URI| |LICENCE| |OpenHub-Status|
 
 
 ``tqdm`` means "progress" in Arabic (taqadum, تقدّم)
@@ -81,7 +81,7 @@ Latest PyPI stable release
 Latest development release on GitHub
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-|GitHub-Status| |GitHub-Stars| |GitHub-Forks|
+|GitHub-Status| |GitHub-Stars| |GitHub-Commits| |GitHub-Forks|
 
 Pull and install in the current directory:
 
@@ -210,6 +210,8 @@ Backing up a large directory?
 FAQ and Known Issues
 --------------------
 
+|GitHub-Issues|
+
 The most common issues relate to excessive output on multiple lines, instead
 of a neat one-line progress bar.
 
@@ -233,8 +235,7 @@ of a neat one-line progress bar.
   ``tqdm(zip(a, b))`` should be replaced with ``zip(tqdm(a), b)`` or even
   ``zip(tqdm(a), tqdm(b))``.
 
-If you come across any other difficulties, browse/open issues
-`here <https://github.com/tqdm/tqdm/issues?q=is%3Aissue>`__.
+If you come across any other difficulties, browse and file |GitHub-Issues|.
 
 Documentation
 -------------
@@ -740,12 +741,12 @@ Monitoring thread, intervals and miniters
   A clever adjustment system ``dynamic_miniters`` will automatically adjust
   ``miniters`` to the amount of iterations that fit into time ``mininterval``.
   Essentially, ``tqdm`` will check if it's time to print without actually
-  checking time. This behavior can be still be bypassed by manually setting
+  checking time. This behaviour can be still be bypassed by manually setting
   ``miniters``.
 
 However, consider a case with a combination of fast and slow iterations.
 After a few fast iterations, ``dynamic_miniters`` will set ``miniters`` to a
-large number. When interation rate subsequently slows, ``miniters`` will
+large number. When iteration rate subsequently slows, ``miniters`` will
 remain large and thus reduce display update frequency. To address this:
 
 - ``maxinterval`` defines the maximum time between display refreshes.
@@ -762,6 +763,8 @@ The monitor thread may be disabled application-wide by setting
 
 Contributions
 -------------
+
+|GitHub-Commits| |GitHub-Issues| |GitHub-PRs| |OpenHub-Status|
 
 All source code is hosted on `GitHub <https://github.com/tqdm/tqdm>`__.
 Contributions are welcome.
@@ -782,16 +785,15 @@ Citation information: |DOI-URI|
 Authors
 -------
 
-Ranked by contributions.
+The main developers, ranked by surviving lines of code, are:
 
--  Casper da Costa-Luis (casperdcl)
--  Stephen Larroque (lrq3000)
--  Hadrien Mary (hadim)
--  Noam Yorav-Raphael (noamraph)*
--  Ivan Ivanov (obiwanus)
--  Mikhail Korobov (kmike)
+- Casper da Costa-Luis (`casperdcl <https://github.com/casperdcl>`__, ~2/3, |Gift-Casper|)
+- Stephen Larroque (`lrq3000 <https://github.com/lrq3000>`__, ~1/3)
+- Noam Yorav-Raphael (`noamraph <https://github.com/noamraph>`__, ~1%, original author)
+- Hadrien Mary (`hadim <https://github.com/hadim>`__, ~1%)
+- Mikhail Korobov (`kmike <https://github.com/kmike>`__, ~1%)
 
-`*` Original author
+There are also many |GitHub-Contributions| which we are grateful for.
 
 |README-Hits| (Since 19 May 2016)
 
@@ -805,12 +807,22 @@ Ranked by contributions.
    :target: https://codecov.io/github/tqdm/tqdm?branch=master
 .. |Codacy-Grade| image:: https://api.codacy.com/project/badge/Grade/3f965571598f44549c7818f29cdcf177
    :target: https://www.codacy.com/app/tqdm/tqdm?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=tqdm/tqdm&amp;utm_campaign=Badge_Grade
-.. |GitHub-Status| image:: https://img.shields.io/github/tag/tqdm/tqdm.svg?maxAge=2592000
+.. |GitHub-Status| image:: https://img.shields.io/github/tag/tqdm/tqdm.svg?maxAge=86400
    :target: https://github.com/tqdm/tqdm/releases
 .. |GitHub-Forks| image:: https://img.shields.io/github/forks/tqdm/tqdm.svg
    :target: https://github.com/tqdm/tqdm/network
 .. |GitHub-Stars| image:: https://img.shields.io/github/stars/tqdm/tqdm.svg
    :target: https://github.com/tqdm/tqdm/stargazers
+.. |GitHub-Commits| image:: https://img.shields.io/github/commit-activity/y/tqdm/tqdm.svg
+   :target: https://github.com/tqdm/tqdm/graphs/commit-activity
+.. |GitHub-Issues| image:: https://img.shields.io/github/issues-closed/tqdm/tqdm.svg
+   :target: https://github.com/tqdm/tqdm/issues
+.. |GitHub-PRs| image:: https://img.shields.io/github/issues-pr-closed/tqdm/tqdm.svg
+   :target: https://github.com/tqdm/tqdm/pulls
+.. |GitHub-Contributions| image:: https://img.shields.io/github/contributors/tqdm/tqdm.svg
+   :target: https://github.com/tqdm/tqdm/graphs/contributors
+.. |Gift-Casper| image:: https://img.shields.io/badge/gift-donate-ff69b4.svg
+   :target: https://caspersci.uk.to/donate.html
 .. |PyPI-Status| image:: https://img.shields.io/pypi/v/tqdm.svg
    :target: https://pypi.python.org/pypi/tqdm
 .. |PyPI-Downloads| image:: https://img.shields.io/pypi/dm/tqdm.svg
@@ -819,6 +831,8 @@ Ranked by contributions.
    :target: https://pypi.python.org/pypi/tqdm
 .. |Conda-Forge-Status| image:: https://anaconda.org/conda-forge/tqdm/badges/version.svg
    :target: https://anaconda.org/conda-forge/tqdm
+.. |OpenHub-Status| image:: https://www.openhub.net/p/tqdm/widgets/project_thin_badge?format=gif
+   :target: https://www.openhub.net/p/tqdm?ref=Thin+badge
 .. |LICENCE| image:: https://img.shields.io/pypi/l/tqdm.svg
    :target: https://raw.githubusercontent.com/tqdm/tqdm/master/LICENCE
 .. |DOI-URI| image:: https://zenodo.org/badge/21637/tqdm/tqdm.svg
