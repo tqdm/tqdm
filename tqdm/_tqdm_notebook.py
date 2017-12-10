@@ -147,7 +147,7 @@ class tqdm_notebook(tqdm):
                     container.close()
                 except AttributeError:
                     container.visible = False
-            
+
             # Update description
             if desc:
                 pbar.description = desc
@@ -217,18 +217,15 @@ class tqdm_notebook(tqdm):
         # void -> avoid extraneous `\n` in IPython output cell
         return
 
-    def set_description(self, desc=None, refresh=True):
+    def set_description(self, desc=None, **_):
         """
         Set/modify description of the progress bar.
 
         Parameters
         ----------
         desc  : str, optional
-        refresh  : bool, optional
-            Forces refresh [default: True]. Ineffective in tqdm_notebook.
         """
         self.sp(desc=desc)
-    
 
 
 def tnrange(*args, **kwargs):
