@@ -761,7 +761,7 @@ class tqdm(object):
 
         if disable is None and hasattr(file, "isatty") and not file.isatty():
             disable = True
-            
+                   
         self.disable = disable
         if disable:
             self.iterable = iterable
