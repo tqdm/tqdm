@@ -146,6 +146,9 @@ class TMonitor(Thread):
                 cur_t = self._time()
                 # Check tqdm instances are waiting too long to print
                 for instance in self.tqdm_cls._instances:
+                    # Avoid race by checking that the instance started
+                    if not hasattr(instance, 'start_t'):  # pragma: nocover
+                        continue
                     # Only if mininterval > 1 (else iterations are just slow)
                     # and last refresh exceeded maxinterval
                     if instance.miniters > 1 and \
