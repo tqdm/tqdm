@@ -224,12 +224,10 @@ def _environ_cols_linux(fp):  # pragma: no cover
         try:
             return array('h', ioctl(fp, TIOCGWINSZ, '\0' * 8))[1]
         except:
-            try:
-                from os.environ import get
-            except ImportError:
-                return None
+            if 'COLUMNS' in os.environ:
+                return int(os.environ['COLUMNS']) - 1
             else:
-                return int(get('COLUMNS', 1)) - 1
+                return None
 
 
 def _term_move_up():  # pragma: no cover
