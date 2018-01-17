@@ -56,7 +56,7 @@ setup(
     entry_points={'console_scripts': ['tqdm=tqdm._main:main'], },
     package_data={'tqdm': ['CONTRIBUTING.md', 'LICENCE', 'examples/*.py',
                            'tqdm.1', 'requirements-dev.txt']},
-    python_requires='>=2.6, !=3.0.*, !=3.1.*',
+    python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*',
     classifiers=[
         # Trove classifiers
         # (https://pypi.org/pypi?%3Aaction=list_classifiers)
