@@ -1,5 +1,5 @@
-sudo: required
-dist: trusty
+# sudo: required
+# dist: trusty
 language: python
 matrix:
   include:
@@ -16,49 +16,40 @@ matrix:
   - python: 3.6
     env: TOXENV=py36
   - python: 3.7-dev
-    env: TOXENV=py37-dev
-  - python: pypy2.7-5.8.0
+    env: TOXENV=py37
+  - python: pypy2.7-5.10.0
     env: TOXENV=pypy
-  - python: pypy3.5-5.8.0
+  - python: pypy3.5-5.10.0
     env: TOXENV=pypy3
   - python: 3.6
     env: TOXENV=flake8
   - python: 2.7
     env: TOXENV=perf
-
-# use cache for big builds like pandas
+# use cache for big builds like pandas (to minimise build time).
+# If issues, clear cache
+# https://docs.travis-ci.com/user/caching/#Clearing-Caches
 cache:
   pip: true
   directories:
     - $HOME/.cache/pip
 before_cache:
   - rm -f $HOME/.cache/pip/log/debug.log
-
 notifications:
   email: false
 # branches:  # remove travis double-check on pull requests in main repo
 #   only:
 #     - master
 #     - /^\d\.\d+$/
-
 before_install:
   # fix a crash with multiprocessing on Travis
-  - sudo rm -rf /dev/shm
-  - sudo ln -s /run/shm /dev/shm
-  # coverage submission packages
+  # - sudo rm -rf /dev/shm
+  # - sudo ln -s /run/shm /dev/shm
   - git fetch --tags
-
 install:
   # Install tox first, before dependencies (to get per-env deps)
   - pip install tox
-  # Install big packages (they are cached to minimize build time)
-  # if issues, clear cache
-  # https://docs.travis-ci.com/user/caching/#Clearing-Caches
-  # - pip install numpy
-  # - pip install pandas
   # install this package (tqdm) into the environment
-  - python setup.py install
-
+  - pip install .
 # run tests
 script:
   - tox
