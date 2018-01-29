@@ -1,33 +1,15 @@
 *.py[cod]
-
-# C extensions
 *.so
 
 # Packages
-*.egg
-*.egg-info
-dist
-build
-eggs
-parts
-bin
-var
-sdist
-develop-eggs
-.installed.cfg
-lib
-lib64
-__pycache__
-MANIFEST
-cover/
-
-# Installer logs
-pip-log.txt
+tqdm.egg-info
+build/
+dist/
 
 # Unit test / coverage reports
-.coverage
 .tox/
-nosetests.xml
+.coverage
+__pycache__
 
 # Translations
 *.mo
@@ -42,4 +24,4 @@ nosetests.xml
 
 # asv
 .asv/
-benchmarks/*.pyc
+benchmarks/*.py[co]
