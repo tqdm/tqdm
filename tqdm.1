@@ -215,7 +215,15 @@ specified.
 .TP
 .B \-\-bytes=\f[I]bytes\f[]
 bool, optional.
-If true, will count bytes and ignore \f[C]delim\f[].
+If true, will count bytes, ignore \f[C]delim\f[], and default
+\f[C]unit_scale\f[] to True, \f[C]unit_divisor\f[] to 1024, and
+\f[C]unit\f[] to \[aq]B\[aq].
+.RS
+.RE
+.TP
+.B \-\-log=\f[I]log\f[]
+str, optional.
+CRITICAL|FATAL|ERROR|WARN(ING)|[default: \[aq]INFO\[aq]]|DEBUG|NOTSET.
 .RS
 .RE
 .SH AUTHORS
