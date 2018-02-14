@@ -30,7 +30,7 @@ def test_main():
     _SYS = sys.stdin, sys.argv
 
     with closing(StringIO()) as sys.stdin:
-        sys.argv = ['', '--desc', 'Test CLI delims',
+        sys.argv = ['', '--desc', 'Test CLI-delims',
                     '--ascii', 'True', '--delim', r'\0', '--buf_size', '64']
         sys.stdin.write('\0'.join(map(str, _range(int(1e3)))))
         sys.stdin.seek(0)

@@ -89,7 +89,7 @@ def posix_pipe(fin, fout, delim='\n', buf_size=256,
 # ((opt, type), ... )
 RE_OPTS = re.compile(r'\n {8}(\S+)\s{2,}:\s*([^,]+)')
 # better split method assuming no positional args
-RE_SHLEX = re.compile(r'\s*--?([^\s=]+)(?:\s*|=|$)')
+RE_SHLEX = re.compile(r'\s*(?<!\S)--?([^\s=]+)(?:\s*|=|$)')
 
 # TODO: add custom support for some of the following?
 UNSUPPORTED_OPTS = ('iterable', 'gui', 'out', 'file')
