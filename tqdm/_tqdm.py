@@ -51,7 +51,10 @@ class TqdmDeprecationWarning(Exception):
 # Create global parallelism locks to avoid racing issues with parallel bars
 # works only if fork available (Linux, MacOSX, but not on Windows)
 try:
-    mp_lock = mp.RLock()  # multiprocessing lock
+    try:
+        mp_lock = mp.RLock()  # multiprocessing lock
+    except ImportError:
+        mp_lock = None
     th_lock = th.RLock()  # thread lock
 except OSError:  # pragma: no cover
     mp_lock = None
