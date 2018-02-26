@@ -52,9 +52,13 @@ class TqdmDeprecationWarning(Exception):
 # works only if fork available (Linux, MacOSX, but not on Windows)
 try:
     mp_lock = mp.RLock()  # multiprocessing lock
-    th_lock = th.RLock()  # thread lock
+except ImportError:  # pragma: no cover
+    mp_lock = None
 except OSError:  # pragma: no cover
     mp_lock = None
+try:
+    th_lock = th.RLock()  # thread lock
+except OSError:  # pragma: no cover
     th_lock = None
 
 
