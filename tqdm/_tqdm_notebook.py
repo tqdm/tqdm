@@ -106,7 +106,7 @@ class tqdm_notebook(tqdm):
         container = HBox(children=[pbar, ptext])
         display(container)
 
-        def print_status(s='', close=False, bar_style=None):
+        def print_status(s='', close=False, bar_style=None, desc=None):
             # Note: contrary to native tqdm, s='' does NOT clear bar
             # goal is to keep all infos if error happens so user knows
             # at which iteration the loop failed.
@@ -148,6 +148,10 @@ class tqdm_notebook(tqdm):
                     container.close()
                 except AttributeError:
                     container.visible = False
+
+            # Update description
+            if desc:
+                pbar.description = desc
 
         return print_status
 
@@ -213,6 +217,16 @@ class tqdm_notebook(tqdm):
     def moveto(self, *args, **kwargs):
         # void -> avoid extraneous `\n` in IPython output cell
         return
+
+    def set_description(self, desc=None, **_):
+        """
+        Set/modify description of the progress bar.
+
+        Parameters
+        ----------
+        desc  : str, optional
+        """
+        self.sp(desc=desc)
 
 
 def tnrange(*args, **kwargs):

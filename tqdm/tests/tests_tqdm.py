@@ -248,7 +248,7 @@ def test_format_meter():
         " 23%|" + '#' * 3 + '6' + \
         "            | 231/1000 [06:32<21:44,  1.70s/it]"
     assert format_meter(100000, 1000, 13, unit_scale=True, unit='iB') == \
-        "100KiB [00:13, 7.69KiB/s]"
+        "100kiB [00:13, 7.69kiB/s]"
     assert format_meter(100, 1000, 12, ncols=0, rate=7.33) == \
         " 10% 100/1000 [00:12<02:02,  7.33it/s]"
     # Check that bar_format correctly adapts {bar} size to the rest
@@ -277,10 +277,10 @@ def test_si_format():
     assert '9.00 ' in format_meter(1, 9, 1, unit_scale=True, unit='B')
     assert '99.0 ' in format_meter(1, 99, 1, unit_scale=True)
     assert '999 ' in format_meter(1, 999, 1, unit_scale=True)
-    assert '9.99K ' in format_meter(1, 9994, 1, unit_scale=True)
-    assert '10.0K ' in format_meter(1, 9999, 1, unit_scale=True)
-    assert '99.5K ' in format_meter(1, 99499, 1, unit_scale=True)
-    assert '100K ' in format_meter(1, 99999, 1, unit_scale=True)
+    assert '9.99k ' in format_meter(1, 9994, 1, unit_scale=True)
+    assert '10.0k ' in format_meter(1, 9999, 1, unit_scale=True)
+    assert '99.5k ' in format_meter(1, 99499, 1, unit_scale=True)
+    assert '100k ' in format_meter(1, 99999, 1, unit_scale=True)
     assert '1.00M ' in format_meter(1, 999999, 1, unit_scale=True)
     assert '1.00G ' in format_meter(1, 999999999, 1, unit_scale=True)
     assert '1.00T ' in format_meter(1, 999999999999, 1, unit_scale=True)
