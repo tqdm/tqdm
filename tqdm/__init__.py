@@ -2,12 +2,18 @@ from ._tqdm import tqdm
 from ._tqdm import trange
 from ._tqdm_gui import tqdm_gui
 from ._tqdm_gui import tgrange
+from ._tqdm_bare_class import tqdm_bare_class
+from ._tqdm_bare_class import tbcrange
 from ._tqdm_pandas import tqdm_pandas
+from ._tqdm_bare import tqdm_bare
+from ._tqdm_bare import tbrange
 from ._main import main
 from ._version import __version__  # NOQA
 from ._tqdm import TqdmTypeError, TqdmKeyError, TqdmDeprecationWarning
 
 __all__ = ['tqdm', 'tqdm_gui', 'trange', 'tgrange', 'tqdm_pandas',
+           'tqdm_bare', 'tbrange',
+           'tqdm_bare_class', 'tbcrange',
            'tqdm_notebook', 'tnrange', 'main',
            'TqdmTypeError', 'TqdmKeyError', 'TqdmDeprecationWarning',
            '__version__']
