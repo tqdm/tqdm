@@ -93,7 +93,7 @@ if True:  # pragma: no cover
                     items = [[k, self[k]] for k in self]
                     inst_dict = vars(self).copy()
                     inst_dict.pop('_keys', None)
-                    return (self.__class__, (items,), inst_dict)
+                    return self.__class__, (items,), inst_dict
 
                 # Methods with indirect access via the above methods
                 setdefault = MutableMapping.setdefault
@@ -119,14 +119,24 @@ if True:  # pragma: no cover
 
 
 def _is_utf(encoding):
-    return encoding.lower().startswith('utf-') or ('U8' == encoding)
+    try:
+        u'\u2588\u2589'.encode(encoding)
+    except UnicodeEncodeError:  # pragma: no cover
+        return False
+    except Exception:  # pragma: no cover
+        try:
+            return encoding.lower().startswith('utf-') or ('U8' == encoding)
+        except:
+            return False
+    else:
+        return True
 
 
-def _supports_unicode(file):
-    return _is_utf(file.encoding) if (
-        getattr(file, 'encoding', None) or
-        # FakeStreams from things like bpython-curses can lie
-        getattr(file, 'interface', None)) else False  # pragma: no cover
+def _supports_unicode(fp):
+    try:
+        return _is_utf(fp.encoding)
+    except AttributeError:
+        return False
 
 
 def _environ_cols_wrapper():  # pragma: no cover
@@ -150,13 +160,11 @@ def _environ_cols_windows(fp):  # pragma: no cover
         import struct
         from sys import stdin, stdout
 
-        io_handle = None
+        io_handle = -12  # assume stderr
         if fp == stdin:
             io_handle = -10
         elif fp == stdout:
             io_handle = -11
-        else:  # assume stderr
-            io_handle = -12
 
         h = windll.kernel32.GetStdHandle(io_handle)
         csbi = create_string_buffer(22)
@@ -171,8 +179,8 @@ def _environ_cols_windows(fp):  # pragma: no cover
     return None
 
 
-def _environ_cols_tput(*args):  # pragma: no cover
-    """ cygwin xterm (windows) """
+def _environ_cols_tput(*_):  # pragma: no cover
+    """cygwin xterm (windows)"""
     try:
         import shlex
         cols = int(subprocess.check_call(shlex.split('tput cols')))

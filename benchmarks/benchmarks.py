@@ -28,15 +28,16 @@ class FractionalOverheadSuite:
         self.t = t1 - t0
 
     def track_tqdm(self):
-        t0 = self.time()
-        [0 for _ in self.tqdm(self.iterable)]
-        t1 = self.time()
+        with self.tqdm(self.iterable) as pbar:
+            t0 = self.time()
+            [0 for _ in pbar]
+            t1 = self.time()
         return (t1 - t0 - self.t) / self.t
 
     def track_optimsed(self):
-        t0 = self.time()
-        [0 for _ in self.tqdm(self.iterable,
-                              miniters=6e5, smoothing=0)]
-        # TODO: miniters=None, mininterval=0.1, smoothing=0)]
-        t1 = self.time()
+        with self.tqdm(self.iterable, miniters=6e5, smoothing=0) as pbar:
+            # TODO: miniters=None, mininterval=0.1, smoothing=0)]
+            t0 = self.time()
+            [0 for _ in pbar]
+            t1 = self.time()
         return (t1 - t0 - self.t) / self.t

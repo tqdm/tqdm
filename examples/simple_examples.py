@@ -61,5 +61,4 @@ stmts = filter(None, re.split(r'\n\s*#.*?\n', __doc__))
 for s in stmts:
     print(s.replace('import tqdm\n', ''))
     print(timeit(stmt='try:\n\t_range = xrange'
-                      '\nexcept:\n\t_range = range\n' + s, number=1),
-          'seconds')
+                 '\nexcept:\n\t_range = range\n' + s, number=1), 'seconds')

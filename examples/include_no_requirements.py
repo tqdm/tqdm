@@ -2,6 +2,7 @@
 try:
     from tqdm import tqdm
 except ImportError:
+
     def tqdm(*args, **kwargs):
         if args:
             return args[0]

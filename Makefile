@@ -48,7 +48,7 @@ all:
 	@+make build
 
 flake8:
-	@+flake8 --max-line-length=80 --count --statistics --exit-zero -j 8 --exclude .asv .
+	@+flake8 --max-line-length=80 --exclude .asv,.tox -j 8 --count --statistics --exit-zero .
 
 test:
 	tox --skip-missing-interpreters
@@ -64,23 +64,33 @@ testcoverage:
 	@make coverclean
 	nosetests tqdm --with-coverage --cover-package=tqdm --cover-erase --cover-min-percentage=80 --ignore-files="tests_perf\.py" -d -v
 
-testperf:  # do not use coverage (which is extremely slow)
+testperf:
+	# do not use coverage (which is extremely slow)
 	nosetests tqdm/tests/tests_perf.py -d -v
 
 testtimer:
 	nosetests tqdm --with-timer -d -v
 
+# another performance test, to check evolution across commits
 testasv:
+	# Test only the last 3 commits (quick test)
 	asv run -j 8 HEAD~3..HEAD
 	@make viewasv
 
 testasvfull:
+	# Test all the commits since the beginning (full test)
 	asv run -j 8 v1.0.0..master
 	@make testasv
 
 viewasv:
 	asv publish
 	asv preview
+
+tqdm.1: tqdm.1.md
+	python -m tqdm --help | tail -n+5 | cat "$<" - |\
+    sed -r 's/^  (--.*)=<(.*)>  : (.*)$$/\n\\\1=*\2*\n: \3./' |\
+    sed -r 's/  (-.*, --.*)  /\n\1\n: /' |\
+    pandoc -o "$@" -s -t man
 
 distclean:
 	@+make coverclean
@@ -92,11 +102,16 @@ prebuildclean:
 	@+python -c "import shutil; shutil.rmtree('tqdm.egg-info', True)"
 coverclean:
 	@+python -c "import os; os.remove('.coverage') if os.path.exists('.coverage') else None"
+	@+python -c "import shutil; shutil.rmtree('tqdm/__pycache__', True)"
+	@+python -c "import shutil; shutil.rmtree('tqdm/tests/__pycache__', True)"
 clean:
-	@+python -c "import os; import glob; [os.remove(i) for i in glob.glob('*.py[co]')]"
-	@+python -c "import os; import glob; [os.remove(i) for i in glob.glob('tqdm/*.py[co]')]"
-	@+python -c "import os; import glob; [os.remove(i) for i in glob.glob('tqdm/tests/*.py[co]')]"
-	@+python -c "import os; import glob; [os.remove(i) for i in glob.glob('tqdm/examples/*.py[co]')]"
+	@+python -c "import os, glob; [os.remove(i) for i in glob.glob('*.py[co]')]"
+	@+python -c "import os, glob; [os.remove(i) for i in glob.glob('tqdm/*.py[co]')]"
+	@+python -c "import os, glob; [os.remove(i) for i in glob.glob('tqdm/tests/*.py[co]')]"
+	@+python -c "import os, glob; [os.remove(i) for i in glob.glob('tqdm/examples/*.py[co]')]"
+toxclean:
+	@+python -c "import shutil; shutil.rmtree('.tox', True)"
+
 
 installdev:
 	python setup.py develop --uninstall
