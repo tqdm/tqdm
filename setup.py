@@ -16,10 +16,16 @@ try:  # pragma: no cover
     import ConfigParser
     import StringIO
 except ImportError:  # pragma: no cover
+    # Python 3 compatibility
     import configparser as ConfigParser
     import io as StringIO
 import re
 
+# Get version from tqdm/_version.py
+__version__ = None
+version_file = os.path.join(os.path.dirname(__file__), 'tqdm', '_version.py')
+with io_open(version_file, mode='r') as fd:
+    exec(fd.read())
 
 # Makefile auxiliary functions #
 
@@ -27,12 +33,12 @@ RE_MAKE_CMD = re.compile('^\t(@\+?)(make)?', flags=re.M)
 
 
 def parse_makefile_aliases(filepath):
-    '''
+    """
     Parse a makefile to find commands and substitute variables. Expects a
     makefile with only aliases and a line return between each command.
 
     Returns a dict, with a list of commands for each alias.
-    '''
+    """
 
     # -- Parsing the Makefile using ConfigParser
     # Adding a fake section to make the Makefile a valid Ini file
@@ -119,11 +125,6 @@ def execute_makefile_commands(commands, alias, verbose=False):
 
 # Main setup.py config #
 
-# Get version from tqdm/_version.py
-__version__ = None
-version_file = os.path.join(os.path.dirname(__file__), 'tqdm', '_version.py')
-with io_open(version_file, mode='r') as fd:
-    exec(fd.read())
 
 # Executing makefile commands if specified
 if sys.argv[1].lower().strip() == 'make':
@@ -175,21 +176,32 @@ setup(
     platforms=['any'],
     packages=['tqdm'],
     entry_points={'console_scripts': ['tqdm=tqdm._main:main'], },
+    data_files=[('man/man1', ['tqdm.1'])],
+    package_data={'': ['CONTRIBUTING.md', 'LICENCE', 'examples/*.py']},
     long_description=README_rst,
     classifiers=[
         # Trove classifiers
         # (https://pypi.python.org/pypi?%3Aaction=list_classifiers)
         'Development Status :: 5 - Production/Stable',
-        'License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)',
-        'License :: OSI Approved :: MIT License',
         'Environment :: Console',
+        'Environment :: MacOS X',
+        'Environment :: Other Environment',
+        'Environment :: Win32 (MS Windows)',
+        'Environment :: X11 Applications',
         'Framework :: IPython',
-        'Operating System :: Microsoft :: Windows',
+        'Intended Audience :: Developers',
+        'Intended Audience :: Education',
+        'Intended Audience :: End Users/Desktop',
+        'Intended Audience :: Other Audience',
+        'Intended Audience :: System Administrators',
+        'License :: OSI Approved :: MIT License',
+        'License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)',
         'Operating System :: MacOS :: MacOS X',
+        'Operating System :: Microsoft :: Windows',
         'Operating System :: POSIX',
-        'Operating System :: POSIX :: Linux',
         'Operating System :: POSIX :: BSD',
         'Operating System :: POSIX :: BSD :: FreeBSD',
+        'Operating System :: POSIX :: Linux',
         'Operating System :: POSIX :: SunOS/Solaris',
         'Programming Language :: Python',
         'Programming Language :: Python :: 2',
@@ -201,15 +213,22 @@ setup(
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: Implementation :: PyPy',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: Implementation',
         'Programming Language :: Python :: Implementation :: IronPython',
+        'Programming Language :: Python :: Implementation :: PyPy',
+        'Topic :: Desktop Environment',
+        'Topic :: Education :: Testing',
+        'Topic :: Office/Business',
+        'Topic :: Other/Nonlisted Topic',
         'Topic :: Software Development :: Libraries',
         'Topic :: Software Development :: Libraries :: Python Modules',
         'Topic :: Software Development :: User Interfaces',
+        'Topic :: System :: Logging',
         'Topic :: System :: Monitoring',
+        'Topic :: System :: Shells',
         'Topic :: Terminals',
-        'Topic :: Utilities',
-        'Intended Audience :: Developers',
+        'Topic :: Utilities'
     ],
     keywords='progressbar progressmeter progress bar meter'
              ' rate eta console terminal time',

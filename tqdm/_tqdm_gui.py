@@ -11,7 +11,7 @@ Usage:
 # a result precise floating numbers (instead of truncated int)
 from __future__ import division, absolute_import
 # import compatibility functions and utilities
-import sys
+# import sys
 from time import time
 from ._utils import _range
 # to inherit from the tqdm class
@@ -27,14 +27,7 @@ class tqdm_gui(tqdm):  # pragma: no cover
     Experimental GUI version of tqdm!
     """
 
-    @classmethod
-    def write(cls, s, file=sys.stdout, end="\n"):
-        """
-        Print a message via tqdm_gui (just an alias for print)
-        """
-        # TODO: print text on GUI?
-        file.write(s)
-        file.write(end)
+    # TODO: @classmethod: write() on GUI?
 
     def __init__(self, *args, **kwargs):
         import matplotlib as mpl

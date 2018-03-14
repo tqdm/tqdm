@@ -2,7 +2,8 @@ import sys
 import subprocess
 from tqdm import main, TqdmKeyError, TqdmTypeError
 
-from tests_tqdm import with_setup, pretest, posttest, _range, closing, UnicodeIO
+from tests_tqdm import with_setup, pretest, posttest, _range, closing, \
+    UnicodeIO, StringIO
 
 
 def _sh(*cmd, **kwargs):
@@ -13,14 +14,12 @@ def _sh(*cmd, **kwargs):
 # WARNING: this should be the last test as it messes with sys.stdin, argv
 @with_setup(pretest, posttest)
 def test_main():
-    """ Test command line pipes """
+    """Test command line pipes"""
     ls_out = _sh('ls').replace('\r\n', '\n')
-    ls = subprocess.Popen(('ls'),
-                          stdout=subprocess.PIPE,
+    ls = subprocess.Popen('ls', stdout=subprocess.PIPE,
                           stderr=subprocess.STDOUT)
     res = _sh(sys.executable, '-c', 'from tqdm import main; main()',
-              stdin=ls.stdout,
-              stderr=subprocess.STDOUT)
+              stdin=ls.stdout, stderr=subprocess.STDOUT)
     ls.wait()
 
     # actual test:
@@ -30,8 +29,8 @@ def test_main():
     # semi-fake test which gets coverage:
     _SYS = sys.stdin, sys.argv
 
-    with closing(UnicodeIO()) as sys.stdin:
-        sys.argv = ['', '--desc', 'Test CLI delims',
+    with closing(StringIO()) as sys.stdin:
+        sys.argv = ['', '--desc', 'Test CLI-delims',
                     '--ascii', 'True', '--delim', r'\0', '--buf_size', '64']
         sys.stdin.write('\0'.join(map(str, _range(int(1e3)))))
         sys.stdin.seek(0)
@@ -44,10 +43,10 @@ def test_main():
     import tqdm.__main__  # NOQA
 
     IN_DATA = '\0'.join(IN_DATA_LIST)
-    with closing(UnicodeIO()) as sys.stdin:
+    with closing(StringIO()) as sys.stdin:
         sys.stdin.write(IN_DATA)
         sys.stdin.seek(0)
-        sys.argv = ['', '--ascii', '--bytes']
+        sys.argv = ['', '--ascii', '--bytes', '--unit_scale', 'False']
         with closing(UnicodeIO()) as fp:
             main(fp=fp)
             assert (str(len(IN_DATA)) in fp.getvalue())
