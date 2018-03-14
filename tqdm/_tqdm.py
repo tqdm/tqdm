@@ -531,7 +531,7 @@ class tqdm(object):
         deprecated_t = [tkwargs.pop('deprecated_t', None)]
 
         def inner_generator(df_function='apply'):
-            def inner(df, func, **kwargs):
+            def inner(df, func, *args, **kwargs):
                 """
                 Parameters
                 ----------
@@ -542,20 +542,17 @@ class tqdm(object):
                 **kwargs  : optional
                     Transmitted to `df.apply()`.
                 """
-                # *args intentionally not supported (see #244, #299)
 
                 # Precompute total iterations
                 total = getattr(df, 'ngroups', None)
                 if total is None:  # not grouped
-                    if isinstance(df, Series):
+                    if df_function == 'applymap':
+                        total = df.size
+                    elif isinstance(df, Series):
                         total = len(df)
-                    else:
-                        if kwargs.get('axis') == 1:
-                            total = len(df)
-                        else:
-                            total = df.size // len(df)
-                else:
-                    total += 1  # pandas calls update once too many
+                    else: #DataFrame or Panel
+                        axis = kwargs.get('axis', 0)
+                        total = df.size // df.shape[axis] # when axis=0, total is shape[axis1]
 
                 # Init bar
                 if deprecated_t[0] is not None:
@@ -564,9 +561,20 @@ class tqdm(object):
                 else:
                     t = tclass(*targs, total=total, **tkwargs)
 
+                if len(args) > 0:
+                    # *args intentionally not supported (see #244, #299)
+                    TqdmDeprecationWarning("""\
+Except func, normal arguments are intentionally \
+not supported by (DataFrame|Series|GroupBy).progress_apply. \
+Use keyword arguments instead.""", fp_write=getattr(t.fp, 'write', sys.stderr.write))
+                
                 # Define bar updating wrapper
                 def wrapper(*args, **kwargs):
-                    t.update()
+                    # update tbar correctly
+                    # it seems pandas apply calls func twice on the first column/row 
+                    # to decide whether it can take a fast or slow code path.
+                    # so stop when t.total==t.n
+                    t.update(n=1 if t.total and t.n < t.total else 0)
                     return func(*args, **kwargs)
 
                 # Apply the provided function (in **kwargs)
