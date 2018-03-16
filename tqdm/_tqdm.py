@@ -27,7 +27,8 @@ import threading as th
 __author__ = {"github.com/": ["noamraph", "obiwanus", "kmike", "hadim",
                               "casperdcl", "lrq3000"]}
 __all__ = ['tqdm', 'trange',
-           'TqdmTypeError', 'TqdmKeyError', 'TqdmDeprecationWarning']
+           'TqdmTypeError', 'TqdmKeyError', 'TqdmDeprecationWarning',
+           'TqdmMonitorWarning']
 
 
 class TqdmTypeError(TypeError):
@@ -38,13 +39,18 @@ class TqdmKeyError(KeyError):
     pass
 
 
-class TqdmDeprecationWarning(Exception):
+class TqdmDeprecationWarning(DeprecationWarning):
     # not suppressed if raised
     def __init__(self, msg, fp_write=None, *a, **k):
         if fp_write is not None:
             fp_write("\nTqdmDeprecationWarning: " + str(msg).rstrip() + '\n')
         else:
             super(TqdmDeprecationWarning, self).__init__(msg, *a, **k)
+
+
+class TqdmMonitorWarning(RuntimeWarning):
+    """tqdm monitor errors which do not affect external functionality"""
+    pass
 
 
 # Create global parallelism locks to avoid racing issues with parallel bars
@@ -390,7 +396,7 @@ class tqdm(object):
                 from warnings import warn
                 warn("tqdm:disabling monitor support"
                      " (monitor_interval = 0) due to:\n" + str(e),
-                     RuntimeWarning)
+                     TqdmMonitorWarning)
                 cls.monitor_interval = 0
         # Return the instance
         return instance
