@@ -387,10 +387,10 @@ class tqdm(object):
             try:
                 cls.monitor = TMonitor(cls, cls.monitor_interval)
             except Exception as e:  # pragma: nocover
-                from logging import getLogger
-                log = getLogger(__name__)
-                log.info("tqdm:disabling monitor support"
-                         " (monitor_interval = 0) due to:\n" + str(e))
+                from warnings import warn
+                warn("tqdm:disabling monitor support"
+                     " (monitor_interval = 0) due to:\n" + str(e),
+                     RuntimeWarning)
                 cls.monitor_interval = 0
         # Return the instance
         return instance
