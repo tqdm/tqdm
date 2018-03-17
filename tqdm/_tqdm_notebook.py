@@ -121,10 +121,9 @@ class tqdm_notebook(tqdm):
                     npos = s.find(r'/|/')  # cause we use bar_format=r'{n}|...'
                     # Check that n can be found in s (else n > total)
                     if npos >= 0:
-                        n = round(float(s[:npos]),5)  # get n from string
-                        n = int(n) if n.is_integer() else n # to avoid display error
+                        n_fmt = s[:npos]
+                        n = int(n_fmt) if '.' not in n_fmt else round(float(n_fmt),3)
                         s = s[npos + 3:]  # remove from string
-
                         # Update bar with current n value
                         if n is not None:
                             pbar.value = n

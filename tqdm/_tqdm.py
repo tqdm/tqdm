@@ -273,7 +273,7 @@ class tqdm(object):
                 if total else None
         else:
             n_fmt = str(n)
-            if isinstance(n, float): # fix for decimal progress
+            if '.' in n_fmt: #n is a float
                 n_round = round(n,5)
                 n_fmt = str(int(n_round)) if n_round.is_integer() else str(n_round)
 
@@ -987,6 +987,8 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
         if n < 0:
             raise ValueError("n ({0}) cannot be negative".format(n))
         self.n += n
+        if isinstance(self.n, float):
+            self.n = round(self.n,3) 
 
         # check counter first to reduce calls to time()
         if self.n - self.last_print_n >= self.miniters:
