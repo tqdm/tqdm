@@ -988,7 +988,7 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
             raise ValueError("n ({0}) cannot be negative".format(n))
         self.n += n
         if isinstance(self.n, float):
-            self.n = round(self.n,3) 
+            self.n = round(self.n, 3)
 
         # check counter first to reduce calls to time()
         if self.n - self.last_print_n >= self.miniters:
