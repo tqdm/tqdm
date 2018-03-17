@@ -567,11 +567,10 @@ class tqdm(object):
 Except func, normal arguments are intentionally \
 not supported by (DataFrame|Series|GroupBy).progress_apply. \
 Use keyword arguments instead.""", fp_write=getattr(t.fp, 'write', sys.stderr.write))
-                
                 # Define bar updating wrapper
                 def wrapper(*args, **kwargs):
                     # update tbar correctly
-                    # it seems pandas apply calls func twice on the first column/row 
+                    # it seems pandas apply calls func twice on the first column/row
                     # to decide whether it can take a fast or slow code path.
                     # so stop when t.total==t.n
                     t.update(n=1 if t.total and t.n < t.total else 0)

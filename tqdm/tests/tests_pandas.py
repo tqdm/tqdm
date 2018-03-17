@@ -69,7 +69,7 @@ def test_pandas_data_frame():
         expects = ['20000/20000', '200/200', '100/100']
         for exres in expects:
             our_file.seek(0)
-            if our_file.getvalue().count(exres) < 0:
+            if our_file.getvalue().count(exres) < 1:
                 our_file.seek(0)
                 raise AssertionError(
                     "\nExpected:\n{0}\nIn:\n {1}\n".format(exres+" at least once.", our_file.read()))
@@ -103,6 +103,33 @@ def test_pandas_groupby_apply():
             raise AssertionError("\nDid not expect:\n{0}\nIn:{1}\n".format(
                 nexres, our_file.read()))
 
+    with closing(StringIO()) as our_file:
+        tqdm.pandas(file=our_file, leave=True, ascii=True)
+        
+        dfs = pd.DataFrame(randint(0, 50, (500, 3)), columns=list('abc'))
+        dfs.loc[0] = [2,1,1]
+        dfs['d'] = 100
+
+        dfs.groupby(dfs.index).progress_apply(lambda x: None) #total = 500
+        dfs.groupby('d').progress_apply(lambda x: None) #total = 1
+        dfs.groupby(dfs.columns,axis=1).progress_apply(lambda x: None) #total = 4
+        dfs.groupby([2,2,1,1],axis=1).progress_apply(lambda x: None) #total = 2
+
+        our_file.seek(0)
+        if our_file.read().count('100%') < 4:
+            our_file.seek(0)
+            raise AssertionError("\nExpected:\n{0}\nIn:\n{1}\n".format(
+                '100% at least four times', our_file.read()))
+        
+        expects = ['500/500', '1/1', '4/4', '2/2']
+        for exres in expects:
+            our_file.seek(0)
+            if our_file.getvalue().count(exres) < 1:
+                our_file.seek(0)
+                raise AssertionError(
+                    "\nExpected:\n{0}\nIn:\n {1}\n".format(exres+" at least once.", our_file.read()))
+
+
 @with_setup(pretest, posttest)
 def test_pandas_leave():
     """Test pandas with `leave=True`"""
@@ -126,6 +153,25 @@ def test_pandas_leave():
                 "\nExpected:\n{0}\nIn:{1}\n".format(exres, our_file.read()))
 
 
+@with_setup(pretest, posttest)
+def test_pandas_apply_args_deprecation():
+    """Test warning info in pandas.Dataframe(Series).progress_apply(func,*args)"""
+    try:
+        from numpy.random import randint
+        from tqdm import tqdm_pandas
+        import pandas as pd
+    except:
+        raise SkipTest
+
+    with closing(StringIO()) as our_file:
+        tqdm_pandas(tqdm(file=our_file, leave=False, ascii=True, ncols=20))
+        df = pd.DataFrame(randint(0, 50, (500, 3)))
+        df.progress_apply(lambda x: None, 1) # 1 shall cause a warning
+        # Check deprecation message
+        assert "TqdmDeprecationWarning" in our_file.getvalue()
+        assert "not supported" in our_file.getvalue()
+        assert "keyword arguments instead" in our_file.getvalue()
+    
 @with_setup(pretest, posttest)
 def test_pandas_deprecation():
     """Test bar object instance as argument deprecation"""
