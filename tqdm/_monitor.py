@@ -50,8 +50,9 @@ class TMonitor(Thread):
             # Need to be done just before sleeping
             self.woken = cur_t
             # Sleep some time...
+            self.was_killed.wait(self.sleep_interval)
             # Quit if killed
-            if self.was_killed.wait(self.sleep_interval):
+            if self.was_killed.is_set():
                 return
             # Then monitor!
             # Acquire lock (to access _instances)
