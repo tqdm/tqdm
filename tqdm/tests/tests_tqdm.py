@@ -11,7 +11,7 @@ from nose import with_setup
 from nose.plugins.skip import SkipTest
 from nose.tools import assert_raises
 from contextlib import contextmanager
-from functional import partial
+from functools import partial
 from threading import Event
 from time import sleep
 
