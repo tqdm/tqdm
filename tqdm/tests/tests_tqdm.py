@@ -10,8 +10,10 @@ import os
 from nose import with_setup
 from nose.plugins.skip import SkipTest
 from nose.tools import assert_raises
-from time import sleep
 from contextlib import contextmanager
+from functional import partial
+from threading import Event
+from time import sleep
 
 from tqdm import tqdm
 from tqdm import trange
@@ -92,6 +94,17 @@ class FakeSleep(object):
         end = t + self.dtimer.t
         while self.dtimer.t < end:
             sleep(0.0000001)  # sleep a bit to interrupt (instead of pass)
+
+
+class FakeSleepEvent(Event):
+    def __init__(self, sleep):
+        self.sleep = sleep
+        super(FakeSleepEvent, self).__init__()
+
+    def wait(self, timeout=None):
+        if timeout is not None:
+            self.sleep(timeout)
+        return self.is_set()
 
 
 def cpu_timify(t, timer=None):
@@ -1429,7 +1442,7 @@ def test_monitoring_thread():
     TMonitor._time = timer.time
     # And a fake sleeper
     sleeper = FakeSleep(timer)
-    TMonitor._sleep = sleeper.sleep
+    TMonitor._event = partial(FakeSleepEvent, sleeper.sleep)
 
     # And a fake tqdm
     class fake_tqdm(object):
@@ -1453,7 +1466,7 @@ def test_monitoring_thread():
     sleeper = FakeSleep(timer)
     # Setup TMonitor to use the timer
     TMonitor._time = timer.time
-    TMonitor._sleep = sleeper.sleep
+    TMonitor._event = partial(FakeSleepEvent, sleeper.sleep)
     # Set monitor interval
     tqdm.monitor_interval = maxinterval
     with closing(StringIO()) as our_file:
@@ -1501,7 +1514,7 @@ def test_monitoring_thread():
     sleeper = FakeSleep(timer)
     # Setup TMonitor to use the timer
     TMonitor._time = timer.time
-    TMonitor._sleep = sleeper.sleep
+    TMonitor._event = partial(FakeSleepEvent, sleeper.sleep)
     with closing(StringIO()) as our_file:
         with tqdm(total=total, file=our_file, miniters=500, mininterval=0.1,
                   maxinterval=maxinterval) as t1:

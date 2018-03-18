@@ -19,7 +19,7 @@ class TMonitor(Thread):
 
     # internal vars for unit testing
     _time = None
-    _sleep = None
+    _event = None
 
     def __init__(self, tqdm_cls, sleep_interval):
         Thread.__init__(self)
@@ -32,10 +32,10 @@ class TMonitor(Thread):
             self._time = TMonitor._time
         else:
             self._time = time
-        if TMonitor._sleep is not None:
-            self._sleep = TMonitor._sleep
+        if TMonitor._event is not None:
+            self._event = TMonitor._event
         else:
-            self._sleep = sleep
+            self._event = Event
         self.start()
 
     def exit(self):
