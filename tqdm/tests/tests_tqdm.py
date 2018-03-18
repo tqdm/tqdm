@@ -11,7 +11,6 @@ from nose import with_setup
 from nose.plugins.skip import SkipTest
 from nose.tools import assert_raises
 from contextlib import contextmanager
-from functools import partial
 from threading import Event
 from time import sleep
 
@@ -96,15 +95,18 @@ class FakeSleep(object):
             sleep(0.0000001)  # sleep a bit to interrupt (instead of pass)
 
 
-class FakeSleepEvent(Event):
-    def __init__(self, sleep):
-        self.sleep = sleep
-        super(FakeSleepEvent, self).__init__()
-
+def make_create_fake_sleep_event(sleep):
     def wait(self, timeout=None):
         if timeout is not None:
-            self.sleep(timeout)
+            sleep(timeout)
         return self.is_set()
+
+    def create_fake_sleep_event():
+        event = Event()
+        event.wait = wait
+        return event
+
+    return create_fake_sleep_event
 
 
 def cpu_timify(t, timer=None):
@@ -1442,7 +1444,7 @@ def test_monitoring_thread():
     TMonitor._time = timer.time
     # And a fake sleeper
     sleeper = FakeSleep(timer)
-    TMonitor._event = partial(FakeSleepEvent, sleeper.sleep)
+    TMonitor._event = make_create_fake_sleep_event(sleeper.sleep)
 
     # And a fake tqdm
     class fake_tqdm(object):
@@ -1466,7 +1468,7 @@ def test_monitoring_thread():
     sleeper = FakeSleep(timer)
     # Setup TMonitor to use the timer
     TMonitor._time = timer.time
-    TMonitor._event = partial(FakeSleepEvent, sleeper.sleep)
+    TMonitor._event = make_create_fake_sleep_event(sleeper.sleep)
     # Set monitor interval
     tqdm.monitor_interval = maxinterval
     with closing(StringIO()) as our_file:
@@ -1514,7 +1516,7 @@ def test_monitoring_thread():
     sleeper = FakeSleep(timer)
     # Setup TMonitor to use the timer
     TMonitor._time = timer.time
-    TMonitor._event = partial(FakeSleepEvent, sleeper.sleep)
+    TMonitor._event = make_create_fake_sleep_event(sleeper.sleep)
     with closing(StringIO()) as our_file:
         with tqdm(total=total, file=our_file, miniters=500, mininterval=0.1,
                   maxinterval=maxinterval) as t1:
