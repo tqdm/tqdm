@@ -137,7 +137,7 @@ def test_monitoring_thread():
                 t2.update(1)
                 # Wait for the monitor to get out of sleep and update tqdm
                 timeend = timer.time()
-                while not (t.monitor.woken >= timeend and t1.miniters == 1):
+                while not (t1.monitor.woken >= timeend and t1.miniters == 1):
                     timer.sleep(1)
                     sleep(0.000001)
                 assert t1.miniters == 1  # check that monitor corrected miniters
