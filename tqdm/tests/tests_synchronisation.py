@@ -18,6 +18,10 @@ class FakeSleep(object):
             sleep(0.0000001)  # sleep a bit to interrupt (instead of pass)
 
 
+class FakeTqdm(object):
+    _instances = []
+
+
 def make_create_fake_sleep_event(sleep):
     def wait(self, timeout=None):
         if timeout is not None:
@@ -46,12 +50,8 @@ def test_monitoring_thread():
     sleeper = FakeSleep(timer)
     TMonitor._event = make_create_fake_sleep_event(sleeper.sleep)
 
-    # And a fake tqdm
-    class fake_tqdm(object):
-        _instances = []
-
     # Instanciate the monitor
-    monitor = TMonitor(fake_tqdm, maxinterval)
+    monitor = TMonitor(FakeTqdm, maxinterval)
     # Test if alive, then killed
     assert monitor.report()
     monitor.exit()

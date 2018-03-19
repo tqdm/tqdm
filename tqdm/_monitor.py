@@ -1,5 +1,5 @@
 from threading import Event, Thread
-from time import time, sleep
+from time import time
 __all__ = ["TMonitor"]
 
 
