@@ -1,5 +1,5 @@
-from threading import Thread
-from time import time, sleep
+from threading import Event, Thread
+from time import time
 __all__ = ["TMonitor"]
 
 
@@ -19,12 +19,12 @@ class TMonitor(Thread):
 
     # internal vars for unit testing
     _time = None
-    _sleep = None
+    _event = None
 
     def __init__(self, tqdm_cls, sleep_interval):
         Thread.__init__(self)
         self.daemon = True  # kill thread when main killed (KeyboardInterrupt)
-        self.was_killed = False
+        self.was_killed = Event()
         self.woken = 0  # last time woken up, to sync with monitor
         self.tqdm_cls = tqdm_cls
         self.sleep_interval = sleep_interval
@@ -32,15 +32,15 @@ class TMonitor(Thread):
             self._time = TMonitor._time
         else:
             self._time = time
-        if TMonitor._sleep is not None:
-            self._sleep = TMonitor._sleep
+        if TMonitor._event is not None:
+            self._event = TMonitor._event
         else:
-            self._sleep = sleep
+            self._event = Event
         self.start()
 
     def exit(self):
-        self.was_killed = True
-        # self.join()  # DO NOT, blocking event, slows down tqdm at closing
+        self.was_killed.set()
+        self.join()
         return self.report()
 
     def run(self):
@@ -50,10 +50,9 @@ class TMonitor(Thread):
             # Need to be done just before sleeping
             self.woken = cur_t
             # Sleep some time...
-            self._sleep(self.sleep_interval)
+            self.was_killed.wait(self.sleep_interval)
             # Quit if killed
-            # if self.exit_event.is_set():  # TODO: should work but does not...
-            if self.was_killed:
+            if self.was_killed.is_set():
                 return
             # Then monitor!
             # Acquire lock (to access _instances)
@@ -61,6 +60,9 @@ class TMonitor(Thread):
                 cur_t = self._time()
                 # Check tqdm instances are waiting too long to print
                 for instance in self.tqdm_cls._instances:
+                    # Check event in loop to reduce blocking time on exit
+                    if self.was_killed.is_set():
+                        return
                     # Avoid race by checking that the instance started
                     if not hasattr(instance, 'start_t'):  # pragma: nocover
                         continue
@@ -76,5 +78,4 @@ class TMonitor(Thread):
                         instance.refresh(nolock=True)
 
     def report(self):
-        # return self.is_alive()  # TODO: does not work...
-        return not self.was_killed
+        return not self.was_killed.is_set()
