@@ -1,3 +1,4 @@
+from __future__ import division
 from tqdm import tqdm
 from tests_tqdm import with_setup, pretest, posttest, StringIO, closing
 from tests_tqdm import DiscreteTimer, cpu_timify
@@ -37,12 +38,10 @@ def make_create_fake_sleep_event(sleep):
 
 
 @with_setup(pretest, posttest)
-def test_monitoring_thread():
-    # Note: should fix miniters for these tests, else with dynamic_miniters
-    # it's too complicated to handle with monitoring update and maxinterval...
+def test_monitor_thread():
+    """Test dummy monitoring thread"""
     maxinterval = 10
 
-    # 1- Configure and test the thread alone
     # Setup a discrete timer
     timer = DiscreteTimer()
     TMonitor._time = timer.time
@@ -60,7 +59,14 @@ def test_monitoring_thread():
     # assert not monitor.is_alive()  # not working dunno why, thread not killed
     del monitor
 
-    # 2- Test for real with a tqdm instance that takes too long
+
+@with_setup(pretest, posttest)
+def test_monitoring_and_cleanup():
+    """Test for stalled tqdm instance and monitor deletion"""
+    # Note: should fix miniters for these tests, else with dynamic_miniters
+    # it's too complicated to handle with monitoring update and maxinterval...
+    maxinterval = 2
+
     total = 1000
     # Setup a discrete timer
     timer = DiscreteTimer()
@@ -105,10 +111,18 @@ def test_monitoring_thread():
             # Wait for the monitor to get out of sleep's loop and update tqdm..
             assert t.miniters == 1  # check that monitor corrected miniters
 
-    # 3- Check that class var monitor is deleted if no instance left
+    # Check that class var monitor is deleted if no instance left
+    tqdm.monitor_interval = 10
     assert tqdm.monitor is None
 
-    # 4- Test on multiple bars, one not needing miniters adjustment
+
+@with_setup(pretest, posttest)
+def test_monitoring_multi():
+    """Test on multiple bars, one not needing miniters adjustment"""
+    # Note: should fix miniters for these tests, else with dynamic_miniters
+    # it's too complicated to handle with monitoring update and maxinterval...
+    maxinterval = 2
+
     total = 1000
     # Setup a discrete timer
     timer = DiscreteTimer()
@@ -117,6 +131,8 @@ def test_monitoring_thread():
     # Setup TMonitor to use the timer
     TMonitor._time = timer.time
     TMonitor._event = make_create_fake_sleep_event(sleeper.sleep)
+    # Set monitor interval
+    tqdm.monitor_interval = maxinterval
     with closing(StringIO()) as our_file:
         with tqdm(total=total, file=our_file, miniters=500, mininterval=0.1,
                   maxinterval=maxinterval) as t1:
@@ -126,7 +142,7 @@ def test_monitoring_thread():
                 cpu_timify(t1, timer)
                 cpu_timify(t2, timer)
                 # Do a lot of iterations in a small timeframe
-                timer.sleep(5)
+                timer.sleep(maxinterval / 2)
                 t1.update(500)
                 t2.update(500)
                 assert t1.miniters == 500
@@ -142,3 +158,7 @@ def test_monitoring_thread():
                     sleep(0.000001)
                 assert t1.miniters == 1  # check that monitor corrected miniters
                 assert t2.miniters == 500  # check that t2 was not adjusted
+
+    # Check that class var monitor is deleted if no instance left
+    tqdm.monitor_interval = 10
+    assert tqdm.monitor is None
