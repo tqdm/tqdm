@@ -1,6 +1,13 @@
 from threading import Event, Thread
 from time import time
-__all__ = ["TMonitor"]
+from warnings import warn
+__all__ = ["TMonitor", "TqdmSynchronisationWarning"]
+
+
+class TqdmSynchronisationWarning(RuntimeWarning):
+    """tqdm multi-thread/-process errors which may cause incorrect nesting
+    but otherwise no adverse effects"""
+    pass
 
 
 class TMonitor(Thread):
@@ -59,7 +66,8 @@ class TMonitor(Thread):
             with self.tqdm_cls.get_lock():
                 cur_t = self._time()
                 # Check tqdm instances are waiting too long to print
-                for instance in self.tqdm_cls._instances:
+                instances = self.tqdm_cls._instances.copy()
+                for instance in instances:
                     # Check event in loop to reduce blocking time on exit
                     if self.was_killed.is_set():
                         return
@@ -76,6 +84,10 @@ class TMonitor(Thread):
                         instance.miniters = 1
                         # Refresh now! (works only for manual tqdm)
                         instance.refresh(nolock=True)
+                if instances != self.tqdm_cls._instances:  # pragma: nocover
+                    warn("Set changed size during iteration" +
+                         " (see https://github.com/tqdm/tqdm/issues/481)",
+                         TqdmSynchronisationWarning)
 
     def report(self):
         return not self.was_killed.is_set()
