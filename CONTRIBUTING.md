@@ -237,6 +237,10 @@ Finally, upload everything to pypi. This can be done easily using the
 Also, the new release can (should) be added to `github` by creating a new
 release from the web interface; uploading packages from the `dist/` folder
 created by `[python setup.py] make build`.
+The [wiki] can be automatically updated with github release notes by
+running `make` within the wiki repository.
+
+[wiki]: https://github.com/tqdm/tqdm/wiki
 
 Notes
 ~~~~~
@@ -267,7 +271,7 @@ following:
 
 Additionally (less maintained), there exists:
 
-- A [wiki](https://github.com/tqdm/tqdm/wiki) which is publicly editable.
+- A [wiki] which is publicly editable.
 - The [gh-pages project](https://tqdm.github.io/tqdm/) which is built from the
   [gh-pages branch](https://github.com/tqdm/tqdm/tree/gh-pages), which is
   built using [asv](https://github.com/spacetelescope/asv/).
