@@ -13,12 +13,11 @@ from __future__ import division
 # compatibility functions and utilities
 from ._utils import _supports_unicode, _environ_cols_wrapper, _range, _unich, \
     _term_move_up, _unicode, WeakSet, _basestring, _OrderedDict
+from ._monitor import TMonitor
 # native libraries
 import sys
 from numbers import Number
-from threading import Thread
 from time import time
-from time import sleep
 from contextlib import contextmanager
 # For parallelism safety
 import multiprocessing as mp
@@ -28,7 +27,8 @@ import threading as th
 __author__ = {"github.com/": ["noamraph", "obiwanus", "kmike", "hadim",
                               "casperdcl", "lrq3000"]}
 __all__ = ['tqdm', 'trange',
-           'TqdmTypeError', 'TqdmKeyError', 'TqdmDeprecationWarning']
+           'TqdmTypeError', 'TqdmKeyError', 'TqdmDeprecationWarning',
+           'TqdmMonitorWarning']
 
 
 class TqdmTypeError(TypeError):
@@ -39,7 +39,7 @@ class TqdmKeyError(KeyError):
     pass
 
 
-class TqdmDeprecationWarning(Exception):
+class TqdmDeprecationWarning(DeprecationWarning):
     # not suppressed if raised
     def __init__(self, msg, fp_write=None, *a, **k):
         if fp_write is not None:
@@ -48,13 +48,22 @@ class TqdmDeprecationWarning(Exception):
             super(TqdmDeprecationWarning, self).__init__(msg, *a, **k)
 
 
+class TqdmMonitorWarning(RuntimeWarning):
+    """tqdm monitor errors which do not affect external functionality"""
+    pass
+
+
 # Create global parallelism locks to avoid racing issues with parallel bars
 # works only if fork available (Linux, MacOSX, but not on Windows)
 try:
     mp_lock = mp.RLock()  # multiprocessing lock
-    th_lock = th.RLock()  # thread lock
+except ImportError:  # pragma: no cover
+    mp_lock = None
 except OSError:  # pragma: no cover
     mp_lock = None
+try:
+    th_lock = th.RLock()  # thread lock
+except OSError:  # pragma: no cover
     th_lock = None
 
 
@@ -82,80 +91,6 @@ class TqdmDefaultWriteLock(object):
 
     def __exit__(self, *exc):
         self.release()
-
-
-class TMonitor(Thread):
-    """
-    Monitoring thread for tqdm bars.
-    Monitors if tqdm bars are taking too much time to display
-    and readjusts miniters automatically if necessary.
-
-    Parameters
-    ----------
-    tqdm_cls  : class
-        tqdm class to use (can be core tqdm or a submodule).
-    sleep_interval  : fload
-        Time to sleep between monitoring checks.
-    """
-
-    # internal vars for unit testing
-    _time = None
-    _sleep = None
-
-    def __init__(self, tqdm_cls, sleep_interval):
-        Thread.__init__(self)
-        self.daemon = True  # kill thread when main killed (KeyboardInterrupt)
-        self.was_killed = False
-        self.woken = 0  # last time woken up, to sync with monitor
-        self.tqdm_cls = tqdm_cls
-        self.sleep_interval = sleep_interval
-        if TMonitor._time is not None:
-            self._time = TMonitor._time
-        else:
-            self._time = time
-        if TMonitor._sleep is not None:
-            self._sleep = TMonitor._sleep
-        else:
-            self._sleep = sleep
-        self.start()
-
-    def exit(self):
-        self.was_killed = True
-        # self.join()  # DO NOT, blocking event, slows down tqdm at closing
-        return self.report()
-
-    def run(self):
-        cur_t = self._time()
-        while True:
-            # After processing and before sleeping, notify that we woke
-            # Need to be done just before sleeping
-            self.woken = cur_t
-            # Sleep some time...
-            self._sleep(self.sleep_interval)
-            # Quit if killed
-            # if self.exit_event.is_set():  # TODO: should work but does not...
-            if self.was_killed:
-                return
-            # Then monitor!
-            # Acquire lock (to access _instances)
-            with self.tqdm_cls.get_lock():
-                cur_t = self._time()
-                # Check tqdm instances are waiting too long to print
-                for instance in self.tqdm_cls._instances:
-                    # Only if mininterval > 1 (else iterations are just slow)
-                    # and last refresh exceeded maxinterval
-                    if instance.miniters > 1 and \
-                            (cur_t - instance.last_print_t) >= \
-                            instance.maxinterval:
-                        # force bypassing miniters on next iteration
-                        # (dynamic_miniters adjusts mininterval automatically)
-                        instance.miniters = 1
-                        # Refresh now! (works only for manual tqdm)
-                        instance.refresh(nolock=True)
-
-    def report(self):
-        # return self.is_alive()  # TODO: does not work...
-        return not self.was_killed
 
 
 class tqdm(object):
@@ -455,7 +390,14 @@ class tqdm(object):
         # Create the monitoring thread
         if cls.monitor_interval and (cls.monitor is None or not
                                      cls.monitor.report()):
-            cls.monitor = TMonitor(cls, cls.monitor_interval)
+            try:
+                cls.monitor = TMonitor(cls, cls.monitor_interval)
+            except Exception as e:  # pragma: nocover
+                from warnings import warn
+                warn("tqdm:disabling monitor support"
+                     " (monitor_interval = 0) due to:\n" + str(e),
+                     TqdmMonitorWarning)
+                cls.monitor_interval = 0
         # Return the instance
         return instance
 
@@ -597,21 +539,21 @@ class tqdm(object):
                     Data (may be grouped).
                 func  : function
                     To be applied on the (grouped) data.
-                *args, *kwargs  : optional
+                **kwargs  : optional
                     Transmitted to `df.apply()`.
                 """
+
                 # Precompute total iterations
                 total = getattr(df, 'ngroups', None)
                 if total is None:  # not grouped
-                    if isinstance(df, Series):
+                    if df_function == 'applymap':
+                        total = df.size
+                    elif isinstance(df, Series):
                         total = len(df)
-                    else:
-                        if kwargs.get('axis') == 1:
-                            total = len(df)
-                        else:
-                            total = df.size // len(df)
-                else:
-                    total += 1  # pandas calls update once too many
+                    else:  # DataFrame or Panel
+                        axis = kwargs.get('axis', 0)
+                        # when axis=0, total is shape[axis1]
+                        total = df.size // df.shape[axis]
 
                 # Init bar
                 if deprecated_t[0] is not None:
@@ -620,14 +562,27 @@ class tqdm(object):
                 else:
                     t = tclass(*targs, total=total, **tkwargs)
 
+                if len(args) > 0:
+                    # *args intentionally not supported (see #244, #299)
+                    TqdmDeprecationWarning(
+                        "Except func, normal arguments are intentionally" +
+                        " not supported by" +
+                        " `(DataFrame|Series|GroupBy).progress_apply`." +
+                        " Use keyword arguments instead.",
+                        fp_write=getattr(t.fp, 'write', sys.stderr.write))
+
                 # Define bar updating wrapper
                 def wrapper(*args, **kwargs):
-                    t.update()
+                    # update tbar correctly
+                    # it seems `pandas apply` calls `func` twice
+                    # on the first column/row to decide whether it can
+                    # take a fast or slow code path; so stop when t.total==t.n
+                    t.update(n=1 if t.total and t.n < t.total else 0)
                     return func(*args, **kwargs)
 
-                # Apply the provided function (in *args and **kwargs)
+                # Apply the provided function (in **kwargs)
                 # on the df using our wrapper (which provides bar updating)
-                result = getattr(df, df_function)(wrapper, *args, **kwargs)
+                result = getattr(df, df_function)(wrapper, **kwargs)
 
                 # Close bar and return pandas calculation result
                 t.close()

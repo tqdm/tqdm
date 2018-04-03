@@ -222,11 +222,20 @@ of a neat one-line progress bar.
       `IDLE <https://github.com/tqdm/tqdm/issues/191#issuecomment-230168030>`__,
       `ConEmu <https://github.com/tqdm/tqdm/issues/254>`__ and
       `PyCharm <https://github.com/tqdm/tqdm/issues/203>`__ (also
-      `here <https://github.com/tqdm/tqdm/issues/208>`__ and
-      `here <https://github.com/tqdm/tqdm/issues/307>`__)
+      `here <https://github.com/tqdm/tqdm/issues/208>`__,
+      `here <https://github.com/tqdm/tqdm/issues/307>`__, and
+      `here <https://github.com/tqdm/tqdm/issues/454#issuecomment-335416815>`__)
       lack full support.
     * Windows: additionally may require the Python module ``colorama``
       to ensure nested bars stay within their respective lines.
+- Unicode:
+    * Environments which report that they support unicode will have solid smooth
+      progressbars. The fallback is an `ascii`-only bar.
+    * Windows consoles often only partially support unicode and thus
+      `often require explicit ascii=True <https://github.com/tqdm/tqdm/issues/454#issuecomment-335416815>`__
+      (also `here <https://github.com/tqdm/tqdm/issues/499>`__). This is due to
+      either normal-width unicode characters being incorrectly displayed as
+      "wide", or some unicode characters not rendering.
 - Wrapping enumerated iterables: use ``enumerate(tqdm(...))`` instead of
   ``tqdm(enumerate(...))``. The same applies to ``numpy.ndenumerate``.
   This is because enumerate functions tend to hide the length of iterables.
@@ -801,10 +810,10 @@ There are also many |GitHub-Contributions| which we are grateful for.
 .. |Screenshot| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/tqdm.gif
 .. |Build-Status| image:: https://travis-ci.org/tqdm/tqdm.svg?branch=master
    :target: https://travis-ci.org/tqdm/tqdm
-.. |Coverage-Status| image:: https://coveralls.io/repos/tqdm/tqdm/badge.svg
-   :target: https://coveralls.io/r/tqdm/tqdm
-.. |Branch-Coverage-Status| image:: https://codecov.io/github/tqdm/tqdm/coverage.svg?branch=master
-   :target: https://codecov.io/github/tqdm/tqdm?branch=master
+.. |Coverage-Status| image:: https://coveralls.io/repos/tqdm/tqdm/badge.svg?branch=master
+   :target: https://coveralls.io/github/tqdm/tqdm
+.. |Branch-Coverage-Status| image:: https://codecov.io/gh/tqdm/tqdm/branch/master/graph/badge.svg
+   :target: https://codecov.io/gh/tqdm/tqdm
 .. |Codacy-Grade| image:: https://api.codacy.com/project/badge/Grade/3f965571598f44549c7818f29cdcf177
    :target: https://www.codacy.com/app/tqdm/tqdm?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=tqdm/tqdm&amp;utm_campaign=Badge_Grade
 .. |GitHub-Status| image:: https://img.shields.io/github/tag/tqdm/tqdm.svg?maxAge=86400

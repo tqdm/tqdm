@@ -1,7 +1,6 @@
 # IMPORTANT: for compatibility with `python setup.py make [alias]`, ensure:
 # 1. Every alias is preceded by @[+]make (eg: @make alias)
 # 2. A maximum of one @make alias or command per line
-# 3. Only use tabs, not spaces to indent (compatibility with linux make)
 #
 # Sample makefile compatible with `python setup.py make`:
 #```
@@ -49,7 +48,7 @@ all:
 	@+make build
 
 flake8:
-	@+flake8 --max-line-length=80 --count --statistics --exit-zero -j 8 --exclude .asv,.tox .
+	@+flake8 --max-line-length=80 --exclude .asv,.tox -j 8 --count --statistics --exit-zero .
 
 test:
 	tox --skip-missing-interpreters
@@ -102,12 +101,17 @@ prebuildclean:
 	@+python -c "import shutil; shutil.rmtree('dist', True)"
 	@+python -c "import shutil; shutil.rmtree('tqdm.egg-info', True)"
 coverclean:
-	@+python -c "import os, glob; [os.remove(i) for i in glob.glob('.coverage')]"
+	@+python -c "import os; os.remove('.coverage') if os.path.exists('.coverage') else None"
+	@+python -c "import shutil; shutil.rmtree('tqdm/__pycache__', True)"
+	@+python -c "import shutil; shutil.rmtree('tqdm/tests/__pycache__', True)"
 clean:
 	@+python -c "import os, glob; [os.remove(i) for i in glob.glob('*.py[co]')]"
 	@+python -c "import os, glob; [os.remove(i) for i in glob.glob('tqdm/*.py[co]')]"
 	@+python -c "import os, glob; [os.remove(i) for i in glob.glob('tqdm/tests/*.py[co]')]"
 	@+python -c "import os, glob; [os.remove(i) for i in glob.glob('tqdm/examples/*.py[co]')]"
+toxclean:
+	@+python -c "import shutil; shutil.rmtree('.tox', True)"
+
 
 installdev:
 	python setup.py develop --uninstall
