@@ -222,11 +222,20 @@ of a neat one-line progress bar.
       `IDLE <https://github.com/tqdm/tqdm/issues/191#issuecomment-230168030>`__,
       `ConEmu <https://github.com/tqdm/tqdm/issues/254>`__ and
       `PyCharm <https://github.com/tqdm/tqdm/issues/203>`__ (also
-      `here <https://github.com/tqdm/tqdm/issues/208>`__ and
-      `here <https://github.com/tqdm/tqdm/issues/307>`__)
+      `here <https://github.com/tqdm/tqdm/issues/208>`__,
+      `here <https://github.com/tqdm/tqdm/issues/307>`__, and
+      `here <https://github.com/tqdm/tqdm/issues/454#issuecomment-335416815>`__)
       lack full support.
     * Windows: additionally may require the Python module ``colorama``
       to ensure nested bars stay within their respective lines.
+- Unicode:
+    * Environments which report that they support unicode will have solid smooth
+      progressbars. The fallback is an `ascii`-only bar.
+    * Windows consoles often only partially support unicode and thus
+      `often require explicit ascii=True <https://github.com/tqdm/tqdm/issues/454#issuecomment-335416815>`__
+      (also `here <https://github.com/tqdm/tqdm/issues/499>`__). This is due to
+      either normal-width unicode characters being incorrectly displayed as
+      "wide", or some unicode characters not rendering.
 - Wrapping enumerated iterables: use ``enumerate(tqdm(...))`` instead of
   ``tqdm(enumerate(...))``. The same applies to ``numpy.ndenumerate``.
   This is because enumerate functions tend to hide the length of iterables.
