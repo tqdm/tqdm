@@ -10,7 +10,7 @@ def test_pandas_series():
     try:
         from numpy.random import randint
         import pandas as pd
-    except:
+    except ImportError:
         raise SkipTest
 
     with closing(StringIO()) as our_file:
@@ -31,7 +31,8 @@ def test_pandas_series():
             if our_file.getvalue().count(exres) < 2:
                 our_file.seek(0)
                 raise AssertionError(
-                    "\nExpected:\n{0}\nIn:\n{1}\n".format(exres + " at least twice.", our_file.read()))
+                    "\nExpected:\n{0}\nIn:\n{1}\n".format(
+                        exres + " at least twice.", our_file.read()))
 
 
 @with_setup(pretest, posttest)
@@ -40,21 +41,23 @@ def test_pandas_data_frame():
     try:
         from numpy.random import randint
         import pandas as pd
-    except:
+    except ImportError:
         raise SkipTest
 
     with closing(StringIO()) as our_file:
         tqdm.pandas(file=our_file, leave=True, ascii=True)
         df = pd.DataFrame(randint(0, 50, (100, 200)))
 
-        def task_func(x): return x + 1
+        def task_func(x):
+            return x + 1
+
         # applymap
         res1 = df.progress_applymap(task_func)
         res2 = df.applymap(task_func)
         assert res1.equals(res2)
 
         # apply
-        for axis in [0,1]:
+        for axis in [0, 1]:
             res3 = df.progress_apply(task_func, axis=axis)
             res4 = df.apply(task_func, axis=axis)
             assert res3.equals(res4)
@@ -72,7 +75,8 @@ def test_pandas_data_frame():
             if our_file.getvalue().count(exres) < 1:
                 our_file.seek(0)
                 raise AssertionError(
-                    "\nExpected:\n{0}\nIn:\n {1}\n".format(exres+" at least once.", our_file.read()))
+                    "\nExpected:\n{0}\nIn:\n {1}\n".format(
+                        exres + " at least once.", our_file.read()))
 
 
 @with_setup(pretest, posttest)
@@ -81,7 +85,7 @@ def test_pandas_groupby_apply():
     try:
         from numpy.random import randint
         import pandas as pd
-    except:
+    except ImportError:
         raise SkipTest
 
     with closing(StringIO()) as our_file:
@@ -105,29 +109,30 @@ def test_pandas_groupby_apply():
 
     with closing(StringIO()) as our_file:
         tqdm.pandas(file=our_file, leave=True, ascii=True)
-        
+
         dfs = pd.DataFrame(randint(0, 50, (500, 3)), columns=list('abc'))
-        dfs.loc[0] = [2,1,1]
+        dfs.loc[0] = [2, 1, 1]
         dfs['d'] = 100
 
-        dfs.groupby(dfs.index).progress_apply(lambda x: None) #total = 500
-        dfs.groupby('d').progress_apply(lambda x: None) #total = 1
-        dfs.groupby(dfs.columns,axis=1).progress_apply(lambda x: None) #total = 4
-        dfs.groupby([2,2,1,1],axis=1).progress_apply(lambda x: None) #total = 2
+        expects = ['500/500', '1/1', '4/4', '2/2']
+        dfs.groupby(dfs.index).progress_apply(lambda x: None)
+        dfs.groupby('d').progress_apply(lambda x: None)
+        dfs.groupby(dfs.columns, axis=1).progress_apply(lambda x: None)
+        dfs.groupby([2, 2, 1, 1], axis=1).progress_apply(lambda x: None)
 
         our_file.seek(0)
         if our_file.read().count('100%') < 4:
             our_file.seek(0)
             raise AssertionError("\nExpected:\n{0}\nIn:\n{1}\n".format(
                 '100% at least four times', our_file.read()))
-        
-        expects = ['500/500', '1/1', '4/4', '2/2']
+
         for exres in expects:
             our_file.seek(0)
             if our_file.getvalue().count(exres) < 1:
                 our_file.seek(0)
                 raise AssertionError(
-                    "\nExpected:\n{0}\nIn:\n {1}\n".format(exres+" at least once.", our_file.read()))
+                    "\nExpected:\n{0}\nIn:\n {1}\n".format(
+                        exres + " at least once.", our_file.read()))
 
 
 @with_setup(pretest, posttest)
@@ -136,7 +141,7 @@ def test_pandas_leave():
     try:
         from numpy.random import randint
         import pandas as pd
-    except:
+    except ImportError:
         raise SkipTest
 
     with closing(StringIO()) as our_file:
@@ -155,23 +160,26 @@ def test_pandas_leave():
 
 @with_setup(pretest, posttest)
 def test_pandas_apply_args_deprecation():
-    """Test warning info in pandas.Dataframe(Series).progress_apply(func,*args)"""
+    """Test warning info in
+    `pandas.Dataframe(Series).progress_apply(func, *args)`"""
     try:
         from numpy.random import randint
         from tqdm import tqdm_pandas
         import pandas as pd
-    except:
+    except ImportError:
         raise SkipTest
 
     with closing(StringIO()) as our_file:
         tqdm_pandas(tqdm(file=our_file, leave=False, ascii=True, ncols=20))
         df = pd.DataFrame(randint(0, 50, (500, 3)))
-        df.progress_apply(lambda x: None, 1) # 1 shall cause a warning
+        df.progress_apply(lambda x: None, 1)  # 1 shall cause a warning
         # Check deprecation message
-        assert "TqdmDeprecationWarning" in our_file.getvalue()
-        assert "not supported" in our_file.getvalue()
-        assert "keyword arguments instead" in our_file.getvalue()
-    
+        res = our_file.getvalue()
+        assert all([i in res for i in (
+            "TqdmDeprecationWarning", "not supported",
+            "keyword arguments instead")])
+
+
 @with_setup(pretest, posttest)
 def test_pandas_deprecation():
     """Test bar object instance as argument deprecation"""
@@ -179,7 +187,7 @@ def test_pandas_deprecation():
         from numpy.random import randint
         from tqdm import tqdm_pandas
         import pandas as pd
-    except:
+    except ImportError:
         raise SkipTest
 
     with closing(StringIO()) as our_file:

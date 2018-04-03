@@ -550,9 +550,10 @@ class tqdm(object):
                         total = df.size
                     elif isinstance(df, Series):
                         total = len(df)
-                    else: #DataFrame or Panel
+                    else:  # DataFrame or Panel
                         axis = kwargs.get('axis', 0)
-                        total = df.size // df.shape[axis] # when axis=0, total is shape[axis1]
+                        # when axis=0, total is shape[axis1]
+                        total = df.size // df.shape[axis]
 
                 # Init bar
                 if deprecated_t[0] is not None:
@@ -563,16 +564,19 @@ class tqdm(object):
 
                 if len(args) > 0:
                     # *args intentionally not supported (see #244, #299)
-                    TqdmDeprecationWarning("""\
-Except func, normal arguments are intentionally \
-not supported by (DataFrame|Series|GroupBy).progress_apply. \
-Use keyword arguments instead.""", fp_write=getattr(t.fp, 'write', sys.stderr.write))
+                    TqdmDeprecationWarning(
+                        "Except func, normal arguments are intentionally" +
+                        " not supported by" +
+                        " `(DataFrame|Series|GroupBy).progress_apply`." +
+                        " Use keyword arguments instead.",
+                        fp_write=getattr(t.fp, 'write', sys.stderr.write))
+
                 # Define bar updating wrapper
                 def wrapper(*args, **kwargs):
                     # update tbar correctly
-                    # it seems pandas apply calls func twice on the first column/row
-                    # to decide whether it can take a fast or slow code path.
-                    # so stop when t.total==t.n
+                    # it seems `pandas apply` calls `func` twice
+                    # on the first column/row to decide whether it can
+                    # take a fast or slow code path; so stop when t.total==t.n
                     t.update(n=1 if t.total and t.n < t.total else 0)
                     return func(*args, **kwargs)
 
