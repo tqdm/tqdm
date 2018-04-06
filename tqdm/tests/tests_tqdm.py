@@ -1110,6 +1110,13 @@ def test_position():
         t3.close()
         t1.close()
 
+    try:
+        t = tqdm(total=1, file=our_file, position=-1)
+    except ValueError:
+        pass
+    else:
+        raise ValueError("expected negative positions to raise errors")
+
 
 @with_setup(pretest, posttest)
 def test_set_description():
