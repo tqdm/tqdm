@@ -989,8 +989,8 @@ def test_position():
     # Artificially test nested loop printing
     # Without leave
     our_file = StringIO()
-    t = tqdm(total=2, file=our_file, miniters=1, mininterval=0, maxinterval=0,
-             desc='pos2 bar', leave=False, position=2)
+    kwargs = dict(file=our_file, miniters=1, mininterval=0, maxinterval=0)
+    t = tqdm(total=2, desc='pos2 bar', leave=False, position=2, **kwargs)
     t.update()
     t.close()
     our_file.seek(0)
@@ -1006,12 +1006,10 @@ def test_position():
 
     # Test iteration-based tqdm positioning
     our_file = StringIO()
-    for _ in trange(2, file=our_file, miniters=1, mininterval=0, maxinterval=0,
-                    desc='pos0 bar', position=0):
-        for _ in trange(2, file=our_file, miniters=1, mininterval=0,
-                        maxinterval=0, desc='pos1 bar', position=1):
-            for _ in trange(2, file=our_file, miniters=1, mininterval=0,
-                            maxinterval=0, desc='pos2 bar', position=2):
+    kwargs["file"] = our_file
+    for _ in trange(2, desc='pos0 bar', position=0, **kwargs):
+        for _ in trange(2, desc='pos1 bar', position=1, **kwargs):
+            for _ in trange(2, desc='pos2 bar', position=2, **kwargs):
                 pass
     our_file.seek(0)
     out = our_file.read()
@@ -1044,12 +1042,11 @@ def test_position():
 
     # Test manual tqdm positioning
     our_file = StringIO()
-    t1 = tqdm(total=2, file=our_file, miniters=1, mininterval=0, maxinterval=0,
-              desc='pos0 bar', position=0)
-    t2 = tqdm(total=2, file=our_file, miniters=1, mininterval=0, maxinterval=0,
-              desc='pos1 bar', position=1)
-    t3 = tqdm(total=2, file=our_file, miniters=1, mininterval=0, maxinterval=0,
-              desc='pos2 bar', position=2)
+    kwargs["file"] = our_file
+    kwargs["total"] = 2
+    t1 = tqdm(desc='pos0 bar', position=0, **kwargs)
+    t2 = tqdm(desc='pos1 bar', position=1, **kwargs)
+    t3 = tqdm(desc='pos2 bar', position=2, **kwargs)
     for _ in _range(2):
         t1.update()
         t3.update()
@@ -1109,13 +1106,6 @@ def test_position():
         t4.close()
         t3.close()
         t1.close()
-
-    try:
-        t = tqdm(total=1, file=our_file, position=-1)
-    except ValueError:
-        pass
-    else:
-        raise ValueError("expected negative positions to raise errors")
 
 
 @with_setup(pretest, posttest)

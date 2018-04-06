@@ -421,25 +421,27 @@ class tqdm(object):
         Remove from list and reposition other bars
         so that newer bars won't overlap previous bars
         """
-        try:  # in case instance was explicitly positioned, it won't be in set
-            with cls._lock:
+        with cls._lock:
+            try:
                 cls._instances.remove(instance)
+            except KeyError:
+                if not instance.gui:  # pragma: no cover
+                    raise
+            else:
                 for inst in cls._instances:
                     # negative `pos` means fixed
                     if inst.pos > abs(instance.pos):
                         inst.pos -= 1
                         # TODO: check this doesn't overwrite another fixed bar
-            # Kill monitor if no instances are left
-            if not cls._instances and cls.monitor:
-                try:
-                    cls.monitor.exit()
-                    del cls.monitor
-                except AttributeError:  # pragma: nocover
-                    pass
-                else:
-                    cls.monitor = None
-        except KeyError as e:
-            warn(str(e), TqdmWarning)
+        # Kill monitor if no instances are left
+        if not cls._instances and cls.monitor:
+            try:
+                cls.monitor.exit()
+                del cls.monitor
+            except AttributeError:  # pragma: nocover
+                pass
+            else:
+                cls.monitor = None
 
     @classmethod
     def write(cls, s, file=None, end="\n", nolock=False):
@@ -816,8 +818,6 @@ class tqdm(object):
         # not overwrite the outer progress bar
         if position is None:
             self.pos = self._get_free_pos(self)
-        elif position < 0:
-            raise ValueError("negative position")
         else:  # mark fixed positions as negative
             self.pos = -position
 
