@@ -27,8 +27,9 @@ from warnings import warn
 __author__ = {"github.com/": ["noamraph", "obiwanus", "kmike", "hadim",
                               "casperdcl", "lrq3000"]}
 __all__ = ['tqdm', 'trange',
-           'TqdmTypeError', 'TqdmKeyError',
-           'TqdmWarning', 'TqdmDeprecationWarning', 'TqdmMonitorWarning']
+           'TqdmTypeError', 'TqdmKeyError', 'TqdmWarning',
+           'TqdmExperimentalWarning', 'TqdmDeprecationWarning',
+           'TqdmMonitorWarning']
 
 
 class TqdmTypeError(TypeError):
@@ -50,6 +51,9 @@ class TqdmWarning(Warning):
         else:
             super(TqdmWarning, self).__init__(msg, *a, **k)
 
+class TqdmExperimentalWarning(TqdmWarning, FutureWarning):
+    """beta feature, unstable API and behaviour"""
+    pass
 
 class TqdmDeprecationWarning(TqdmWarning, DeprecationWarning):
     # not suppressed if raised

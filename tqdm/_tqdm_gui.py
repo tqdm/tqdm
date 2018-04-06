@@ -15,7 +15,8 @@ from __future__ import division, absolute_import
 from time import time
 from ._utils import _range
 # to inherit from the tqdm class
-from ._tqdm import tqdm
+from ._tqdm import tqdm, TqdmExperimentalWarning
+from warnings import warn
 
 
 __author__ = {"github.com/": ["casperdcl", "lrq3000"]}
@@ -41,7 +42,7 @@ class tqdm_gui(tqdm):  # pragma: no cover
         if self.disable or not kwargs['gui']:
             return
 
-        self.fp.write('Warning: GUI is experimental/alpha\n')
+        warn('GUI is experimental/alpha', TqdmExperimentalWarning)
         self.mpl = mpl
         self.plt = plt
         self.sp = None
