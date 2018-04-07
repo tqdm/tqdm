@@ -19,8 +19,8 @@ Options:
   -d, --debug-trace      Print lots of debugging information (-D NOTSET)
 """
 from __future__ import print_function
-from docopt import docopt
-import logging as log
+from argopt import argopt
+import logging
 import subprocess
 import re
 from tqdm import tqdm
@@ -29,33 +29,37 @@ import os
 import io
 __author__ = "Casper da Costa-Luis <casper.dcl@physics.org>"
 __licence__ = "MPLv2.0"
-__version__ = "0.2.0"
+__version__ = "0.2.1"
 __license__ = __licence__
 
 RE_SCN = re.compile("([0-9]+)\s+([0-9]+)\s+(.*)$", flags=re.M)
 
 
 def main():
-    args = docopt(__doc__, version=__version__)
-    if args.pop('--debug-trace', False):
-        args['--debug'] = "NOTSET"
-    log.basicConfig(level=getattr(log, args['--debug'], log.INFO),
-                    format='%(levelname)s: %(message)s')
+    args = argopt(__doc__, version=__version__).parse_args()
+    if args.debug_trace:
+        args.debug = "NOTSET"
+    logging.basicConfig(level=getattr(logging, args.debug, logging.INFO),
+                        format='%(levelname)s:%(message)s')
+    log = logging.getLogger(__name__)
     log.debug(args)
 
     # Get compressed sizes
     zips = {}
-    for fn in args['<zipfiles>']:
+    for fn in args.zipfiles:
         info = subprocess.check_output(["7z", "l", fn]).strip()
-        finfo = RE_SCN.findall(info)
+        finfo = RE_SCN.findall(info)  # size|compressed|name
 
         # builtin test: last line should be total sizes
         log.debug(finfo)
         totals = map(int, finfo[-1][:2])
         # log.debug(totals)
-        for s in range(2):
-            assert (sum(map(int, (inf[s] for inf in finfo[:-1]))) == totals[s])
-        fcomp = dict((n, int(c if args['--compressed'] else u))
+        for s in range(2):  # size|compressed totals
+            totals_s = sum(map(int, (inf[s] for inf in finfo[:-1])))
+            if totals_s != totals[s]:
+                log.warn("%s: individual total %d != 7z total %d" % (
+                    fn, totals_s, totals[s]))
+        fcomp = dict((n, int(c if args.compressed else u))
                      for (u, c, n) in finfo[:-1])
         # log.debug(fcomp)
         # zips  : {'zipname' : {'filename' : int(size)}}
@@ -63,7 +67,7 @@ def main():
 
     # Extract
     cmd7zx = ["7z", "x", "-bd"]
-    if args['--yes']:
+    if args.yes:
         cmd7zx += ["-y"]
     log.info("Extracting from {:d} file(s)".format(len(zips)))
     with tqdm(total=sum(sum(fcomp.values()) for fcomp in zips.values()),
@@ -79,6 +83,8 @@ def main():
             with io.open(md, mode="rU", buffering=1) as m:
                 with tqdm(total=sum(fcomp.values()), disable=len(zips) < 2,
                           leave=False, unit="B", unit_scale=True) as t:
+                    if not hasattr(t, "start_t"):  # disabled
+                        t.start_t = tall._time()
                     while True:
                         try:
                             l_raw = m.readline()
@@ -98,11 +104,10 @@ def main():
                                               "Files: ", "Size: ",
                                               "Compressed: ")):
                                 if l.startswith("Processing archive: "):
-                                    if not args['--silent']:
-                                        t.write(
-                                            t.format_interval(
-                                                t.start_t - tall.start_t) + ' '
-                                            + l.lstrip("Processing archive: "))
+                                    if not args.silent:
+                                        t.write(t.format_interval(
+                                            t.start_t - tall.start_t) + ' ' +
+                                            l.lstrip("Processing archive: "))
                                 else:
                                     t.write(l)
             ex.wait()
