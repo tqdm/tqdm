@@ -128,7 +128,8 @@ def main(fp=sys.stderr):
         # sys.argv.pop(log)
         # logLevel = sys.argv.pop(log)
         logLevel = sys.argv[log + 1]
-    logging.basicConfig(level=getattr(logging, logLevel))
+    logging.basicConfig(level=getattr(logging, logLevel),
+        format="%(levelname)s:%(module)s:%(lineno)d:%(message)s")
     log = logging.getLogger(__name__)
 
     d = tqdm.__init__.__doc__ + CLI_EXTRA_DOC
