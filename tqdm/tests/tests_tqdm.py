@@ -1470,9 +1470,16 @@ def test_postfix_list():
                   bar_format="{postfix[0]} {postfix[1]:>5.2f}",
                   postfix=["foo", 42]) as t:
             for i in range(10):
-                t.postfix = ["bar", i]
+                if i % 2:
+                    t.postfix[0] = "abcdefghij"[i]
+                else:
+                    t.postfix[1] = i
                 t.update()
-        assert "bar  9.00" in our_file.getvalue()
+        res = our_file.getvalue()
+        assert "f  6.00" in res
+        assert "h  6.00" in res
+        assert "h  8.00" in res
+        assert "j  8.00" in res
 
 
 class DummyTqdmFile(object):
