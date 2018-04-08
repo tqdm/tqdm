@@ -1463,6 +1463,18 @@ def test_postfix():
     assert out5 == ["World"]
 
 
+def test_postfix_list():
+    """Test using postfix lists"""
+    with closing(StringIO()) as our_file:
+        with tqdm(total=10, file=our_file, miniters=1, mininterval=0,
+                  bar_format="{postfix[0]} {postfix[1]:>5.2f}",
+                  postfix=["foo", 42]) as t:
+            for i in range(10):
+                t.postfix = ["bar", i]
+                t.update()
+        assert "bar  9.00" in our_file.getvalue()
+
+
 class DummyTqdmFile(object):
     """Dummy file-like that will write to tqdm"""
     file = None

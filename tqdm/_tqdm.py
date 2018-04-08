@@ -712,10 +712,9 @@ class tqdm(object):
             Specify the line offset to print this bar (starting from 0)
             Automatic if unspecified.
             Useful to manage multiple bars at once (eg, from threads).
-        postfix  : dict, optional
+        postfix  : dict or *, optional
             Specify additional stats to display at the end of the bar.
-            Note: postfix is a dict ({'key': value} pairs) for this method,
-            not a string.
+            Calls `set_postfix(**postfix)` if possible (dict).
         unit_divisor  : float, optional
             [default: 1000], ignored unless `unit_scale` is True.
         gui  : bool, optional
