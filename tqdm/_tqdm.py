@@ -240,10 +240,12 @@ class tqdm(object):
               rate_inv, rate_inv_fmt, elapsed, remaining, desc, postfix.
             Note that a trailing ": " is automatically removed after {desc}
             if the latter is empty.
-        postfix  : str, optional
+        postfix  : *, optional
             Similar to `prefix`, but placed at the end
             (e.g. for additional stats).
-            Note: postfix is a string for this method. Not a dict.
+            Note: postfix is usually a string (not a dict) for this method,
+            and will if possible be set to postfix = ', ' + postfix.
+            However other types are supported (#382).
         unit_divisor  : float, optional
             [default: 1000], ignored unless `unit_scale` is True.
 
@@ -287,6 +289,11 @@ class tqdm(object):
             n_fmt = str(n)
             total_fmt = str(total)
 
+        try:
+            postfix = ', ' + postfix if postfix else ''
+        except TypeError:
+            pass
+
         # total is known: we can predict some stats
         if total:
             # fractional and percentage progress
@@ -305,8 +312,7 @@ class tqdm(object):
                 l_bar = ''
             l_bar += '{0:3.0f}%|'.format(percentage)
             r_bar = '| {0}/{1} [{2}<{3}, {4}{5}]'.format(
-                n_fmt, total_fmt, elapsed_str, remaining_str, rate_fmt,
-                ', ' + postfix if postfix else '')
+                n_fmt, total_fmt, elapsed_str, remaining_str, rate_fmt, postfix)
 
             if ncols == 0:
                 return l_bar[:-1] + r_bar[1:]
@@ -331,7 +337,7 @@ class tqdm(object):
                             'l_bar': l_bar,
                             'r_bar': r_bar,
                             'desc': prefix or '',
-                            'postfix': ', ' + postfix if postfix else '',
+                            'postfix': postfix,
                             # 'bar': full_bar  # replaced by procedure below
                             }
 
@@ -386,8 +392,7 @@ class tqdm(object):
         else:
             return ((prefix + ": ") if prefix else '') + \
                 '{0}{1} [{2}, {3}{4}]'.format(
-                    n_fmt, unit, elapsed_str, rate_fmt,
-                    ', ' + postfix if postfix else '')
+                    n_fmt, unit, elapsed_str, rate_fmt, postfix)
 
     def __new__(cls, *args, **kwargs):
         # Create a new instance
@@ -814,7 +819,10 @@ class tqdm(object):
         self.bar_format = bar_format
         self.postfix = None
         if postfix:
-            self.set_postfix(refresh=False, **postfix)
+            try:
+                self.set_postfix(refresh=False, **postfix)
+            except TypeError:
+                self.postfix = postfix
 
         # Init the iterations counters
         self.last_print_n = initial
