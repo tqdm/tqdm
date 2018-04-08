@@ -103,7 +103,8 @@ Changelog
 ---------
 
 The list of all changes is available either on GitHub's Releases:
-|GitHub-Status| or on crawlers such as
+|GitHub-Status|, on the
+`wiki <https://github.com/tqdm/tqdm/wiki/Releases>`__ or on crawlers such as
 `allmychanges.com <https://allmychanges.com/p/python/tqdm/>`_.
 
 
@@ -798,8 +799,9 @@ The main developers, ranked by surviving lines of code, are:
 
 - Casper da Costa-Luis (`casperdcl <https://github.com/casperdcl>`__, ~2/3, |Gift-Casper|)
 - Stephen Larroque (`lrq3000 <https://github.com/lrq3000>`__, ~1/3)
-- Noam Yorav-Raphael (`noamraph <https://github.com/noamraph>`__, ~1%, original author)
+- Guangshuo Chen (`chengs <https://github.com/chengs>`__, ~1%)
 - Hadrien Mary (`hadim <https://github.com/hadim>`__, ~1%)
+- Noam Yorav-Raphael (`noamraph <https://github.com/noamraph>`__, ~1%, original author)
 - Mikhail Korobov (`kmike <https://github.com/kmike>`__, ~1%)
 
 There are also many |GitHub-Contributions| which we are grateful for.
