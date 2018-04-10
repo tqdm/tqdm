@@ -504,11 +504,11 @@ with the ``desc`` and ``postfix`` arguments:
                           lst=[1, 2])
             sleep(0.1)
 
-    with tqdm(total=10, bar_format="{postfix[0]} {postfix[1]:>8.2g}",
-              postfix=["Batch", 0]) as t:
+    with tqdm(total=10, bar_format="{postfix[0]} {postfix[1][value]:>8.2g}",
+              postfix=["Batch", dict(value=0)]) as t:
         for i in range(10):
             sleep(0.1)
-            t.postfix[1] = i / 2
+            t.postfix[1]["value"] = i / 2
             t.update()
 
 Nested progress bars
