@@ -1463,15 +1463,15 @@ def test_postfix():
     assert out5 == ["World"]
 
 
-def test_postfix_list():
-    """Test using postfix lists"""
+def test_postfix_direct():
+    """Test directly assigning non-str objects to postfix"""
     with closing(StringIO()) as our_file:
         with tqdm(total=10, file=our_file, miniters=1, mininterval=0,
-                  bar_format="{postfix[0]} {postfix[1]:>5.2f}",
-                  postfix=["foo", 42]) as t:
+                  bar_format="{postfix[0][name]} {postfix[1]:>5.2f}",
+                  postfix=[dict(name="foo"), 42]) as t:
             for i in range(10):
                 if i % 2:
-                    t.postfix[0] = "abcdefghij"[i]
+                    t.postfix[0]["name"] = "abcdefghij"[i]
                 else:
                     t.postfix[1] = i
                 t.update()
