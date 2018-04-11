@@ -104,17 +104,17 @@ class tqdm_notebook(tqdm):
         ptext = HTML()
         # Only way to place text to the right of the bar is to use a container
         container = HBox(children=[pbar, ptext])
-        # Prepare layout (if available in ipywidgets version)
-        #try:  # commented until it works, ease debugging
-        if not ncols:
-            ncols = '100%'
-        pbar.layout.width = ncols
-        container.layout.width = ncols
-        container.layout.display = 'inline-flex'
-        container.layout.flex_flow = 'row wrap'
-        #except Exception:
-            #pass
-        # Display!
+        # Prepare layout
+        if ncols is not None: # if ncols is None, use default style of ipywidgets
+            # ncols could be 100, "100px", "100%"
+            ncols = str(ncols) # ipywidgets only accepts string,
+            if ncols[-1].isnumeric():
+                # if last value is digit, assume the value is digit
+                ncols += 'px'
+            pbar.layout.flex = '2'
+            container.layout.width = ncols
+            container.layout.display = 'inline-flex'
+            container.layout.flex_flow = 'row wrap'
         display(container)
 
         def print_status(s='', close=False, bar_style=None, desc=None):
@@ -185,8 +185,8 @@ class tqdm_notebook(tqdm):
         # self.sp('', close=True)
 
         # Get bar width
-        ncols = kwargs.get('ncols', None)
-        if ncols is None or self.dynamic_ncols:
+        self.ncols = kwargs.get('ncols', None)
+        if self.dynamic_ncols:
             self.ncols = '100%'
 
         # Replace with IPython progress bar display (with correct total)
