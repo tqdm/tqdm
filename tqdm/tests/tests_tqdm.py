@@ -1463,6 +1463,25 @@ def test_postfix():
     assert out5 == ["World"]
 
 
+def test_postfix_direct():
+    """Test directly assigning non-str objects to postfix"""
+    with closing(StringIO()) as our_file:
+        with tqdm(total=10, file=our_file, miniters=1, mininterval=0,
+                  bar_format="{postfix[0][name]} {postfix[1]:>5.2f}",
+                  postfix=[dict(name="foo"), 42]) as t:
+            for i in range(10):
+                if i % 2:
+                    t.postfix[0]["name"] = "abcdefghij"[i]
+                else:
+                    t.postfix[1] = i
+                t.update()
+        res = our_file.getvalue()
+        assert "f  6.00" in res
+        assert "h  6.00" in res
+        assert "h  8.00" in res
+        assert "j  8.00" in res
+
+
 class DummyTqdmFile(object):
     """Dummy file-like that will write to tqdm"""
     file = None
