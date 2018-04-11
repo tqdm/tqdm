@@ -159,11 +159,12 @@ Ranges from 0 (average speed) to 1 (current/instantaneous speed)
 str, optional.
 Specify a custom bar string formatting.
 May impact performance.
-If unspecified, will use \[aq]{l_bar}{bar}{r_bar}\[aq], where l_bar is
-\[aq]{desc}: {percentage:3.0f}%|\[aq] and r_bar is \[aq]|
-{n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}]\[aq] Possible
-vars: bar, n, n_fmt, total, total_fmt, percentage, rate, rate_fmt,
-elapsed, remaining, l_bar, r_bar, desc.
+[default: \[aq]{l_bar}{bar}{r_bar}\[aq]], where l_bar=\[aq]{desc}:
+{percentage:3.0f}%|\[aq] and r_bar=\[aq]| {n_fmt}/{total_fmt}
+[{elapsed}<{remaining}, \[aq] \[aq]{rate_fmt}{postfix}]\[aq] Possible
+vars: l_bar, bar, r_bar, n, n_fmt, total, total_fmt, percentage, rate,
+rate_fmt, rate_noinv, rate_noinv_fmt, rate_inv, rate_inv_fmt, elapsed,
+remaining, desc, postfix.
 Note that a trailing ": " is automatically removed after {desc} if the
 latter is empty.
 .RS
@@ -185,10 +186,9 @@ Useful to manage multiple bars at once (eg, from threads).
 .RE
 .TP
 .B \-\-postfix=\f[I]postfix\f[]
-dict, optional.
+dict or *, optional.
 Specify additional stats to display at the end of the bar.
-Note: postfix is a dict ({\[aq]key\[aq]: value} pairs) for this method,
-not a string.
+Calls \f[C]set_postfix(**postfix)\f[] if possible (dict).
 .RS
 .RE
 .TP

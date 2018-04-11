@@ -240,10 +240,12 @@ class tqdm(object):
               rate_inv, rate_inv_fmt, elapsed, remaining, desc, postfix.
             Note that a trailing ": " is automatically removed after {desc}
             if the latter is empty.
-        postfix  : str, optional
+        postfix  : *, optional
             Similar to `prefix`, but placed at the end
             (e.g. for additional stats).
-            Note: postfix is a string for this method. Not a dict.
+            Note: postfix is usually a string (not a dict) for this method,
+            and will if possible be set to postfix = ', ' + postfix.
+            However other types are supported (#382).
         unit_divisor  : float, optional
             [default: 1000], ignored unless `unit_scale` is True.
 
@@ -287,6 +289,11 @@ class tqdm(object):
             n_fmt = str(n)
             total_fmt = str(total)
 
+        try:
+            postfix = ', ' + postfix if postfix else ''
+        except TypeError:
+            pass
+
         # total is known: we can predict some stats
         if total:
             # fractional and percentage progress
@@ -305,8 +312,7 @@ class tqdm(object):
                 l_bar = ''
             l_bar += '{0:3.0f}%|'.format(percentage)
             r_bar = '| {0}/{1} [{2}<{3}, {4}{5}]'.format(
-                n_fmt, total_fmt, elapsed_str, remaining_str, rate_fmt,
-                ', ' + postfix if postfix else '')
+                n_fmt, total_fmt, elapsed_str, remaining_str, rate_fmt, postfix)
 
             if ncols == 0:
                 return l_bar[:-1] + r_bar[1:]
@@ -331,7 +337,7 @@ class tqdm(object):
                             'l_bar': l_bar,
                             'r_bar': r_bar,
                             'desc': prefix or '',
-                            'postfix': ', ' + postfix if postfix else '',
+                            'postfix': postfix,
                             # 'bar': full_bar  # replaced by procedure below
                             }
 
@@ -386,8 +392,7 @@ class tqdm(object):
         else:
             return ((prefix + ": ") if prefix else '') + \
                 '{0}{1} [{2}, {3}{4}]'.format(
-                    n_fmt, unit, elapsed_str, rate_fmt,
-                    ', ' + postfix if postfix else '')
+                    n_fmt, unit, elapsed_str, rate_fmt, postfix)
 
     def __new__(cls, *args, **kwargs):
         # Create a new instance
@@ -691,11 +696,13 @@ class tqdm(object):
             (current/instantaneous speed) [default: 0.3].
         bar_format  : str, optional
             Specify a custom bar string formatting. May impact performance.
-            If unspecified, will use '{l_bar}{bar}{r_bar}', where l_bar is
-            '{desc}: {percentage:3.0f}%|' and r_bar is
-            '| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}]'
-            Possible vars: bar, n, n_fmt, total, total_fmt, percentage,
-            rate, rate_fmt, elapsed, remaining, l_bar, r_bar, desc.
+            [default: '{l_bar}{bar}{r_bar}'], where
+            l_bar='{desc}: {percentage:3.0f}%|' and
+            r_bar='| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, '
+              '{rate_fmt}{postfix}]'
+            Possible vars: l_bar, bar, r_bar, n, n_fmt, total, total_fmt,
+              percentage, rate, rate_fmt, rate_noinv, rate_noinv_fmt,
+              rate_inv, rate_inv_fmt, elapsed, remaining, desc, postfix.
             Note that a trailing ": " is automatically removed after {desc}
             if the latter is empty.
         initial  : int, optional
@@ -705,10 +712,9 @@ class tqdm(object):
             Specify the line offset to print this bar (starting from 0)
             Automatic if unspecified.
             Useful to manage multiple bars at once (eg, from threads).
-        postfix  : dict, optional
+        postfix  : dict or *, optional
             Specify additional stats to display at the end of the bar.
-            Note: postfix is a dict ({'key': value} pairs) for this method,
-            not a string.
+            Calls `set_postfix(**postfix)` if possible (dict).
         unit_divisor  : float, optional
             [default: 1000], ignored unless `unit_scale` is True.
         gui  : bool, optional
@@ -812,7 +818,10 @@ class tqdm(object):
         self.bar_format = bar_format
         self.postfix = None
         if postfix:
-            self.set_postfix(refresh=False, **postfix)
+            try:
+                self.set_postfix(refresh=False, **postfix)
+            except TypeError:
+                self.postfix = postfix
 
         # Init the iterations counters
         self.last_print_n = initial

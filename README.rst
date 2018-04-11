@@ -351,10 +351,9 @@ Parameters
     Specify the line offset to print this bar (starting from 0)
     Automatic if unspecified.
     Useful to manage multiple bars at once (eg, from threads).
-* postfix  : dict, optional  
+* postfix  : dict or ``*``, optional  
     Specify additional stats to display at the end of the bar.
-    Note: postfix is a dict ({'key': value} pairs) for this method,
-    not a string.
+    Calls ``set_postfix(**postfix)`` if possible (dict).
 * unit_divisor  : float, optional  
     [default: 1000], ignored unless `unit_scale` is True.
 
@@ -495,14 +494,22 @@ with the ``desc`` and ``postfix`` arguments:
     from random import random, randint
     from time import sleep
 
-    t = trange(100)
-    for i in t:
-        # Description will be displayed on the left
-        t.set_description('GEN %i' % i)
-        # Postfix will be displayed on the right, and will format automatically
-        # based on argument's datatype
-        t.set_postfix(loss=random(), gen=randint(1,999), str='h', lst=[1, 2])
-        sleep(0.1)
+    with trange(100) as t:
+        for i in t:
+            # Description will be displayed on the left
+            t.set_description('GEN %i' % i)
+            # Postfix will be displayed on the right,
+            # formatted automatically based on argument's datatype
+            t.set_postfix(loss=random(), gen=randint(1,999), str='h',
+                          lst=[1, 2])
+            sleep(0.1)
+
+    with tqdm(total=10, bar_format="{postfix[0]} {postfix[1]:>8.2g}",
+              postfix=["Batch", 0]) as t:
+        for i in range(10):
+            sleep(0.1)
+            t.postfix[1] = i / 2
+            t.update()
 
 Nested progress bars
 ~~~~~~~~~~~~~~~~~~~~
