@@ -511,6 +511,14 @@ with the ``desc`` and ``postfix`` arguments:
             t.postfix[1]["value"] = i / 2
             t.update()
 
+Points to remember when using ``{postfix[...]}`` in the ``bar_format`` string:
+
+- ``postfix`` also needs to be passed as an initial argument in a compatible
+  format, and
+- ``postfix`` will be auto-converted to a string if it is a ``dict``-like
+  object. To prevent this behaviour, insert an extra item into the dictionary
+  where the key is not a string.
+
 Nested progress bars
 ~~~~~~~~~~~~~~~~~~~~
 
