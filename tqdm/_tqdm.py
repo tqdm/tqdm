@@ -559,7 +559,7 @@ class tqdm(object):
                 """
 
                 # Precompute total iterations
-                total = getattr(df, 'ngroups', None)
+                total = tkwargs.pop("total", getattr(df, 'ngroups', None))
                 if total is None:  # not grouped
                     if df_function == 'applymap':
                         total = df.size
