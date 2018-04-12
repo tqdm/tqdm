@@ -1,7 +1,31 @@
 from nose.plugins.skip import SkipTest
+import warnings
 
 from tqdm import tqdm
 from tests_tqdm import with_setup, pretest, posttest, StringIO, closing
+
+@with_setup(pretest, posttest)
+def test_pandas_setup():
+    """Test tqdm.pandas()"""
+    try:
+        from numpy.random import randint
+        import pandas as pd
+    except ImportError:
+        raise SkipTest
+
+    with warnings.catch_warnings(record=True) as res:
+        warnings.simplefilter("always")
+        # set total in tqdm.pandas shall cause a warning
+        tqdm.pandas(total=100)
+        assert len(res) == 1
+        assert all([i in str(res[-1].message) for i in ['total','not recommended']])
+
+    with closing(StringIO()) as our_file:
+        tqdm.pandas(file=our_file, leave=True, ascii=True, total=123)
+        series = pd.Series(randint(0, 50, (100,)))
+        series.progress_apply(lambda x: x + 10)
+        res = our_file.getvalue()
+        assert '100/123' in res
 
 
 @with_setup(pretest, posttest)
