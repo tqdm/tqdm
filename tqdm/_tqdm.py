@@ -545,6 +545,12 @@ class tqdm(object):
         from pandas.core.groupby import GroupBy
         from pandas.core.groupby import PanelGroupBy
         from pandas import Panel
+        # rolling and expanding since pandas 0.18.0
+        try:
+            from pandas.core.window import _Rolling_and_Expanding
+            skip_rolling_and_expanding = False
+        except ImportError:
+            skip_rolling_and_expanding = True
 
         deprecated_t = [tkwargs.pop('deprecated_t', None)]
 
@@ -568,7 +574,8 @@ class tqdm(object):
                         total = df.size
                     elif isinstance(df, Series):
                         total = len(df)
-                    else:  # DataFrame or Panel
+                    elif skip_rolling_and_expanding or not isinstance(df, _Rolling_and_Expanding):
+                        # DataFrame or Panel
                         axis = kwargs.get('axis', 0)
                         # when axis=0, total is shape[axis1]
                         total = df.size // df.shape[axis]
@@ -595,7 +602,10 @@ class tqdm(object):
                     # it seems `pandas apply` calls `func` twice
                     # on the first column/row to decide whether it can
                     # take a fast or slow code path; so stop when t.total==t.n
-                    t.update(n=1 if t.total and t.n < t.total else 0)
+                    if t.total is not None:
+                        t.update(n=1 if t.total and t.n < t.total else 0)
+                    else:
+                        t.update(1)
                     return func(*args, **kwargs)
 
                 # Apply the provided function (in **kwargs)
@@ -625,6 +635,10 @@ class tqdm(object):
         GroupBy.progress_apply = inner_generator()
         GroupBy.progress_aggregate = inner_generator('aggregate')
         GroupBy.progress_transform = inner_generator('transform')
+
+        # Rolling and expanding
+        if not skip_rolling_and_expanding:
+            _Rolling_and_Expanding.progress_apply = inner_generator()
 
     def __init__(self, iterable=None, desc=None, total=None, leave=True,
                  file=None, ncols=None, mininterval=0.1, maxinterval=10.0,
