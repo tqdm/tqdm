@@ -549,7 +549,7 @@ class tqdm(object):
         try:
             from pandas.core.window import _Rolling_and_Expanding
             skip_rolling_and_expanding = False
-        except ImportError:
+        except ImportError: # pragma: no cover
             skip_rolling_and_expanding = True
 
         deprecated_t = [tkwargs.pop('deprecated_t', None)]
