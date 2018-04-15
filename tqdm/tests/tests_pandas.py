@@ -21,6 +21,37 @@ def test_pandas_setup():
 
 
 @with_setup(pretest, posttest)
+def test_pandas_rolling_expanding():
+    """Test pandas.(Series|DataFrame).(rolling|expanding)"""
+    try:
+        from numpy.random import randint
+        import pandas as pd
+    except ImportError:
+        raise SkipTest
+
+    with closing(StringIO()) as our_file:
+        tqdm.pandas(file=our_file, leave=True, ascii=True)
+
+        series = pd.Series(randint(0, 50, (123,)))
+        res1 = series.rolling(10).progress_apply(lambda x: 1)
+        res2 = series.rolling(10).apply(lambda x: 1)
+        assert res1.equals(res2)
+
+        res3 = series.expanding(10).progress_apply(lambda x: 2)
+        res4 = series.expanding(10).apply(lambda x: 2)
+        assert res3.equals(res4)
+
+        expects = ['114it']  # 123-10+1
+        for exres in expects:
+            our_file.seek(0)
+            if our_file.getvalue().count(exres) < 2:
+                our_file.seek(0)
+                raise AssertionError(
+                    "\nExpected:\n{0}\nIn:\n{1}\n".format(
+                        exres + " at least twice.", our_file.read()))
+
+
+@with_setup(pretest, posttest)
 def test_pandas_series():
     """Test pandas.Series.progress_apply and .progress_map"""
     try:
