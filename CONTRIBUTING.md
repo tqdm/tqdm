@@ -1,5 +1,4 @@
-HOW TO CONTRIBUTE TO TQDM
-=========================
+# HOW TO CONTRIBUTE TO TQDM
 
 This file describes how to
 
@@ -17,8 +16,7 @@ python setup.py make [<alias>]  # if make is unavailable
 Use the alias `help` (or leave blank) to list all available aliases.
 
 
-HOW TO COMMIT CONTRIBUTIONS
----------------------------
+## HOW TO COMMIT CONTRIBUTIONS
 
 Contributions to the project are made using the "Fork & Pull" model. The
 typical steps would be:
@@ -34,14 +32,12 @@ typical steps would be:
 You can then add a message to describe your proposal.)
 
 
-TESTING
--------
+## TESTING
 
 To test functionality (such as before submitting a Pull
 Request), there are a number of unit tests.
 
-Standard unit tests
-~~~~~~~~~~~~~~~~~~~
+### Standard unit tests
 
 The standard way to run the tests:
 
@@ -66,8 +62,7 @@ you can use `MiniConda` to install a minimal setup. You must also make sure
 that each distribution has an alias to call the Python interpreter:
 `python27` for Python 2.7's interpreter, `python32` for Python 3.2's, etc.
 
-Alternative unit tests with Nose
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+### Alternative unit tests with Nose
 
 Alternatively, use `nose` to run the tests just for the current Python version:
 
@@ -80,16 +75,14 @@ Alternatively, use `nose` to run the tests just for the current Python version:
 
 
 
-MANAGE A NEW RELEASE
-=====================
+# MANAGE A NEW RELEASE
 
 This section is intended for the project's maintainers and describes
 how to build and upload a new release. Once again,
 `[python setup.py] make [<alias>]` will help.
 
 
-SEMANTIC VERSIONING
--------------------
+## SEMANTIC VERSIONING
 
 The tqdm repository managers should:
 
@@ -104,8 +97,7 @@ Note: tools can be used to automate this process, such as
 [python-semanticversion](https://github.com/rbarrois/python-semanticversion/).
 
 
-CHECKING SETUP.PY
------------------
+## CHECKING SETUP.PY
 
 To check that the `setup.py` file is compliant with PyPi requirements (e.g.
 version number; reStructuredText in README.rst) use:
@@ -122,13 +114,11 @@ to PyPi, use:
 ```
 
 
-MERGING PULL REQUESTS
----------------------
+## MERGING PULL REQUESTS
 
 This section describes how to cleanly merge PRs.
 
-1 Rebase
-~~~~~~~~
+### 1 Rebase
 
 From your project repository, merge and test
 (replace `pr-branch-name` as appropriate):
@@ -146,8 +136,7 @@ git mergetool
 git rebase --continue
 ```
 
-2 Push
-~~~~~~
+### 2 Push
 
 Update branch with the rebased history:
 
@@ -160,23 +149,20 @@ Non maintainers can stop here.
 Note: NEVER just `git push --force` (this will push all local branches,
 overwriting remotes).
 
-3 Merge
-~~~~~~~
+### 3 Merge
 
 ```
 git checkout master
 git merge --no-ff pr-branch-name
 ```
 
-4 Test
-~~~~~~
+### 4 Test
 
 ```
 [python setup.py] make alltests
 ```
 
-5 Version
-~~~~~~~~~
+### 5 Version
 
 Modify tqdm/_version.py and ammend the last (merge) commit:
 
@@ -185,29 +171,25 @@ git add tqdm/_version.py
 git commit --amend  # Add "+ bump version" in the commit message
 ```
 
-6 Push to master
-~~~~~~~~~~~~~~~~
+### 6 Push to master
 
 ```
 git push origin master
 ```
 
 
-BUILDING A RELEASE AND UPLOADING TO PYPI
-----------------------------------------
+## BUILDING A RELEASE AND UPLOADING TO PYPI
 
 Formally publishing requires additional steps: testing and tagging.
 
-Test
-~~~~
+### Test
 
 - ensure that all online CI tests have passed
 - check `setup.py` and `MANIFEST.in` - which define the packaging
 process and info that will be uploaded to [pypi](pypi.python.org) -
 using `[python setup.py] make installdev`
 
-Tag
-~~~
+### Tag
 
 - ensure the version has been bumped, committed **and** tagged.
 The tag format is `v{major}.{minor}.{patch}`, for example: `v4.4.1`.
@@ -215,8 +197,7 @@ The current commit's tag is used in the version checking process.
 If the current commit is not tagged appropriately, the version will
 display as `v{major}.{minor}.{patch}-{commit_hash}`.
 
-Upload
-~~~~~~
+### Upload
 
 Build tqdm into a distributable python package:
 
@@ -242,8 +223,7 @@ running `make` within the wiki repository.
 
 [wiki]: https://github.com/tqdm/tqdm/wiki
 
-Notes
-~~~~~
+### Notes
 
 - you can also test on the pypi test servers `testpypi.python.org/pypi`
 before the real deployment
@@ -253,8 +233,7 @@ cannot re-upload another with the same version number
 updating just the metadata is possible: `[python setup.py] make pypimeta`
 
 
-UPDATING GH-PAGES
------------------
+## UPDATING GH-PAGES
 
 The most important file is README.rst, which sould always be kept up-to-date
 and in sync with the in-line source documentation. This will affect all of the
@@ -279,8 +258,7 @@ Additionally (less maintained), there exists:
   outdated [github.io repo](https://github.com/tqdm/tqdm.github.io).
 
 
-QUICK DEV SUMMARY
------------------
+## QUICK DEV SUMMARY
 
 For expereinced devs, once happy with local master:
 
