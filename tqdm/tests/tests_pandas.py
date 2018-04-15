@@ -38,10 +38,10 @@ def test_pandas_rolling_expanding():
         assert res1.equals(res2)
 
         res3 = series.expanding(10).progress_apply(lambda x: 2)
-        res4 = series.expanding(10).apply(lambda x:2)
+        res4 = series.expanding(10).apply(lambda x: 2)
         assert res3.equals(res4)
 
-        expects = ['114it'] #123-10+1
+        expects = ['114it']  # 123-10+1
         for exres in expects:
             our_file.seek(0)
             if our_file.getvalue().count(exres) < 2:
@@ -49,50 +49,6 @@ def test_pandas_rolling_expanding():
                 raise AssertionError(
                     "\nExpected:\n{0}\nIn:\n{1}\n".format(
                         exres + " at least twice.", our_file.read()))
-
-
-@with_setup(pretest, posttest)
-def test_pandas_data_frame():
-    """Test pandas.DataFrame.progress_apply and .progress_applymap"""
-    try:
-        from numpy.random import randint
-        import pandas as pd
-    except ImportError:
-        raise SkipTest
-
-    with closing(StringIO()) as our_file:
-        tqdm.pandas(file=our_file, leave=True, ascii=True)
-        df = pd.DataFrame(randint(0, 50, (100, 200)))
-
-        def task_func(x):
-            return x + 1
-
-        # applymap
-        res1 = df.progress_applymap(task_func)
-        res2 = df.applymap(task_func)
-        assert res1.equals(res2)
-
-        # apply
-        for axis in [0, 1]:
-            res3 = df.progress_apply(task_func, axis=axis)
-            res4 = df.apply(task_func, axis=axis)
-            assert res3.equals(res4)
-
-        our_file.seek(0)
-        if our_file.read().count('100%') < 3:
-            our_file.seek(0)
-            raise AssertionError("\nExpected:\n{0}\nIn:\n{1}\n".format(
-                '100% at least three times', our_file.read()))
-
-        # apply_map, apply axis=0, apply axis=1
-        expects = ['20000/20000', '200/200', '100/100']
-        for exres in expects:
-            our_file.seek(0)
-            if our_file.getvalue().count(exres) < 1:
-                our_file.seek(0)
-                raise AssertionError(
-                    "\nExpected:\n{0}\nIn:\n {1}\n".format(
-                        exres + " at least once.", our_file.read()))
 
 
 @with_setup(pretest, posttest)

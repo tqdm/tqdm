@@ -545,12 +545,11 @@ class tqdm(object):
         from pandas.core.groupby import GroupBy
         from pandas.core.groupby import PanelGroupBy
         from pandas import Panel
-        # rolling and expanding since pandas 0.18.0
         try:
+            # pandas>=0.18.0
             from pandas.core.window import _Rolling_and_Expanding
-            skip_rolling_and_expanding = False
-        except ImportError: # pragma: no cover
-            skip_rolling_and_expanding = True
+        except ImportError:  # pragma: no cover
+            _Rolling_and_Expanding = None
 
         deprecated_t = [tkwargs.pop('deprecated_t', None)]
 
@@ -574,7 +573,8 @@ class tqdm(object):
                         total = df.size
                     elif isinstance(df, Series):
                         total = len(df)
-                    elif skip_rolling_and_expanding or not isinstance(df, _Rolling_and_Expanding):
+                    elif _Rolling_and_Expanding is None or \
+                            not isinstance(df, _Rolling_and_Expanding):
                         # DataFrame or Panel
                         axis = kwargs.get('axis', 0)
                         # when axis=0, total is shape[axis1]
@@ -602,10 +602,7 @@ class tqdm(object):
                     # it seems `pandas apply` calls `func` twice
                     # on the first column/row to decide whether it can
                     # take a fast or slow code path; so stop when t.total==t.n
-                    if t.total is not None:
-                        t.update(n=1 if t.total and t.n < t.total else 0)
-                    else:
-                        t.update(1)
+                    t.update(n=1 if not t.total or t.n < t.total else 0)
                     return func(*args, **kwargs)
 
                 # Apply the provided function (in **kwargs)
@@ -636,8 +633,7 @@ class tqdm(object):
         GroupBy.progress_aggregate = inner_generator('aggregate')
         GroupBy.progress_transform = inner_generator('transform')
 
-        # Rolling and expanding
-        if not skip_rolling_and_expanding:
+        if _Rolling_and_Expanding is not None:  # pragma: no cover
             _Rolling_and_Expanding.progress_apply = inner_generator()
 
     def __init__(self, iterable=None, desc=None, total=None, leave=True,
