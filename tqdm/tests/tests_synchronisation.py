@@ -1,11 +1,11 @@
 from __future__ import division
-from tqdm import tqdm
-from tests_tqdm import with_setup, pretest, posttest, StringIO, closing
+from tqdm import tqdm, TMonitor
+from tests_tqdm import with_setup, pretest, posttest, SkipTest, \
+    StringIO, closing
 from tests_tqdm import DiscreteTimer, cpu_timify
 
 from time import sleep
 from threading import Event
-from tqdm import TMonitor
 
 
 class FakeSleep(object):
@@ -35,6 +35,10 @@ def make_create_fake_sleep_event(sleep):
         return event
 
     return create_fake_sleep_event
+
+
+def incr(x):
+    return x + 1
 
 
 @with_setup(pretest, posttest)
@@ -162,3 +166,16 @@ def test_monitoring_multi():
     # Check that class var monitor is deleted if no instance left
     tqdm.monitor_interval = 10
     assert tqdm.monitor is None
+
+
+@with_setup(pretest, posttest)
+def test_imap():
+    """Test multiprocessing.Pool"""
+    try:
+        from multiprocessing import Pool
+    except ImportError:
+        raise SkipTest
+
+    pool = Pool()
+    res = list(tqdm(pool.imap(incr, range(100)), disable=True))
+    assert res[-1] == 100
