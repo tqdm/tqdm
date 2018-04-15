@@ -1,7 +1,23 @@
-from nose.plugins.skip import SkipTest
-
 from tqdm import tqdm
-from tests_tqdm import with_setup, pretest, posttest, StringIO, closing
+from tests_tqdm import with_setup, pretest, posttest, SkipTest, \
+    StringIO, closing
+
+
+@with_setup(pretest, posttest)
+def test_pandas_setup():
+    """Test tqdm.pandas()"""
+    try:
+        from numpy.random import randint
+        import pandas as pd
+    except ImportError:
+        raise SkipTest
+
+    with closing(StringIO()) as our_file:
+        tqdm.pandas(file=our_file, leave=True, ascii=True, total=123)
+        series = pd.Series(randint(0, 50, (100,)))
+        series.progress_apply(lambda x: x + 10)
+        res = our_file.getvalue()
+        assert '100/123' in res
 
 
 @with_setup(pretest, posttest)

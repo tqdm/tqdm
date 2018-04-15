@@ -47,13 +47,16 @@ class TqdmWarning(Warning):
     """
     def __init__(self, msg, fp_write=None, *a, **k):
         if fp_write is not None:
-            fp_write("\n" + self.__class__.__name__ + ": " + str(msg).rstrip() + '\n')
+            fp_write("\n" + self.__class__.__name__ + ": " +
+                     str(msg).rstrip() + '\n')
         else:
             super(TqdmWarning, self).__init__(msg, *a, **k)
+
 
 class TqdmExperimentalWarning(TqdmWarning, FutureWarning):
     """beta feature, unstable API and behaviour"""
     pass
+
 
 class TqdmDeprecationWarning(TqdmWarning, DeprecationWarning):
     # not suppressed if raised
@@ -559,7 +562,7 @@ class tqdm(object):
                 """
 
                 # Precompute total iterations
-                total = getattr(df, 'ngroups', None)
+                total = tkwargs.pop("total", getattr(df, 'ngroups', None))
                 if total is None:  # not grouped
                     if df_function == 'applymap':
                         total = df.size
