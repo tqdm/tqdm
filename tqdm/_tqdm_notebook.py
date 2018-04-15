@@ -80,7 +80,7 @@ class tqdm_notebook(tqdm):
     """
 
     @staticmethod
-    def status_printer(_, total=None, desc=None):
+    def status_printer(_, total=None, desc=None, ncols=None):
         """
         Manage the printing of an IPython/Jupyter Notebook progress bar widget.
         """
@@ -104,6 +104,17 @@ class tqdm_notebook(tqdm):
         ptext = HTML()
         # Only way to place text to the right of the bar is to use a container
         container = HBox(children=[pbar, ptext])
+        # Prepare layout
+        if ncols is not None:  # use default style of ipywidgets
+            # ncols could be 100, "100px", "100%"
+            ncols = str(ncols)  # ipywidgets only accepts string
+            if ncols[-1].isnumeric():
+                # if last value is digit, assume the value is digit
+                ncols += 'px'
+            pbar.layout.flex = '2'
+            container.layout.width = ncols
+            container.layout.display = 'inline-flex'
+            container.layout.flex_flow = 'row wrap'
         display(container)
 
         def print_status(s='', close=False, bar_style=None, desc=None):
@@ -172,8 +183,13 @@ class tqdm_notebook(tqdm):
         # Delete first pbar generated from super() (wrong total and text)
         # DEPRECATED by using gui=True
         # self.sp('', close=True)
+
+        # Get bar width
+        self.ncols = '100%' if self.dynamic_ncols else kwargs.get("ncols", None)
+
         # Replace with IPython progress bar display (with correct total)
-        self.sp = self.status_printer(self.fp, self.total, self.desc)
+        self.sp = self.status_printer(
+            self.fp, self.total, self.desc, self.ncols)
         self.desc = None  # trick to place description before the bar
 
         # Print initial bar state
@@ -186,7 +202,7 @@ class tqdm_notebook(tqdm):
                 # return super(tqdm...) will not catch exception
                 yield obj
         # NB: except ... [ as ...] breaks IPython async KeyboardInterrupt
-        except:
+        except:  # NOQA
             self.sp(bar_style='danger')
             raise
 
