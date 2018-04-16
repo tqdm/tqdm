@@ -691,6 +691,11 @@ light blue: no ETA); as demonstrated below.
 |Screenshot-Jupyter2|
 |Screenshot-Jupyter3|
 
+Since v4.23.0, tqdm_notebook now can respect ``ncols`` and ``dynamic_ncols`` if 
+their values are given. Here is an example:
+
+|Screenshot-Jupyter4|
+
 Writing messages
 ~~~~~~~~~~~~~~~~
 
@@ -892,5 +897,6 @@ There are also many |GitHub-Contributions| which we are grateful for.
 .. |Screenshot-Jupyter1| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/tqdm-jupyter-1.gif
 .. |Screenshot-Jupyter2| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/tqdm-jupyter-2.gif
 .. |Screenshot-Jupyter3| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/tqdm-jupyter-3.gif
+.. |Screenshot-Jupyter4| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/tqdm-jupyter-4.png
 .. |README-Hits| image:: https://caspersci.uk.to/cgi-bin/hits.cgi?q=tqdm&style=social&r=https://github.com/tqdm/tqdm&l=https://caspersci.uk.to/images/tqdm.png&f=https://raw.githubusercontent.com/tqdm/tqdm/master/images/logo.gif
    :target: https://caspersci.uk.to/cgi-bin/hits.cgi?q=tqdm&a=plot&r=https://github.com/tqdm/tqdm&l=https://caspersci.uk.to/images/tqdm.png&f=https://raw.githubusercontent.com/tqdm/tqdm/master/images/logo.gif&style=social
