@@ -244,6 +244,10 @@ of a neat one-line progress bar.
 - Wrapping zipped iterables has similar issues due to internal optimisations.
   ``tqdm(zip(a, b))`` should be replaced with ``zip(tqdm(a), b)`` or even
   ``zip(tqdm(a), tqdm(b))``.
+- Pandas integration: ``total`` (number of iterations) cannot be automatically computed 
+  for ``(Series|DataFrame).(rolling|expanding).progress_apply``. 
+  This is because such computation will significantly impact the performance. 
+  See `here <https://github.com/tqdm/tqdm/issues/530>`__.
 
 If you come across any other difficulties, browse and file |GitHub-Issues|.
 
@@ -641,6 +645,28 @@ In case you're interested in how this works (and how to modify it for your
 own callbacks), see the
 `examples <https://github.com/tqdm/tqdm/tree/master/examples>`__
 folder or import the module and run ``help()``.
+
+Since v4.23.0, tqdm also supports ``(Series|DataFrame).(rolling|expanding).progress_apply``
+and customizing the number of iterations in ``tqdm.pandas(total=[number])``. Here is an example:
+
+.. code:: python
+
+    import pandas as pd
+    import numpy as np
+    from tqdm import tqdm
+    
+    series = pd.Series(np.random.randint(0, 100, (123, )))
+    
+    # Register `pandas.progress_apply` and `pandas.Series.map_apply` with `tqdm`
+    # (can use `tqdm_gui`, `tqdm_notebook`, optional kwargs, etc.)
+    # (can set `total` manually)
+    tqdm.pandas(desc="my bar!", total=114)
+    
+    # Now you can use `progress_apply` instead of `apply`
+    series.rolling(10).progress_apply(lambda x:1)
+    # can also use in expanding
+    # series.expanding(10).progress_apply(lambda x:1)
+
 
 IPython/Jupyter Integration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
