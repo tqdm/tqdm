@@ -248,6 +248,8 @@ of a neat one-line progress bar.
   for ``(Series|DataFrame).(rolling|expanding).progress_apply``. 
   This is because such computation will significantly impact the performance. 
   See `here <https://github.com/tqdm/tqdm/issues/530>`__.
+- Jupyter Notebook: update ``ipywidgets`` to >=7.2.0 to avoid redundant space below each progressbar
+  when using ``tqdm_notebook`` (`#433 <https://github.com/tqdm/tqdm/issues/433>`__).
 
 If you come across any other difficulties, browse and file |GitHub-Issues|.
 
