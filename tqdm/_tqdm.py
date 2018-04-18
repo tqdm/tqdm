@@ -745,10 +745,10 @@ class tqdm(object):
 
         if disable is None and hasattr(file, "isatty") and not file.isatty():
             disable = True
-
+                   
+        self.disable = disable
         if disable:
             self.iterable = iterable
-            self.disable = disable
             self.pos = self._get_free_pos(self)
             self._instances.remove(self)
             self.n = initial
