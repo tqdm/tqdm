@@ -400,6 +400,7 @@ class tqdm(object):
     def __new__(cls, *args, **kwargs):
         # Create a new instance
         instance = object.__new__(cls)
+        instance.pos = 0
         # Add to the list of instances
         if "_instances" not in cls.__dict__:
             cls._instances = WeakSet()
