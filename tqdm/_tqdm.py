@@ -424,7 +424,7 @@ class tqdm(object):
     def _get_free_pos(cls, instance=None):
         """Skips specified instance"""
         positions = set(abs(inst.pos) for inst in cls._instances
-                        if inst is not instance)
+                        if inst is not instance and hasattr(inst, "pos"))
         return min(set(range(len(positions) + 1)).difference(positions))
 
     @classmethod
@@ -842,10 +842,11 @@ class tqdm(object):
 
         # if nested, at initial sp() call we replace '\r' by '\n' to
         # not overwrite the outer progress bar
-        if position is None:
-            self.pos = self._get_free_pos(self)
-        else:  # mark fixed positions as negative
-            self.pos = -position
+        with self._lock:
+          if position is None:
+              self.pos = self._get_free_pos(self)
+          else:  # mark fixed positions as negative
+              self.pos = -position
 
         if not gui:
             # Initialize the screen printer
