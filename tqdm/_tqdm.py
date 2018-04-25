@@ -424,7 +424,7 @@ class tqdm(object):
     def _get_free_pos(cls, instance=None):
         """Skips specified instance"""
         positions = set(abs(inst.pos) for inst in cls._instances
-                        if inst is not instance)
+                        if inst is not instance and hasattr(inst, "pos"))
         return min(set(range(len(positions) + 1)).difference(positions))
 
     @classmethod
@@ -483,16 +483,14 @@ class tqdm(object):
             # Clear instance if in the target output file
             # or if write output + tqdm output are both either
             # sys.stdout or sys.stderr (because both are mixed in terminal)
-            if inst.fp == fp or all(
-                    f in (sys.stdout, sys.stderr) for f in (fp, inst.fp)):
+            if hasattr(inst, "start_t") and (inst.fp == fp or all(
+                    f in (sys.stdout, sys.stderr) for f in (fp, inst.fp))):
                 inst.clear(nolock=True)
                 inst_cleared.append(inst)
         yield
         # Force refresh display of bars we cleared
         for inst in inst_cleared:
-            # Avoid race conditions by checking that the instance started
-            if hasattr(inst, 'start_t'):  # pragma: nocover
-                inst.refresh(nolock=True)
+            inst.refresh(nolock=True)
         if not nolock:
             cls._lock.release()
 
@@ -842,10 +840,11 @@ class tqdm(object):
 
         # if nested, at initial sp() call we replace '\r' by '\n' to
         # not overwrite the outer progress bar
-        if position is None:
-            self.pos = self._get_free_pos(self)
-        else:  # mark fixed positions as negative
-            self.pos = -position
+        with self._lock:
+            if position is None:
+                self.pos = self._get_free_pos(self)
+            else:  # mark fixed positions as negative
+                self.pos = -position
 
         if not gui:
             # Initialize the screen printer
