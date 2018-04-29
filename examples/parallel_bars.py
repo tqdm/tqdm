@@ -8,7 +8,7 @@ L = list(range(9))
 
 
 def progresser(n):
-    interval = 0.001 / (n + 2)
+    interval = 0.001 / (len(L) - n + 2)
     total = 5000
     text = "#{}, est. {:<04.2}s".format(n, interval * total)
     for _ in tqdm(range(total), desc=text, position=n):
@@ -21,9 +21,9 @@ if __name__ == '__main__':
              initializer=tqdm.set_lock,
              initargs=(RLock(),))
     p.map(progresser, L)
-    print("\n" * (len(L) - 2))
+    print("\n" * len(L))
 
     # alternatively, on UNIX, just use the default internal lock
     p = Pool(len(L))
     p.map(progresser, L)
-    print("\n" * (len(L) - 2))
+    print("\n" * len(L))
