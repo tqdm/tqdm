@@ -224,9 +224,9 @@ def _environ_cols_linux(fp):  # pragma: no cover
         try:
             return array('h', ioctl(fp, TIOCGWINSZ, '\0' * 8))[1]
         except:
-            if 'COLUMNS' in os.environ:
-                return int(os.environ['COLUMNS']) - 1
-            else:
+            try:
+                return int(os.environ["COLUMNS"]) - 1
+            except KeyError:
                 return None
 
 
