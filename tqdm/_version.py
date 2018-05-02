@@ -5,7 +5,7 @@ from io import open as io_open
 __all__ = ["__version__"]
 
 # major, minor, patch, -extra
-version_info = 4, 23, 1
+version_info = 4, 23, 2
 
 # Nice string for the version
 __version__ = '.'.join(map(str, version_info))

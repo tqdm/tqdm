@@ -12,7 +12,8 @@ from __future__ import absolute_import
 from __future__ import division
 # compatibility functions and utilities
 from ._utils import _supports_unicode, _environ_cols_wrapper, _range, _unich, \
-    _term_move_up, _unicode, WeakSet, _basestring, _OrderedDict
+    _term_move_up, _unicode, WeakSet, _basestring, _OrderedDict, \
+    Comparable
 from ._monitor import TMonitor
 # native libraries
 import sys
@@ -108,7 +109,7 @@ class TqdmDefaultWriteLock(object):
         self.release()
 
 
-class tqdm(object):
+class tqdm(Comparable):
     """
     Decorate an iterable object, returning an iterator which acts exactly
     like the original iterable, but prints a dynamically updating
@@ -886,23 +887,9 @@ class tqdm(object):
             self.unit_scale, 1 / self.avg_time if self.avg_time else None,
             self.bar_format, self.postfix, self.unit_divisor)
 
-    def __lt__(self, other):
-        return abs(self.pos) < abs(other.pos)
-
-    def __le__(self, other):
-        return (self < other) or (self == other)
-
-    def __eq__(self, other):
-        return abs(self.pos) == abs(other.pos)
-
-    def __ne__(self, other):
-        return not (self == other)
-
-    def __gt__(self, other):
-        return not (self <= other)
-
-    def __ge__(self, other):
-        return not (self < other)
+    @property
+    def _comparable(self):
+        return abs(getattr(self, "pos", 1 << 31))
 
     def __hash__(self):
         return id(self)
@@ -1122,7 +1109,9 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
                     self.sp(self.__repr__())
                 if pos:
                     self.moveto(-pos)
-                else:
+                elif not max([abs(getattr(i, "pos", 0))
+                              for i in self._instances] + [0]):
+                    # only if not nested (#477)
                     fp_write('\n')
             else:
                 self.sp('')  # clear up last bar
