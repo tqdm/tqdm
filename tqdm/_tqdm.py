@@ -539,16 +539,23 @@ class tqdm(Comparable):
         """
         from pandas.core.frame import DataFrame
         from pandas.core.series import Series
-        from pandas.core.groupby import DataFrameGroupBy
-        from pandas.core.groupby import SeriesGroupBy
-        from pandas.core.groupby import GroupBy
-        from pandas.core.groupby import PanelGroupBy
         from pandas import Panel
         try:
             # pandas>=0.18.0
             from pandas.core.window import _Rolling_and_Expanding
         except ImportError:  # pragma: no cover
             _Rolling_and_Expanding = None
+        try:
+            # pandas>=0.23.0
+            from pandas.core.groupby.groupby import DataFrameGroupBy
+            from pandas.core.groupby.groupby import SeriesGroupBy
+            from pandas.core.groupby.groupby import GroupBy
+            from pandas.core.groupby.groupby import PanelGroupBy
+        except ImportError:
+            from pandas.core.groupby import DataFrameGroupBy
+            from pandas.core.groupby import SeriesGroupBy
+            from pandas.core.groupby import GroupBy
+            from pandas.core.groupby import PanelGroupBy
 
         deprecated_t = [tkwargs.pop('deprecated_t', None)]
 
