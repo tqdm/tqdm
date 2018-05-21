@@ -547,15 +547,11 @@ class tqdm(Comparable):
             _Rolling_and_Expanding = None
         try:
             # pandas>=0.23.0
-            from pandas.core.groupby.groupby import DataFrameGroupBy
-            from pandas.core.groupby.groupby import SeriesGroupBy
-            from pandas.core.groupby.groupby import GroupBy
-            from pandas.core.groupby.groupby import PanelGroupBy
+            from pandas.core.groupby.groupby import DataFrameGroupBy, \
+                SeriesGroupBy, GroupBy, PanelGroupBy
         except ImportError:
-            from pandas.core.groupby import DataFrameGroupBy
-            from pandas.core.groupby import SeriesGroupBy
-            from pandas.core.groupby import GroupBy
-            from pandas.core.groupby import PanelGroupBy
+            from pandas.core.groupby import DataFrameGroupBy, \
+                SeriesGroupBy, GroupBy, PanelGroupBy
 
         deprecated_t = [tkwargs.pop('deprecated_t', None)]
 
