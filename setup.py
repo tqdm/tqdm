@@ -179,6 +179,7 @@ setup(
     data_files=[('man/man1', ['tqdm.1'])],
     package_data={'': ['CONTRIBUTING.md', 'LICENCE', 'examples/*.py']},
     long_description=README_rst,
+    python_requires='>=2.6, !=3.0.*, !=3.1.*',
     classifiers=[
         # Trove classifiers
         # (https://pypi.python.org/pypi?%3Aaction=list_classifiers)
