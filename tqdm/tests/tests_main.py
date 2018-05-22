@@ -24,7 +24,7 @@ def test_main():
 
     # actual test:
 
-    assert (ls_out in res.replace('\r\n', '\n'))
+    assert ls_out in res.replace('\r\n', '\n')
 
     # semi-fake test which gets coverage:
     _SYS = sys.stdin, sys.argv
@@ -49,7 +49,7 @@ def test_main():
         sys.argv = ['', '--ascii', '--bytes', '--unit_scale', 'False']
         with closing(UnicodeIO()) as fp:
             main(fp=fp)
-            assert (str(len(IN_DATA)) in fp.getvalue())
+            assert str(len(IN_DATA)) in fp.getvalue()
 
     sys.stdin = IN_DATA_LIST
     sys.argv = ['', '-ascii', '--unit_scale', 'False',
