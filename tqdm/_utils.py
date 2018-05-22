@@ -130,13 +130,13 @@ class Comparable(object):
         return self._comparable == other._comparable
 
     def __ne__(self, other):
-        return not (self == other)
+        return not self == other
 
     def __gt__(self, other):
-        return not (self <= other)
+        return not self <= other
 
     def __ge__(self, other):
-        return not (self < other)
+        return not self < other
 
 
 def _is_utf(encoding):
