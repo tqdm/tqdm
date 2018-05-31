@@ -4,7 +4,7 @@
     "project_url": "https://github.com/tqdm/tqdm/",
     "repo": ".",
     "environment_type": "virtualenv",
-    "show_commit_url": "http://github.com/tqdm/tqdm/commit/",
+    "show_commit_url": "https://github.com/tqdm/tqdm/commit/",
     // "pythons": ["2.7", "3.3"],
     // "matrix": {
     //     "numpy": ["1.6", "1.7"],
