@@ -104,7 +104,7 @@ def test_pandas_data_frame():
         assert res1.equals(res2)
 
         # apply
-        for axis in [0, 1]:
+        for axis in [0, 1, 'index', 'columns']:
             res3 = df.progress_apply(task_func, axis=axis)
             res4 = df.apply(task_func, axis=axis)
             assert res3.equals(res4)

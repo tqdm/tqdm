@@ -581,6 +581,10 @@ class tqdm(Comparable):
                             not isinstance(df, _Rolling_and_Expanding):
                         # DataFrame or Panel
                         axis = kwargs.get('axis', 0)
+                        if axis == 'index':
+                            axis = 0
+                        elif axis == 'columns':
+                            axis = 1
                         # when axis=0, total is shape[axis1]
                         total = df.size // df.shape[axis]
 
