@@ -487,7 +487,7 @@ class tqdm(Comparable):
             if not instance.gui:
                 for inst in cls._instances:
                     # negative `pos` means fixed
-                    if inst.pos > abs(instance.pos):
+                    if hasattr(inst, "pos") and inst.pos > abs(instance.pos):
                         inst.pos -= 1
                         # TODO: check this doesn't overwrite another fixed bar
         # Kill monitor if no instances are left
