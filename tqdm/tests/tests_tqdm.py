@@ -1561,6 +1561,37 @@ def test_threading():
 
 
 @with_setup(pretest, posttest)
+def test_bool():
+    """Test boolean cast"""
+    def internal(our_file, disable):
+        with tqdm(total=10, file=our_file, disable=disable) as t:
+            assert t
+        with tqdm(total=0, file=our_file, disable=disable) as t:
+            assert not t
+        with trange(10, file=our_file, disable=disable) as t:
+            assert t
+        with trange(0, file=our_file, disable=disable) as t:
+            assert not t
+        with tqdm([], file=our_file, disable=disable) as t:
+            assert not t
+        with tqdm([0], file=our_file, disable=disable) as t:
+            assert t
+        with tqdm(file=our_file, disable=disable) as t:
+            try:
+                print(bool(t))
+            except TypeError:
+                pass
+            else:
+                raise TypeError(
+                    "Expected tqdm() with neither total nor iterable to fail")
+
+    # test with and without disable
+    with closing(StringIO()) as our_file:
+        internal(our_file, False)
+        internal(our_file, True)
+
+
+@with_setup(pretest, posttest)
 def test_autonotebook():
     """Test autonotebook fallback"""
     from tqdm.autonotebook import tqdm as tn

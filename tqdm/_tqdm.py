@@ -748,12 +748,19 @@ class tqdm(Comparable):
         if disable is None and hasattr(file, "isatty") and not file.isatty():
             disable = True
 
+        if total is None and iterable is not None:
+            try:
+                total = len(iterable)
+            except (TypeError, AttributeError):
+                total = None
+
         if disable:
             self.iterable = iterable
             self.disable = disable
             self.pos = self._get_free_pos(self)
             self._instances.remove(self)
             self.n = initial
+            self.total = total
             return
 
         if kwargs:
@@ -766,12 +773,6 @@ class tqdm(Comparable):
                 else TqdmKeyError("Unknown argument(s): " + str(kwargs)))
 
         # Preprocess the arguments
-        if total is None and iterable is not None:
-            try:
-                total = len(iterable)
-            except (TypeError, AttributeError):
-                total = None
-
         if ((ncols is None) and (file in (sys.stderr, sys.stdout))) or \
                 dynamic_ncols:  # pragma: no cover
             if dynamic_ncols:
