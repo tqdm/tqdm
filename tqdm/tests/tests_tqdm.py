@@ -1558,3 +1558,16 @@ def test_threading():
     else:
         tqdm.set_lock(mp_lock)
     # TODO: test interleaved output #445
+
+
+@with_setup(pretest, posttest)
+def test_autonotebook():
+    """Test autonotebook fallback"""
+    from tqdm.autonotebook import tqdm as tn
+    from tqdm.autonotebook import trange as tr
+
+    with closing(StringIO()) as our_file:
+        with tn(total=10, file=our_file) as t:
+            assert len(t) == 10
+        with tr(1337) as t:
+            assert len(t) == 1337
