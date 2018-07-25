@@ -141,7 +141,7 @@ class tqdm(Comparable):
             Number with Order of Magnitude SI unit postfix.
         """
         for unit in ['', 'k', 'M', 'G', 'T', 'P', 'E', 'Z']:
-            if abs(num) < 999.95:
+            if abs(num) < 999.5:
                 if abs(num) < 99.95:
                     if abs(num) < 9.995:
                         return '{0:1.2f}'.format(num) + unit + suffix
