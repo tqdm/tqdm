@@ -665,6 +665,18 @@ light blue: no ETA); as demonstrated below.
 |Screenshot-Jupyter2|
 |Screenshot-Jupyter3|
 
+It is also possible to let ``tqdm`` automatically choose between
+console or notebook versions by using the ``autonotebook`` submodule:
+
+.. code:: python
+
+    from tqdm.autonotebook import tqdm
+    tqdm.pandas()
+
+Note that this will issue a ``TqdmExperimentalWarning`` if run in a notebook
+since it is not meant to be possible to distinguish between ``jupyter notebook``
+and ``jupyter console``.
+
 Writing messages
 ~~~~~~~~~~~~~~~~
 

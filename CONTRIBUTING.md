@@ -88,7 +88,7 @@ The tqdm repository managers should:
 
 - regularly bump the version number in the file
 [_version.py](https://raw.githubusercontent.com/tqdm/tqdm/master/tqdm/_version.py)
-- follow the [Semantic Versioning](http://semver.org/) convention
+- follow the [Semantic Versioning](https://semver.org/) convention
 - take care of this (instead of users) to avoid PR conflicts
 solely due to the version file bumping
 
