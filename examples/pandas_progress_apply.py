@@ -5,7 +5,7 @@ from tqdm import tqdm
 df = pd.DataFrame(np.random.randint(0, 100, (100000, 6)))
 
 # Register `pandas.progress_apply` and `pandas.Series.map_apply` with `tqdm`
-# (can use `tqdm_gui`, `tqdm_notebook`, optional kwargs, etc.)
+# (can use `tqdm_gui().pandas()`, `tqdm_notebook().pandas()`, optional kwargs, etc.)
 tqdm.pandas(desc="my bar!")
 
 # Now you can use `progress_apply` instead of `apply`
