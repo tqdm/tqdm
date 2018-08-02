@@ -2,9 +2,7 @@ from ._tqdm import tqdm
 
 __author__ = {"github.com/": ["twolodzko"]}
 
-
 def tqdm_function_decorator(*args, **kwargs):
-
     """
     Decorate a function by adding a progress bar
 
@@ -29,9 +27,8 @@ def tqdm_function_decorator(*args, **kwargs):
             sleeper()
 
     """
-     
+    
     class PbarFuncDecorator(object):
-
         """
         The decorator class. It takes a function as an input
         and decorates it, so every call invokes tqdm an update
