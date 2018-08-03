@@ -40,5 +40,4 @@ def tqdm_function_decorator(*args, **kwargs):
             tmp = self.func(*args, **kwargs)
             self.pbar.update()
             return tmp
-          
     return PbarFuncDecorator
