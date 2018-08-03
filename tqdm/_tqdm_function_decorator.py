@@ -25,16 +25,13 @@ def tqdm_function_decorator(*args, **kwargs):
             sleep(1)
     >>> for _ in range(N_ITERS):
             sleeper()
-
     """
-    
     class PbarFuncDecorator(object):
         """
         The decorator class. It takes a function as an input
         and decorates it, so every call invokes tqdm an update
         in progress bar.
         """
-
         def __init__(self, func):
             self.func = func
             self.pbar = tqdm(*args, **kwargs)
