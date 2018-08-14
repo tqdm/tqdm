@@ -1,6 +1,7 @@
 from threading import Event, Thread
 from time import time
 from warnings import warn
+import atexit
 __all__ = ["TMonitor", "TqdmSynchronisationWarning"]
 
 
@@ -43,6 +44,7 @@ class TMonitor(Thread):
             self._event = TMonitor._event
         else:
             self._event = Event
+        atexit.register(self.exit)
         self.start()
 
     def exit(self):
