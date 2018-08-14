@@ -13,7 +13,7 @@ from __future__ import division
 # compatibility functions and utilities
 from ._utils import _supports_unicode, _environ_cols_wrapper, _range, _unich, \
     _term_move_up, _unicode, WeakSet, _basestring, _OrderedDict, \
-    _strip_ansi_escape_codes, Comparable
+    Comparable, RE_ANSI
 from ._monitor import TMonitor
 # native libraries
 import sys
@@ -360,11 +360,9 @@ class tqdm(Comparable):
                     # Else no progress bar, we can just format and return
                     return bar_format.format(**bar_args)
 
-            # Formatting progress bar
-            # space available for bar's display
+            # Formatting progress bar space available for bar's display
             if ncols:
-                N_BARS = max(1, ncols - len(_strip_ansi_escape_codes(l_bar))
-                             - len(_strip_ansi_escape_codes(r_bar)))
+                N_BARS = max(1, ncols - len(RE_ANSI.sub('', l_bar + r_bar)))
             else:
                 N_BARS = 10
 
