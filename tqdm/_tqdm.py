@@ -286,9 +286,9 @@ class tqdm(Comparable):
         rate_fmt = rate_inv_fmt if inv_rate and inv_rate > 1 else rate_noinv_fmt
 
         if unit_scale:
-            n_fmt = format_sizeof(n, divisor=unit_divisor)
-            total_fmt = format_sizeof(total, divisor=unit_divisor) \
-                if total else None
+            n_fmt = format_sizeof(n, suffix=unit, divisor=unit_divisor)
+            total_fmt = format_sizeof(total, suffix=unit, \
+                divisor=unit_divisor) if total else None
         else:
             n_fmt = str(n)
             total_fmt = str(total)
