@@ -822,12 +822,13 @@ Citation information: |DOI-URI|
 Authors
 -------
 
-The main developers, ranked by surviving lines of code, are:
+The main developers, ranked by surviving lines of code
+(`git fame -wMC <https://github.com/casperdcl/gitfame>`__), are:
 
 - Casper da Costa-Luis (`casperdcl <https://github.com/casperdcl>`__, ~2/3, |Gift-Casper|)
-- Stephen Larroque (`lrq3000 <https://github.com/lrq3000>`__, ~1/3)
+- Stephen Larroque (`lrq3000 <https://github.com/lrq3000>`__, ~1/5)
+- Hadrien Mary (`hadim <https://github.com/hadim>`__, ~2%)
 - Guangshuo Chen (`chengs <https://github.com/chengs>`__, ~1%)
-- Hadrien Mary (`hadim <https://github.com/hadim>`__, ~1%)
 - Noam Yorav-Raphael (`noamraph <https://github.com/noamraph>`__, ~1%, original author)
 - Mikhail Korobov (`kmike <https://github.com/kmike>`__, ~1%)
 
