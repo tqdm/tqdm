@@ -188,7 +188,7 @@ setup(
     python_requires='>=2.6, !=3.0.*, !=3.1.*',
     classifiers=[
         # Trove classifiers
-        # (https://pypi.python.org/pypi?%3Aaction=list_classifiers)
+        # (https://pypi.org/pypi?%3Aaction=list_classifiers)
         'Development Status :: 5 - Production/Stable',
         'Environment :: Console',
         'Environment :: MacOS X',

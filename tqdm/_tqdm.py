@@ -159,6 +159,7 @@ class tqdm(Comparable):
         ----------
         t  : int
             Number of seconds.
+
         Returns
         -------
         out  : str

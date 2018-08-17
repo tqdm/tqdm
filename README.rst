@@ -11,7 +11,7 @@ tqdm
 
 
 ``tqdm`` means "progress" in Arabic (taqadum, تقدّم)
-and an abbreviation for "I love you so much" in Spanish (te quiero demasiado).
+and is an abbreviation for "I love you so much" in Spanish (te quiero demasiado).
 
 Instantly make your loops show a smart progress meter - just wrap any
 iterable with ``tqdm(iterable)``, and you're done!
@@ -810,6 +810,12 @@ See the
 `CONTRIBUTING <https://raw.githubusercontent.com/tqdm/tqdm/master/CONTRIBUTING.md>`__
 file for more information.
 
+Ports to Other Languages
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+A list is available on
+`this wiki page <https://github.com/tqdm/tqdm/wiki/tqdm-ports>`__.
+
 
 LICENCE
 -------
@@ -863,11 +869,11 @@ There are also many |GitHub-Contributions| which we are grateful for.
 .. |Gift-Casper| image:: https://img.shields.io/badge/gift-donate-ff69b4.svg
    :target: https://caspersci.uk.to/donate.html
 .. |PyPI-Status| image:: https://img.shields.io/pypi/v/tqdm.svg
-   :target: https://pypi.python.org/pypi/tqdm
+   :target: https://pypi.org/project/tqdm
 .. |PyPI-Downloads| image:: https://img.shields.io/pypi/dm/tqdm.svg
-   :target: https://pypi.python.org/pypi/tqdm
+   :target: https://pypi.org/project/tqdm
 .. |PyPI-Versions| image:: https://img.shields.io/pypi/pyversions/tqdm.svg
-   :target: https://pypi.python.org/pypi/tqdm
+   :target: https://pypi.org/project/tqdm
 .. |Conda-Forge-Status| image:: https://anaconda.org/conda-forge/tqdm/badges/version.svg
    :target: https://anaconda.org/conda-forge/tqdm
 .. |OpenHub-Status| image:: https://www.openhub.net/p/tqdm/widgets/project_thin_badge?format=gif
