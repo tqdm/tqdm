@@ -255,6 +255,19 @@ def test_format_meter():
         unich(0x258f) + "|test"
 
 
+def test_ansi_escape_codes():
+    """Test stripping of ANSI escape codes"""
+    format_meter = tqdm.format_meter
+    ansi = {'BOLD': '\033[1m',
+            'RED': '\033[91m',
+            'END': '\033[0m'}
+    desc = '{BOLD}{RED}Colored{END} description'.format(**ansi)
+    ncols = 123
+    ansi_len = sum([len(code) for code in ansi.values()])
+    meter = format_meter(0, 100, 0, ncols=ncols, prefix=desc)
+    assert len(meter) == ncols + ansi_len
+
+
 def test_si_format():
     """Test SI unit prefixes"""
     format_meter = tqdm.format_meter

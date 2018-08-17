@@ -1,11 +1,13 @@
 import os
 import subprocess
 from platform import system as _curos
+import re
 CUR_OS = _curos()
 IS_WIN = CUR_OS in ['Windows', 'cli']
 IS_NIX = (not IS_WIN) and any(
     CUR_OS.startswith(i) for i in
     ['CYGWIN', 'MSYS', 'Linux', 'Darwin', 'SunOS', 'FreeBSD', 'NetBSD'])
+RE_ANSI = re.compile(r"\x1b\[[;\d]*[A-Za-z]")
 
 
 # Py2/3 compat. Empty conditional to avoid coverage
