@@ -812,6 +812,12 @@ class tqdm(Comparable):
         if smoothing is None:
             smoothing = 0
 
+        try:
+            file.write(u'')
+        except TypeError:
+            import io
+            file = io.TextIOWrapper(file)
+
         # Store the arguments
         self.iterable = iterable
         self.desc = desc or ''

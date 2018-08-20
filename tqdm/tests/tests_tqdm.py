@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 
 import sys
 import csv
+import io
 import re
 import os
 from nose import with_setup
@@ -1615,3 +1616,12 @@ def test_autonotebook():
             assert len(t) == 10
         with tr(1337) as t:
             assert len(t) == 1337
+
+
+@with_setup(pretest, posttest)
+def test_bytesio():
+    """Test iterating over unicode with an io.BytesIO 'file'"""
+    f = io.BytesIO()
+
+    for _ in tqdm(u'abc', file=f):
+        pass
