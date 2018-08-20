@@ -1,5 +1,8 @@
 *.py[cod]
 *.so
+/wiki/
+/docs/
+/feedstock/
 
 # Packages
 tqdm.egg-info
