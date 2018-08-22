@@ -1365,37 +1365,35 @@ def test_write():
     # Backup stdout/stderr
     stde = sys.stderr
     stdo = sys.stdout
-    try:
-        # Mock stdout/stderr
-        with closing(StringIO()) as our_stderr:
-            with closing(StringIO()) as our_stdout:
-                sys.stderr = our_stderr
-                sys.stdout = our_stdout
-                t1 = tqdm(total=10, file=sys.stderr, desc='pos0 bar',
-                          bar_format='{l_bar}', mininterval=0, miniters=1)
+    # Mock stdout/stderr
+    with closing(StringIO()) as our_stderr:
+        with closing(StringIO()) as our_stdout:
+            sys.stderr = our_stderr
+            sys.stdout = our_stdout
+            t1 = tqdm(total=10, file=sys.stderr, desc='pos0 bar',
+                      bar_format='{l_bar}', mininterval=0, miniters=1)
 
-                t1.update()
-                before_err = sys.stderr.getvalue()
-                before_out = sys.stdout.getvalue()
+            t1.update()
+            before_err = sys.stderr.getvalue()
+            before_out = sys.stdout.getvalue()
 
-                tqdm.write(s, file=sys.stdout)
-                after_err = sys.stderr.getvalue()
-                after_out = sys.stdout.getvalue()
+            tqdm.write(s, file=sys.stdout)
+            after_err = sys.stderr.getvalue()
+            after_out = sys.stdout.getvalue()
 
-                t1.close()
+            t1.close()
 
-                assert before_err == '\rpos0 bar:   0%|\rpos0 bar:  10%|'
-                assert before_out == ''
-                after_err_res = [m[0] for m in RE_pos.findall(after_err)]
-                assert after_err_res == [u'\rpos0 bar:   0%',
-                                         u'\rpos0 bar:  10%',
-                                         u'\r      ',
-                                         u'\r\rpos0 bar:  10%']
-                assert after_out == s + '\n'
-    finally:
-        # Restore stdout and stderr
-        sys.stderr = stde
-        sys.stdout = stdo
+            assert before_err == '\rpos0 bar:   0%|\rpos0 bar:  10%|'
+            assert before_out == ''
+            after_err_res = [m[0] for m in RE_pos.findall(after_err)]
+            assert after_err_res == [u'\rpos0 bar:   0%',
+                                     u'\rpos0 bar:  10%',
+                                     u'\r      ',
+                                     u'\r\rpos0 bar:  10%']
+            assert after_out == s + '\n'
+    # Restore stdout and stderr
+    sys.stderr = stde
+    sys.stdout = stdo
 
 
 @with_setup(pretest, posttest)
