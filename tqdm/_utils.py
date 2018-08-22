@@ -166,7 +166,7 @@ class TextIOWrappableStdOutErr(object):
     def __getattr__(self, name):
         return getattr(self._wrapped, name)
 
-    def __setattr__(self, name, value):
+    def __setattr__(self, name, value): # pragma: no cover
         return setattr(self._wrapped, name, value)
 
 
