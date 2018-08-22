@@ -13,9 +13,10 @@ from __future__ import division
 # compatibility functions and utilities
 from ._utils import _supports_unicode, _environ_cols_wrapper, _range, _unich, \
     _term_move_up, _unicode, WeakSet, _basestring, _OrderedDict, \
-    Comparable, RE_ANSI
+    Comparable, RE_ANSI, TextIOWrappableStdOutErr
 from ._monitor import TMonitor
 # native libraries
+import io
 import sys
 from numbers import Number
 from time import time
@@ -24,6 +25,11 @@ from contextlib import contextmanager
 import multiprocessing as mp
 import threading as th
 from warnings import warn
+
+try:
+    from StringIO import StringIO
+except ImportError:
+    from io import StringIO
 
 __author__ = {"github.com/": ["noamraph", "obiwanus", "kmike", "hadim",
                               "casperdcl", "lrq3000"]}
@@ -746,6 +752,22 @@ class tqdm(Comparable):
 
         if file is None:
             file = sys.stderr
+
+        is_std = file in (
+            # something that wants to be stdout/stderr
+            sys.stdout,
+            sys.stderr,
+            # or the real stdout/stderr
+            sys.__stdout__,
+            sys.__stderr__,
+        )
+        not_unicode = not isinstance(file, (io.TextIOWrapper, StringIO))
+
+        if sys.version_info < (3,) and is_std and not_unicode:
+            encoding = getattr(file, 'encoding', 'utf-8')
+
+            file = TextIOWrappableStdOutErr(file)
+            file = io.TextIOWrapper(file, encoding=encoding)
 
         if disable is None and hasattr(file, "isatty") and not file.isatty():
             disable = True

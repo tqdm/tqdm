@@ -1,8 +1,6 @@
 # Advice: use repr(our_file.read()) to print the full output of tqdm
 # (else '\r' will replace the previous lines and you'll see only the latest.
 
-from __future__ import unicode_literals
-
 import sys
 import csv
 import re
@@ -21,6 +19,7 @@ try:
 except ImportError:
     from io import StringIO
 
+from io import BytesIO
 from io import IOBase  # to support unicode strings
 
 
@@ -310,6 +309,36 @@ def test_all_defaults():
     # except:
     #     pass
     sys.stderr.write('\rTest default kwargs ... ')
+
+
+class WriteTypeChecker(BytesIO):
+    def __init__(self, expected_type):
+        super(WriteTypeChecker, self).__init__()
+
+        self.expected_type = expected_type
+
+    def write(self, s):
+        assert isinstance(s, self.expected_type)
+
+
+@with_setup(pretest, posttest)
+def test_native_string_io_for_default_file():
+    stderr = sys.stderr
+    try:
+        sys.stderr = WriteTypeChecker(expected_type=type(''))
+
+        for _ in tqdm(range(3)):
+            pass
+    finally:
+        sys.stderr = stderr
+
+
+@with_setup(pretest, posttest)
+def test_unicode_string_io_for_specified_file():
+    f = WriteTypeChecker(expected_type=type(u''))
+
+    for _ in tqdm(range(3), file=f):
+        pass
 
 
 @with_setup(pretest, posttest)
@@ -754,9 +783,9 @@ def test_ascii():
                 t.update()
         our_file.seek(0)
         res = our_file.read().strip("\r").split("\r")
-    assert "7%|\u258b" in res[1]
-    assert "13%|\u2588\u258e" in res[2]
-    assert "20%|\u2588\u2588" in res[3]
+    assert u"7%|\u258b" in res[1]
+    assert u"13%|\u2588\u258e" in res[2]
+    assert u"20%|\u2588\u2588" in res[3]
 
 
 @with_setup(pretest, posttest)
@@ -1336,35 +1365,37 @@ def test_write():
     # Backup stdout/stderr
     stde = sys.stderr
     stdo = sys.stdout
-    # Mock stdout/stderr
-    with closing(StringIO()) as our_stderr:
-        with closing(StringIO()) as our_stdout:
-            sys.stderr = our_stderr
-            sys.stdout = our_stdout
-            t1 = tqdm(total=10, file=sys.stderr, desc='pos0 bar',
-                      bar_format='{l_bar}', mininterval=0, miniters=1)
+    try:
+        # Mock stdout/stderr
+        with closing(StringIO()) as our_stderr:
+            with closing(StringIO()) as our_stdout:
+                sys.stderr = our_stderr
+                sys.stdout = our_stdout
+                t1 = tqdm(total=10, file=sys.stderr, desc='pos0 bar',
+                          bar_format='{l_bar}', mininterval=0, miniters=1)
 
-            t1.update()
-            before_err = sys.stderr.getvalue()
-            before_out = sys.stdout.getvalue()
+                t1.update()
+                before_err = sys.stderr.getvalue()
+                before_out = sys.stdout.getvalue()
 
-            tqdm.write(s, file=sys.stdout)
-            after_err = sys.stderr.getvalue()
-            after_out = sys.stdout.getvalue()
+                tqdm.write(s, file=sys.stdout)
+                after_err = sys.stderr.getvalue()
+                after_out = sys.stdout.getvalue()
 
-            t1.close()
+                t1.close()
 
-            assert before_err == '\rpos0 bar:   0%|\rpos0 bar:  10%|'
-            assert before_out == ''
-            after_err_res = [m[0] for m in RE_pos.findall(after_err)]
-            assert after_err_res == [u'\rpos0 bar:   0%',
-                                     u'\rpos0 bar:  10%',
-                                     u'\r      ',
-                                     u'\r\rpos0 bar:  10%']
-            assert after_out == s + '\n'
-    # Restore stdout and stderr
-    sys.stderr = stde
-    sys.stdout = stdo
+                assert before_err == '\rpos0 bar:   0%|\rpos0 bar:  10%|'
+                assert before_out == ''
+                after_err_res = [m[0] for m in RE_pos.findall(after_err)]
+                assert after_err_res == [u'\rpos0 bar:   0%',
+                                         u'\rpos0 bar:  10%',
+                                         u'\r      ',
+                                         u'\r\rpos0 bar:  10%']
+                assert after_out == s + '\n'
+    finally:
+        # Restore stdout and stderr
+        sys.stderr = stde
+        sys.stdout = stdo
 
 
 @with_setup(pretest, posttest)
@@ -1501,6 +1532,10 @@ class DummyTqdmFile(object):
 
     def __init__(self, file):
         self.file = file
+        self.closed = False
+
+    def flush(self):
+        pass
 
     def write(self, x):
         # Avoid print() second call (useless \n)

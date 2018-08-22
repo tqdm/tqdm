@@ -141,6 +141,35 @@ class Comparable(object):
         return not self < other
 
 
+class TextIOWrappableStdOutErr(object):
+    """Add the needed methods to be able to io.TextIOWrapper a
+    sys.stdout or sys.stderr.
+    """
+
+    def __init__(self, wrapped):
+        object.__setattr__(self, '_wrapped', wrapped)
+
+    def close(self):
+        # TODO: find the thing that is closing the streams.  we
+        #       shouldn't have to throw this call away.
+        pass
+
+    def readable(self):
+        return False
+
+    def seekable(self):
+        return False
+
+    def writable(self):
+        return True
+
+    def __getattr__(self, name):
+        return getattr(self._wrapped, name)
+
+    def __setattr__(self, name, value):
+        return setattr(self._wrapped, name, value)
+
+
 def _is_utf(encoding):
     try:
         u'\u2588\u2589'.encode(encoding)
