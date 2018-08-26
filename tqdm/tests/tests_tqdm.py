@@ -312,6 +312,7 @@ def test_all_defaults():
 
 
 class WriteTypeChecker(BytesIO):
+    """File-like to assert the expected type is written"""
     def __init__(self, expected_type):
         super(WriteTypeChecker, self).__init__()
 
@@ -323,6 +324,7 @@ class WriteTypeChecker(BytesIO):
 
 @with_setup(pretest, posttest)
 def test_native_string_io_for_default_file():
+    """Native strings written to unspecified files"""
     stderr = sys.stderr
     try:
         sys.stderr = WriteTypeChecker(expected_type=type(''))
@@ -335,6 +337,7 @@ def test_native_string_io_for_default_file():
 
 @with_setup(pretest, posttest)
 def test_unicode_string_io_for_specified_file():
+    """Unicode strings written to specified files"""
     f = WriteTypeChecker(expected_type=type(u''))
 
     for _ in tqdm(range(3), file=f):
@@ -1533,6 +1536,9 @@ class DummyTqdmFile(object):
         self.closed = False
 
     def flush(self):
+        """We are a dummy stream and have already done our analysis
+        when write() was called
+        """
         pass
 
     def write(self, x):
