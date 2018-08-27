@@ -149,12 +149,6 @@ class TextIOWrappableStdOutErr(object):
     def __init__(self, wrapped):
         object.__setattr__(self, '_wrapped', wrapped)
 
-    def close(self):
-        """Ignore attempts to close."""
-        # TODO: find the thing that is closing the streams.  we
-        #       shouldn't have to throw this call away.
-        pass
-
     @staticmethod
     def readable():
         """Standard output streams need not be readable."""
