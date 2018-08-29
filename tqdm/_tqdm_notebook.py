@@ -108,6 +108,7 @@ class tqdm_notebook(tqdm):
 
         if desc:
             pbar.description = desc
+            pbar.style = {'description_width': 'initial'}
         # Prepare status text
         ptext = HTML()
         # Only way to place text to the right of the bar is to use a container
@@ -170,6 +171,7 @@ class tqdm_notebook(tqdm):
             # Update description
             if desc:
                 pbar.description = desc
+                pbar.style = {'description_width': 'initial'}
 
         return print_status
 
