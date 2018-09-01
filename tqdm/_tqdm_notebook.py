@@ -102,7 +102,7 @@ class tqdm_notebook(tqdm):
         except NameError:
             # #187 #451 #558
             raise ImportError(
-                "IntProgress not found. Please update juputer and ipywidgets."
+                "IntProgress not found. Please update jupyter and ipywidgets."
                 " See https://ipywidgets.readthedocs.io/en/stable"
                 "/user_install.html")
 
