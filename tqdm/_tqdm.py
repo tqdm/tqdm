@@ -952,6 +952,7 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
                                 if avg_time is None \
                                 else smoothing * delta_t / delta_it + \
                                 (1 - smoothing) * avg_time
+                            self.avg_time = avg_time
 
                         self.n = n
                         with self._lock:
