@@ -88,7 +88,7 @@ The tqdm repository managers should:
 
 - regularly bump the version number in the file
 [_version.py](https://raw.githubusercontent.com/tqdm/tqdm/master/tqdm/_version.py)
-- follow the [Semantic Versioning](http://semver.org/) convention
+- follow the [Semantic Versioning](https://semver.org/) convention
 - take care of this (instead of users) to avoid PR conflicts
 solely due to the version file bumping
 
@@ -186,7 +186,7 @@ Formally publishing requires additional steps: testing and tagging.
 
 - ensure that all online CI tests have passed
 - check `setup.py` and `MANIFEST.in` - which define the packaging
-process and info that will be uploaded to [pypi](pypi.python.org) -
+process and info that will be uploaded to [pypi](https://pypi.org) -
 using `[python setup.py] make installdev`
 
 ### Tag
@@ -225,7 +225,7 @@ running `make` within the wiki repository.
 
 ### Notes
 
-- you can also test on the pypi test servers `testpypi.python.org/pypi`
+- you can also test on the pypi test servers `test.pypi.org`
 before the real deployment
 - in case of a mistake, you can delete an uploaded release on pypi, but you
 cannot re-upload another with the same version number
@@ -242,7 +242,7 @@ following:
 - The [main repository site](https://github.com/tqdm/tqdm) which automatically
   serves the latest README.rst as well as links to all of github's features.
   This is the preferred online referral link for tqdm.
-- The [PyPi mirror](https://pypi.python.org/pypi/tqdm) which automatically
+- The [PyPi mirror](https://pypi.org/project/tqdm) which automatically
   serves the latest release built from README.rst as well as links to past
   releases.
 - Many external web crawlers.

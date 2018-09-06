@@ -12,7 +12,8 @@ from __future__ import absolute_import
 from __future__ import division
 # compatibility functions and utilities
 from ._utils import _supports_unicode, _environ_cols_wrapper, _range, _unich, \
-    _term_move_up, _unicode, WeakSet, _basestring, _OrderedDict
+    _term_move_up, _unicode, WeakSet, _basestring, _OrderedDict, \
+    Comparable, RE_ANSI
 from ._monitor import TMonitor
 # native libraries
 import sys
@@ -108,7 +109,7 @@ class TqdmDefaultWriteLock(object):
         self.release()
 
 
-class tqdm(object):
+class tqdm(Comparable):
     """
     Decorate an iterable object, returning an iterator which acts exactly
     like the original iterable, but prints a dynamically updating
@@ -140,7 +141,7 @@ class tqdm(object):
             Number with Order of Magnitude SI unit postfix.
         """
         for unit in ['', 'k', 'M', 'G', 'T', 'P', 'E', 'Z']:
-            if abs(num) < 999.95:
+            if abs(num) < 999.5:
                 if abs(num) < 99.95:
                     if abs(num) < 9.995:
                         return '{0:1.2f}'.format(num) + unit + suffix
@@ -158,6 +159,7 @@ class tqdm(object):
         ----------
         t  : int
             Number of seconds.
+
         Returns
         -------
         out  : str
@@ -359,10 +361,11 @@ class tqdm(object):
                     # Else no progress bar, we can just format and return
                     return bar_format.format(**bar_args)
 
-            # Formatting progress bar
-            # space available for bar's display
-            N_BARS = max(1, ncols - len(l_bar) - len(r_bar)) if ncols \
-                else 10
+            # Formatting progress bar space available for bar's display
+            if ncols:
+                N_BARS = max(1, ncols - len(RE_ANSI.sub('', l_bar + r_bar)))
+            else:
+                N_BARS = 10
 
             # format bar depending on availability of unicode/ascii chars
             if ascii:
@@ -424,7 +427,7 @@ class tqdm(object):
     def _get_free_pos(cls, instance=None):
         """Skips specified instance"""
         positions = set(abs(inst.pos) for inst in cls._instances
-                        if inst is not instance)
+                        if inst is not instance and hasattr(inst, "pos"))
         return min(set(range(len(positions) + 1)).difference(positions))
 
     @classmethod
@@ -483,16 +486,14 @@ class tqdm(object):
             # Clear instance if in the target output file
             # or if write output + tqdm output are both either
             # sys.stdout or sys.stderr (because both are mixed in terminal)
-            if inst.fp == fp or all(
-                    f in (sys.stdout, sys.stderr) for f in (fp, inst.fp)):
+            if hasattr(inst, "start_t") and (inst.fp == fp or all(
+                    f in (sys.stdout, sys.stderr) for f in (fp, inst.fp))):
                 inst.clear(nolock=True)
                 inst_cleared.append(inst)
         yield
         # Force refresh display of bars we cleared
         for inst in inst_cleared:
-            # Avoid race conditions by checking that the instance started
-            if hasattr(inst, 'start_t'):  # pragma: nocover
-                inst.refresh(nolock=True)
+            inst.refresh(nolock=True)
         if not nolock:
             cls._lock.release()
 
@@ -541,16 +542,19 @@ class tqdm(object):
         """
         from pandas.core.frame import DataFrame
         from pandas.core.series import Series
-        from pandas.core.groupby import DataFrameGroupBy
-        from pandas.core.groupby import SeriesGroupBy
-        from pandas.core.groupby import GroupBy
-        from pandas.core.groupby import PanelGroupBy
         from pandas import Panel
         try:
             # pandas>=0.18.0
             from pandas.core.window import _Rolling_and_Expanding
         except ImportError:  # pragma: no cover
             _Rolling_and_Expanding = None
+        try:
+            # pandas>=0.23.0
+            from pandas.core.groupby.groupby import DataFrameGroupBy, \
+                SeriesGroupBy, GroupBy, PanelGroupBy
+        except ImportError:
+            from pandas.core.groupby import DataFrameGroupBy, \
+                SeriesGroupBy, GroupBy, PanelGroupBy
 
         deprecated_t = [tkwargs.pop('deprecated_t', None)]
 
@@ -747,12 +751,19 @@ class tqdm(object):
         if disable is None and hasattr(file, "isatty") and not file.isatty():
             disable = True
 
+        if total is None and iterable is not None:
+            try:
+                total = len(iterable)
+            except (TypeError, AttributeError):
+                total = None
+
         if disable:
             self.iterable = iterable
             self.disable = disable
             self.pos = self._get_free_pos(self)
             self._instances.remove(self)
             self.n = initial
+            self.total = total
             return
 
         if kwargs:
@@ -765,12 +776,6 @@ class tqdm(object):
                 else TqdmKeyError("Unknown argument(s): " + str(kwargs)))
 
         # Preprocess the arguments
-        if total is None and iterable is not None:
-            try:
-                total = len(iterable)
-            except (TypeError, AttributeError):
-                total = None
-
         if ((ncols is None) and (file in (sys.stderr, sys.stdout))) or \
                 dynamic_ncols:  # pragma: no cover
             if dynamic_ncols:
@@ -843,10 +848,11 @@ class tqdm(object):
 
         # if nested, at initial sp() call we replace '\r' by '\n' to
         # not overwrite the outer progress bar
-        if position is None:
-            self.pos = self._get_free_pos(self)
-        else:  # mark fixed positions as negative
-            self.pos = -position
+        with self._lock:
+            if position is None:
+                self.pos = self._get_free_pos(self)
+            else:  # mark fixed positions as negative
+                self.pos = -position
 
         if not gui:
             # Initialize the screen printer
@@ -888,23 +894,9 @@ class tqdm(object):
             self.unit_scale, 1 / self.avg_time if self.avg_time else None,
             self.bar_format, self.postfix, self.unit_divisor)
 
-    def __lt__(self, other):
-        return abs(self.pos) < abs(other.pos)
-
-    def __le__(self, other):
-        return (self < other) or (self == other)
-
-    def __eq__(self, other):
-        return abs(self.pos) == abs(other.pos)
-
-    def __ne__(self, other):
-        return not (self == other)
-
-    def __gt__(self, other):
-        return not (self <= other)
-
-    def __ge__(self, other):
-        return not (self < other)
+    @property
+    def _comparable(self):
+        return abs(getattr(self, "pos", 1 << 31))
 
     def __hash__(self):
         return id(self)
@@ -1124,7 +1116,9 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
                     self.sp(self.__repr__())
                 if pos:
                     self.moveto(-pos)
-                else:
+                elif not max([abs(getattr(i, "pos", 0))
+                              for i in self._instances] + [0]):
+                    # only if not nested (#477)
                     fp_write('\n')
             else:
                 self.sp('')  # clear up last bar

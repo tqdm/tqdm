@@ -3,9 +3,15 @@
 
 import os
 try:
-    from setuptools import setup
+    from setuptools import setup, find_packages
 except ImportError:
     from distutils.core import setup
+
+    def find_packages(where='.'):
+        # os.walk -> list[(dirname, list[subdirs], list[files])]
+        return [folder.replace("/", ".").lstrip(".")
+                for (folder, _, fils) in os.walk(where)
+                if "__init__.py" in fils]
 import sys
 from subprocess import check_call
 from io import open as io_open
@@ -23,7 +29,8 @@ import re
 
 # Get version from tqdm/_version.py
 __version__ = None
-version_file = os.path.join(os.path.dirname(__file__), 'tqdm', '_version.py')
+src_dir = os.path.abspath(os.path.dirname(__file__))
+version_file = os.path.join(src_dir, 'tqdm', '_version.py')
 with io_open(version_file, mode='r') as fd:
     exec(fd.read())
 
@@ -119,8 +126,7 @@ def execute_makefile_commands(commands, alias, verbose=False):
             if verbose:
                 print("Running command: " + cmd)
             # Launch the command and wait to finish (synchronized call)
-            check_call(parsed_cmd,
-                       cwd=os.path.dirname(os.path.abspath(__file__)))
+            check_call(parsed_cmd, cwd=src_dir)
 
 
 # Main setup.py config #
@@ -129,7 +135,7 @@ def execute_makefile_commands(commands, alias, verbose=False):
 # Executing makefile commands if specified
 if sys.argv[1].lower().strip() == 'make':
     # Filename of the makefile
-    fpath = os.path.join(os.path.dirname(__file__), 'Makefile')
+    fpath = os.path.join(src_dir, 'Makefile')
     # Parse the makefile, substitute the aliases and extract the commands
     commands = parse_makefile_aliases(fpath)
 
@@ -159,7 +165,7 @@ if sys.argv[1].lower().strip() == 'make':
 # Python package config #
 
 README_rst = ''
-fndoc = os.path.join(os.path.dirname(__file__), 'README.rst')
+fndoc = os.path.join(src_dir, 'README.rst')
 with io_open(fndoc, mode='r', encoding='utf-8') as fd:
     README_rst = fd.read()
 
@@ -174,14 +180,15 @@ setup(
     maintainer='tqdm developers',
     maintainer_email='python.tqdm@gmail.com',
     platforms=['any'],
-    packages=['tqdm'],
+    packages=['tqdm'] + ['tqdm.' + i for i in find_packages('tqdm')],
     entry_points={'console_scripts': ['tqdm=tqdm._main:main'], },
     data_files=[('man/man1', ['tqdm.1'])],
     package_data={'': ['CONTRIBUTING.md', 'LICENCE', 'examples/*.py']},
     long_description=README_rst,
+    python_requires='>=2.6, !=3.0.*, !=3.1.*',
     classifiers=[
         # Trove classifiers
-        # (https://pypi.python.org/pypi?%3Aaction=list_classifiers)
+        # (https://pypi.org/pypi?%3Aaction=list_classifiers)
         'Development Status :: 5 - Production/Stable',
         'Environment :: Console',
         'Environment :: MacOS X',
