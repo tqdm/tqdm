@@ -82,15 +82,17 @@ def test_monitoring_and_cleanup():
     # Set monitor interval
     tqdm.monitor_interval = maxinterval
     with closing(StringIO()) as our_file:
-        with tqdm(total=total, file=our_file, miniters=500, mininterval=0.1,
+        # set miniters=None to trigger dynamic_miniters
+        with tqdm(total=total, file=our_file, miniters=None, mininterval=0.1,
                   maxinterval=maxinterval) as t:
+            t.miniters = 500 # assume miniters to be very big
             cpu_timify(t, timer)
             # Do a lot of iterations in a small timeframe
             # (smaller than monitor interval)
             timer.sleep(maxinterval / 2)  # monitor won't wake up
             t.update(500)
             # check that our fixed miniters is still there
-            assert t.miniters == 500
+            assert t.miniters > 1
             # Then do 1 it after monitor interval, so that monitor kicks in
             timer.sleep(maxinterval * 2)
             t.update(1)
@@ -138,18 +140,22 @@ def test_monitoring_multi():
     # Set monitor interval
     tqdm.monitor_interval = maxinterval
     with closing(StringIO()) as our_file:
-        with tqdm(total=total, file=our_file, miniters=500, mininterval=0.1,
+        # set miniters=None to trigger dynamic_miniters
+        with tqdm(total=total, file=our_file, miniters=None, mininterval=0.1,
                   maxinterval=maxinterval) as t1:
             # Set high maxinterval for t2 so monitor does not need to adjust it
+            # set miniters=None to trigger dynamic_miniters
             with tqdm(total=total, file=our_file, miniters=500, mininterval=0.1,
                       maxinterval=1E5) as t2:
+                t1.miniters = 500 # assume miniters to be very big
+                t2.miniters = 500
                 cpu_timify(t1, timer)
                 cpu_timify(t2, timer)
                 # Do a lot of iterations in a small timeframe
                 timer.sleep(maxinterval / 2)
                 t1.update(500)
                 t2.update(500)
-                assert t1.miniters == 500
+                assert t1.miniters > 1
                 assert t2.miniters == 500
                 # Then do 1 it after monitor interval, so that monitor kicks in
                 timer.sleep(maxinterval * 2)
