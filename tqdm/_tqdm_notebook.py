@@ -124,9 +124,13 @@ class tqdm_notebook(tqdm):
         if ncols is not None:  # use default style of ipywidgets
             # ncols could be 100, "100px", "100%"
             ncols = str(ncols)  # ipywidgets only accepts string
-            if ncols[-1].isnumeric():
-                # if last value is digit, assume the value is digit
-                ncols += 'px'
+            try:
+                int_ncols = int(ncols)
+                if int_ncols > 0: # ncols is a positive numeric str
+                    ncols += 'px'
+            except ValueError:
+                # ncols is not numeric
+                pass
             pbar.layout.flex = '2'
             container.layout.width = ncols
             container.layout.display = 'inline-flex'
