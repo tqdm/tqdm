@@ -829,7 +829,7 @@ Authors
 -------
 
 The main developers, ranked by surviving lines of code
-(`git fame -wMC <https://github.com/casperdcl/gitfame>`__), are:
+(`git fame -wMC <https://github.com/casperdcl/git-fame>`__), are:
 
 - Casper da Costa-Luis (`casperdcl <https://github.com/casperdcl>`__, ~2/3, |Gift-Casper|)
 - Stephen Larroque (`lrq3000 <https://github.com/lrq3000>`__, ~1/5)
