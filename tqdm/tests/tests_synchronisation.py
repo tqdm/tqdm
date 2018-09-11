@@ -109,7 +109,7 @@ def test_monitoring_and_cleanup():
             timer.sleep(maxinterval * 2)
             t.update(2)
             timeend = timer.time()
-            while not (t.monitor.woken >= timeend):
+            while t.monitor.woken < timeend:
                 timer.sleep(1)  # Force monitor to wake up if it woken too soon
                 sleep(0.000001)
             # Wait for the monitor to get out of sleep's loop and update tqdm..

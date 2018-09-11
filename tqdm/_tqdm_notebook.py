@@ -92,12 +92,20 @@ class tqdm_notebook(tqdm):
         # fp = file
 
         # Prepare IPython progress bar
-        if total:
-            pbar = IntProgress(min=0, max=total)
-        else:  # No total? Show info style bar with no progress tqdm status
-            pbar = IntProgress(min=0, max=1)
-            pbar.value = 1
-            pbar.bar_style = 'info'
+        try:
+            if total:
+                pbar = IntProgress(min=0, max=total)
+            else:  # No total? Show info style bar with no progress tqdm status
+                pbar = IntProgress(min=0, max=1)
+                pbar.value = 1
+                pbar.bar_style = 'info'
+        except NameError:
+            # #187 #451 #558
+            raise ImportError(
+                "IntProgress not found. Please update jupyter and ipywidgets."
+                " See https://ipywidgets.readthedocs.io/en/stable"
+                "/user_install.html")
+
         if desc:
             pbar.description = desc
         # Prepare status text

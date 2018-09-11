@@ -88,7 +88,7 @@ The tqdm repository managers should:
 
 - regularly bump the version number in the file
 [_version.py](https://raw.githubusercontent.com/tqdm/tqdm/master/tqdm/_version.py)
-- follow the [Semantic Versioning](http://semver.org/) convention
+- follow the [Semantic Versioning](https://semver.org/) convention
 - take care of this (instead of users) to avoid PR conflicts
 solely due to the version file bumping
 
@@ -186,7 +186,7 @@ Formally publishing requires additional steps: testing and tagging.
 
 - ensure that all online CI tests have passed
 - check `setup.py` and `MANIFEST.in` - which define the packaging
-process and info that will be uploaded to [pypi](pypi.python.org) -
+process and info that will be uploaded to [pypi](https://pypi.org) -
 using `[python setup.py] make installdev`
 
 ### Tag
@@ -225,7 +225,7 @@ running `make` within the wiki repository.
 
 ### Notes
 
-- you can also test on the pypi test servers `testpypi.python.org/pypi`
+- you can also test on the pypi test servers `test.pypi.org`
 before the real deployment
 - in case of a mistake, you can delete an uploaded release on pypi, but you
 cannot re-upload another with the same version number
@@ -242,7 +242,7 @@ following:
 - The [main repository site](https://github.com/tqdm/tqdm) which automatically
   serves the latest README.rst as well as links to all of github's features.
   This is the preferred online referral link for tqdm.
-- The [PyPi mirror](https://pypi.python.org/pypi/tqdm) which automatically
+- The [PyPi mirror](https://pypi.org/project/tqdm) which automatically
   serves the latest release built from README.rst as well as links to past
   releases.
 - Many external web crawlers.
@@ -271,4 +271,15 @@ For expereinced devs, once happy with local master:
 6. `git tag vM.m.p && git push --tags`
 7. `[python setup.py] make distclean`
 8. `[python setup.py] make build`
-9. `[python setup.py] make pypi`
+9. upload to PyPI using one of the following:
+    a) `[python setup.py] make pypi`
+    b) `twine upload -s -i $(git config user.signingkey) dist/tqdm-*`
+10. create new release on https://github.com/tqdm/tqdm/releases
+    a) add helpful release notes
+    b) attach dist/tqdm-* binaries (usually only *.whl*)
+11. run `make` in the `wiki` submodule to update release notes
+12. run `make deploy` in the `docs` submodule to update website
+13. accept the automated PR in the `feedstock` submodule to update conda
+
+The last thee steps require a one-time `make submodules` to clone
+`docs`, `wiki`, and `feedstock`.
