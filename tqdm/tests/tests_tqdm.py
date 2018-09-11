@@ -10,13 +10,11 @@ import os
 from nose import with_setup
 from nose.plugins.skip import SkipTest
 from nose.tools import assert_raises
-from time import sleep
 from contextlib import contextmanager
 
 from tqdm import tqdm
 from tqdm import trange
 from tqdm import TqdmDeprecationWarning
-from tqdm._tqdm import TMonitor
 
 try:
     from StringIO import StringIO
@@ -33,7 +31,6 @@ class DeprecationError(Exception):
 # Ensure we can use `with closing(...) as ... :` syntax
 if getattr(StringIO, '__exit__', False) and \
    getattr(StringIO, '__enter__', False):
-
     def closing(arg):
         return arg
 else:
@@ -80,18 +77,6 @@ class DiscreteTimer(object):
     def time(self):
         """Get the current time"""
         return self.t
-
-
-class FakeSleep(object):
-    """Wait until the discrete timer reached the required time"""
-
-    def __init__(self, dtimer):
-        self.dtimer = dtimer
-
-    def sleep(self, t):
-        end = t + self.dtimer.t
-        while self.dtimer.t < end:
-            sleep(0.0000001)  # sleep a bit to interrupt (instead of pass)
 
 
 def cpu_timify(t, timer=None):
@@ -268,6 +253,19 @@ def test_format_meter():
     assert format_meter(20, 100, 12, ncols=6, rate=8.1,
                         bar_format=r'{bar}|test') == \
         unich(0x258f) + "|test"
+
+
+def test_ansi_escape_codes():
+    """Test stripping of ANSI escape codes"""
+    format_meter = tqdm.format_meter
+    ansi = {'BOLD': '\033[1m',
+            'RED': '\033[91m',
+            'END': '\033[0m'}
+    desc = '{BOLD}{RED}Colored{END} description'.format(**ansi)
+    ncols = 123
+    ansi_len = sum([len(code) for code in ansi.values()])
+    meter = format_meter(0, 100, 0, ncols=ncols, prefix=desc)
+    assert len(meter) == ncols + ansi_len
 
 
 def test_si_format():
@@ -1004,8 +1002,8 @@ def test_position():
     # Artificially test nested loop printing
     # Without leave
     our_file = StringIO()
-    t = tqdm(total=2, file=our_file, miniters=1, mininterval=0, maxinterval=0,
-             desc='pos2 bar', leave=False, position=2)
+    kwargs = dict(file=our_file, miniters=1, mininterval=0, maxinterval=0)
+    t = tqdm(total=2, desc='pos2 bar', leave=False, position=2, **kwargs)
     t.update()
     t.close()
     our_file.seek(0)
@@ -1021,12 +1019,10 @@ def test_position():
 
     # Test iteration-based tqdm positioning
     our_file = StringIO()
-    for _ in trange(2, file=our_file, miniters=1, mininterval=0, maxinterval=0,
-                    desc='pos0 bar', position=0):
-        for _ in trange(2, file=our_file, miniters=1, mininterval=0,
-                        maxinterval=0, desc='pos1 bar', position=1):
-            for _ in trange(2, file=our_file, miniters=1, mininterval=0,
-                            maxinterval=0, desc='pos2 bar', position=2):
+    kwargs["file"] = our_file
+    for _ in trange(2, desc='pos0 bar', position=0, **kwargs):
+        for _ in trange(2, desc='pos1 bar', position=1, **kwargs):
+            for _ in trange(2, desc='pos2 bar', position=2, **kwargs):
                 pass
     our_file.seek(0)
     out = our_file.read()
@@ -1059,12 +1055,11 @@ def test_position():
 
     # Test manual tqdm positioning
     our_file = StringIO()
-    t1 = tqdm(total=2, file=our_file, miniters=1, mininterval=0, maxinterval=0,
-              desc='pos0 bar', position=0)
-    t2 = tqdm(total=2, file=our_file, miniters=1, mininterval=0, maxinterval=0,
-              desc='pos1 bar', position=1)
-    t3 = tqdm(total=2, file=our_file, miniters=1, mininterval=0, maxinterval=0,
-              desc='pos2 bar', position=2)
+    kwargs["file"] = our_file
+    kwargs["total"] = 2
+    t1 = tqdm(desc='pos0 bar', position=0, **kwargs)
+    t2 = tqdm(desc='pos1 bar', position=1, **kwargs)
+    t3 = tqdm(desc='pos2 bar', position=2, **kwargs)
     for _ in _range(2):
         t1.update()
         t3.update()
@@ -1377,7 +1372,7 @@ def test_len():
     """Test advance len (numpy array shape)"""
     try:
         import numpy as np
-    except:
+    except ImportError:
         raise SkipTest
     with closing(StringIO()) as f:
         with tqdm(np.zeros((3, 4)), file=f) as t:
@@ -1415,118 +1410,6 @@ def test_deprecation_exception():
 
     assert_raises(TqdmDeprecationWarning, test_TqdmDeprecationWarning)
     assert_raises(Exception, test_TqdmDeprecationWarning_nofpwrite)
-
-
-@with_setup(pretest, posttest)
-def test_monitoring_thread():
-    # Note: should fix miniters for these tests, else with dynamic_miniters
-    # it's too complicated to handle with monitoring update and maxinterval...
-    maxinterval = 10
-
-    # 1- Configure and test the thread alone
-    # Setup a discrete timer
-    timer = DiscreteTimer()
-    TMonitor._time = timer.time
-    # And a fake sleeper
-    sleeper = FakeSleep(timer)
-    TMonitor._sleep = sleeper.sleep
-
-    # And a fake tqdm
-    class fake_tqdm(object):
-        _instances = []
-
-    # Instanciate the monitor
-    monitor = TMonitor(fake_tqdm, maxinterval)
-    # Test if alive, then killed
-    assert monitor.report()
-    monitor.exit()
-    timer.sleep(maxinterval * 2)  # need to go out of the sleep to die
-    assert not monitor.report()
-    # assert not monitor.is_alive()  # not working dunno why, thread not killed
-    del monitor
-
-    # 2- Test for real with a tqdm instance that takes too long
-    total = 1000
-    # Setup a discrete timer
-    timer = DiscreteTimer()
-    # And a fake sleeper
-    sleeper = FakeSleep(timer)
-    # Setup TMonitor to use the timer
-    TMonitor._time = timer.time
-    TMonitor._sleep = sleeper.sleep
-    # Set monitor interval
-    tqdm.monitor_interval = maxinterval
-    with closing(StringIO()) as our_file:
-        with tqdm(total=total, file=our_file, miniters=500, mininterval=0.1,
-                  maxinterval=maxinterval) as t:
-            cpu_timify(t, timer)
-            # Do a lot of iterations in a small timeframe
-            # (smaller than monitor interval)
-            timer.sleep(maxinterval / 2)  # monitor won't wake up
-            t.update(500)
-            # check that our fixed miniters is still there
-            assert t.miniters == 500
-            # Then do 1 it after monitor interval, so that monitor kicks in
-            timer.sleep(maxinterval * 2)
-            t.update(1)
-            # Wait for the monitor to get out of sleep's loop and update tqdm..
-            timeend = timer.time()
-            while not (t.monitor.woken >= timeend and t.miniters == 1):
-                timer.sleep(1)  # Force monitor to wake up if it woken too soon
-                sleep(0.000001)  # sleep to allow interrupt (instead of pass)
-            assert t.miniters == 1  # check that monitor corrected miniters
-            # Note: at this point, there may be a race condition: monitor saved
-            # current woken time but timer.sleep() happen just before monitor
-            # sleep. To fix that, either sleep here or increase time in a loop
-            # to ensure that monitor wakes up at some point.
-
-            # Try again but already at miniters = 1 so nothing will be done
-            timer.sleep(maxinterval * 2)
-            t.update(2)
-            timeend = timer.time()
-            while not (t.monitor.woken >= timeend):
-                timer.sleep(1)  # Force monitor to wake up if it woken too soon
-                sleep(0.000001)
-            # Wait for the monitor to get out of sleep's loop and update tqdm..
-            assert t.miniters == 1  # check that monitor corrected miniters
-
-    # 3- Check that class var monitor is deleted if no instance left
-    assert tqdm.monitor is None
-
-    # 4- Test on multiple bars, one not needing miniters adjustment
-    total = 1000
-    # Setup a discrete timer
-    timer = DiscreteTimer()
-    # And a fake sleeper
-    sleeper = FakeSleep(timer)
-    # Setup TMonitor to use the timer
-    TMonitor._time = timer.time
-    TMonitor._sleep = sleeper.sleep
-    with closing(StringIO()) as our_file:
-        with tqdm(total=total, file=our_file, miniters=500, mininterval=0.1,
-                  maxinterval=maxinterval) as t1:
-            # Set high maxinterval for t2 so monitor does not need to adjust it
-            with tqdm(total=total, file=our_file, miniters=500, mininterval=0.1,
-                      maxinterval=1E5) as t2:
-                cpu_timify(t1, timer)
-                cpu_timify(t2, timer)
-                # Do a lot of iterations in a small timeframe
-                timer.sleep(5)
-                t1.update(500)
-                t2.update(500)
-                assert t1.miniters == 500
-                assert t2.miniters == 500
-                # Then do 1 it after monitor interval, so that monitor kicks in
-                timer.sleep(maxinterval * 2)
-                t1.update(1)
-                t2.update(1)
-                # Wait for the monitor to get out of sleep and update tqdm
-                timeend = timer.time()
-                while not (t.monitor.woken >= timeend and t1.miniters == 1):
-                    timer.sleep(1)
-                    sleep(0.000001)
-                assert t1.miniters == 1  # check that monitor corrected miniters
-                assert t2.miniters == 500  # check that t2 was not adjusted
 
 
 @with_setup(pretest, posttest)
@@ -1591,6 +1474,25 @@ def test_postfix():
     assert "Hello" not in out5
     out5 = out5[1:-1].split(', ')[3:]
     assert out5 == ["World"]
+
+
+def test_postfix_direct():
+    """Test directly assigning non-str objects to postfix"""
+    with closing(StringIO()) as our_file:
+        with tqdm(total=10, file=our_file, miniters=1, mininterval=0,
+                  bar_format="{postfix[0][name]} {postfix[1]:>5.2f}",
+                  postfix=[dict(name="foo"), 42]) as t:
+            for i in range(10):
+                if i % 2:
+                    t.postfix[0]["name"] = "abcdefghij"[i]
+                else:
+                    t.postfix[1] = i
+                t.update()
+        res = our_file.getvalue()
+        assert "f  6.00" in res
+        assert "h  6.00" in res
+        assert "h  8.00" in res
+        assert "j  8.00" in res
 
 
 class DummyTqdmFile(object):
@@ -1669,3 +1571,47 @@ def test_threading():
     else:
         tqdm.set_lock(mp_lock)
     # TODO: test interleaved output #445
+
+
+@with_setup(pretest, posttest)
+def test_bool():
+    """Test boolean cast"""
+    def internal(our_file, disable):
+        with tqdm(total=10, file=our_file, disable=disable) as t:
+            assert t
+        with tqdm(total=0, file=our_file, disable=disable) as t:
+            assert not t
+        with trange(10, file=our_file, disable=disable) as t:
+            assert t
+        with trange(0, file=our_file, disable=disable) as t:
+            assert not t
+        with tqdm([], file=our_file, disable=disable) as t:
+            assert not t
+        with tqdm([0], file=our_file, disable=disable) as t:
+            assert t
+        with tqdm(file=our_file, disable=disable) as t:
+            try:
+                print(bool(t))
+            except TypeError:
+                pass
+            else:
+                raise TypeError(
+                    "Expected tqdm() with neither total nor iterable to fail")
+
+    # test with and without disable
+    with closing(StringIO()) as our_file:
+        internal(our_file, False)
+        internal(our_file, True)
+
+
+@with_setup(pretest, posttest)
+def test_autonotebook():
+    """Test autonotebook fallback"""
+    from tqdm.autonotebook import tqdm as tn
+    from tqdm.autonotebook import trange as tr
+
+    with closing(StringIO()) as our_file:
+        with tn(total=10, file=our_file) as t:
+            assert len(t) == 10
+        with tr(1337) as t:
+            assert len(t) == 1337

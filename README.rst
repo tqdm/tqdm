@@ -11,7 +11,7 @@ tqdm
 
 
 ``tqdm`` means "progress" in Arabic (taqadum, تقدّم)
-and an abbreviation for "I love you so much" in Spanish (te quiero demasiado).
+and is an abbreviation for "I love you so much" in Spanish (te quiero demasiado).
 
 Instantly make your loops show a smart progress meter - just wrap any
 iterable with ``tqdm(iterable)``, and you're done!
@@ -103,7 +103,8 @@ Changelog
 ---------
 
 The list of all changes is available either on GitHub's Releases:
-|GitHub-Status| or on crawlers such as
+|GitHub-Status|, on the
+`wiki <https://github.com/tqdm/tqdm/wiki/Releases>`__ or on crawlers such as
 `allmychanges.com <https://allmychanges.com/p/python/tqdm/>`_.
 
 
@@ -222,11 +223,20 @@ of a neat one-line progress bar.
       `IDLE <https://github.com/tqdm/tqdm/issues/191#issuecomment-230168030>`__,
       `ConEmu <https://github.com/tqdm/tqdm/issues/254>`__ and
       `PyCharm <https://github.com/tqdm/tqdm/issues/203>`__ (also
-      `here <https://github.com/tqdm/tqdm/issues/208>`__ and
-      `here <https://github.com/tqdm/tqdm/issues/307>`__)
+      `here <https://github.com/tqdm/tqdm/issues/208>`__,
+      `here <https://github.com/tqdm/tqdm/issues/307>`__, and
+      `here <https://github.com/tqdm/tqdm/issues/454#issuecomment-335416815>`__)
       lack full support.
     * Windows: additionally may require the Python module ``colorama``
       to ensure nested bars stay within their respective lines.
+- Unicode:
+    * Environments which report that they support unicode will have solid smooth
+      progressbars. The fallback is an `ascii`-only bar.
+    * Windows consoles often only partially support unicode and thus
+      `often require explicit ascii=True <https://github.com/tqdm/tqdm/issues/454#issuecomment-335416815>`__
+      (also `here <https://github.com/tqdm/tqdm/issues/499>`__). This is due to
+      either normal-width unicode characters being incorrectly displayed as
+      "wide", or some unicode characters not rendering.
 - Wrapping enumerated iterables: use ``enumerate(tqdm(...))`` instead of
   ``tqdm(enumerate(...))``. The same applies to ``numpy.ndenumerate``.
   This is because enumerate functions tend to hide the length of iterables.
@@ -341,10 +351,9 @@ Parameters
     Specify the line offset to print this bar (starting from 0)
     Automatic if unspecified.
     Useful to manage multiple bars at once (eg, from threads).
-* postfix  : dict, optional  
+* postfix  : dict or ``*``, optional  
     Specify additional stats to display at the end of the bar.
-    Note: postfix is a dict ({'key': value} pairs) for this method,
-    not a string.
+    Calls ``set_postfix(**postfix)`` if possible (dict).
 * unit_divisor  : float, optional  
     [default: 1000], ignored unless `unit_scale` is True.
 
@@ -485,14 +494,30 @@ with the ``desc`` and ``postfix`` arguments:
     from random import random, randint
     from time import sleep
 
-    t = trange(100)
-    for i in t:
-        # Description will be displayed on the left
-        t.set_description('GEN %i' % i)
-        # Postfix will be displayed on the right, and will format automatically
-        # based on argument's datatype
-        t.set_postfix(loss=random(), gen=randint(1,999), str='h', lst=[1, 2])
-        sleep(0.1)
+    with trange(100) as t:
+        for i in t:
+            # Description will be displayed on the left
+            t.set_description('GEN %i' % i)
+            # Postfix will be displayed on the right,
+            # formatted automatically based on argument's datatype
+            t.set_postfix(loss=random(), gen=randint(1,999), str='h',
+                          lst=[1, 2])
+            sleep(0.1)
+
+    with tqdm(total=10, bar_format="{postfix[0]} {postfix[1][value]:>8.2g}",
+              postfix=["Batch", dict(value=0)]) as t:
+        for i in range(10):
+            sleep(0.1)
+            t.postfix[1]["value"] = i / 2
+            t.update()
+
+Points to remember when using ``{postfix[...]}`` in the ``bar_format`` string:
+
+- ``postfix`` also needs to be passed as an initial argument in a compatible
+  format, and
+- ``postfix`` will be auto-converted to a string if it is a ``dict``-like
+  object. To prevent this behaviour, insert an extra item into the dictionary
+  where the key is not a string.
 
 Nested progress bars
 ~~~~~~~~~~~~~~~~~~~~
@@ -519,7 +544,7 @@ you may specify ``position=n`` where ``n=0`` for the outermost bar,
 .. code:: python
 
     from time import sleep
-    from tqdm import trange
+    from tqdm import trange, tqdm
     from multiprocessing import Pool, freeze_support, RLock
 
     L = list(range(9))
@@ -639,6 +664,18 @@ light blue: no ETA); as demonstrated below.
 |Screenshot-Jupyter1|
 |Screenshot-Jupyter2|
 |Screenshot-Jupyter3|
+
+It is also possible to let ``tqdm`` automatically choose between
+console or notebook versions by using the ``autonotebook`` submodule:
+
+.. code:: python
+
+    from tqdm.autonotebook import tqdm
+    tqdm.pandas()
+
+Note that this will issue a ``TqdmExperimentalWarning`` if run in a notebook
+since it is not meant to be possible to distinguish between ``jupyter notebook``
+and ``jupyter console``.
 
 Writing messages
 ~~~~~~~~~~~~~~~~
@@ -773,6 +810,12 @@ See the
 `CONTRIBUTING <https://raw.githubusercontent.com/tqdm/tqdm/master/CONTRIBUTING.md>`__
 file for more information.
 
+Ports to Other Languages
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+A list is available on
+`this wiki page <https://github.com/tqdm/tqdm/wiki/tqdm-ports>`__.
+
 
 LICENCE
 -------
@@ -785,12 +828,14 @@ Citation information: |DOI-URI|
 Authors
 -------
 
-The main developers, ranked by surviving lines of code, are:
+The main developers, ranked by surviving lines of code
+(`git fame -wMC <https://github.com/casperdcl/git-fame>`__), are:
 
 - Casper da Costa-Luis (`casperdcl <https://github.com/casperdcl>`__, ~2/3, |Gift-Casper|)
-- Stephen Larroque (`lrq3000 <https://github.com/lrq3000>`__, ~1/3)
+- Stephen Larroque (`lrq3000 <https://github.com/lrq3000>`__, ~1/5)
+- Hadrien Mary (`hadim <https://github.com/hadim>`__, ~2%)
+- Guangshuo Chen (`chengs <https://github.com/chengs>`__, ~1%)
 - Noam Yorav-Raphael (`noamraph <https://github.com/noamraph>`__, ~1%, original author)
-- Hadrien Mary (`hadim <https://github.com/hadim>`__, ~1%)
 - Mikhail Korobov (`kmike <https://github.com/kmike>`__, ~1%)
 
 There are also many |GitHub-Contributions| which we are grateful for.
@@ -824,11 +869,11 @@ There are also many |GitHub-Contributions| which we are grateful for.
 .. |Gift-Casper| image:: https://img.shields.io/badge/gift-donate-ff69b4.svg
    :target: https://caspersci.uk.to/donate.html
 .. |PyPI-Status| image:: https://img.shields.io/pypi/v/tqdm.svg
-   :target: https://pypi.python.org/pypi/tqdm
+   :target: https://pypi.org/project/tqdm
 .. |PyPI-Downloads| image:: https://img.shields.io/pypi/dm/tqdm.svg
-   :target: https://pypi.python.org/pypi/tqdm
+   :target: https://pypi.org/project/tqdm
 .. |PyPI-Versions| image:: https://img.shields.io/pypi/pyversions/tqdm.svg
-   :target: https://pypi.python.org/pypi/tqdm
+   :target: https://pypi.org/project/tqdm
 .. |Conda-Forge-Status| image:: https://anaconda.org/conda-forge/tqdm/badges/version.svg
    :target: https://anaconda.org/conda-forge/tqdm
 .. |OpenHub-Status| image:: https://www.openhub.net/p/tqdm/widgets/project_thin_badge?format=gif

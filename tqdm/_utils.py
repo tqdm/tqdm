@@ -1,11 +1,13 @@
 import os
 import subprocess
 from platform import system as _curos
+import re
 CUR_OS = _curos()
 IS_WIN = CUR_OS in ['Windows', 'cli']
 IS_NIX = (not IS_WIN) and any(
     CUR_OS.startswith(i) for i in
     ['CYGWIN', 'MSYS', 'Linux', 'Darwin', 'SunOS', 'FreeBSD', 'NetBSD'])
+RE_ANSI = re.compile(r"\x1b\[[;\d]*[A-Za-z]")
 
 
 # Py2/3 compat. Empty conditional to avoid coverage
@@ -118,6 +120,27 @@ if True:  # pragma: no cover
                     return d
 
 
+class Comparable(object):
+    """Assumes child has self._comparable attr/@property"""
+    def __lt__(self, other):
+        return self._comparable < other._comparable
+
+    def __le__(self, other):
+        return (self < other) or (self == other)
+
+    def __eq__(self, other):
+        return self._comparable == other._comparable
+
+    def __ne__(self, other):
+        return not self == other
+
+    def __gt__(self, other):
+        return not self <= other
+
+    def __ge__(self, other):
+        return not self < other
+
+
 def _is_utf(encoding):
     try:
         u'\u2588\u2589'.encode(encoding)
@@ -204,11 +227,9 @@ def _environ_cols_linux(fp):  # pragma: no cover
             return array('h', ioctl(fp, TIOCGWINSZ, '\0' * 8))[1]
         except:
             try:
-                from os.environ import get
-            except ImportError:
+                return int(os.environ["COLUMNS"]) - 1
+            except KeyError:
                 return None
-            else:
-                return int(get('COLUMNS', 1)) - 1
 
 
 def _term_move_up():  # pragma: no cover
