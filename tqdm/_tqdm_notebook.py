@@ -99,7 +99,7 @@ class tqdm_notebook(tqdm):
                 pbar = IntProgress(min=0, max=1)
                 pbar.value = 1
                 pbar.bar_style = 'info'
-        except NameError:
+        except NameError: # pragma: no cover
             # #187 #451 #558
             raise ImportError(
                 "IntProgress not found. Please update juputer and ipywidgets."
@@ -164,7 +164,7 @@ class tqdm_notebook(tqdm):
             if close and pbar.bar_style != 'danger':  # hide only if no error
                 try:
                     container.close()
-                except AttributeError:
+                except AttributeError: # pragma: no cover
                     container.visible = False
 
             # Update description
