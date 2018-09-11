@@ -19,9 +19,16 @@ from ._tqdm import tqdm
 
 if True:  # pragma: no cover
     # import IPython/Jupyter base widget and display utilities
+    IPY = None
+    IPYW7 = False
     try:  # IPython 4.x
         import ipywidgets
         IPY = 4
+        try:
+            if int(ipywidgets.__version__.split('.')[0]) >= 7:  # >=7.0.0
+                IPYW7 = True
+        except AttributeError: # __version__ may not exist in old versions
+            pass
     except ImportError:  # IPython 3.x / 2.x
         IPY = 32
         import warnings
@@ -108,6 +115,8 @@ class tqdm_notebook(tqdm):
 
         if desc:
             pbar.description = desc
+            if IPYW7:
+                pbar.style.description_width = 'initial'
         # Prepare status text
         ptext = HTML()
         # Only way to place text to the right of the bar is to use a container
@@ -170,6 +179,8 @@ class tqdm_notebook(tqdm):
             # Update description
             if desc:
                 pbar.description = desc
+                if IPYW7:
+                    pbar.style.description_width = 'initial'
 
         return print_status
 
