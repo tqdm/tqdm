@@ -649,7 +649,7 @@ class tqdm(Comparable):
                  miniters=None, ascii=None, disable=False, unit='it',
                  unit_scale=False, dynamic_ncols=False, smoothing=0.3,
                  bar_format=None, initial=0, position=None, postfix=None,
-                 unit_divisor=1000, gui=False, **kwargs):
+                 unit_divisor=1000, fixed=False, gui=False, **kwargs):
         """
         Parameters
         ----------
@@ -738,6 +738,10 @@ class tqdm(Comparable):
             Calls `set_postfix(**postfix)` if possible (dict).
         unit_divisor  : float, optional
             [default: 1000], ignored unless `unit_scale` is True.
+        fixed  : bool, optional
+            If [default: False], fix the progress bars on its position regardless of leave or termination.
+            If set it True, leave will be False automatically. (because it is meaningless when leave is True)
+            Useful to make the position of multiple bars fixed while using multiprocessing.
         gui  : bool, optional
             WARNING: internal parameter - do not use.
             Use tqdm_gui(...) instead. If set, will attempt to use
@@ -832,6 +836,7 @@ class tqdm(Comparable):
         self.unit = unit
         self.unit_scale = unit_scale
         self.unit_divisor = unit_divisor
+        self.fixed = fixed
         self.gui = gui
         self.dynamic_ncols = dynamic_ncols
         self.smoothing = smoothing
@@ -856,6 +861,10 @@ class tqdm(Comparable):
                 self.pos = self._get_free_pos(self)
             else:  # mark fixed positions as negative
                 self.pos = -position
+
+        # If fixed is true, it force set the leave to False
+        if fixed:
+            self.leave = False
 
         if not gui:
             # Initialize the screen printer
@@ -882,7 +891,7 @@ class tqdm(Comparable):
         return self
 
     def __exit__(self, *exc):
-        self.close()
+        self.close(on_exit=True)
         return False
 
     def __del__(self):
@@ -1080,7 +1089,7 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
                 self.last_print_n = self.n
                 self.last_print_t = cur_t
 
-    def close(self):
+    def close(self, on_exit=False):
         """
         Cleanup and (if leave=False) close the progressbar.
         """
@@ -1125,7 +1134,8 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
                     # only if not nested (#477)
                     fp_write('\n')
             else:
-                self.sp('')  # clear up last bar
+                if not (on_exit and self.fixed):
+                    self.sp('')  # clear up last bar
                 if pos:
                     self.moveto(-pos)
                 else:

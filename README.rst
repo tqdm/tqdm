@@ -356,6 +356,10 @@ Parameters
     Calls ``set_postfix(**postfix)`` if possible (dict).
 * unit_divisor  : float, optional  
     [default: 1000], ignored unless `unit_scale` is True.
+* fixed  : bool, optional
+    If [default: False], fix the progress bars on its position regardless of leave or termination.
+    If set it True, leave will be False automatically. (because it is meaningless when leave is True)
+    Useful to make the position of multiple bars fixed while using multiprocessing.
 
 Extra CLI Options
 ~~~~~~~~~~~~~~~~~
@@ -397,7 +401,7 @@ Returns
               [default: 1].
           """
 
-      def close(self):
+      def close(self. on_exit=False):
           """
           Cleanup and (if leave=False) close the progressbar.
           """
