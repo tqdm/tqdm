@@ -13,7 +13,7 @@ from __future__ import division, absolute_import
 # import compatibility functions and utilities
 # import sys
 from time import time
-from ._utils import _range
+from ._utils import _range, _ema
 # to inherit from the tqdm class
 from ._tqdm import tqdm, TqdmExperimentalWarning
 from warnings import warn
@@ -139,12 +139,11 @@ class tqdm_gui(tqdm):  # pragma: no cover
                 delta_t = cur_t - last_print_t
                 if delta_t >= mininterval:
                     elapsed = cur_t - start_t
+
                     # EMA (not just overall average)
-                    if smoothing and delta_t:
-                        avg_time = delta_t / delta_it \
-                            if avg_time is None \
-                            else smoothing * delta_t / delta_it + \
-                            (1 - smoothing) * avg_time
+                    if smoothing and delta_t and delta_it:
+                        rate = (delta_t / delta_it)
+                        avg_time = _ema(rate, avg_time, smoothing)
 
                     # Inline due to multiple calls
                     total = self.total
@@ -208,11 +207,12 @@ class tqdm_gui(tqdm):  # pragma: no cover
                         elif mininterval and delta_t:
                             # EMA-weight miniters to converge
                             # towards the timeframe of mininterval
-                            miniters = smoothing * delta_it * mininterval \
-                                / delta_t + (1 - smoothing) * miniters
+                            rate = delta_it
+                            if mininterval and delta_t:
+                                rate *= (mininterval / delta_t)
+                            miniters = _ema(rate, miniters, smoothing)
                         else:
-                            miniters = smoothing * delta_it + \
-                                (1 - smoothing) * miniters
+                            miniters = _ema(delta_it, miniters, smoothing)
 
                     # Store old values for next call
                     last_print_n = n
@@ -241,12 +241,11 @@ class tqdm_gui(tqdm):  # pragma: no cover
             delta_t = cur_t - self.last_print_t
             if delta_t >= self.mininterval:
                 elapsed = cur_t - self.start_t
+
                 # EMA (not just overall average)
-                if self.smoothing and delta_t:
-                    self.avg_time = delta_t / delta_it \
-                        if self.avg_time is None \
-                        else self.smoothing * delta_t / delta_it + \
-                        (1 - self.smoothing) * self.avg_time
+                if self.smoothing and delta_t and delta_it:
+                    rate = delta_t / delta_it
+                    self.avg_time = _ema(rate, self.avg_time, self.smoothing)
 
                 # Inline due to multiple calls
                 total = self.total

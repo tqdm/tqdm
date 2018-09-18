@@ -13,7 +13,7 @@ from __future__ import division
 # compatibility functions and utilities
 from ._utils import _supports_unicode, _environ_cols_wrapper, _range, _unich, \
     _term_move_up, _unicode, WeakSet, _basestring, _OrderedDict, \
-    Comparable, RE_ANSI
+    Comparable, RE_ANSI, _ema
 from ._monitor import TMonitor
 # native libraries
 import sys
@@ -967,12 +967,11 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
                     if delta_t >= mininterval:
                         cur_t = _time()
                         delta_it = n - last_print_n
+
                         # EMA (not just overall average)
                         if smoothing and delta_t and delta_it:
-                            avg_time = delta_t / delta_it \
-                                if avg_time is None \
-                                else smoothing * delta_t / delta_it + \
-                                (1 - smoothing) * avg_time
+                            rate = (delta_t / delta_it)
+                            avg_time = _ema(rate, avg_time, smoothing)
                             self.avg_time = avg_time
 
                         self.n = n
@@ -998,10 +997,10 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
                             elif smoothing:
                                 # EMA-weight miniters to converge
                                 # towards the timeframe of mininterval
-                                miniters = smoothing * delta_it * \
-                                    (mininterval / delta_t
-                                     if mininterval and delta_t else 1) + \
-                                    (1 - smoothing) * miniters
+                                rate = delta_it
+                                if mininterval and delta_t:
+                                    rate *= (mininterval / delta_t)
+                                miniters = _ema(rate, miniters, smoothing)
                             else:
                                 # Maximum nb of iterations between 2 prints
                                 miniters = max(miniters, delta_it)
@@ -1055,10 +1054,8 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
                 # elapsed = cur_t - self.start_t
                 # EMA (not just overall average)
                 if self.smoothing and delta_t and delta_it:
-                    self.avg_time = delta_t / delta_it \
-                        if self.avg_time is None \
-                        else self.smoothing * delta_t / delta_it + \
-                        (1 - self.smoothing) * self.avg_time
+                    rate = delta_t / delta_it
+                    self.avg_time = _ema(rate, self.avg_time, self.smoothing)
 
                 if not hasattr(self, "sp"):
                     raise TqdmDeprecationWarning("""\
