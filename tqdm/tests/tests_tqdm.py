@@ -1604,14 +1604,21 @@ def test_bool():
         internal(our_file, True)
 
 
-@with_setup(pretest, posttest)
-def test_autonotebook():
-    """Test autonotebook fallback"""
-    from tqdm.autonotebook import tqdm as tn
-    from tqdm.autonotebook import trange as tr
+def backendCheck(module):
+    """Test tqdm-like module fallback"""
+    tn = module.tqdm
+    tr = module.trange
 
     with closing(StringIO()) as our_file:
         with tn(total=10, file=our_file) as t:
             assert len(t) == 10
         with tr(1337) as t:
             assert len(t) == 1337
+
+
+@with_setup(pretest, posttest)
+def test_auto():
+    """Test auto fallback"""
+    from tqdm import autonotebook, auto
+    backendCheck(autonotebook)
+    backendCheck(auto)
