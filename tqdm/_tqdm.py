@@ -69,30 +69,23 @@ class TqdmMonitorWarning(TqdmWarning, RuntimeWarning):
     pass
 
 
-# Create global parallelism locks to avoid racing issues with parallel bars
-# works only if fork available (Linux, MacOSX, but not on Windows)
-try:
-    mp_lock = mp.RLock()  # multiprocessing lock
-except ImportError:  # pragma: no cover
-    mp_lock = None
-except OSError:  # pragma: no cover
-    mp_lock = None
-try:
-    th_lock = th.RLock()  # thread lock
-except OSError:  # pragma: no cover
-    th_lock = None
-
-
 class TqdmDefaultWriteLock(object):
     """
     Provide a default write lock for thread and multiprocessing safety.
     Works only on platforms supporting `fork` (so Windows is excluded).
+    You must initialize an instance of tqdm or TqdmDefaultWriteLock before
+    forking in order for the write lock to work.
     On Windows, you need to supply the lock from the parent to the children as
     an argument to joblib or the parallelism lib you use.
     """
+
     def __init__(self):
-        global mp_lock, th_lock
-        self.locks = [lk for lk in [mp_lock, th_lock] if lk is not None]
+        # Create global parallelism locks to avoid racing issues with parallel bars
+        # works only if fork available (Linux, MacOSX, but not on Windows)
+        self.create_mp_lock()
+        self.create_th_lock()
+        cls = type(self)
+        self.locks = [lock for lock in [cls.mp_lock, cls.th_lock] if lock is not None]
 
     def acquire(self):
         for lock in self.locks:
@@ -108,6 +101,31 @@ class TqdmDefaultWriteLock(object):
     def __exit__(self, *exc):
         self.release()
 
+    @classmethod
+    def create_mp_lock(cls):
+        if not hasattr(cls, 'mp_lock'):
+            try:
+                cls.mp_lock = mp.RLock()  # multiprocessing lock
+            except ImportError:  # pragma: no cover
+                cls.mp_lock = None
+            except OSError:  # pragma: no cover
+                cls.mp_lock = None
+
+    @classmethod
+    def create_th_lock(cls):
+        if not hasattr(cls, 'th_lock'):
+            try:
+                cls.th_lock = th.RLock()  # thread lock
+            except OSError:  # pragma: no cover
+                cls.th_lock = None
+
+
+# Create a thread lock before instantiation so that no setup needs to be done
+# before running in a multithreaded environment.
+# Do not create the multiprocessing lock because it sets the multiprocessing
+# context and does not allow the user to use 'spawn' or 'forkserver' methods.
+TqdmDefaultWriteLock.create_th_lock()
+
 
 class tqdm(Comparable):
     """
@@ -118,7 +136,7 @@ class tqdm(Comparable):
 
     monitor_interval = 10  # set to 0 to disable the thread
     monitor = None
-    _lock = TqdmDefaultWriteLock()
+    # _instances and _lock defined in __new__
 
     @staticmethod
     def format_sizeof(num, suffix='', divisor=1000):
@@ -444,9 +462,9 @@ class tqdm(Comparable):
         # Create a new instance
         instance = object.__new__(cls)
         # Add to the list of instances
-        if "_instances" not in cls.__dict__:
+        if not hasattr(cls, '_instances'):
             cls._instances = WeakSet()
-        if "_lock" not in cls.__dict__:
+        if not hasattr(cls, '_lock'):
             cls._lock = TqdmDefaultWriteLock()
         with cls._lock:
             cls._instances.add(instance)
