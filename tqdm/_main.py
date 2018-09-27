@@ -237,5 +237,7 @@ Options:
             sys.__stdout__.flush()
 
     # time.sleep(1)
+    import threading
+    sys.__stdout__.write(str(threading.enumerate()))
     sys.__stdout__.write('\nthere4 ' + str(sys.__stderr__.closed) + '\n')
     sys.__stdout__.flush()
