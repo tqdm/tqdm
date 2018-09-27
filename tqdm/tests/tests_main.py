@@ -18,6 +18,8 @@ def mytrace(frame, event, arg):
     if sys.stderr.closed:  # and x == 0:
         import inspect
         import traceback
+        import threading
+        sys.__stdout__.write(str(threading.enumerate()))
         x += 1
         sys.__stdout__.write('\n\n')
         sys.__stdout__.write(str(('hahahahahahahaha', frame, event, arg)))
@@ -55,6 +57,9 @@ def test_main():
     _SYS = sys.stdin, sys.argv
 
     # import time
+
+    import thread
+    sys.__stdout__.write('thread here ' + str(thread.get_ident()))
 
     sio = StringIO()
     with closing(sio) as sys.stdin:
