@@ -271,4 +271,15 @@ For expereinced devs, once happy with local master:
 6. `git tag vM.m.p && git push --tags`
 7. `[python setup.py] make distclean`
 8. `[python setup.py] make build`
-9. `[python setup.py] make pypi`
+9. upload to PyPI using one of the following:
+    a) `[python setup.py] make pypi`
+    b) `twine upload -s -i $(git config user.signingkey) dist/tqdm-*`
+10. create new release on https://github.com/tqdm/tqdm/releases
+    a) add helpful release notes
+    b) attach dist/tqdm-* binaries (usually only *.whl*)
+11. run `make` in the `wiki` submodule to update release notes
+12. run `make deploy` in the `docs` submodule to update website
+13. accept the automated PR in the `feedstock` submodule to update conda
+
+The last thee steps require a one-time `make submodules` to clone
+`docs`, `wiki`, and `feedstock`.
