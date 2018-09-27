@@ -120,6 +120,8 @@ def main(fp=sys.stderr):
     ---------
     fp  : file-like object for tqdm
     """
+    # sys.__stdout__.write('beginning\n')
+    # sys.__stdout__.flush()
     try:
         log = sys.argv.index('--log')
     except ValueError:
@@ -186,6 +188,7 @@ Options:
             sys.stdout.write(i)
         raise
     else:
+        # import time
         buf_size = tqdm_args.pop('buf_size', 256)
         delim = tqdm_args.pop('delim', '\n')
         delim_per_char = tqdm_args.pop('bytes', False)
@@ -197,8 +200,27 @@ Options:
             with tqdm(**tqdm_args) as t:
                 posix_pipe(sys.stdin, sys.stdout,
                            '', buf_size, t.update)
+            #     sys.__stdout__.write('here\n\n')
+            #     sys.__stdout__.flush()
+            #     time.sleep(0.01)
+            # sys.__stdout__.write('there\n\n')
+            # sys.__stdout__.flush()
+            # time.sleep(0.01)
         elif delim == '\n':
             log.debug(tqdm_args)
+            # if True:
+            #     for i in tqdm(sys.stdin, **tqdm_args):
+            #         sys.stdout.write(i)
+            # elif True:
+            #     for i in tqdm(sys.stdin, **tqdm_args):
+            #         time.sleep(0.01)
+            #         sys.stdout.write(i)
+            # else:
+            #     with open('~/tqdm/f', 'w') as fabc:
+            #         for i in tqdm(sys.stdin, **tqdm_args):
+            #             fabc.write('before', i)
+            #             sys.stdout.write(i)
+            #             fabc.write('after', i)
             for i in tqdm(sys.stdin, **tqdm_args):
                 sys.stdout.write(i)
         else:
@@ -206,3 +228,14 @@ Options:
             with tqdm(**tqdm_args) as t:
                 posix_pipe(sys.stdin, sys.stdout,
                            delim, buf_size, t.update)
+                sys.__stdout__.write('\nhere2 ' + str(sys.__stderr__.closed) + '\n')
+                sys.__stdout__.flush()
+            sys.__stdout__.write('\nthere2 ' + str(sys.__stderr__.closed) + '\n')
+            sys.__stdout__.flush()
+            # time.sleep(1)
+            sys.__stdout__.write('\nthere3 ' + str(sys.__stderr__.closed) + '\n')
+            sys.__stdout__.flush()
+
+    # time.sleep(1)
+    sys.__stdout__.write('\nthere4 ' + str(sys.__stderr__.closed) + '\n')
+    sys.__stdout__.flush()

@@ -112,7 +112,11 @@ class TqdmDefaultWriteLock(object):
         self.acquire()
 
     def __exit__(self, *exc):
+        sys.__stdout__.write('\n__exit__ enter 1 ' + str(sys.__stderr__.closed) + '\n')
+        sys.__stdout__.flush()
         self.release()
+        sys.__stdout__.write('\n__exit__ exit 1 ' + str(sys.__stderr__.closed) + '\n')
+        sys.__stdout__.flush()
 
 
 class tqdm(Comparable):
@@ -497,11 +501,15 @@ class tqdm(Comparable):
                 inst.clear(nolock=True)
                 inst_cleared.append(inst)
         yield
+        sys.__stdout__.write('\ncontextmanager start exit 1 ' + str(sys.__stderr__.closed) + '\n')
+        sys.__stdout__.flush()
         # Force refresh display of bars we cleared
         for inst in inst_cleared:
             inst.refresh(nolock=True)
         if not nolock:
             cls._lock.release()
+        sys.__stdout__.write('\ncontextmanager done exit 1 ' + str(sys.__stderr__.closed) + '\n')
+        sys.__stdout__.flush()
 
     @classmethod
     def set_lock(cls, lock):
@@ -913,7 +921,11 @@ class tqdm(Comparable):
         return self
 
     def __exit__(self, *exc):
+        sys.__stdout__.write('\n__exit__ enter 2 ' + str(sys.__stderr__.closed) + '\n')
+        sys.__stdout__.flush()
         self.close()
+        sys.__stdout__.write('\n__exit__ exit 2 ' + str(sys.__stderr__.closed) + '\n')
+        sys.__stdout__.flush()
         return False
 
     def __del__(self):

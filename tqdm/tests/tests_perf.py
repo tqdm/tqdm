@@ -61,10 +61,19 @@ def relative_timer():
         return process_time() - start
 
     yield lambda: elapser()
+
+    sys.__stdout__.write('\ncontextmanager start exit 2 ' + str(
+        sys.__stderr__.closed) + '\n')
+    sys.__stdout__.flush()
+
     spent = process_time() - start
 
     def elapser():  # NOQA
         return spent
+
+    sys.__stdout__.write(
+        '\ncontextmanager done exit 2 ' + str(sys.__stderr__.closed) + '\n')
+    sys.__stdout__.flush()
 
 
 def retry_on_except(n=3):
