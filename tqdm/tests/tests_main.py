@@ -10,31 +10,6 @@ def _sh(*cmd, **kwargs):
     return subprocess.Popen(cmd, stdout=subprocess.PIPE,
                             **kwargs).communicate()[0].decode('utf-8')
 
-x = 42
-
-
-def mytrace(frame, event, arg):
-    global x
-    if sys.stderr.closed:  # and x == 0:
-        import inspect
-        import traceback
-        x += 1
-        sys.__stdout__.write('\n\n')
-        sys.__stdout__.write(str(('hahahahahahahaha', frame, event, arg)))
-        sys.__stdout__.write('\n\n')
-        stack = traceback.format_stack(frame)
-        sys.__stdout__.write(''.join(stack))
-        sys.__stdout__.write('--')
-        sys.__stdout__.write('\n\n')
-        sys.__stdout__.write(
-            '\n'.join(str(f) for f in inspect.getouterframes(frame)))
-        sys.__stdout__.write('\n\n')
-        sys.__stdout__.flush()
-        import time
-        time.sleep(0.001)
-        sys.exit()
-
-sys.settrace(mytrace)
 
 # WARNING: this should be the last test as it messes with sys.stdin, argv
 @with_setup(pretest, posttest)
@@ -54,39 +29,18 @@ def test_main():
     # semi-fake test which gets coverage:
     _SYS = sys.stdin, sys.argv
 
-    # import time
-
-    sio = StringIO()
-    with closing(sio) as sys.stdin:
+    with closing(StringIO()) as sys.stdin:
         sys.argv = ['', '--desc', 'Test CLI-delims',
                     '--ascii', 'True', '--delim', r'\0', '--buf_size', '64']
         sys.stdin.write('\0'.join(map(str, _range(int(1e3)))))
         sys.stdin.seek(0)
         main()
-        # time.sleep(1)
-        sys.__stdout__.write('\n\nthere5 ' + str(sys.__stderr__.closed) + '\n\n')
-        sys.__stdout__.flush()
-        zzz = 42
-
-    # time.sleep(1)
-    sys.__stdout__.write('\n\nthere6 ' + str(sys.__stderr__.closed) + '\n\n')
-    sys.__stdout__.flush()
 
     IN_DATA_LIST = map(str, _range(int(1e3)))
     sys.stdin = IN_DATA_LIST
     sys.argv = ['', '--desc', 'Test CLI pipes',
                 '--ascii', 'True', '--unit_scale', 'True']
     import tqdm.__main__  # NOQA
-    # # import tqdm.__main__  # NOQA
-    # from tqdm._main import main as blue
-    # # print('blue', sys.stderr.closed)
-    # # x = StringIO()
-    # # blue(fp=x)
-    # import time
-    # time.sleep(0.1)
-    # blue()
-    #
-    # # print(x)
 
     IN_DATA = '\0'.join(IN_DATA_LIST)
     with closing(StringIO()) as sys.stdin:

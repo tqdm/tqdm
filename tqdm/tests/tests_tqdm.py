@@ -32,41 +32,8 @@ if getattr(StringIO, '__exit__', False) and \
    getattr(StringIO, '__enter__', False):
     def closing(arg):
         return arg
-    raise
 else:
-    # from contextlib import closing
-    class closing(object):
-        """Context to automatically close something at the end of a block.
-
-        Code like this:
-
-            with closing(<module>.open(<arguments>)) as f:
-                <block>
-
-        is equivalent to this:
-
-            f = <module>.open(<arguments>)
-            try:
-                <block>
-            finally:
-                f.close()
-
-        """
-
-        def __init__(self, thing):
-            self.thing = thing
-
-        def __enter__(self):
-            return self.thing
-
-        def __exit__(self, *exc_info):
-            sys.__stdout__.write('\ncontextlib.closing.__exit__ before' + str(
-                sys.__stderr__.closed) + '\n')
-            sys.__stdout__.flush()
-            self.thing.close()
-            sys.__stdout__.write('\ncontextlib.closing.__exit__ after' + str(
-                sys.__stderr__.closed) + '\n')
-            sys.__stdout__.flush()
+    from contextlib import closing
 
 try:
     _range = xrange
@@ -1592,14 +1559,6 @@ def std_out_err_redirect_tqdm(tqdm_file=sys.stderr):
     # Always restore sys.stdout/err if necessary
     finally:
         sys.stdout, sys.stderr = orig_out_err
-    # sys.__stdout__.write('\n\ncontextmanager start exit 3 ' + str(
-    #     sys.__stderr__.closed) + '\n\n')
-    # sys.__stdout__.flush()
-    #
-
-    sys.__stdout__.write(
-        '\ncontextmanager done exit 3 ' + str(sys.__stderr__.closed) + '\n')
-    sys.__stdout__.flush()
 
 
 @with_setup(pretest, posttest)
