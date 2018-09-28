@@ -7,7 +7,8 @@ __all__ = ["main"]
 
 
 def cast(val, typ):
-    logger.debug((val, typ))
+    log = logging.getLogger(__name__)
+    log.debug((val, typ))
     if " or " in typ:
         for t in typ.split(" or "):
             try:
@@ -112,8 +113,6 @@ CLI_EXTRA_DOC = r"""
             CRITICAL|FATAL|ERROR|WARN(ING)|[default: 'INFO']|DEBUG|NOTSET.
 """
 
-logger = logging.getLogger(__name__)
-
 
 def main(fp=sys.stderr):
     """
@@ -134,6 +133,7 @@ def main(fp=sys.stderr):
     logging.basicConfig(
         level=getattr(logging, logLevel),
         format="%(levelname)s:%(module)s:%(lineno)d:%(message)s")
+    log = logging.getLogger(__name__)
 
     d = tqdm.__init__.__doc__ + CLI_EXTRA_DOC
 
@@ -143,7 +143,7 @@ def main(fp=sys.stderr):
     for o in UNSUPPORTED_OPTS:
         opt_types.pop(o)
 
-    logger.debug(sorted(opt_types.items()))
+    log.debug(sorted(opt_types.items()))
 
     # d = RE_OPTS.sub(r'  --\1=<\1>  : \2', d)
     split = RE_OPTS.split(d)
@@ -171,7 +171,7 @@ Options:
     argv = RE_SHLEX.split(' '.join(["tqdm"] + sys.argv[1:]))
     opts = dict(zip(argv[1::2], argv[2::2]))
 
-    logger.debug(opts)
+    log.debug(opts)
     opts.pop('log', True)
 
     tqdm_args = {'file': fp}
@@ -181,7 +181,7 @@ Options:
                 tqdm_args[o] = cast(v, opt_types[o])
             except KeyError as e:
                 raise TqdmKeyError(str(e))
-                logger.debug('args:' + str(tqdm_args))
+        log.debug('args:' + str(tqdm_args))
     except:
         fp.write('\nError:\nUsage:\n  tqdm [--help | options]\n')
         for i in sys.stdin:
@@ -196,7 +196,7 @@ Options:
             tqdm_args.setdefault('unit', 'B')
             tqdm_args.setdefault('unit_scale', True)
             tqdm_args.setdefault('unit_divisor', 1024)
-            logger.debug(tqdm_args)
+            log.debug(tqdm_args)
             with tqdm(**tqdm_args) as t:
                 posix_pipe(sys.stdin, sys.stdout,
                            '', buf_size, t.update)
@@ -207,7 +207,7 @@ Options:
             # sys.__stdout__.flush()
             # time.sleep(0.01)
         elif delim == '\n':
-            logger.debug(tqdm_args)
+            log.debug(tqdm_args)
             # if True:
             #     for i in tqdm(sys.stdin, **tqdm_args):
             #         sys.stdout.write(i)
@@ -224,7 +224,7 @@ Options:
             for i in tqdm(sys.stdin, **tqdm_args):
                 sys.stdout.write(i)
         else:
-            logger.debug(tqdm_args)
+            log.debug(tqdm_args)
             with tqdm(**tqdm_args) as t:
                 posix_pipe(sys.stdin, sys.stdout,
                            delim, buf_size, t.update)
