@@ -28,8 +28,7 @@ def mytrace(frame, event, arg):
         sys.__stdout__.write(''.join(stack))
         sys.__stdout__.write('--')
         sys.__stdout__.write('\n\n')
-        sys.__stdout__.write(
-            '\n'.join(str(f) for f in inspect.getouterframes(frame)))
+        sys.__stdout__.write('\n'.join(str(f) for f in inspect.getouterframes(frame)))
         sys.__stdout__.write('\n\n')
         sys.__stdout__.flush()
         import time
