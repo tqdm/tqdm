@@ -150,13 +150,6 @@ class TextIOWrappableStdOutErr(object):
         object.__setattr__(self, '_wrapped', wrapped)
 
     @staticmethod
-    def close():
-        """Just ignore the close the the TextIOWrapper does in py2 when
-        being collected.
-        """
-        pass
-
-    @staticmethod
     def readable():
         """Standard output streams need not be readable."""
         return False

@@ -770,7 +770,8 @@ class tqdm(Comparable):
         )
         not_unicode = not isinstance(file, (io.TextIOWrapper, StringIO))
 
-        if sys.version_info < (3,) and is_std and not_unicode:
+        self.detach_fp = False
+        if sys.version_info < (3,) and is_std and not_unicode and not disable:
             # Despite coercing unicode into bytes, the std streams in
             # in Python 2 should have bytes written to them.  This is
             # particularly important when a test framework or such
@@ -781,6 +782,7 @@ class tqdm(Comparable):
 
             file = TextIOWrappableStdOutErr(file)
             file = io.TextIOWrapper(file, encoding=encoding)
+            self.detach_fp = True
 
         if disable is None and hasattr(file, "isatty") and not file.isatty():
             disable = True
@@ -1115,52 +1117,57 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
         """
         Cleanup and (if leave=False) close the progressbar.
         """
-        if self.disable:
-            return
-
-        # Prevent multiple closures
-        self.disable = True
-
-        # decrement instance pos and remove from internal set
-        pos = abs(self.pos)
-        self._decr_instances(self)
-
-        # GUI mode
-        if not hasattr(self, "sp"):
-            return
-
-        # annoyingly, _supports_unicode isn't good enough
-        def fp_write(s):
-            self.fp.write(_unicode(s))
-
         try:
-            fp_write('')
-        except ValueError as e:
-            if 'closed' in str(e):
+            if self.disable:
                 return
-            raise  # pragma: no cover
 
-        with self._lock:
-            if pos:
-                self.moveto(pos)
+            # Prevent multiple closures
+            self.disable = True
 
-            if self.leave:
-                if self.last_print_n < self.n:
-                    # stats for overall rate (no weighted average)
-                    self.avg_time = None
-                    self.sp(self.__repr__())
+            # decrement instance pos and remove from internal set
+            pos = abs(self.pos)
+            self._decr_instances(self)
+
+            # GUI mode
+            if not hasattr(self, "sp"):
+                return
+
+            # annoyingly, _supports_unicode isn't good enough
+            def fp_write(s):
+                self.fp.write(_unicode(s))
+
+            try:
+                fp_write('')
+            except ValueError as e:
+                if 'closed' in str(e):
+                    return
+                raise  # pragma: no cover
+
+            with self._lock:
                 if pos:
-                    self.moveto(-pos)
-                elif not max([abs(getattr(i, "pos", 0))
-                              for i in self._instances] + [0]):
-                    # only if not nested (#477)
-                    fp_write('\n')
-            else:
-                self.sp('')  # clear up last bar
-                if pos:
-                    self.moveto(-pos)
+                    self.moveto(pos)
+
+                if self.leave:
+                    if self.last_print_n < self.n:
+                        # stats for overall rate (no weighted average)
+                        self.avg_time = None
+                        self.sp(self.__repr__())
+                    if pos:
+                        self.moveto(-pos)
+                    elif not max([abs(getattr(i, "pos", 0))
+                                  for i in self._instances] + [0]):
+                        # only if not nested (#477)
+                        fp_write('\n')
                 else:
-                    fp_write('\r')
+                    self.sp('')  # clear up last bar
+                    if pos:
+                        self.moveto(-pos)
+                    else:
+                        fp_write('\r')
+        finally:
+            if self.detach_fp:
+                self.fp.detach()
+                self.detach_fp = False
 
     def unpause(self):
         """
