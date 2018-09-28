@@ -1167,6 +1167,8 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
         finally:
             if self.detach_fp:
                 self.fp.detach()
+                # once detached, it is unusable so no need to have a reference
+                self.fp = None
                 self.detach_fp = False
 
     def unpause(self):
