@@ -755,7 +755,7 @@ class tqdm(Comparable):
         if file is None:
             file = sys.stderr
 
-        if write_bytes and not disable:
+        if write_bytes:
             # Despite coercing unicode into bytes, the std streams in
             # in Python 2 should have bytes written to them.  This is
             # particularly important when a test framework or such
