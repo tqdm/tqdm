@@ -645,7 +645,8 @@ class tqdm(Comparable):
             _Rolling_and_Expanding.progress_apply = inner_generator()
 
     def __init__(self, iterable=None, desc=None, total=None, leave=True,
-                 file=None, ncols=None, mininterval=0.1, maxinterval=10.0,
+                 file=None, write_bytes=None, ncols=None,
+                 mininterval=0.1, maxinterval=10.0,
                  miniters=None, ascii=None, disable=False, unit='it',
                  unit_scale=False, dynamic_ncols=False, smoothing=0.3,
                  bar_format=None, initial=0, position=None, postfix=None,
@@ -673,7 +674,13 @@ class tqdm(Comparable):
             (default: sys.stderr). Uses `file.write(str)` and `file.flush()`
             methods.  Bytes will be written if running in Python 2 and this
             parameter is not specified, otherwise unicode will be written to
-            the file.
+            the file.  This behavior can be overridden by passing `True` or
+            `False` to `write_bytes`.
+        write_bytes  : bool or None, optional
+            Not passing or passing None will result in default behavior as
+            described by the `file` attribute.  Passing `True` will force
+            bytes to be written while passing `False` will force unicode to
+            be written.
         ncols  : int, optional
             The width of the entire output message. If specified,
             dynamically resizes the progressbar to stay within this bound.
@@ -750,7 +757,8 @@ class tqdm(Comparable):
         out  : decorated iterator.
         """
 
-        write_bytes = (file is None) and (sys.version_info < (3,))
+        if write_bytes is None:
+            write_bytes = (file is None) and (sys.version_info < (3,))
 
         if file is None:
             file = sys.stderr
