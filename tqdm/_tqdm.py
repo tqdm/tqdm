@@ -13,10 +13,9 @@ from __future__ import division
 # compatibility functions and utilities
 from ._utils import _supports_unicode, _environ_cols_wrapper, _range, _unich, \
     _term_move_up, _unicode, WeakSet, _basestring, _OrderedDict, \
-    Comparable, RE_ANSI, TextIOWrappableStdOutErr
+    Comparable, RE_ANSI, SimpleTextIOWrapper
 from ._monitor import TMonitor
 # native libraries
-import io
 import sys
 from numbers import Number
 from time import time
@@ -25,11 +24,6 @@ from contextlib import contextmanager
 import multiprocessing as mp
 import threading as th
 from warnings import warn
-
-try:
-    from StringIO import StringIO
-except ImportError:
-    from io import StringIO
 
 __author__ = {"github.com/": ["noamraph", "obiwanus", "kmike", "hadim",
                               "casperdcl", "lrq3000"]}
@@ -761,7 +755,6 @@ class tqdm(Comparable):
         if file is None:
             file = sys.stderr
 
-        self.detach_fp = False
         if write_bytes and not disable:
             # Despite coercing unicode into bytes, the std streams in
             # in Python 2 should have bytes written to them.  This is
@@ -771,9 +764,7 @@ class tqdm(Comparable):
 
             encoding = getattr(file, 'encoding', 'utf-8')
 
-            file = TextIOWrappableStdOutErr(file)
-            file = io.TextIOWrapper(file, encoding=encoding)
-            self.detach_fp = True
+            file = SimpleTextIOWrapper(file, encoding=encoding)
 
         if disable is None and hasattr(file, "isatty") and not file.isatty():
             disable = True
@@ -1108,59 +1099,52 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
         """
         Cleanup and (if leave=False) close the progressbar.
         """
+        if self.disable:
+            return
+
+        # Prevent multiple closures
+        self.disable = True
+
+        # decrement instance pos and remove from internal set
+        pos = abs(self.pos)
+        self._decr_instances(self)
+
+        # GUI mode
+        if not hasattr(self, "sp"):
+            return
+
+        # annoyingly, _supports_unicode isn't good enough
+        def fp_write(s):
+            self.fp.write(_unicode(s))
+
         try:
-            if self.disable:
+            fp_write('')
+        except ValueError as e:
+            if 'closed' in str(e):
                 return
+            raise  # pragma: no cover
 
-            # Prevent multiple closures
-            self.disable = True
+        with self._lock:
+            if pos:
+                self.moveto(pos)
 
-            # decrement instance pos and remove from internal set
-            pos = abs(self.pos)
-            self._decr_instances(self)
-
-            # GUI mode
-            if not hasattr(self, "sp"):
-                return
-
-            # annoyingly, _supports_unicode isn't good enough
-            def fp_write(s):
-                self.fp.write(_unicode(s))
-
-            try:
-                fp_write('')
-            except ValueError as e:
-                if 'closed' in str(e):
-                    return
-                raise  # pragma: no cover
-
-            with self._lock:
+            if self.leave:
+                if self.last_print_n < self.n:
+                    # stats for overall rate (no weighted average)
+                    self.avg_time = None
+                    self.sp(self.__repr__())
                 if pos:
-                    self.moveto(pos)
-
-                if self.leave:
-                    if self.last_print_n < self.n:
-                        # stats for overall rate (no weighted average)
-                        self.avg_time = None
-                        self.sp(self.__repr__())
-                    if pos:
-                        self.moveto(-pos)
-                    elif not max([abs(getattr(i, "pos", 0))
-                                  for i in self._instances] + [0]):
-                        # only if not nested (#477)
-                        fp_write('\n')
+                    self.moveto(-pos)
+                elif not max([abs(getattr(i, "pos", 0))
+                              for i in self._instances] + [0]):
+                    # only if not nested (#477)
+                    fp_write('\n')
+            else:
+                self.sp('')  # clear up last bar
+                if pos:
+                    self.moveto(-pos)
                 else:
-                    self.sp('')  # clear up last bar
-                    if pos:
-                        self.moveto(-pos)
-                    else:
-                        fp_write('\r')
-        finally:
-            if self.detach_fp:
-                self.fp.detach()
-                # once detached, it is unusable so no need to have a reference
-                self.fp = None
-                self.detach_fp = False
+                    fp_write('\r')
 
     def unpause(self):
         """

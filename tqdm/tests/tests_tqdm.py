@@ -1533,13 +1533,6 @@ class DummyTqdmFile(object):
 
     def __init__(self, file):
         self.file = file
-        self.closed = False
-
-    def flush(self):
-        """We are a dummy stream and have already done our analysis
-        when write() was called
-        """
-        pass
 
     def write(self, x):
         # Avoid print() second call (useless \n)

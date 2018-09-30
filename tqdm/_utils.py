@@ -141,28 +141,17 @@ class Comparable(object):
         return not self < other
 
 
-class TextIOWrappableStdOutErr(object):
-    """Add the needed methods to be able to io.TextIOWrapper a
-    sys.stdout or sys.stderr.
+class SimpleTextIOWrapper(object):
+    """Provide just an encoding to the write method.
     """
 
-    def __init__(self, wrapped):
+    def __init__(self, wrapped, encoding):
         object.__setattr__(self, '_wrapped', wrapped)
+        object.__setattr__(self, 'encoding', encoding)
 
-    @staticmethod
-    def readable():
-        """Standard output streams need not be readable."""
-        return False
-
-    @staticmethod
-    def seekable():
-        """Standard output streams need not be seekable."""
-        return False
-
-    @staticmethod
-    def writable():
-        """Standard output streams need to be writable."""
-        return True
+    def write(self, s):
+        b = s.encode(getattr(self, 'encoding'))
+        return getattr(self, '_wrapped').write(b)
 
     def __getattr__(self, name):
         return getattr(self._wrapped, name)
