@@ -677,10 +677,9 @@ class tqdm(Comparable):
         file  : `io.TextIOWrapper` or `io.StringIO`, optional
             Specifies where to output the progress messages
             (default: sys.stderr). Uses `file.write(str)` and `file.flush()`
-            methods.  Unicode will be written in most cases.  Bytes will be
-            written if running in Python 2, the passed file-like is either
-            stdout/stderr or the original stdout/stderr, and the item isn't
-            detected to expect unicode.
+            methods.  Bytes will be written if running in Python 2 and this
+            parameter is not specified, otherwise unicode will be written to
+            the file.
         ncols  : int, optional
             The width of the entire output message. If specified,
             dynamically resizes the progressbar to stay within this bound.
@@ -757,21 +756,13 @@ class tqdm(Comparable):
         out  : decorated iterator.
         """
 
+        write_bytes = (file is None) and (sys.version_info < (3,))
+
         if file is None:
             file = sys.stderr
 
-        is_std = file in (
-            # something that wants to be stdout/stderr
-            sys.stdout,
-            sys.stderr,
-            # or the original stdout/stderr
-            sys.__stdout__,
-            sys.__stderr__,
-        )
-        not_unicode = not isinstance(file, (io.TextIOWrapper, StringIO))
-
         self.detach_fp = False
-        if sys.version_info < (3,) and is_std and not_unicode and not disable:
+        if write_bytes and not disable:
             # Despite coercing unicode into bytes, the std streams in
             # in Python 2 should have bytes written to them.  This is
             # particularly important when a test framework or such
