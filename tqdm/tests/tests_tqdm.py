@@ -346,7 +346,7 @@ def test_unicode_string_io_for_specified_file():
 
 @with_setup(pretest, posttest)
 def test_byte_string_io_for_specified_file_with_forced_bytes():
-    """Unicode strings written to specified files"""
+    """Byte strings written to specified files when forced"""
     f = WriteTypeChecker(expected_type=type(b''))
 
     for _ in tqdm(range(3), file=f, write_bytes=True):
@@ -354,8 +354,8 @@ def test_byte_string_io_for_specified_file_with_forced_bytes():
 
 
 @with_setup(pretest, posttest)
-def test_byte_string_io_for_specified_file_with_forced_unicode():
-    """Unicode strings written to specified files"""
+def test_unicode_string_io_for_unspecified_file_with_forced_unicode():
+    """Unicode strings written to unspecified file when forced"""
     stderr = sys.stderr
     try:
         sys.stderr = WriteTypeChecker(expected_type=type(u''))
