@@ -173,6 +173,25 @@ class tqdm(Comparable):
             return '{0:02d}:{1:02d}'.format(m, s)
 
     @staticmethod
+    def format_num(n):
+        """
+        Intelligent scientific notation (3g)
+
+        Parameters
+        ----------
+        n  : int or float or Numeric
+            A Number
+
+        Returns
+        -------
+        out  : str
+            Formatted number
+        """
+        f = '{0:.3g}'.format(n).replace('+0', '+').replace('-0', '-')
+        n = str(n)
+        return f if len(f) < len(n) else n
+
+    @staticmethod
     def status_printer(file):
         """
         Manage the printing and in-place updating of a line of characters.
@@ -1183,7 +1202,7 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
         for key in postfix.keys():
             # Number: limit the length of the string
             if isinstance(postfix[key], Number):
-                postfix[key] = '{0:2.3g}'.format(postfix[key])
+                postfix[key] = self.format_num(postfix[key])
             # Else for any other type, try to get the string conversion
             elif not isinstance(postfix[key], _basestring):
                 postfix[key] = str(postfix[key])
