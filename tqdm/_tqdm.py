@@ -175,17 +175,17 @@ class tqdm(Comparable):
     @staticmethod
     def format_num(n):
         """
-        Intelligent scientific notation (3g)
+        Intelligent scientific notation (.3g).
 
         Parameters
         ----------
         n  : int or float or Numeric
-            A Number
+            A Number.
 
         Returns
         -------
         out  : str
-            Formatted number
+            Formatted number.
         """
         f = '{0:.3g}'.format(n).replace('+0', '+').replace('-0', '-')
         n = str(n)
@@ -687,7 +687,7 @@ class tqdm(Comparable):
     def __init__(self, iterable=None, desc=None, total=None, leave=True,
                  file=None, ncols=None, mininterval=0.1, maxinterval=10.0,
                  miniters=None, ascii=None, disable=False, unit='it',
-                 unit_scale=False, dynamic_ncols=False, smoothing=0.1,
+                 unit_scale=False, dynamic_ncols=False, smoothing=0.3,
                  bar_format=None, initial=0, position=None, postfix=None,
                  unit_divisor=1000, gui=False, **kwargs):
         """
@@ -719,9 +719,9 @@ class tqdm(Comparable):
             fallback is a meter width of 10 and no limit for the counter and
             statistics. If 0, will not print any meter (only stats).
         mininterval  : float, optional
-            Minimum progress display update interval, in seconds [default: 0.1].
+            Minimum progress display update interval [default: 0.1] seconds.
         maxinterval  : float, optional
-            Maximum progress display update interval, in seconds [default: 10].
+            Maximum progress display update interval [default: 10] seconds.
             Automatically adjusts `miniters` to correspond to `mininterval`
             after long display update lag. Only works if `dynamic_miniters`
             or monitor thread is enabled.
@@ -754,7 +754,7 @@ class tqdm(Comparable):
         smoothing  : float, optional
             Exponential moving average smoothing factor for speed estimates
             (ignored in GUI mode). Ranges from 0 (average speed) to 1
-            (current/instantaneous speed) [default: 0.1].
+            (current/instantaneous speed) [default: 0.3].
         bar_format  : str, optional
             Specify a custom bar string formatting. May impact performance.
             [default: '{l_bar}{bar}{r_bar}'], where
