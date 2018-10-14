@@ -268,8 +268,7 @@ class tqdm(Comparable):
             total *= unit_scale
             n *= unit_scale
             if rate:
-                # by default rate = 1/self.avg_time
-                rate *= unit_scale
+                rate *= unit_scale  # by default rate = 1 / self.avg_time
             unit_scale = False
 
         format_interval = tqdm.format_interval
