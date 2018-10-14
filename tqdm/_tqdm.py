@@ -13,7 +13,7 @@ from __future__ import division
 # compatibility functions and utilities
 from ._utils import _supports_unicode, _environ_cols_wrapper, _range, _unich, \
     _term_move_up, _unicode, WeakSet, _basestring, _OrderedDict, \
-    Comparable, RE_ANSI, _ema
+    Comparable, RE_ANSI
 from ._monitor import TMonitor
 # native libraries
 import sys
@@ -190,6 +190,25 @@ class tqdm(Comparable):
         f = '{0:.3g}'.format(n).replace('+0', '+').replace('-0', '-')
         n = str(n)
         return f if len(f) < len(n) else n
+
+    @staticmethod
+    def ema(x, mu=None, alpha=0.3):
+        """
+		Exponential moving average: smoothing to give progressively lower
+		weights to older values.
+
+        Parameters
+        ----------
+        x  : float
+            New value to include in EMA.
+        mu  : float, optional
+            Previous EMA value.
+        alpha  : float, optional
+            Smoothing factor in range [0, 1], [default: 0.3].
+            Increase to give more weight to recent values.
+			Ranges from 0 (yields mu) to 1 (yields x).
+        """
+        return x if mu is None else (alpha * x) + (1 - alpha) * mu
 
     @staticmethod
     def status_printer(file):
@@ -967,11 +986,10 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
                     if delta_t >= mininterval:
                         cur_t = _time()
                         delta_it = n - last_print_n
-
                         # EMA (not just overall average)
                         if smoothing and delta_t and delta_it:
-                            rate = (delta_t / delta_it)
-                            avg_time = _ema(rate, avg_time, smoothing)
+                            rate = delta_t / delta_it
+                            avg_time = self.ema(rate, avg_time, smoothing)
                             self.avg_time = avg_time
 
                         self.n = n
@@ -999,8 +1017,8 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
                                 # towards the timeframe of mininterval
                                 rate = delta_it
                                 if mininterval and delta_t:
-                                    rate *= (mininterval / delta_t)
-                                miniters = _ema(rate, miniters, smoothing)
+                                    rate *= mininterval / delta_t
+                                miniters = self.ema(rate, miniters, smoothing)
                             else:
                                 # Maximum nb of iterations between 2 prints
                                 miniters = max(miniters, delta_it)
@@ -1055,7 +1073,7 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
                 # EMA (not just overall average)
                 if self.smoothing and delta_t and delta_it:
                     rate = delta_t / delta_it
-                    self.avg_time = _ema(rate, self.avg_time, self.smoothing)
+                    self.avg_time = self.ema(rate, self.avg_time, self.smoothing)
 
                 if not hasattr(self, "sp"):
                     raise TqdmDeprecationWarning("""\

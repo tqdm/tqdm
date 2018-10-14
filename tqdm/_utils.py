@@ -234,27 +234,3 @@ def _environ_cols_linux(fp):  # pragma: no cover
 
 def _term_move_up():  # pragma: no cover
     return '' if (os.name == 'nt') and (colorama is None) else '\x1b[A'
-
-
-def _ema(x, mu=None, alpha=0.1):
-    """
-    EMA (exponential moving average). This uses exponential smoothing to give
-    progressively lower weights to less recent values.
-
-    See:
-    https://en.wikipedia.org/wiki/Moving_average#Exponential_moving_average
-
-    Parameters
-    ----------
-    x       : float
-        A value to incorporate into the moving average.
-    mu      : float, optional
-        A previous value of an exponential moving average.
-    alpha   : float, optional
-        Exponential moving average smoothing factor for speed estimates.
-        Ranges from 0 (yields value of mu) to 1 (yields value of x).
-        Lower alpha values give more weight to older results [default: 0.1].
-    """
-    if mu is None:
-        return x
-    return (alpha * x) + ((1 - alpha) * mu)
