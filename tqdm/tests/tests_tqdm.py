@@ -209,6 +209,15 @@ def test_format_interval():
     assert format_interval(238113) == '66:08:33'
 
 
+def test_format_num():
+    """Test number format"""
+    format_num = tqdm.format_num
+
+    assert float(format_num(1337)) == 1337
+    assert format_num(int(1e6)) == '1e+6'
+    assert format_num(1239876) == '1''239''876'
+
+
 def test_format_meter():
     """Test statistics and progress bar formatting"""
     try:
