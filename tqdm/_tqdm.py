@@ -478,13 +478,13 @@ class tqdm(Comparable):
         """
         with cls._lock:
             try:
-                if instance in cls._instances:
-                    # in python2 instance maybe magically removed from cls._instances
-                    cls._instances.remove(instance)
+                cls._instances.remove(instance)
             except KeyError:
-                if not instance.gui:  # pragma: no cover
-                    raise
-            else:
+                # if not instance.gui:  # pragma: no cover
+                #     raise
+                pass  # py2: maybe magically removed already
+            # else:
+            if not instance.gui:
                 for inst in cls._instances:
                     # negative `pos` means fixed
                     if inst.pos > abs(instance.pos):
