@@ -338,10 +338,10 @@ Parameters
     [default: '{l_bar}{bar}{r_bar}'], where
     l_bar='{desc}: {percentage:3.0f}%|' and
     r_bar='| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, '
-      '{rate_fmt}{postfix}]'
+    '{rate_fmt}{postfix}]'
     Possible vars: l_bar, bar, r_bar, n, n_fmt, total, total_fmt,
-      percentage, rate, rate_fmt, rate_noinv, rate_noinv_fmt,
-      rate_inv, rate_inv_fmt, elapsed, remaining, desc, postfix.
+    percentage, rate, rate_fmt, rate_noinv, rate_noinv_fmt,
+    rate_inv, rate_inv_fmt, elapsed, remaining, desc, postfix.
     Note that a trailing ": " is automatically removed after {desc}
     if the latter is empty.
 * initial  : int, optional  
