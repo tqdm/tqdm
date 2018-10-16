@@ -182,7 +182,7 @@ setup(
     platforms=['any'],
     packages=['tqdm'] + ['tqdm.' + i for i in find_packages('tqdm')],
     entry_points={'console_scripts': ['tqdm=tqdm._main:main'], },
-    data_files=[('man/man1', ['tqdm.1'])],
+    # data_files=[('man/man1', ['tqdm.1'])],
     package_data={'': ['CONTRIBUTING.md', 'LICENCE', 'examples/*.py']},
     long_description=README_rst,
     python_requires='>=2.6, !=3.0.*, !=3.1.*',
