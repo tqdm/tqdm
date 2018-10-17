@@ -173,6 +173,44 @@ class tqdm(Comparable):
             return '{0:02d}:{1:02d}'.format(m, s)
 
     @staticmethod
+    def format_num(n):
+        """
+        Intelligent scientific notation (.3g).
+
+        Parameters
+        ----------
+        n  : int or float or Numeric
+            A Number.
+
+        Returns
+        -------
+        out  : str
+            Formatted number.
+        """
+        f = '{0:.3g}'.format(n).replace('+0', '+').replace('-0', '-')
+        n = str(n)
+        return f if len(f) < len(n) else n
+
+    @staticmethod
+    def ema(x, mu=None, alpha=0.3):
+        """
+		Exponential moving average: smoothing to give progressively lower
+		weights to older values.
+
+        Parameters
+        ----------
+        x  : float
+            New value to include in EMA.
+        mu  : float, optional
+            Previous EMA value.
+        alpha  : float, optional
+            Smoothing factor in range [0, 1], [default: 0.3].
+            Increase to give more weight to recent values.
+			Ranges from 0 (yields mu) to 1 (yields x).
+        """
+        return x if mu is None else (alpha * x) + (1 - alpha) * mu
+
+    @staticmethod
     def status_printer(file):
         """
         Manage the printing and in-place updating of a line of characters.
@@ -267,6 +305,8 @@ class tqdm(Comparable):
         if unit_scale and unit_scale not in (True, 1):
             total *= unit_scale
             n *= unit_scale
+            if rate:
+                rate *= unit_scale  # by default rate = 1 / self.avg_time
             unit_scale = False
 
         format_interval = tqdm.format_interval
@@ -440,9 +480,11 @@ class tqdm(Comparable):
             try:
                 cls._instances.remove(instance)
             except KeyError:
-                if not instance.gui:  # pragma: no cover
-                    raise
-            else:
+                # if not instance.gui:  # pragma: no cover
+                #     raise
+                pass  # py2: maybe magically removed already
+            # else:
+            if not instance.gui:
                 for inst in cls._instances:
                     # negative `pos` means fixed
                     if inst.pos > abs(instance.pos):
@@ -581,6 +623,10 @@ class tqdm(Comparable):
                             not isinstance(df, _Rolling_and_Expanding):
                         # DataFrame or Panel
                         axis = kwargs.get('axis', 0)
+                        if axis == 'index':
+                            axis = 0
+                        elif axis == 'columns':
+                            axis = 1
                         # when axis=0, total is shape[axis1]
                         total = df.size // df.shape[axis]
 
@@ -675,9 +721,9 @@ class tqdm(Comparable):
             fallback is a meter width of 10 and no limit for the counter and
             statistics. If 0, will not print any meter (only stats).
         mininterval  : float, optional
-            Minimum progress display update interval, in seconds [default: 0.1].
+            Minimum progress display update interval [default: 0.1] seconds.
         maxinterval  : float, optional
-            Maximum progress display update interval, in seconds [default: 10].
+            Maximum progress display update interval [default: 10] seconds.
             Automatically adjusts `miniters` to correspond to `mininterval`
             after long display update lag. Only works if `dynamic_miniters`
             or monitor thread is enabled.
@@ -944,10 +990,9 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
                         delta_it = n - last_print_n
                         # EMA (not just overall average)
                         if smoothing and delta_t and delta_it:
-                            avg_time = delta_t / delta_it \
-                                if avg_time is None \
-                                else smoothing * delta_t / delta_it + \
-                                (1 - smoothing) * avg_time
+                            rate = delta_t / delta_it
+                            avg_time = self.ema(rate, avg_time, smoothing)
+                            self.avg_time = avg_time
 
                         self.n = n
                         with self._lock:
@@ -972,10 +1017,10 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
                             elif smoothing:
                                 # EMA-weight miniters to converge
                                 # towards the timeframe of mininterval
-                                miniters = smoothing * delta_it * \
-                                    (mininterval / delta_t
-                                     if mininterval and delta_t else 1) + \
-                                    (1 - smoothing) * miniters
+                                rate = delta_it
+                                if mininterval and delta_t:
+                                    rate *= mininterval / delta_t
+                                miniters = self.ema(rate, miniters, smoothing)
                             else:
                                 # Maximum nb of iterations between 2 prints
                                 miniters = max(miniters, delta_it)
@@ -1029,10 +1074,8 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
                 # elapsed = cur_t - self.start_t
                 # EMA (not just overall average)
                 if self.smoothing and delta_t and delta_it:
-                    self.avg_time = delta_t / delta_it \
-                        if self.avg_time is None \
-                        else self.smoothing * delta_t / delta_it + \
-                        (1 - self.smoothing) * self.avg_time
+                    rate = delta_t / delta_it
+                    self.avg_time = self.ema(rate, self.avg_time, self.smoothing)
 
                 if not hasattr(self, "sp"):
                     raise TqdmDeprecationWarning("""\
@@ -1176,7 +1219,7 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
         for key in postfix.keys():
             # Number: limit the length of the string
             if isinstance(postfix[key], Number):
-                postfix[key] = '{0:2.3g}'.format(postfix[key])
+                postfix[key] = self.format_num(postfix[key])
             # Else for any other type, try to get the string conversion
             elif not isinstance(postfix[key], _basestring):
                 postfix[key] = str(postfix[key])

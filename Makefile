@@ -116,6 +116,11 @@ toxclean:
 installdev:
 	python setup.py develop --uninstall
 	python setup.py develop
+submodules:
+	git clone git@github.com:tqdm/tqdm.wiki wiki
+	git clone git@github.com:tqdm/tqdm.github.io docs
+	git clone git@github.com:conda-forge/tqdm-feedstock feedstock
+	cd feedstock && git remote add autotick-bot git@github.com:regro-cf-autotick-bot/tqdm-feedstock
 
 install:
 	python setup.py install
