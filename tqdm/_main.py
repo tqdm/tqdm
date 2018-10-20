@@ -109,6 +109,8 @@ CLI_EXTRA_DOC = r"""
         bytes  : bool, optional
             If true, will count bytes, ignore `delim`, and default
             `unit_scale` to True, `unit_divisor` to 1024, and `unit` to 'B'.
+        manpath  : str, optional
+            Directory in which to install tqdm man pages.
         log  : str, optional
             CRITICAL|FATAL|ERROR|WARN(ING)|[default: 'INFO']|DEBUG|NOTSET.
 """
@@ -189,6 +191,16 @@ Options:
         buf_size = tqdm_args.pop('buf_size', 256)
         delim = tqdm_args.pop('delim', '\n')
         delim_per_char = tqdm_args.pop('bytes', False)
+        manpath = tqdm_args.pop('manpath', None)
+        if manpath is not None:
+            from os import path
+            from shutil import copyfile
+            from pkg_resources import resource_filename, Requirement
+            fi = resource_filename(Requirement.parse('tqdm'), 'tqdm/tqdm.1')
+            fo = path.join(manpath, 'tqdm.1')
+            copyfile(fi, fo)
+            log.info("written:" + fo)
+            sys.exit(0)
         if delim_per_char:
             tqdm_args.setdefault('unit', 'B')
             tqdm_args.setdefault('unit_scale', True)
