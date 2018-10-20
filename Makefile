@@ -30,7 +30,6 @@
 	installdev
 	install
 	build
-	pypimeta
 	pypi
 	none
 
@@ -127,11 +126,8 @@ install:
 
 build:
 	@make prebuildclean
-	python setup.py sdist --formats=gztar,zip bdist_wheel
-	python setup.py bdist_wininst
-
-pypimeta:
-	python setup.py register
+	python setup.py sdist bdist_wheel
+	# python setup.py bdist_wininst
 
 pypi:
 	twine upload dist/*
@@ -139,7 +135,6 @@ pypi:
 buildupload:
 	@make testsetup
 	@make build
-	@make pypimeta
 	@make pypi
 
 none:
