@@ -85,7 +85,7 @@ viewasv:
 	asv publish
 	asv preview
 
-tqdm.1: .tqdm.1.md
+tqdm/tqdm.1: .tqdm.1.md
 	python -m tqdm --help | tail -n+5 | cat "$<" - |\
     sed -r 's/^  (--.*)=<(.*)>  : (.*)$$/\n\\\1=*\2*\n: \3./' |\
     sed -r 's/  (-.*, --.*)  /\n\1\n: /' |\
