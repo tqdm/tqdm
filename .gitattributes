@@ -10,3 +10,4 @@ MANIFEST.in    export-ignore
 codecov.yml    export-ignore
 asv.conf.json  export-ignore
 .style.yapf    export-ignore
+.tqdm.1.md     export-ignore

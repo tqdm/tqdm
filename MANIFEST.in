@@ -17,4 +17,4 @@ recursive-include tqdm/auto *.py
 # Examples/Documentation
 recursive-include examples *.py
 include README.rst
-include tqdm.1
+include tqdm/tqdm.1
