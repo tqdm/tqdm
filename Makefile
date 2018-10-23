@@ -30,7 +30,6 @@
 	installdev
 	install
 	build
-	pypimeta
 	pypi
 	none
 
@@ -86,7 +85,7 @@ viewasv:
 	asv publish
 	asv preview
 
-tqdm.1: tqdm.1.md
+tqdm/tqdm.1: .tqdm.1.md
 	python -m tqdm --help | tail -n+5 | cat "$<" - |\
     sed -r 's/^  (--.*)=<(.*)>  : (.*)$$/\n\\\1=*\2*\n: \3./' |\
     sed -r 's/  (-.*, --.*)  /\n\1\n: /' |\
@@ -127,11 +126,8 @@ install:
 
 build:
 	@make prebuildclean
-	python setup.py sdist --formats=gztar,zip bdist_wheel
-	python setup.py bdist_wininst
-
-pypimeta:
-	python setup.py register
+	python setup.py sdist bdist_wheel
+	# python setup.py bdist_wininst
 
 pypi:
 	twine upload dist/*
@@ -139,7 +135,6 @@ pypi:
 buildupload:
 	@make testsetup
 	@make build
-	@make pypimeta
 	@make pypi
 
 none:
