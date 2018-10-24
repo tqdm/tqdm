@@ -288,7 +288,7 @@ Parameters
     upon termination of iteration.
 * file  : ``io.TextIOWrapper`` or ``io.StringIO``, optional  
     Specifies where to output the progress messages
-    (default: sys.stderr). Uses ``file.write(str)`` and ``file.flush()``
+    (default: sys.stdout). Uses ``file.write(str)`` and ``file.flush()``
     methods.
 * ncols  : int, optional  
     The width of the entire output message. If specified,
