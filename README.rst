@@ -266,7 +266,7 @@ Documentation
                    maxinterval=10.0, miniters=None, ascii=None, disable=False,
                    unit='it', unit_scale=False, dynamic_ncols=False,
                    smoothing=0.3, bar_format=None, initial=0, position=None,
-                   postfix=None):
+                   postfix=None, unit_divisor=1000):
 
 Parameters
 ~~~~~~~~~~
@@ -277,7 +277,7 @@ Parameters
 * desc  : str, optional  
     Prefix for the progressbar.
 * total  : int, optional  
-    The number of expected iterations. If (default: None),
+    The number of expected iterations. If unspecified,
     len(iterable) is used if possible. As a last resort, only basic
     progress statistics are displayed (no ETA, no progressbar).
     If ``gui`` is True and this parameter needs subsequent updating,
@@ -297,9 +297,9 @@ Parameters
     fallback is a meter width of 10 and no limit for the counter and
     statistics. If 0, will not print any meter (only stats).
 * mininterval  : float, optional  
-    Minimum progress display update interval, in seconds [default: 0.1].
+    Minimum progress display update interval [default: 0.1] seconds.
 * maxinterval  : float, optional  
-    Maximum progress display update interval, in seconds [default: 10].
+    Maximum progress display update interval [default: 10] seconds.
     Automatically adjusts ``miniters`` to correspond to ``mininterval``
     after long display update lag. Only works if ``dynamic_miniters``
     or monitor thread is enabled.
@@ -316,7 +316,7 @@ Parameters
     the meter. The fallback is to use ASCII characters ``1-9 #``.
 * disable  : bool, optional  
     Whether to disable the entire progressbar wrapper
-    [default: False].
+    [default: False]. If set to None, disable on non-TTY.
 * unit  : str, optional  
     String that will be used to define the unit of each iteration
     [default: it].
@@ -675,7 +675,8 @@ console or notebook versions by using the ``autonotebook`` submodule:
 
 Note that this will issue a ``TqdmExperimentalWarning`` if run in a notebook
 since it is not meant to be possible to distinguish between ``jupyter notebook``
-and ``jupyter console``.
+and ``jupyter console``. Use ``auto`` instead of ``autonotebook`` to suppress
+this warning.
 
 Writing messages
 ~~~~~~~~~~~~~~~~

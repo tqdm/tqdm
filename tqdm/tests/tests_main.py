@@ -1,5 +1,8 @@
 import sys
 import subprocess
+from os import path
+from shutil import rmtree
+from tempfile import mkdtemp
 from tqdm import main, TqdmKeyError, TqdmTypeError
 
 from tests_tqdm import with_setup, pretest, posttest, _range, closing, \
@@ -83,12 +86,34 @@ def test_main():
     else:
         raise TqdmTypeError('invalid_int_value')
 
+    # test SystemExits
     for i in ('-h', '--help', '-v', '--version'):
         sys.argv = ['', i]
         try:
             main()
         except SystemExit:
             pass
+
+    # test --manpath
+    tmp = mkdtemp()
+    man = path.join(tmp, "tqdm.1")
+    assert not path.exists(man)
+    try:
+        main(argv=['--manpath', tmp])
+    except SystemExit:
+        pass
+    else:
+        raise SystemExit("Expected system exit")
+    assert path.exists(man)
+    rmtree(tmp, True)
+
+    # test --log
+    with closing(StringIO()) as sys.stdin:
+        sys.stdin.write('\0'.join(map(str, _range(int(1e3)))))
+        sys.stdin.seek(0)
+        # with closing(UnicodeIO()) as fp:
+        main(argv=['--log', 'DEBUG'])
+        # assert "DEBUG:" in sys.stdout.getvalue()
 
     # clean up
     sys.stdin, sys.argv = _SYS

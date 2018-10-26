@@ -109,25 +109,30 @@ CLI_EXTRA_DOC = r"""
         bytes  : bool, optional
             If true, will count bytes, ignore `delim`, and default
             `unit_scale` to True, `unit_divisor` to 1024, and `unit` to 'B'.
+        manpath  : str, optional
+            Directory in which to install tqdm man pages.
         log  : str, optional
             CRITICAL|FATAL|ERROR|WARN(ING)|[default: 'INFO']|DEBUG|NOTSET.
 """
 
 
-def main(fp=sys.stderr):
+def main(fp=sys.stderr, argv=None):
     """
     Paramters (internal use only)
     ---------
     fp  : file-like object for tqdm
+    argv  : list (default: sys.argv[1:])
     """
+    if argv is None:
+        argv = sys.argv[1:]
     try:
-        log = sys.argv.index('--log')
+        log = argv.index('--log')
     except ValueError:
         logLevel = 'INFO'
     else:
-        # sys.argv.pop(log)
-        # logLevel = sys.argv.pop(log)
-        logLevel = sys.argv[log + 1]
+        # argv.pop(log)
+        # logLevel = argv.pop(log)
+        logLevel = argv[log + 1]
     logging.basicConfig(
         level=getattr(logging, logLevel),
         format="%(levelname)s:%(module)s:%(lineno)d:%(message)s")
@@ -159,14 +164,14 @@ Options:
 """ + d.strip('\n') + '\n'
 
     # opts = docopt(d, version=__version__)
-    if any(v in sys.argv for v in ('-v', '--version')):
+    if any(v in argv for v in ('-v', '--version')):
         sys.stdout.write(__version__ + '\n')
         sys.exit(0)
-    elif any(v in sys.argv for v in ('-h', '--help')):
+    elif any(v in argv for v in ('-h', '--help')):
         sys.stdout.write(d + '\n')
         sys.exit(0)
 
-    argv = RE_SHLEX.split(' '.join(["tqdm"] + sys.argv[1:]))
+    argv = RE_SHLEX.split(' '.join(["tqdm"] + argv))
     opts = dict(zip(argv[1::2], argv[2::2]))
 
     log.debug(opts)
@@ -189,6 +194,16 @@ Options:
         buf_size = tqdm_args.pop('buf_size', 256)
         delim = tqdm_args.pop('delim', '\n')
         delim_per_char = tqdm_args.pop('bytes', False)
+        manpath = tqdm_args.pop('manpath', None)
+        if manpath is not None:
+            from os import path
+            from shutil import copyfile
+            from pkg_resources import resource_filename, Requirement
+            fi = resource_filename(Requirement.parse('tqdm'), 'tqdm/tqdm.1')
+            fo = path.join(manpath, 'tqdm.1')
+            copyfile(fi, fo)
+            log.info("written:" + fo)
+            sys.exit(0)
         if delim_per_char:
             tqdm_args.setdefault('unit', 'B')
             tqdm_args.setdefault('unit_scale', True)
