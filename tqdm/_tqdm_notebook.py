@@ -21,6 +21,7 @@ if True:  # pragma: no cover
     # import IPython/Jupyter base widget and display utilities
     IPY = 0
     IPYW = 0
+    GOOGLE_COLAB = 0
     try:  # IPython 4.x
         import ipywidgets
         IPY = 4
@@ -75,10 +76,17 @@ if True:  # pragma: no cover
     except ImportError:  # Py2
         from cgi import escape
 
+    # google colab environment
+    try:
+        from google import colab
+        from ._fake_ipywidgets import IntProgress, HBox, HTML
+        GOOGLE_COLAB = 1
+    except ImportError:
+        pass
+
 
 __author__ = {"github.com/": ["lrq3000", "casperdcl", "alexanderkuk"]}
 __all__ = ['tqdm_notebook', 'tnrange']
-
 
 class tqdm_notebook(tqdm):
     """
@@ -133,7 +141,11 @@ class tqdm_notebook(tqdm):
             container.layout.width = ncols
             container.layout.display = 'inline-flex'
             container.layout.flex_flow = 'row wrap'
-        display(container)
+        
+        if GOOGLE_COLAB == 0:
+            display(container)
+        else:
+            display(container, display_id=container.display_id)
 
         def print_status(s='', close=False, bar_style=None, desc=None):
             # Note: contrary to native tqdm, s='' does NOT clear bar
@@ -205,7 +217,8 @@ class tqdm_notebook(tqdm):
         # self.sp('', close=True)
 
         # Get bar width
-        self.ncols = '100%' if self.dynamic_ncols else kwargs.get("ncols", None)
+        self.ncols = '100%' if self.dynamic_ncols else kwargs.get(
+            "ncols", None)
 
         # Replace with IPython progress bar display (with correct total)
         self.sp = self.status_printer(
