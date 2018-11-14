@@ -81,6 +81,11 @@ if True:  # pragma: no cover
         from google import colab
         from ._fake_ipywidgets import IntProgress, HBox, HTML
         GOOGLE_COLAB = 1
+        from warnings import warn
+        from ._tqdm import TqdmExperimentalWarning
+        warn("Detect Google Colab and load dummy ipywidgets."
+             "UI is different from that in Jupyter."
+             "See https://github.com/tqdm/tqdm/pull/640", TqdmExperimentalWarning)
     except ImportError:
         pass
 
