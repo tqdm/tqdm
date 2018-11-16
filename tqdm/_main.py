@@ -118,7 +118,7 @@ CLI_EXTRA_DOC = r"""
 
 def main(fp=sys.stderr, argv=None):
     """
-    Paramters (internal use only)
+    Parameters (internal use only)
     ---------
     fp  : file-like object for tqdm
     argv  : list (default: sys.argv[1:])
