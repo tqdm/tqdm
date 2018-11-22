@@ -1,5 +1,8 @@
+"""
+Provide IntProgress, HTML, HBox, which can work under Google Colab
+"""
 from IPython.display import HTML as _HTML, ProgressBar as _ProgressBar
-from binascii import b2a_hex, hexlify
+from binascii import b2a_hex
 import os
 
 if True:  # pragma: no cover
@@ -46,11 +49,11 @@ if True:  # pragma: no cover
             value: int, optional
                 The current progress.
             min: int, optional
-                The minimum progress
+                The minimum progress.
             description: str, optional
                 The description text at the starting position.
-            bar_stype: str, option
-                Not implemented. Just for compatibility 
+            bar_style: str, optional
+                Useless, just for compatibility.
             """
             self.min = min
             self.description = description

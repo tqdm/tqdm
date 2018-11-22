@@ -83,15 +83,16 @@ if True:  # pragma: no cover
         GOOGLE_COLAB = 1
         from warnings import warn
         from ._tqdm import TqdmExperimentalWarning
-        warn("Detect Google Colab and load dummy ipywidgets."
-             "UI is different from that in Jupyter."
-             "See https://github.com/tqdm/tqdm/pull/640", TqdmExperimentalWarning)
+        warn("Detect Google Colab {} and thus load dummy ipywidgets package."
+             " Note that UI is different from that in Jupyter."
+             " See https://github.com/tqdm/tqdm/pull/640".format(colab.__version__), TqdmExperimentalWarning)
     except ImportError:
         pass
 
 
 __author__ = {"github.com/": ["lrq3000", "casperdcl", "alexanderkuk"]}
 __all__ = ['tqdm_notebook', 'tnrange']
+
 
 class tqdm_notebook(tqdm):
     """
@@ -146,7 +147,6 @@ class tqdm_notebook(tqdm):
             container.layout.width = ncols
             container.layout.display = 'inline-flex'
             container.layout.flex_flow = 'row wrap'
-        
         if GOOGLE_COLAB == 0:
             display(container)
         else:
