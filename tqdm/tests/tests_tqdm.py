@@ -728,6 +728,35 @@ def test_disable():
 
 
 @with_setup(pretest, posttest)
+def test_infinite_total():
+    """Test treatment of infinite total"""
+
+    class _TestInfiniteIterable(object):
+
+        def __len__(self):
+            return float("inf")
+
+        def __getitem__(self, item):
+            # Never raises StopIteration, so the iterator is infinite
+            return item
+
+    with closing(StringIO()) as our_file:
+        try:
+            for _ in tqdm(_range(3), file=our_file, total=float("inf")):
+                pass
+        except (TypeError, OverflowError):
+            assert False
+    with closing(StringIO()) as our_file:
+        # This is a bit contrived, but useful for real infinite iterables
+        try:
+            for i in tqdm(iter(_TestInfiniteIterable()), file=our_file):
+                if i > 3:
+                    break
+        except (TypeError, OverflowError):
+            assert False
+
+
+@with_setup(pretest, posttest)
 def test_unit():
     """Test SI unit prefix"""
     with closing(StringIO()) as our_file:
