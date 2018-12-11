@@ -731,7 +731,9 @@ def test_disable():
 def test_infinite_total():
     """Test treatment of infinite total"""
 
-    class _TestInfiniteIterable(object):
+    # Need to disable pylint here, this only serves as a test case example
+    # There is no better way to get an object that has __len__ and __getitem__
+    class _TestInfiniteIterable(object):  # pylint: disable=too-few-public-methods
 
         def __len__(self):
             return float("inf")
@@ -746,14 +748,18 @@ def test_infinite_total():
                 pass
         except (TypeError, OverflowError):
             assert False
+        
     with closing(StringIO()) as our_file:
         # This is a bit contrived, but useful for real infinite iterables
         try:
-            for i in tqdm(iter(_TestInfiniteIterable()), file=our_file):
+            progress_bar = tqdm(iter(_TestInfiniteIterable()), file=our_file)
+            for i in progress_bar:
                 if i > 3:
                     break
         except (TypeError, OverflowError):
             assert False
+
+        progress_bar.close()
 
 
 @with_setup(pretest, posttest)
