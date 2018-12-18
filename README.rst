@@ -801,6 +801,16 @@ The monitor thread may be disabled application-wide by setting
 ``tqdm.tqdm.monitor_interval = 0`` before instantiatiation of any ``tqdm`` bar.
 
 
+Demo
+----
+
+Try ``tqdm`` interactively using this online demo:
+
+.. image:: https://user-images.githubusercontent.com/1155573/49400125-16e73500-f722-11e8-9275-e1d7eb3bbf99.png
+    :target: https://notebooks.rmotr.com/demo/gh/martinzugnoni/tqdm
+    :alt: Open Live Demo
+
+
 Contributions
 -------------
 
