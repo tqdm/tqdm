@@ -832,13 +832,14 @@ Authors
 -------
 
 The main developers, ranked by surviving lines of code
-(`git fame -wMC <https://github.com/casperdcl/git-fame>`__), are:
+(`git fame -wMC --excl '\.(png|gif)$' <https://github.com/casperdcl/git-fame>`__), are:
 
 - Casper da Costa-Luis (`casperdcl <https://github.com/casperdcl>`__, ~2/3, |Gift-Casper|)
 - Stephen Larroque (`lrq3000 <https://github.com/lrq3000>`__, ~1/5)
-- Hadrien Mary (`hadim <https://github.com/hadim>`__, ~2%)
+- Matthew Stevens (`mjstevens777 <https://github.com/mjstevens777>`__, ~2%)
+- Noam Yorav-Raphael (`noamraph <https://github.com/noamraph>`__, ~2%, original author)
 - Guangshuo Chen (`chengs <https://github.com/chengs>`__, ~1%)
-- Noam Yorav-Raphael (`noamraph <https://github.com/noamraph>`__, ~1%, original author)
+- Hadrien Mary (`hadim <https://github.com/hadim>`__, ~1%)
 - Mikhail Korobov (`kmike <https://github.com/kmike>`__, ~1%)
 
 There are also many |GitHub-Contributions| which we are grateful for.
