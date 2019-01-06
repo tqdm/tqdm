@@ -86,9 +86,11 @@ viewasv:
 	asv preview
 
 tqdm/tqdm.1: .tqdm.1.md
-	python -m tqdm --help | tail -n+5 | cat "$<" - |\
-    sed -r 's/^  (--.*)=<(.*)>  : (.*)$$/\n\\\1=*\2*\n: \3./' |\
-    sed -r 's/  (-.*, --.*)  /\n\1\n: /' |\
+	python -m tqdm --help | tail -n+5 |\
+    sed -r -e 's/\\/\\\\/g' \
+      -e 's/^  (--.*)=<(.*)>  : (.*)$$/\n\\\1=*\2*\n: \3./' \
+      -e 's/  (-.*, )(--.*)  /\n\1\\\2\n: /' |\
+    cat "$<" - |\
     pandoc -o "$@" -s -t man
 
 distclean:
