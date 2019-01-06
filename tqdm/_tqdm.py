@@ -73,19 +73,18 @@ class TqdmDefaultWriteLock(object):
     """
     Provide a default write lock for thread and multiprocessing safety.
     Works only on platforms supporting `fork` (so Windows is excluded).
-    You must initialize an instance of tqdm or TqdmDefaultWriteLock before
-    forking in order for the write lock to work.
+    You must initialise a `tqdm` or `TqdmDefaultWriteLock` instance
+    before forking in order for the write lock to work.
     On Windows, you need to supply the lock from the parent to the children as
     an argument to joblib or the parallelism lib you use.
     """
-
     def __init__(self):
         # Create global parallelism locks to avoid racing issues with parallel bars
-        # works only if fork available (Linux, MacOSX, but not on Windows)
+        # works only if fork available (Linux/MacOSX, but not Windows)
         self.create_mp_lock()
         self.create_th_lock()
         cls = type(self)
-        self.locks = [lock for lock in [cls.mp_lock, cls.th_lock] if lock is not None]
+        self.locks = [lk for lk in [cls.mp_lock, cls.th_lock] if lk is not None]
 
     def acquire(self):
         for lock in self.locks:
@@ -136,7 +135,6 @@ class tqdm(Comparable):
 
     monitor_interval = 10  # set to 0 to disable the thread
     monitor = None
-    # _instances and _lock defined in __new__
 
     @staticmethod
     def format_sizeof(num, suffix='', divisor=1000):
