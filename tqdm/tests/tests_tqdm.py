@@ -730,13 +730,9 @@ def test_disable():
 @with_setup(pretest, posttest)
 def test_infinite_total():
     """Test treatment of infinite total"""
-
     with closing(StringIO()) as our_file:
-        try:
-            for _ in tqdm(_range(3), file=our_file, total=float("inf")):
-                pass
-        except (TypeError, OverflowError):
-            assert False
+        for _ in tqdm(_range(3), file=our_file, total=float("inf")):
+            pass
 
 
 @with_setup(pretest, posttest)
