@@ -80,16 +80,14 @@ class TMonitor(Thread):
                     # Check event in loop to reduce blocking time on exit
                     if self.was_killed.is_set():
                         return
-                    # Only if mininterval > 1 (else iterations are just slow)
-                    # and last refresh exceeded maxinterval
-                    if instance.miniters > 1 and \
-                            (cur_t - instance.last_print_t) >= \
-                            instance.maxinterval:
-                        # force bypassing miniters on next iteration
-                        # (dynamic_miniters adjusts mininterval automatically)
-                        instance.miniters = 1
-                        # Refresh now! (works only for manual tqdm)
+                    # last refresh exceeded maxinterval (not strict)
+                    if cur_t - min(self.woken, instance.last_print_t) >= instance.maxinterval:
+                        # Refresh now! without condition
                         instance.refresh(nolock=True)
+                        # (dynamic_miniters adjusts mininterval automatically)
+                        if instance.dynamic_miniters:
+                            # set miniters=1 to let next iteration trigger refresh
+                            instance.miniters = 1
                 if instances != self.get_instances():  # pragma: nocover
                     warn("Set changed size during iteration" +
                          " (see https://github.com/tqdm/tqdm/issues/481)",

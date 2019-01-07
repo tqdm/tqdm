@@ -557,6 +557,7 @@ class tqdm(Comparable):
 
     @classmethod
     def set_lock(cls, lock):
+        """Set tqdm's internal lock"""
         cls._lock = lock
 
     @classmethod
@@ -903,7 +904,7 @@ class tqdm(Comparable):
         self.postfix = None
         if postfix:
             try:
-                self.set_postfix(refresh=False, **postfix)
+                self.set_postfix(refresh=False, update=False, **postfix)
             except TypeError:
                 self.postfix = postfix
 
@@ -1210,6 +1211,8 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
         self.desc = desc + ': ' if desc else ''
         if refresh:
             self.refresh()
+        else:
+            self.update(0)
 
     def set_description_str(self, desc=None, refresh=True):
         """
@@ -1218,8 +1221,11 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
         self.desc = desc or ''
         if refresh:
             self.refresh()
+        else:
+            self.update(0)
 
-    def set_postfix(self, ordered_dict=None, refresh=True, **kwargs):
+    def set_postfix(self, ordered_dict=None, refresh=True, update=True,
+                    **kwargs):
         """
         Set/modify postfix (additional stats)
         with automatic formatting based on datatype.
@@ -1229,6 +1235,8 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
         ordered_dict  : dict or OrderedDict, optional
         refresh  : bool, optional
             Forces refresh [default: True].
+        update  : bool, optional
+            Call `update(0)` if refresh isn't forced [default: True].
         kwargs  : dict, optional
         """
         # Sort in alphabetical order to be more deterministic
@@ -1249,6 +1257,8 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
                                  for key in postfix.keys())
         if refresh:
             self.refresh()
+        elif update:
+            self.update(0)
 
     def set_postfix_str(self, s='', refresh=True):
         """
@@ -1257,6 +1267,8 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
         self.postfix = str(s)
         if refresh:
             self.refresh()
+        else:
+            self.update(0)
 
     def moveto(self, n):
         self.fp.write(_unicode('\n' * n + _term_move_up() * -n))

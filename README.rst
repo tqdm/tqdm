@@ -434,15 +434,20 @@ Returns
               Forces refresh [default: True].
           """
 
-      def set_postfix(self, ordered_dict=None, refresh=True, **kwargs):
+      def set_postfix(self, ordered_dict=None, refresh=True, update=True,
+                      **kwargs):
           """
           Set/modify postfix (additional stats)
           with automatic formatting based on datatype.
 
           Parameters
           ----------
+          ordered_dict  : dict or OrderedDict, optional
           refresh  : bool, optional
               Forces refresh [default: True].
+          update  : bool, optional
+              Call ``update(0)`` if refresh isn't forced [default: True].
+          kwargs  : dict, optional
           """
 
     def trange(*args, **kwargs):
@@ -470,6 +475,10 @@ Returns
         """
         Experimental IPython/Jupyter Notebook widget using tqdm!
         """
+
+    @classmethod
+    def set_lock(cls, lock):
+        """Set tqdm's internal lock"""
 
 
 Examples and Advanced Usage
