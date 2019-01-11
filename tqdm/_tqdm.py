@@ -462,9 +462,8 @@ class tqdm(Comparable):
         # Add to the list of instances
         if not hasattr(cls, '_instances'):
             cls._instances = WeakSet()
-        if not hasattr(cls, '_lock'):
-            cls._lock = TqdmDefaultWriteLock()
-        with cls._lock:
+        # Construct the lock if it does not exist
+        with cls.get_lock():
             cls._instances.add(instance)
         # Create the monitoring thread
         if cls.monitor_interval and (cls.monitor is None or not
@@ -537,7 +536,7 @@ class tqdm(Comparable):
         fp = file if file is not None else sys.stdout
 
         if not nolock:
-            cls._lock.acquire()
+            cls.get_lock().acquire()
         # Clear all bars
         inst_cleared = []
         for inst in getattr(cls, '_instances', []):
@@ -557,10 +556,14 @@ class tqdm(Comparable):
 
     @classmethod
     def set_lock(cls, lock):
+        """Set the global lock."""
         cls._lock = lock
 
     @classmethod
     def get_lock(cls):
+        """Get the global lock. Construct it if it does not exist."""
+        if not hasattr(cls, '_lock'):
+            cls._lock = TqdmDefaultWriteLock()
         return cls._lock
 
     @classmethod
