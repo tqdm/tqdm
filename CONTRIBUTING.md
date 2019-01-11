@@ -281,5 +281,5 @@ For expereinced devs, once happy with local master:
 12. run `make deploy` in the `docs` submodule to update website
 13. accept the automated PR in the `feedstock` submodule to update conda
 
-The last thee steps require a one-time `make submodules` to clone
+The last three steps require a one-time `make submodules` to clone
 `docs`, `wiki`, and `feedstock`.

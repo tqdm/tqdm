@@ -69,30 +69,22 @@ class TqdmMonitorWarning(TqdmWarning, RuntimeWarning):
     pass
 
 
-# Create global parallelism locks to avoid racing issues with parallel bars
-# works only if fork available (Linux, MacOSX, but not on Windows)
-try:
-    mp_lock = mp.RLock()  # multiprocessing lock
-except ImportError:  # pragma: no cover
-    mp_lock = None
-except OSError:  # pragma: no cover
-    mp_lock = None
-try:
-    th_lock = th.RLock()  # thread lock
-except OSError:  # pragma: no cover
-    th_lock = None
-
-
 class TqdmDefaultWriteLock(object):
     """
     Provide a default write lock for thread and multiprocessing safety.
     Works only on platforms supporting `fork` (so Windows is excluded).
+    You must initialise a `tqdm` or `TqdmDefaultWriteLock` instance
+    before forking in order for the write lock to work.
     On Windows, you need to supply the lock from the parent to the children as
     an argument to joblib or the parallelism lib you use.
     """
     def __init__(self):
-        global mp_lock, th_lock
-        self.locks = [lk for lk in [mp_lock, th_lock] if lk is not None]
+        # Create global parallelism locks to avoid racing issues with parallel bars
+        # works only if fork available (Linux/MacOSX, but not Windows)
+        self.create_mp_lock()
+        self.create_th_lock()
+        cls = type(self)
+        self.locks = [lk for lk in [cls.mp_lock, cls.th_lock] if lk is not None]
 
     def acquire(self):
         for lock in self.locks:
@@ -108,6 +100,31 @@ class TqdmDefaultWriteLock(object):
     def __exit__(self, *exc):
         self.release()
 
+    @classmethod
+    def create_mp_lock(cls):
+        if not hasattr(cls, 'mp_lock'):
+            try:
+                cls.mp_lock = mp.RLock()  # multiprocessing lock
+            except ImportError:  # pragma: no cover
+                cls.mp_lock = None
+            except OSError:  # pragma: no cover
+                cls.mp_lock = None
+
+    @classmethod
+    def create_th_lock(cls):
+        if not hasattr(cls, 'th_lock'):
+            try:
+                cls.th_lock = th.RLock()  # thread lock
+            except OSError:  # pragma: no cover
+                cls.th_lock = None
+
+
+# Create a thread lock before instantiation so that no setup needs to be done
+# before running in a multithreaded environment.
+# Do not create the multiprocessing lock because it sets the multiprocessing
+# context and does not allow the user to use 'spawn' or 'forkserver' methods.
+TqdmDefaultWriteLock.create_th_lock()
+
 
 class tqdm(Comparable):
     """
@@ -118,7 +135,6 @@ class tqdm(Comparable):
 
     monitor_interval = 10  # set to 0 to disable the thread
     monitor = None
-    _lock = TqdmDefaultWriteLock()
 
     @staticmethod
     def format_sizeof(num, suffix='', divisor=1000):
@@ -444,11 +460,10 @@ class tqdm(Comparable):
         # Create a new instance
         instance = object.__new__(cls)
         # Add to the list of instances
-        if "_instances" not in cls.__dict__:
+        if not hasattr(cls, '_instances'):
             cls._instances = WeakSet()
-        if "_lock" not in cls.__dict__:
-            cls._lock = TqdmDefaultWriteLock()
-        with cls._lock:
+        # Construct the lock if it does not exist
+        with cls.get_lock():
             cls._instances.add(instance)
         # Create the monitoring thread
         if cls.monitor_interval and (cls.monitor is None or not
@@ -487,7 +502,7 @@ class tqdm(Comparable):
             if not instance.gui:
                 for inst in cls._instances:
                     # negative `pos` means fixed
-                    if inst.pos > abs(instance.pos):
+                    if hasattr(inst, "pos") and inst.pos > abs(instance.pos):
                         inst.pos -= 1
                         # TODO: check this doesn't overwrite another fixed bar
         # Kill monitor if no instances are left
@@ -521,7 +536,7 @@ class tqdm(Comparable):
         fp = file if file is not None else sys.stdout
 
         if not nolock:
-            cls._lock.acquire()
+            cls.get_lock().acquire()
         # Clear all bars
         inst_cleared = []
         for inst in getattr(cls, '_instances', []):
@@ -541,10 +556,14 @@ class tqdm(Comparable):
 
     @classmethod
     def set_lock(cls, lock):
+        """Set the global lock."""
         cls._lock = lock
 
     @classmethod
     def get_lock(cls):
+        """Get the global lock. Construct it if it does not exist."""
+        if not hasattr(cls, '_lock'):
+            cls._lock = TqdmDefaultWriteLock()
         return cls._lock
 
     @classmethod
@@ -702,8 +721,9 @@ class tqdm(Comparable):
             Prefix for the progressbar.
         total  : int, optional
             The number of expected iterations. If unspecified,
-            len(iterable) is used if possible. As a last resort, only basic
-            progress statistics are displayed (no ETA, no progressbar).
+            len(iterable) is used if possible. If float("inf") or as a last
+            resort, only basic progress statistics are displayed
+            (no ETA, no progressbar).
             If `gui` is True and this parameter needs subsequent updating,
             specify an initial arbitrary large positive integer,
             e.g. int(9e9).
@@ -801,6 +821,9 @@ class tqdm(Comparable):
                 total = len(iterable)
             except (TypeError, AttributeError):
                 total = None
+        if total == float("inf"):
+            # Infinite iterations, behave same as unknown
+            total = None
 
         if disable:
             self.iterable = iterable
