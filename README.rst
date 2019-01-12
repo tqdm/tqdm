@@ -3,9 +3,9 @@
 tqdm
 ====
 
-|PyPI-Status| |PyPI-Versions| |Conda-Forge-Status|
+|PyPI-Versions| |PyPI-Status| |Conda-Forge-Status|
 
-|Build-Status| |Coverage-Status| |Branch-Coverage-Status| |Codacy-Grade|
+|Build-Status| |Coverage-Status| |Branch-Coverage-Status| |Codacy-Grade| |Libraries-Rank|
 
 |DOI-URI| |LICENCE| |OpenHub-Status|
 
@@ -72,7 +72,7 @@ Installation
 Latest PyPI stable release
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-|PyPI-Status|
+|PyPI-Status| |PyPI-Downloads| |Libraries-Dependents|
 
 .. code:: sh
 
@@ -81,7 +81,7 @@ Latest PyPI stable release
 Latest development release on GitHub
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-|GitHub-Status| |GitHub-Stars| |GitHub-Commits| |GitHub-Forks|
+|GitHub-Status| |GitHub-Stars| |GitHub-Commits| |GitHub-Forks| |GitHub-Updated|
 
 Pull and install in the current directory:
 
@@ -104,7 +104,8 @@ Changelog
 
 The list of all changes is available either on GitHub's Releases:
 |GitHub-Status|, on the
-`wiki <https://github.com/tqdm/tqdm/wiki/Releases>`__ or on crawlers such as
+`wiki <https://github.com/tqdm/tqdm/wiki/Releases>`__, on the
+`website <https://tqdm.github.io/releases/>`__, or on crawlers such as
 `allmychanges.com <https://allmychanges.com/p/python/tqdm/>`_.
 
 
@@ -846,7 +847,7 @@ There are also many |GitHub-Contributions| which we are grateful for.
 
 .. |Logo| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/logo.gif
 .. |Screenshot| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/tqdm.gif
-.. |Build-Status| image:: https://travis-ci.org/tqdm/tqdm.svg?branch=master
+.. |Build-Status| image:: https://img.shields.io/travis/tqdm/tqdm/master.svg?logo=travis
    :target: https://travis-ci.org/tqdm/tqdm
 .. |Coverage-Status| image:: https://coveralls.io/repos/tqdm/tqdm/badge.svg?branch=master
    :target: https://coveralls.io/github/tqdm/tqdm
@@ -854,30 +855,36 @@ There are also many |GitHub-Contributions| which we are grateful for.
    :target: https://codecov.io/gh/tqdm/tqdm
 .. |Codacy-Grade| image:: https://api.codacy.com/project/badge/Grade/3f965571598f44549c7818f29cdcf177
    :target: https://www.codacy.com/app/tqdm/tqdm?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=tqdm/tqdm&amp;utm_campaign=Badge_Grade
-.. |GitHub-Status| image:: https://img.shields.io/github/tag/tqdm/tqdm.svg?maxAge=86400
+.. |GitHub-Status| image:: https://img.shields.io/github/tag/tqdm/tqdm.svg?maxAge=86400&logo=github&logoColor=white
    :target: https://github.com/tqdm/tqdm/releases
-.. |GitHub-Forks| image:: https://img.shields.io/github/forks/tqdm/tqdm.svg
+.. |GitHub-Forks| image:: https://img.shields.io/github/forks/tqdm/tqdm.svg?logo=github&logoColor=white
    :target: https://github.com/tqdm/tqdm/network
-.. |GitHub-Stars| image:: https://img.shields.io/github/stars/tqdm/tqdm.svg
+.. |GitHub-Stars| image:: https://img.shields.io/github/stars/tqdm/tqdm.svg?logo=github&logoColor=white
    :target: https://github.com/tqdm/tqdm/stargazers
-.. |GitHub-Commits| image:: https://img.shields.io/github/commit-activity/y/tqdm/tqdm.svg
+.. |GitHub-Commits| image:: https://img.shields.io/github/commit-activity/y/tqdm/tqdm.svg?logo=git&logoColor=white
    :target: https://github.com/tqdm/tqdm/graphs/commit-activity
-.. |GitHub-Issues| image:: https://img.shields.io/github/issues-closed/tqdm/tqdm.svg
+.. |GitHub-Issues| image:: https://img.shields.io/github/issues-closed/tqdm/tqdm.svg?logo=github&logoColor=white
    :target: https://github.com/tqdm/tqdm/issues
-.. |GitHub-PRs| image:: https://img.shields.io/github/issues-pr-closed/tqdm/tqdm.svg
+.. |GitHub-PRs| image:: https://img.shields.io/github/issues-pr-closed/tqdm/tqdm.svg?logo=github&logoColor=white
    :target: https://github.com/tqdm/tqdm/pulls
-.. |GitHub-Contributions| image:: https://img.shields.io/github/contributors/tqdm/tqdm.svg
+.. |GitHub-Contributions| image:: https://img.shields.io/github/contributors/tqdm/tqdm.svg?logo=github&logoColor=white
    :target: https://github.com/tqdm/tqdm/graphs/contributors
+.. |GitHub-Updated| image:: https://img.shields.io/github/last-commit/tqdm/tqdm/master.svg?logo=github&logoColor=white&label=pushed
+   :target: https://github.com/tqdm/tqdm/pulse
 .. |Gift-Casper| image:: https://img.shields.io/badge/gift-donate-ff69b4.svg
    :target: https://caspersci.uk.to/donate.html
 .. |PyPI-Status| image:: https://img.shields.io/pypi/v/tqdm.svg
    :target: https://pypi.org/project/tqdm
-.. |PyPI-Downloads| image:: https://img.shields.io/pypi/dm/tqdm.svg
+.. |PyPI-Downloads| image:: https://img.shields.io/pypi/dm/tqdm.svg?label=pypi%20downloads&logo=python&logoColor=white
    :target: https://pypi.org/project/tqdm
-.. |PyPI-Versions| image:: https://img.shields.io/pypi/pyversions/tqdm.svg
+.. |PyPI-Versions| image:: https://img.shields.io/pypi/pyversions/tqdm.svg?logo=python&logoColor=white
    :target: https://pypi.org/project/tqdm
-.. |Conda-Forge-Status| image:: https://anaconda.org/conda-forge/tqdm/badges/version.svg
+.. |Conda-Forge-Status| image:: https://img.shields.io/conda/v/conda-forge/tqdm.svg?label=conda-forge
    :target: https://anaconda.org/conda-forge/tqdm
+.. |Libraries-Rank| image:: https://img.shields.io/librariesio/sourcerank/pypi/tqdm.svg?logo=koding&logoColor=white
+   :target: https://libraries.io/pypi/tqdm
+.. |Libraries-Dependents| image:: https://img.shields.io/librariesio/dependent-repos/pypi/tqdm.svg?logo=koding&logoColor=white
+    :target: https://github.com/tqdm/tqdm/network/dependents
 .. |OpenHub-Status| image:: https://www.openhub.net/p/tqdm/widgets/project_thin_badge?format=gif
    :target: https://www.openhub.net/p/tqdm?ref=Thin+badge
 .. |LICENCE| image:: https://img.shields.io/pypi/l/tqdm.svg
