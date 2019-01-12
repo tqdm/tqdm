@@ -232,7 +232,7 @@ of a neat one-line progress bar.
       to ensure nested bars stay within their respective lines.
 - Unicode:
     * Environments which report that they support unicode will have solid smooth
-      progressbars. The fallback is an `ascii`-only bar.
+      progressbars. The fallback is an ```ascii``-only bar.
     * Windows consoles often only partially support unicode and thus
       `often require explicit ascii=True <https://github.com/tqdm/tqdm/issues/454#issuecomment-335416815>`__
       (also `here <https://github.com/tqdm/tqdm/issues/499>`__). This is due to
@@ -282,7 +282,7 @@ Parameters
     len(iterable) is used if possible. If float("inf") or as a last
     resort, only basic progress statistics are displayed
     (no ETA, no progressbar).
-    If `gui` is True and this parameter needs subsequent updating,
+    If ``gui`` is True and this parameter needs subsequent updating,
     specify an initial arbitrary large positive integer,
     e.g. int(9e9).
 * leave  : bool, optional  
@@ -327,8 +327,8 @@ Parameters
     automatically and a metric prefix following the
     International System of Units standard will be added
     (kilo, mega, etc.) [default: False]. If any other non-zero
-    number, will scale `total` and `n`.
 * dynamic_ncols  : bool, optional  
+    number, will scale ```total`` and ``n``.
     If set, constantly alters ``ncols`` to the environment (allowing
     for window resizes) [default: False].
 * smoothing  : float, optional  
@@ -357,7 +357,7 @@ Parameters
     Specify additional stats to display at the end of the bar.
     Calls ``set_postfix(**postfix)`` if possible (dict).
 * unit_divisor  : float, optional  
-    [default: 1000], ignored unless `unit_scale` is True.
+    [default: 1000], ignored unless ``unit_scale`` is True.
 
 Extra CLI Options
 ~~~~~~~~~~~~~~~~~
@@ -660,7 +660,7 @@ IPython/Jupyter is supported via the ``tqdm_notebook`` submodule:
 
 In addition to ``tqdm`` features, the submodule provides a native Jupyter
 widget (compatible with IPython v1-v4 and Jupyter), fully working nested bars
-and color hints (blue: normal, green: completed, red: error/interrupt,
+and colour hints (blue: normal, green: completed, red: error/interrupt,
 light blue: no ETA); as demonstrated below.
 
 |Screenshot-Jupyter1|
