@@ -5,9 +5,9 @@ tqdm
 
 |PyPI-Versions| |PyPI-Status| |Conda-Forge-Status|
 
-|Build-Status| |Coverage-Status| |Branch-Coverage-Status| |Codacy-Grade| |Libraries-Rank|
+|Build-Status| |Coverage-Status| |Branch-Coverage-Status| |Codacy-Grade| |Libraries-Rank| |PyPI-Downloads|
 
-|DOI-URI| |LICENCE| |OpenHub-Status|
+|DOI-URI| |LICENCE| |OpenHub-Status| |interactive-demo|
 
 
 ``tqdm`` means "progress" in Arabic (taqadum, تقدّم)
@@ -34,8 +34,8 @@ It can also be executed as a module with pipes:
 
 .. code:: sh
 
-    $ seq 9999999 | tqdm --unit_scale | wc -l
-    10.0Mit [00:02, 3.58Mit/s]
+    $ seq 9999999 | tqdm --bytes | wc -l
+    75.2MB [00:00, 217MB/s]
     9999999
     $ 7z a -bd -r backup.7z docs/ | grep Compressing | \
         tqdm --total $(find docs/ -type f | wc -l) --unit files >> backup.log
@@ -122,8 +122,12 @@ Wrap ``tqdm()`` around any iterable:
 
 .. code:: python
 
+    from tqdm import tqdm
+    import time
+
     text = ""
     for char in tqdm(["a", "b", "c", "d"]):
+        time.sleep(0.25)
         text = text + char
 
 ``trange(i)`` is a special optimised instance of ``tqdm(range(i))``:
@@ -131,7 +135,7 @@ Wrap ``tqdm()`` around any iterable:
 .. code:: python
 
     for i in trange(100):
-        pass
+        time.sleep(0.01)
 
 Instantiation outside of the loop allows for manual control over ``tqdm()``:
 
@@ -139,6 +143,7 @@ Instantiation outside of the loop allows for manual control over ``tqdm()``:
 
     pbar = tqdm(["a", "b", "c", "d"])
     for char in pbar:
+        time.sleep(0.25)
         pbar.set_description("Processing %s" % char)
 
 Manual
@@ -150,6 +155,7 @@ Manual control on ``tqdm()`` updates by using a ``with`` statement:
 
     with tqdm(total=100) as pbar:
         for i in range(10):
+            time.sleep(0.1)
             pbar.update(10)
 
 If the optional variable ``total`` (or an iterable with ``len()``) is
@@ -162,6 +168,7 @@ but in this case don't forget to ``del`` or ``close()`` at the end:
 
     pbar = tqdm(total=100)
     for i in range(10):
+        time.sleep(0.1)
         pbar.update(10)
     pbar.close()
 
@@ -177,14 +184,14 @@ in the current directory, with timing information included.
 
 .. code:: sh
 
-    $ time find . -name '*.py' -exec cat \{} \; | wc -l
+    $ time find . -name '*.py' -type f -exec cat \{} \; | wc -l
     857365
 
     real    0m3.458s
     user    0m0.274s
     sys     0m3.325s
 
-    $ time find . -name '*.py' -exec cat \{} \; | tqdm | wc -l
+    $ time find . -name '*.py' -type f -exec cat \{} \; | tqdm | wc -l
     857366it [00:03, 246471.31it/s]
     857365
 
@@ -196,7 +203,7 @@ Note that the usual arguments for ``tqdm`` can also be specified.
 
 .. code:: sh
 
-    $ find . -name '*.py' -exec cat \{} \; |
+    $ find . -name '*.py' -type f -exec cat \{} \; |
         tqdm --unit loc --unit_scale --total 857366 >> /dev/null
     100%|███████████████████████████████████| 857K/857K [00:04<00:00, 246Kloc/s]
 
@@ -370,11 +377,15 @@ Extra CLI Options
     used when ``delim`` is specified.
 * bytes  : bool, optional  
     If true, will count bytes and ignore ``delim``.
+* manpath  : str, optional  
+    Directory in which to install tqdm man pages.
+* log  : str, optional  
+    CRITICAL|FATAL|ERROR|WARN(ING)|[default: 'INFO']|DEBUG|NOTSET.
 
 Returns
 ~~~~~~~
 
-* out  : decorated iterator.
+* out  : decorated iterator.  
 
 .. code:: python
 
@@ -478,11 +489,12 @@ Examples and Advanced Usage
 
 - See the `examples <https://github.com/tqdm/tqdm/tree/master/examples>`__
   folder;
-- import the module and run ``help()``, or
+- import the module and run ``help()``;
 - consult the `wiki <https://github.com/tqdm/tqdm/wiki>`__.
     - this has an
       `excellent article <https://github.com/tqdm/tqdm/wiki/How-to-make-a-great-Progress-Bar>`__
-      on how to make a **great** progressbar.
+      on how to make a **great** progressbar, or
+- run the |interactive-demo|.
 
 Description and additional stats
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -496,7 +508,7 @@ with the ``desc`` and ``postfix`` arguments:
     from random import random, randint
     from time import sleep
 
-    with trange(100) as t:
+    with trange(10) as t:
         for i in t:
             # Description will be displayed on the left
             t.set_description('GEN %i' % i)
@@ -531,9 +543,9 @@ Nested progress bars
     from tqdm import trange
     from time import sleep
 
-    for i in trange(10, desc='1st loop'):
-        for j in trange(5, desc='2nd loop', leave=False):
-            for k in trange(100, desc='3nd loop'):
+    for i in trange(4, desc='1st loop'):
+        for j in trange(5, desc='2nd loop'):
+            for k in trange(50, desc='3nd loop', leave=False):
                 sleep(0.01)
 
 On Windows `colorama <https://github.com/tartley/colorama>`__ will be used if
@@ -654,8 +666,8 @@ IPython/Jupyter is supported via the ``tqdm_notebook`` submodule:
     from tqdm import tnrange, tqdm_notebook
     from time import sleep
 
-    for i in tnrange(10, desc='1st loop'):
-        for j in tqdm_notebook(xrange(100), desc='2nd loop'):
+    for i in tnrange(3, desc='1st loop'):
+        for j in tqdm_notebook(range(100), desc='2nd loop'):
             sleep(0.01)
 
 In addition to ``tqdm`` features, the submodule provides a native Jupyter
@@ -892,6 +904,8 @@ There are also many |GitHub-Contributions| which we are grateful for.
    :target: https://raw.githubusercontent.com/tqdm/tqdm/master/LICENCE
 .. |DOI-URI| image:: https://zenodo.org/badge/21637/tqdm/tqdm.svg
    :target: https://zenodo.org/badge/latestdoi/21637/tqdm/tqdm
+.. |interactive-demo| image:: https://img.shields.io/badge/demo-interactive-orange.svg?logo=jupyter
+   :target: https://notebooks.rmotr.com/demo/gh/tqdm/tqdm
 .. |Screenshot-Jupyter1| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/tqdm-jupyter-1.gif
 .. |Screenshot-Jupyter2| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/tqdm-jupyter-2.gif
 .. |Screenshot-Jupyter3| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/tqdm-jupyter-3.gif
