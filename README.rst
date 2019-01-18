@@ -252,6 +252,9 @@ of a neat one-line progress bar.
 - Wrapping zipped iterables has similar issues due to internal optimisations.
   ``tqdm(zip(a, b))`` should be replaced with ``zip(tqdm(a), b)`` or even
   ``zip(tqdm(a), tqdm(b))``.
+- `Hanging pipes in python2 <https://github.com/tqdm/tqdm/issues/359>`__:
+  when using ``tqdm`` on the CLI, you may need to use python 3.5+ for correct
+  buffering.
 
 If you come across any other difficulties, browse and file |GitHub-Issues|.
 
