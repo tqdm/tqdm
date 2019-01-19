@@ -10,7 +10,8 @@
 #test:
 #	nosetest
 #install:
-#	python setup.py install
+#	python setup.py \
+#  install
 #```
 
 .PHONY:
