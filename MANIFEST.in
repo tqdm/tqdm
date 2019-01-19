@@ -18,3 +18,4 @@ recursive-include tqdm/auto *.py
 recursive-include examples *.py
 include README.rst
 include tqdm/tqdm.1
+include DEMO.ipynb
