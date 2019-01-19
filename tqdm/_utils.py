@@ -6,7 +6,8 @@ CUR_OS = _curos()
 IS_WIN = CUR_OS in ['Windows', 'cli']
 IS_NIX = (not IS_WIN) and any(
     CUR_OS.startswith(i) for i in
-    ['CYGWIN', 'MSYS', 'Linux', 'Darwin', 'SunOS', 'FreeBSD', 'NetBSD', 'OpenBSD'])
+    ['CYGWIN', 'MSYS', 'Linux', 'Darwin', 'SunOS',
+     'FreeBSD', 'NetBSD', 'OpenBSD'])
 RE_ANSI = re.compile(r"\x1b\[[;\d]*[A-Za-z]")
 
 

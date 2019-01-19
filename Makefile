@@ -47,7 +47,8 @@ all:
 	@+make build
 
 flake8:
-	@+flake8 --max-line-length=80 --exclude .asv,.tox -j 8 --count --statistics --exit-zero .
+	@+flake8 --max-line-length=80 --exclude .asv,.tox,.ipynb_checkpoints \
+    -j 8 --count --statistics --exit-zero .
 
 test:
 	tox --skip-missing-interpreters

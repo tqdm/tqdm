@@ -79,8 +79,8 @@ class TqdmDefaultWriteLock(object):
     an argument to joblib or the parallelism lib you use.
     """
     def __init__(self):
-        # Create global parallelism locks to avoid racing issues with parallel bars
-        # works only if fork available (Linux/MacOSX, but not Windows)
+        # Create global parallelism locks to avoid racing issues with parallel
+        # bars works only if fork available (Linux/MacOSX, but not Windows)
         self.create_mp_lock()
         self.create_th_lock()
         cls = type(self)
@@ -210,8 +210,8 @@ class tqdm(Comparable):
     @staticmethod
     def ema(x, mu=None, alpha=0.3):
         """
-		Exponential moving average: smoothing to give progressively lower
-		weights to older values.
+        Exponential moving average: smoothing to give progressively lower
+        weights to older values.
 
         Parameters
         ----------
@@ -222,7 +222,7 @@ class tqdm(Comparable):
         alpha  : float, optional
             Smoothing factor in range [0, 1], [default: 0.3].
             Increase to give more weight to recent values.
-			Ranges from 0 (yields mu) to 1 (yields x).
+            Ranges from 0 (yields mu) to 1 (yields x).
         """
         return x if mu is None else (alpha * x) + (1 - alpha) * mu
 
@@ -1098,7 +1098,8 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
                 # EMA (not just overall average)
                 if self.smoothing and delta_t and delta_it:
                     rate = delta_t / delta_it
-                    self.avg_time = self.ema(rate, self.avg_time, self.smoothing)
+                    self.avg_time = self.ema(
+                        rate, self.avg_time, self.smoothing)
 
                 if not hasattr(self, "sp"):
                     raise TqdmDeprecationWarning("""\

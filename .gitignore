@@ -25,6 +25,9 @@ __pycache__
 # PyCharm
 .idea
 
+# IPython
+.ipynb_checkpoints
+
 # asv
 .asv/
 benchmarks/*.py[co]
