@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 import os
 try:
     from setuptools import setup, find_packages
@@ -24,116 +23,28 @@ with io_open(version_file, mode='r') as fd:
 
 # Executing makefile commands if specified
 if sys.argv[1].lower().strip() == 'make':
-    import shlex
-    from subprocess import check_call
-    try:  # pragma: no cover
-        import ConfigParser
-        import StringIO
-    except ImportError:  # pragma: no cover
-        # Python 3 compatibility
-        import configparser as ConfigParser
-        import io as StringIO
-    import re
-
-    RE_MAKE_CMD = re.compile('^\t(@\+?)(make)?', flags=re.M)
-
-    def parse_makefile_aliases(filepath):
-        """
-        Parse a makefile to find commands and substitute variables. Expects a
-        makefile with only aliases and a line return between each command.
-
-        Returns a dict, with a list of commands for each alias.
-        """
-        # Parse Makefile using ConfigParser
-        ini_str = '[root]\n'  # fake section to resemble valid *.ini
-        with io_open(filepath, mode='r') as fd:
-            ini_str = ini_str + RE_MAKE_CMD.sub('\t', fd.read())
-        ini_fp = StringIO.StringIO(ini_str)
-        config = ConfigParser.RawConfigParser()
-        config.readfp(ini_fp)
-        aliases = config.options('root')
-
-        # Extract commands for each alias
-        commands = {}
-        for alias in aliases:
-            if alias.lower() in ['.phony']:
-                continue
-            commands[alias] = config.get('root', alias)\
-                .lstrip('\n').replace('\\\n', '').split('\n')
-
-        # Command substitution (depth-first).
-        # If this is not possible because an alias points to another alias,
-        # then stop and put the current alias back in the queue to be
-        # processed again later (bottom-up).
-
-        aliases_todo = list(commands.keys())
-        commands_new = {}
-        while aliases_todo:
-            alias = aliases_todo.pop()
-            commands_new[alias] = []
-            for cmd in commands[alias]:
-                # Ignore self-referencing (alias points to itself)
-                if cmd == alias:
-                    pass
-                elif cmd in aliases:
-                    # Append substituted full commands
-                    if cmd in commands_new:
-                        commands_new[alias].extend(commands_new[cmd])
-                    # Delay substituting another alias until it is substituted
-                    else:
-                        del commands_new[alias]
-                        aliases_todo.insert(0, alias)
-                        break
-                # Full command (no aliases)
-                else:
-                    commands_new[alias].append(cmd)
-        commands = commands_new
-        # Prepending prefix to avoid conflicts with standard setup.py commands
-        # for alias in list(commands.keys()):
-        #     commands['make_'+alias] = commands.pop(alias)
-        return commands
-
-    def execute_makefile_commands(commands, alias, verbose=False):
-        cmds = commands[alias]
-        for cmd in cmds:
-            # Parse string in a shell-like fashion
-            # (incl quoted strings and comments)
-            parsed_cmd = shlex.split(cmd, comments=True)
-            # Execute command if not empty/comment
-            if parsed_cmd:
-                if verbose:
-                    print("Running command: " + cmd)
-                check_call(parsed_cmd, cwd=src_dir)
-
+    import pymake
     # Filename of the makefile
     fpath = os.path.join(src_dir, 'Makefile')
-    # Parse the makefile, substitute the aliases and extract the commands
-    commands = parse_makefile_aliases(fpath)
-
-    # If no alias (only `python setup.py make`), print the list of aliases
-    args = sys.argv[2:]
-    invalid = set(args).difference(commands.keys())
-    if not args or '--help' in args or invalid:
-        print("Shortcut to use commands via aliases. List of aliases:")
-        print(' '.join(alias for alias in sorted(commands.keys())))
-        if invalid:
-            raise Exception("Cannot find: " + ' '.join(invalid))
-    # Else process the commands for this alias
-    else:
-        for arg in args:
-            execute_makefile_commands(commands, arg, verbose=True)
+    pymake.main(['-f', fpath] + sys.argv[2:])
     # Stop to avoid setup.py raising non-standard command error
     sys.exit(0)
+
+extras_require = {}
+requirements_dev = os.path.join(src_dir, 'requirements-dev.txt')
+with io_open(requirements_dev, mode='r') as fd:
+    extras_require['dev'] = [i.strip().split('#', 1)[0].strip()
+                             for i in fd.read().strip().split('\n')]
 
 README_rst = ''
 fndoc = os.path.join(src_dir, 'README.rst')
 with io_open(fndoc, mode='r', encoding='utf-8') as fd:
     README_rst = fd.read()
-
 setup(
     name='tqdm',
     version=__version__,
     description='Fast, Extensible Progress Meter',
+    long_description=README_rst,
     license='MPLv2.0, MIT Licences',
     author='Noam Yorav-Raphael',
     author_email='noamraph@gmail.com',
@@ -142,10 +53,11 @@ setup(
     maintainer_email='python.tqdm@gmail.com',
     platforms=['any'],
     packages=['tqdm'] + ['tqdm.' + i for i in find_packages('tqdm')],
+    provides=['tqdm'],
+    extras_require=extras_require,
     entry_points={'console_scripts': ['tqdm=tqdm._main:main'], },
     package_data={'tqdm': ['CONTRIBUTING.md', 'LICENCE', 'examples/*.py',
-                           'tqdm.1']},
-    long_description=README_rst,
+                           'tqdm.1', 'requirements-dev.txt']},
     python_requires='>=2.6, !=3.0.*, !=3.1.*',
     classifiers=[
         # Trove classifiers
@@ -186,12 +98,16 @@ setup(
         'Programming Language :: Python :: Implementation :: IronPython',
         'Programming Language :: Python :: Implementation :: PyPy',
         'Topic :: Desktop Environment',
+        'Topic :: Education :: Computer Aided Instruction (CAI)',
         'Topic :: Education :: Testing',
         'Topic :: Office/Business',
         'Topic :: Other/Nonlisted Topic',
+        'Topic :: Software Development :: Build Tools',
         'Topic :: Software Development :: Libraries',
         'Topic :: Software Development :: Libraries :: Python Modules',
+        'Topic :: Software Development :: Pre-processors',
         'Topic :: Software Development :: User Interfaces',
+        'Topic :: System :: Installation/Setup',
         'Topic :: System :: Logging',
         'Topic :: System :: Monitoring',
         'Topic :: System :: Shells',
