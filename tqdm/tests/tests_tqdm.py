@@ -1651,6 +1651,7 @@ def test_external_write():
     with closing(StringIO()) as our_file:
         # Redirect stdout to tqdm.write()
         for _ in trange(3, file=our_file):
+            del tqdm._lock  # classmethod should be able to recreate lock
             with tqdm.external_write_mode(file=our_file):
                 our_file.write("Such fun\n")
         res = our_file.getvalue()

@@ -55,8 +55,8 @@ Prefix for the progressbar.
 int, optional.
 The number of expected iterations.
 If unspecified, len(iterable) is used if possible.
-As a last resort, only basic progress statistics are displayed (no ETA,
-no progressbar).
+If float("inf") or as a last resort, only basic progress statistics are
+displayed (no ETA, no progressbar).
 If \f[C]gui\f[] is True and this parameter needs subsequent updating,
 specify an initial arbitrary large positive integer, e.g.
 int(9e9).
