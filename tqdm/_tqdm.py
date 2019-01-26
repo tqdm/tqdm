@@ -946,7 +946,8 @@ class tqdm(Comparable):
     @property
     def format_dict(self):
         """Public API for read-only member access"""
-        return dict(n=self.n, total=self.total,
+        return dict(
+            n=self.n, total=self.total,
             elapsed=self._time() - self.start_t
             if hasattr(self, 'start_t') else 0,
             ncols=self.dynamic_ncols(self.fp)
@@ -990,9 +991,7 @@ class tqdm(Comparable):
             avg_time = self.avg_time
             _time = self._time
 
-            try:
-                sp = self.sp
-            except AttributeError:
+            if not hasattr(self, 'sp'):
                 from textwrap import dedent
                 raise TqdmDeprecationWarning(dedent("""\
                 Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`

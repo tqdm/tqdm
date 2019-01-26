@@ -17,6 +17,7 @@ def _sh(*cmd, **kwargs):
 class Null(object):
     def __call__(self, *_, **__):
         return self
+
     def __getattr__(self, _):
         return self
 
