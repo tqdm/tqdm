@@ -61,7 +61,29 @@ RE_rate = re.compile(r'(\d+\.\d+)it/s')
 RE_ctrlchr = re.compile("(%s)" % '|'.join(CTRLCHR))  # Match control chars
 RE_ctrlchr_excl = re.compile('|'.join(CTRLCHR))  # Match and exclude ctrl chars
 RE_pos = re.compile(
-    r'((\x1b\[A|\r|\n)+((pos\d+) bar:\s+\d+%|\s{3,6})?)')  # NOQA
+    r'([\r\n]+((pos\d+) bar:\s+\d+%|\s{3,6})?[^\r\n]*)')
+
+
+def pos_line_diff(res_list, expected_list, raise_nonempty=True):
+    """
+    Return differences between two bar output lists.
+    To be used with `RE_pos`
+    """
+    l = len(res_list)
+    if l < len(expected_list):
+        res = [(None, e) for e in expected_list[l:]]
+    elif l > len(expected_list):
+        res = [(r, None) for r in res_list[l:]]
+    res = [(r, e) for r, e in zip(res_list, expected_list)
+           for pos in [len(e)-len(e.lstrip('\n'))]  # bar position
+           if not r.startswith(e)  # start matches
+           or not (r.endswith('\x1b[A' * pos)  # move up at end
+                   or r=='\n')  # final bar
+           or r[(-1-pos) * len('\x1b[A'):] == '\x1b[A']  # extra move up
+    if res and raise_nonempty:
+        raise AssertionError(
+            "Got => Expected\n" + '\n'.join('"%r" => "%r"' % i for i in res))
+    return res
 
 
 class DiscreteTimer(object):
@@ -1056,12 +1078,10 @@ def test_position():
     out = our_file.getvalue()
     res = [m[0] for m in RE_pos.findall(out)]
     exres = ['\n\n\rpos2 bar:   0%',
-             '\x1b[A\x1b[A\n\n\rpos2 bar:  50%',
-             '\x1b[A\x1b[A\n\n\r      ',
-             '\x1b[A\x1b[A']
-    if res != exres:
-        raise AssertionError("\nExpected:\n{0}\nGot:\n{1}\nRaw:\n{2}\n".format(
-            str(exres), str(res), str([out])))
+             '\n\n\rpos2 bar:  50%',
+             '\n\n\r      ']
+
+    pos_line_diff(res, exres)
 
     # Test iteration-based tqdm positioning
     our_file = StringIO()
@@ -1074,29 +1094,33 @@ def test_position():
     res = [m[0] for m in RE_pos.findall(out)]
     exres = ['\rpos0 bar:   0%',
              '\n\rpos1 bar:   0%',
-             '\x1b[A\n\n\rpos2 bar:   0%',
-             '\x1b[A\x1b[A\n\n\rpos2 bar:  50%',
-             '\x1b[A\x1b[A\n\n\rpos2 bar: 100%',
-             '\x1b[A\x1b[A\n\n\x1b[A\x1b[A\n\rpos1 bar:  50%',
-             '\x1b[A\n\n\rpos2 bar:   0%',
-             '\x1b[A\x1b[A\n\n\rpos2 bar:  50%',
-             '\x1b[A\x1b[A\n\n\rpos2 bar: 100%',
-             '\x1b[A\x1b[A\n\n\x1b[A\x1b[A\n\rpos1 bar: 100%',
-             '\x1b[A\n\x1b[A\rpos0 bar:  50%',
+             '\n\n\rpos2 bar:   0%',
+             '\n\n\rpos2 bar:  50%',
+             '\n\n\rpos2 bar: 100%',
+             '\n\n\x1b[A\x1b[A',
+             '\n\rpos1 bar:  50%',
+             '\n\n\rpos2 bar:   0%',
+             '\n\n\rpos2 bar:  50%',
+             '\n\n\rpos2 bar: 100%',
+             '\n\n\x1b[A\x1b[A',
+             '\n\rpos1 bar: 100%',
+             '\n\x1b[A',
+             '\rpos0 bar:  50%',
              '\n\rpos1 bar:   0%',
-             '\x1b[A\n\n\rpos2 bar:   0%',
-             '\x1b[A\x1b[A\n\n\rpos2 bar:  50%',
-             '\x1b[A\x1b[A\n\n\rpos2 bar: 100%',
-             '\x1b[A\x1b[A\n\n\x1b[A\x1b[A\n\rpos1 bar:  50%',
-             '\x1b[A\n\n\rpos2 bar:   0%',
-             '\x1b[A\x1b[A\n\n\rpos2 bar:  50%',
-             '\x1b[A\x1b[A\n\n\rpos2 bar: 100%',
-             '\x1b[A\x1b[A\n\n\x1b[A\x1b[A\n\rpos1 bar: 100%',
-             '\x1b[A\n\x1b[A\rpos0 bar: 100%',
+             '\n\n\rpos2 bar:   0%',
+             '\n\n\rpos2 bar:  50%',
+             '\n\n\rpos2 bar: 100%',
+             '\n\n\x1b[A\x1b[A',
+             '\n\rpos1 bar:  50%',
+             '\n\n\rpos2 bar:   0%',
+             '\n\n\rpos2 bar:  50%',
+             '\n\n\rpos2 bar: 100%',
+             '\n\n\x1b[A\x1b[A',
+             '\n\rpos1 bar: 100%',
+             '\n\x1b[A',
+             '\rpos0 bar: 100%',
              '\n']
-    if res != exres:
-        raise AssertionError("\nExpected:\n{0}\nGot:\n{1}\nRaw:\n{2}\n".format(
-            str(exres), str(res), str([out])))
+    pos_line_diff(res, exres)
 
     # Test manual tqdm positioning
     our_file = StringIO()
@@ -1113,17 +1137,14 @@ def test_position():
     res = [m[0] for m in RE_pos.findall(out)]
     exres = ['\rpos0 bar:   0%',
              '\n\rpos1 bar:   0%',
-             '\x1b[A\n\n\rpos2 bar:   0%',
-             '\x1b[A\x1b[A\rpos0 bar:  50%',
+             '\n\n\rpos2 bar:   0%',
+             '\rpos0 bar:  50%',
              '\n\n\rpos2 bar:  50%',
-             '\x1b[A\x1b[A\n\rpos1 bar:  50%',
-             '\x1b[A\rpos0 bar: 100%',
+             '\n\rpos1 bar:  50%',
+             '\rpos0 bar: 100%',
              '\n\n\rpos2 bar: 100%',
-             '\x1b[A\x1b[A\n\rpos1 bar: 100%',
-             '\x1b[A']
-    if res != exres:
-        raise AssertionError("\nExpected:\n{0}\nGot:\n{1}\nRaw:\n{2}\n".format(
-            str(exres), str(res), str([out])))
+             '\n\rpos1 bar: 100%']
+    pos_line_diff(res, exres)
     t1.close()
     t2.close()
     t3.close()
@@ -1137,11 +1158,9 @@ def test_position():
         res = [m[0] for m in RE_pos.findall(our_file.getvalue())]
         exres = ['\rpos0 bar:   0%',
                  '\n\rpos1 bar:   0%',
-                 '\x1b[A\n\n\rpos2 bar:   0%',
-                 '\x1b[A\x1b[A']
-        if res != exres:
-            raise AssertionError(
-                "\nExpected:\n{0}\nGot:\n{1}\n".format(str(exres), str(res)))
+                 '\n\n\rpos2 bar:   0%']
+        pos_line_diff(res, exres)
+
 
         t2.close()
         t4 = tqdm(total=10, file=our_file, desc='pos3 bar', mininterval=0)
@@ -1151,15 +1170,13 @@ def test_position():
         res = [m[0] for m in RE_pos.findall(our_file.getvalue())]
         exres = ['\rpos0 bar:   0%',
                  '\n\rpos1 bar:   0%',
-                 '\x1b[A\n\n\rpos2 bar:   0%',
-                 '\x1b[A\x1b[A\n\x1b[A\n\n\rpos3 bar:   0%',
-                 '\x1b[A\x1b[A\rpos0 bar:  10%',
+                 '\n\n\rpos2 bar:   0%',
+                 '\n\x1b[A',
+                 '\n\n\rpos3 bar:   0%',
+                 '\rpos0 bar:  10%',
                  '\n\rpos2 bar:  10%',
-                 '\x1b[A\n\n\rpos3 bar:  10%',
-                 '\x1b[A\x1b[A']
-        if res != exres:
-            raise AssertionError(
-                "\nExpected:\n{0}\nGot:\n{1}\n".format(str(exres), str(res)))
+                 '\n\n\rpos3 bar:  10%']
+        pos_line_diff(res, exres)
         t4.close()
         t3.close()
         t1.close()
@@ -1401,10 +1418,11 @@ def test_write():
             assert before_err == '\rpos0 bar:   0%|\rpos0 bar:  10%|'
             assert before_out == ''
             after_err_res = [m[0] for m in RE_pos.findall(after_err)]
-            assert after_err_res == [u'\rpos0 bar:   0%',
-                                     u'\rpos0 bar:  10%',
-                                     u'\r      ',
-                                     u'\r\rpos0 bar:  10%']
+            exres = [u'\rpos0 bar:   0%',
+                     u'\rpos0 bar:  10%',
+                     u'\r      ',
+                     u'\r\rpos0 bar:  10%']
+            pos_line_diff(after_err_res, exres)
             assert after_out == s + '\n'
     # Restore stdout and stderr
     sys.stderr = stde
