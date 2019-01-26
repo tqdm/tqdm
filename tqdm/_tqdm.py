@@ -931,7 +931,7 @@ class tqdm(Comparable):
             with self._lock:
                 if self.pos:
                     self.moveto(abs(self.pos))
-                self.sp(self.__repr__(elapsed=0))
+                self.sp(self.__repr__())
                 if self.pos:
                     self.moveto(-abs(self.pos))
 
@@ -956,14 +956,22 @@ class tqdm(Comparable):
     def __del__(self):
         self.close()
 
-    def __repr__(self, elapsed=None):
-        return self.format_meter(
-            self.n, self.total,
-            elapsed if elapsed is not None else self._time() - self.start_t,
-            self.dynamic_ncols(self.fp) if self.dynamic_ncols else self.ncols,
-            self.desc, self.ascii, self.unit,
-            self.unit_scale, 1 / self.avg_time if self.avg_time else None,
-            self.bar_format, self.postfix, self.unit_divisor)
+    @property
+    def format_dict(self):
+        """Public API for read-only member access. Use for custom"""
+        return dict(n=self.n, total=self.total,
+            elapsed=self._time() - self.start_t
+            if hasattr(self, 'start_t') else 0,
+            ncols=self.dynamic_ncols(self.fp)
+            if self.dynamic_ncols else self.ncols,
+            prefix=self.desc, ascii=self.ascii, unit=self.unit,
+            unit_scale=self.unit_scale,
+            rate=1 / self.avg_time if self.avg_time else None,
+            bar_format=self.bar_format, postfix=self.postfix,
+            unit_divisor=self.unit_divisor)
+
+    def __repr__(self):
+        return self.format_meter(**self.format_dict)
 
     @property
     def _comparable(self):
