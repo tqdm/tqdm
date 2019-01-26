@@ -1033,10 +1033,7 @@ def test_custom_format():
         @property
         def format_dict(self):
             d = super(TqdmExtraFormat, self).format_dict
-            try:
-                total_time = d["elapsed"] * d["total"] / d["n"]
-            except ZeroDivisionError:
-                total_time = 0
+            total_time = d["elapsed"] * (d["total"] or 0) / max(d["n"], 1)
             d.update(total_time=self.format_interval(total_time) + " in total")
             return d
 
