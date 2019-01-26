@@ -1001,8 +1001,8 @@ def test_deprecated_nested():
     try:
         tqdm(total=2, file=our_file, nested=True)
     except TqdmDeprecationWarning:
-        if """`nested` is deprecated and automated.\
- Use position instead for manual control.""" not in our_file.getvalue():
+        if """`nested` is deprecated and automated.
+Use `position` instead for manual control.""" not in our_file.getvalue():
             raise
     else:
         raise DeprecationError("Should not allow nested kwarg")

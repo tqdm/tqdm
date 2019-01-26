@@ -13,6 +13,8 @@ make [<alias>]  # on UNIX-like environments
 python setup.py make [<alias>]  # if make is unavailable
 ```
 
+The latter depends on [`py-make>=0.1.0`](https://github.com/tqdm/py-make).
+
 Use the alias `help` (or leave blank) to list all available aliases.
 
 
@@ -80,6 +82,8 @@ Alternatively, use `nose` to run the tests just for the current Python version:
 This section is intended for the project's maintainers and describes
 how to build and upload a new release. Once again,
 `[python setup.py] make [<alias>]` will help.
+Also consider `pip install`ing development utilities:
+`-r requirements-dev.txt` or `tqdm[dev]`.
 
 
 ## Semantic Versioning

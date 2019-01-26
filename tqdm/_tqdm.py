@@ -838,10 +838,13 @@ class tqdm(Comparable):
             self.disable = True
             self.pos = self._get_free_pos(self)
             self._instances.remove(self)
-            raise (TqdmDeprecationWarning("""\
-`nested` is deprecated and automated. Use position instead for manual control.
-""", fp_write=getattr(file, 'write', sys.stderr.write)) if "nested" in kwargs
-                else TqdmKeyError("Unknown argument(s): " + str(kwargs)))
+            from textwrap import dedent
+            raise (TqdmDeprecationWarning(dedent("""\
+                       `nested` is deprecated and automated.
+                       Use `position` instead for manual control.
+                       """), fp_write=getattr(file, 'write', sys.stderr.write))
+                   if "nested" in kwargs else
+                   TqdmKeyError("Unknown argument(s): " + str(kwargs)))
 
         # Preprocess the arguments
         if ((ncols is None) and (file in (sys.stderr, sys.stdout))) or \
@@ -995,9 +998,10 @@ class tqdm(Comparable):
             try:
                 sp = self.sp
             except AttributeError:
-                raise TqdmDeprecationWarning("""\
-Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
-""", fp_write=getattr(self.fp, 'write', sys.stderr.write))
+                from textwrap import dedent
+                raise TqdmDeprecationWarning(dedent("""\
+                Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
+                """), fp_write=getattr(self.fp, 'write', sys.stderr.write))
 
             for obj in iterable:
                 yield obj
@@ -1102,9 +1106,10 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
                         rate, self.avg_time, self.smoothing)
 
                 if not hasattr(self, "sp"):
-                    raise TqdmDeprecationWarning("""\
-Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
-""", fp_write=getattr(self.fp, 'write', sys.stderr.write))
+                    from textwrap import dedent
+                    raise TqdmDeprecationWarning(dedent("""\
+                    Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
+                    """), fp_write=getattr(self.fp, 'write', sys.stderr.write))
 
                 with self._lock:
                     if self.pos:
@@ -1263,6 +1268,7 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
             self.refresh()
 
     def moveto(self, n):
+        # TODO: private method
         self.fp.write(_unicode('\n' * n + _term_move_up() * -n))
         self.fp.flush()
 
