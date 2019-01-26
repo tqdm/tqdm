@@ -3,11 +3,11 @@
 tqdm
 ====
 
-|PyPI-Status| |PyPI-Versions| |Conda-Forge-Status|
+|PyPI-Versions| |PyPI-Status| |Conda-Forge-Status|
 
-|Build-Status| |Coverage-Status| |Branch-Coverage-Status| |Codacy-Grade|
+|Build-Status| |Coverage-Status| |Branch-Coverage-Status| |Codacy-Grade| |Libraries-Rank| |PyPI-Downloads|
 
-|DOI-URI| |LICENCE| |OpenHub-Status|
+|DOI-URI| |LICENCE| |OpenHub-Status| |interactive-demo|
 
 
 ``tqdm`` means "progress" in Arabic (taqadum, تقدّم)
@@ -34,8 +34,8 @@ It can also be executed as a module with pipes:
 
 .. code:: sh
 
-    $ seq 9999999 | tqdm --unit_scale | wc -l
-    10.0Mit [00:02, 3.58Mit/s]
+    $ seq 9999999 | tqdm --bytes | wc -l
+    75.2MB [00:00, 217MB/s]
     9999999
     $ 7z a -bd -r backup.7z docs/ | grep Compressing | \
         tqdm --total $(find docs/ -type f | wc -l) --unit files >> backup.log
@@ -72,7 +72,7 @@ Installation
 Latest PyPI stable release
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-|PyPI-Status|
+|PyPI-Status| |PyPI-Downloads| |Libraries-Dependents|
 
 .. code:: sh
 
@@ -81,7 +81,7 @@ Latest PyPI stable release
 Latest development release on GitHub
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-|GitHub-Status| |GitHub-Stars| |GitHub-Commits| |GitHub-Forks|
+|GitHub-Status| |GitHub-Stars| |GitHub-Commits| |GitHub-Forks| |GitHub-Updated|
 
 Pull and install in the current directory:
 
@@ -104,7 +104,8 @@ Changelog
 
 The list of all changes is available either on GitHub's Releases:
 |GitHub-Status|, on the
-`wiki <https://github.com/tqdm/tqdm/wiki/Releases>`__ or on crawlers such as
+`wiki <https://github.com/tqdm/tqdm/wiki/Releases>`__, on the
+`website <https://tqdm.github.io/releases/>`__, or on crawlers such as
 `allmychanges.com <https://allmychanges.com/p/python/tqdm/>`_.
 
 
@@ -121,8 +122,12 @@ Wrap ``tqdm()`` around any iterable:
 
 .. code:: python
 
+    from tqdm import tqdm
+    import time
+
     text = ""
     for char in tqdm(["a", "b", "c", "d"]):
+        time.sleep(0.25)
         text = text + char
 
 ``trange(i)`` is a special optimised instance of ``tqdm(range(i))``:
@@ -130,7 +135,7 @@ Wrap ``tqdm()`` around any iterable:
 .. code:: python
 
     for i in trange(100):
-        pass
+        time.sleep(0.01)
 
 Instantiation outside of the loop allows for manual control over ``tqdm()``:
 
@@ -138,6 +143,7 @@ Instantiation outside of the loop allows for manual control over ``tqdm()``:
 
     pbar = tqdm(["a", "b", "c", "d"])
     for char in pbar:
+        time.sleep(0.25)
         pbar.set_description("Processing %s" % char)
 
 Manual
@@ -149,6 +155,7 @@ Manual control on ``tqdm()`` updates by using a ``with`` statement:
 
     with tqdm(total=100) as pbar:
         for i in range(10):
+            time.sleep(0.1)
             pbar.update(10)
 
 If the optional variable ``total`` (or an iterable with ``len()``) is
@@ -161,6 +168,7 @@ but in this case don't forget to ``del`` or ``close()`` at the end:
 
     pbar = tqdm(total=100)
     for i in range(10):
+        time.sleep(0.1)
         pbar.update(10)
     pbar.close()
 
@@ -176,14 +184,14 @@ in the current directory, with timing information included.
 
 .. code:: sh
 
-    $ time find . -name '*.py' -exec cat \{} \; | wc -l
+    $ time find . -name '*.py' -type f -exec cat \{} \; | wc -l
     857365
 
     real    0m3.458s
     user    0m0.274s
     sys     0m3.325s
 
-    $ time find . -name '*.py' -exec cat \{} \; | tqdm | wc -l
+    $ time find . -name '*.py' -type f -exec cat \{} \; | tqdm | wc -l
     857366it [00:03, 246471.31it/s]
     857365
 
@@ -195,7 +203,7 @@ Note that the usual arguments for ``tqdm`` can also be specified.
 
 .. code:: sh
 
-    $ find . -name '*.py' -exec cat \{} \; |
+    $ find . -name '*.py' -type f -exec cat \{} \; |
         tqdm --unit loc --unit_scale --total 857366 >> /dev/null
     100%|███████████████████████████████████| 857K/857K [00:04<00:00, 246Kloc/s]
 
@@ -231,7 +239,7 @@ of a neat one-line progress bar.
       to ensure nested bars stay within their respective lines.
 - Unicode:
     * Environments which report that they support unicode will have solid smooth
-      progressbars. The fallback is an `ascii`-only bar.
+      progressbars. The fallback is an ```ascii``-only bar.
     * Windows consoles often only partially support unicode and thus
       `often require explicit ascii=True <https://github.com/tqdm/tqdm/issues/454#issuecomment-335416815>`__
       (also `here <https://github.com/tqdm/tqdm/issues/499>`__). This is due to
@@ -244,6 +252,9 @@ of a neat one-line progress bar.
 - Wrapping zipped iterables has similar issues due to internal optimisations.
   ``tqdm(zip(a, b))`` should be replaced with ``zip(tqdm(a), b)`` or even
   ``zip(tqdm(a), tqdm(b))``.
+- `Hanging pipes in python2 <https://github.com/tqdm/tqdm/issues/359>`__:
+  when using ``tqdm`` on the CLI, you may need to use python 3.5+ for correct
+  buffering.
 
 If you come across any other difficulties, browse and file |GitHub-Issues|.
 
@@ -278,8 +289,9 @@ Parameters
     Prefix for the progressbar.
 * total  : int, optional  
     The number of expected iterations. If unspecified,
-    len(iterable) is used if possible. As a last resort, only basic
-    progress statistics are displayed (no ETA, no progressbar).
+    len(iterable) is used if possible. If float("inf") or as a last
+    resort, only basic progress statistics are displayed
+    (no ETA, no progressbar).
     If ``gui`` is True and this parameter needs subsequent updating,
     specify an initial arbitrary large positive integer,
     e.g. int(9e9).
@@ -325,8 +337,8 @@ Parameters
     automatically and a metric prefix following the
     International System of Units standard will be added
     (kilo, mega, etc.) [default: False]. If any other non-zero
-    number, will scale `total` and `n`.
 * dynamic_ncols  : bool, optional  
+    number, will scale ```total`` and ``n``.
     If set, constantly alters ``ncols`` to the environment (allowing
     for window resizes) [default: False].
 * smoothing  : float, optional  
@@ -355,7 +367,7 @@ Parameters
     Specify additional stats to display at the end of the bar.
     Calls ``set_postfix(**postfix)`` if possible (dict).
 * unit_divisor  : float, optional  
-    [default: 1000], ignored unless `unit_scale` is True.
+    [default: 1000], ignored unless ``unit_scale`` is True.
 
 Extra CLI Options
 ~~~~~~~~~~~~~~~~~
@@ -368,11 +380,15 @@ Extra CLI Options
     used when ``delim`` is specified.
 * bytes  : bool, optional  
     If true, will count bytes and ignore ``delim``.
+* manpath  : str, optional  
+    Directory in which to install tqdm man pages.
+* log  : str, optional  
+    CRITICAL|FATAL|ERROR|WARN(ING)|[default: 'INFO']|DEBUG|NOTSET.
 
 Returns
 ~~~~~~~
 
-* out  : decorated iterator.
+* out  : decorated iterator.  
 
 .. code:: python
 
@@ -476,11 +492,12 @@ Examples and Advanced Usage
 
 - See the `examples <https://github.com/tqdm/tqdm/tree/master/examples>`__
   folder;
-- import the module and run ``help()``, or
+- import the module and run ``help()``;
 - consult the `wiki <https://github.com/tqdm/tqdm/wiki>`__.
     - this has an
       `excellent article <https://github.com/tqdm/tqdm/wiki/How-to-make-a-great-Progress-Bar>`__
-      on how to make a **great** progressbar.
+      on how to make a **great** progressbar, or
+- run the |interactive-demo|.
 
 Description and additional stats
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -494,7 +511,7 @@ with the ``desc`` and ``postfix`` arguments:
     from random import random, randint
     from time import sleep
 
-    with trange(100) as t:
+    with trange(10) as t:
         for i in t:
             # Description will be displayed on the left
             t.set_description('GEN %i' % i)
@@ -529,9 +546,9 @@ Nested progress bars
     from tqdm import trange
     from time import sleep
 
-    for i in trange(10, desc='1st loop'):
-        for j in trange(5, desc='2nd loop', leave=False):
-            for k in trange(100, desc='3nd loop'):
+    for i in trange(4, desc='1st loop'):
+        for j in trange(5, desc='2nd loop'):
+            for k in trange(50, desc='3nd loop', leave=False):
                 sleep(0.01)
 
 On Windows `colorama <https://github.com/tartley/colorama>`__ will be used if
@@ -652,13 +669,13 @@ IPython/Jupyter is supported via the ``tqdm_notebook`` submodule:
     from tqdm import tnrange, tqdm_notebook
     from time import sleep
 
-    for i in tnrange(10, desc='1st loop'):
-        for j in tqdm_notebook(xrange(100), desc='2nd loop'):
+    for i in tnrange(3, desc='1st loop'):
+        for j in tqdm_notebook(range(100), desc='2nd loop'):
             sleep(0.01)
 
 In addition to ``tqdm`` features, the submodule provides a native Jupyter
 widget (compatible with IPython v1-v4 and Jupyter), fully working nested bars
-and color hints (blue: normal, green: completed, red: error/interrupt,
+and colour hints (blue: normal, green: completed, red: error/interrupt,
 light blue: no ETA); as demonstrated below.
 
 |Screenshot-Jupyter1|
@@ -830,13 +847,14 @@ Authors
 -------
 
 The main developers, ranked by surviving lines of code
-(`git fame -wMC <https://github.com/casperdcl/git-fame>`__), are:
+(`git fame -wMC --excl '\.(png|gif)$' <https://github.com/casperdcl/git-fame>`__), are:
 
 - Casper da Costa-Luis (`casperdcl <https://github.com/casperdcl>`__, ~2/3, |Gift-Casper|)
 - Stephen Larroque (`lrq3000 <https://github.com/lrq3000>`__, ~1/5)
-- Hadrien Mary (`hadim <https://github.com/hadim>`__, ~2%)
+- Matthew Stevens (`mjstevens777 <https://github.com/mjstevens777>`__, ~2%)
+- Noam Yorav-Raphael (`noamraph <https://github.com/noamraph>`__, ~2%, original author)
 - Guangshuo Chen (`chengs <https://github.com/chengs>`__, ~1%)
-- Noam Yorav-Raphael (`noamraph <https://github.com/noamraph>`__, ~1%, original author)
+- Hadrien Mary (`hadim <https://github.com/hadim>`__, ~1%)
 - Mikhail Korobov (`kmike <https://github.com/kmike>`__, ~1%)
 
 There are also many |GitHub-Contributions| which we are grateful for.
@@ -845,7 +863,7 @@ There are also many |GitHub-Contributions| which we are grateful for.
 
 .. |Logo| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/logo.gif
 .. |Screenshot| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/tqdm.gif
-.. |Build-Status| image:: https://travis-ci.org/tqdm/tqdm.svg?branch=master
+.. |Build-Status| image:: https://img.shields.io/travis/tqdm/tqdm/master.svg?logo=travis
    :target: https://travis-ci.org/tqdm/tqdm
 .. |Coverage-Status| image:: https://coveralls.io/repos/tqdm/tqdm/badge.svg?branch=master
    :target: https://coveralls.io/github/tqdm/tqdm
@@ -853,36 +871,44 @@ There are also many |GitHub-Contributions| which we are grateful for.
    :target: https://codecov.io/gh/tqdm/tqdm
 .. |Codacy-Grade| image:: https://api.codacy.com/project/badge/Grade/3f965571598f44549c7818f29cdcf177
    :target: https://www.codacy.com/app/tqdm/tqdm?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=tqdm/tqdm&amp;utm_campaign=Badge_Grade
-.. |GitHub-Status| image:: https://img.shields.io/github/tag/tqdm/tqdm.svg?maxAge=86400
+.. |GitHub-Status| image:: https://img.shields.io/github/tag/tqdm/tqdm.svg?maxAge=86400&logo=github&logoColor=white
    :target: https://github.com/tqdm/tqdm/releases
-.. |GitHub-Forks| image:: https://img.shields.io/github/forks/tqdm/tqdm.svg
+.. |GitHub-Forks| image:: https://img.shields.io/github/forks/tqdm/tqdm.svg?logo=github&logoColor=white
    :target: https://github.com/tqdm/tqdm/network
-.. |GitHub-Stars| image:: https://img.shields.io/github/stars/tqdm/tqdm.svg
+.. |GitHub-Stars| image:: https://img.shields.io/github/stars/tqdm/tqdm.svg?logo=github&logoColor=white
    :target: https://github.com/tqdm/tqdm/stargazers
-.. |GitHub-Commits| image:: https://img.shields.io/github/commit-activity/y/tqdm/tqdm.svg
+.. |GitHub-Commits| image:: https://img.shields.io/github/commit-activity/y/tqdm/tqdm.svg?logo=git&logoColor=white
    :target: https://github.com/tqdm/tqdm/graphs/commit-activity
-.. |GitHub-Issues| image:: https://img.shields.io/github/issues-closed/tqdm/tqdm.svg
+.. |GitHub-Issues| image:: https://img.shields.io/github/issues-closed/tqdm/tqdm.svg?logo=github&logoColor=white
    :target: https://github.com/tqdm/tqdm/issues
-.. |GitHub-PRs| image:: https://img.shields.io/github/issues-pr-closed/tqdm/tqdm.svg
+.. |GitHub-PRs| image:: https://img.shields.io/github/issues-pr-closed/tqdm/tqdm.svg?logo=github&logoColor=white
    :target: https://github.com/tqdm/tqdm/pulls
-.. |GitHub-Contributions| image:: https://img.shields.io/github/contributors/tqdm/tqdm.svg
+.. |GitHub-Contributions| image:: https://img.shields.io/github/contributors/tqdm/tqdm.svg?logo=github&logoColor=white
    :target: https://github.com/tqdm/tqdm/graphs/contributors
+.. |GitHub-Updated| image:: https://img.shields.io/github/last-commit/tqdm/tqdm/master.svg?logo=github&logoColor=white&label=pushed
+   :target: https://github.com/tqdm/tqdm/pulse
 .. |Gift-Casper| image:: https://img.shields.io/badge/gift-donate-ff69b4.svg
    :target: https://caspersci.uk.to/donate.html
 .. |PyPI-Status| image:: https://img.shields.io/pypi/v/tqdm.svg
    :target: https://pypi.org/project/tqdm
-.. |PyPI-Downloads| image:: https://img.shields.io/pypi/dm/tqdm.svg
+.. |PyPI-Downloads| image:: https://img.shields.io/pypi/dm/tqdm.svg?label=pypi%20downloads&logo=python&logoColor=white
    :target: https://pypi.org/project/tqdm
-.. |PyPI-Versions| image:: https://img.shields.io/pypi/pyversions/tqdm.svg
+.. |PyPI-Versions| image:: https://img.shields.io/pypi/pyversions/tqdm.svg?logo=python&logoColor=white
    :target: https://pypi.org/project/tqdm
-.. |Conda-Forge-Status| image:: https://anaconda.org/conda-forge/tqdm/badges/version.svg
+.. |Conda-Forge-Status| image:: https://img.shields.io/conda/v/conda-forge/tqdm.svg?label=conda-forge
    :target: https://anaconda.org/conda-forge/tqdm
+.. |Libraries-Rank| image:: https://img.shields.io/librariesio/sourcerank/pypi/tqdm.svg?logo=koding&logoColor=white
+   :target: https://libraries.io/pypi/tqdm
+.. |Libraries-Dependents| image:: https://img.shields.io/librariesio/dependent-repos/pypi/tqdm.svg?logo=koding&logoColor=white
+    :target: https://github.com/tqdm/tqdm/network/dependents
 .. |OpenHub-Status| image:: https://www.openhub.net/p/tqdm/widgets/project_thin_badge?format=gif
    :target: https://www.openhub.net/p/tqdm?ref=Thin+badge
 .. |LICENCE| image:: https://img.shields.io/pypi/l/tqdm.svg
    :target: https://raw.githubusercontent.com/tqdm/tqdm/master/LICENCE
 .. |DOI-URI| image:: https://zenodo.org/badge/21637/tqdm/tqdm.svg
    :target: https://zenodo.org/badge/latestdoi/21637/tqdm/tqdm
+.. |interactive-demo| image:: https://img.shields.io/badge/demo-interactive-orange.svg?logo=jupyter
+   :target: https://notebooks.rmotr.com/demo/gh/tqdm/tqdm
 .. |Screenshot-Jupyter1| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/tqdm-jupyter-1.gif
 .. |Screenshot-Jupyter2| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/tqdm-jupyter-2.gif
 .. |Screenshot-Jupyter3| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/tqdm-jupyter-3.gif

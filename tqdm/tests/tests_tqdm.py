@@ -711,6 +711,44 @@ def test_smoothed_dynamic_min_iters_with_min_interval():
 
 
 @with_setup(pretest, posttest)
+def test_rlock_creation():
+    """Test that importing tqdm does not create multiprocessing objects."""
+    import multiprocessing as mp
+    if sys.version_info < (3, 3):
+        # unittest.mock is a 3.3+ feature
+        raise SkipTest
+
+    # Use 'spawn' instead of 'fork' so that the process does not inherit any
+    # globals that have been constructed by running other tests
+    ctx = mp.get_context('spawn')
+    with ctx.Pool(1) as pool:
+        # The pool will propagate the error if the target method fails
+        pool.apply(_rlock_creation_target)
+
+
+def _rlock_creation_target():
+    """Check that the RLock has not been constructed."""
+    from unittest.mock import patch
+    import multiprocessing as mp
+
+    # Patch the RLock class/method but use the original implementation
+    with patch('multiprocessing.RLock', wraps=mp.RLock) as rlock_mock:
+        # Importing the module should not create a lock
+        from tqdm import tqdm
+        assert rlock_mock.call_count == 0
+        # Creating a progress bar should initialize the lock
+        with closing(StringIO()) as our_file:
+            with tqdm(file=our_file) as t:
+                pass
+        assert rlock_mock.call_count == 1
+        # Creating a progress bar again should reuse the lock
+        with closing(StringIO()) as our_file:
+            with tqdm(file=our_file) as t:
+                pass
+        assert rlock_mock.call_count == 1
+
+
+@with_setup(pretest, posttest)
 def test_disable():
     """Test disable"""
     with closing(StringIO()) as our_file:
@@ -725,6 +763,14 @@ def test_disable():
         progressbar.close()
         our_file.seek(0)
         assert our_file.read() == ''
+
+
+@with_setup(pretest, posttest)
+def test_infinite_total():
+    """Test treatment of infinite total"""
+    with closing(StringIO()) as our_file:
+        for _ in tqdm(_range(3), file=our_file, total=float("inf")):
+            pass
 
 
 @with_setup(pretest, posttest)
@@ -1551,6 +1597,7 @@ def test_external_write():
     with closing(StringIO()) as our_file:
         # Redirect stdout to tqdm.write()
         for _ in trange(3, file=our_file):
+            del tqdm._lock  # classmethod should be able to recreate lock
             with tqdm.external_write_mode(file=our_file):
                 our_file.write("Such fun\n")
         res = our_file.getvalue()

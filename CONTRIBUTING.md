@@ -164,7 +164,7 @@ git merge --no-ff pr-branch-name
 
 ### 5 Version
 
-Modify tqdm/_version.py and ammend the last (merge) commit:
+Modify tqdm/_version.py and amend the last (merge) commit:
 
 ```
 git add tqdm/_version.py
@@ -255,12 +255,12 @@ Additionally (less maintained), there exists:
   [gh-pages branch](https://github.com/tqdm/tqdm/tree/gh-pages), which is
   built using [asv](https://github.com/spacetelescope/asv/).
 - The [gh-pages root](https://tqdm.github.io/) which is built from a separate
-  outdated [github.io repo](https://github.com/tqdm/tqdm.github.io).
+  [github.io repo](https://github.com/tqdm/tqdm.github.io).
 
 
 ## QUICK DEV SUMMARY
 
-For expereinced devs, once happy with local master:
+For experienced devs, once happy with local master:
 
 1. bump version in `tqdm/_version.py`
 2. test (`[python setup.py] make alltests`)
@@ -281,5 +281,5 @@ For expereinced devs, once happy with local master:
 12. run `make deploy` in the `docs` submodule to update website
 13. accept the automated PR in the `feedstock` submodule to update conda
 
-The last thee steps require a one-time `make submodules` to clone
+The last three steps require a one-time `make submodules` to clone
 `docs`, `wiki`, and `feedstock`.
