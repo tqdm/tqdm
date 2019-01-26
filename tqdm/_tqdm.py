@@ -296,8 +296,8 @@ class tqdm(Comparable):
               '{rate_fmt}{postfix}]'
             Possible vars: l_bar, bar, r_bar, n, n_fmt, total, total_fmt,
               percentage, rate, rate_fmt, rate_noinv, rate_noinv_fmt,
-              rate_inv, rate_inv_fmt, elapsed, remaining, desc, postfix,
-              unit.
+              rate_inv, rate_inv_fmt, elapsed, elapsed_s,
+              remaining, remaining_s, desc, postfix, unit.
             Note that a trailing ": " is automatically removed after {desc}
             if the latter is empty.
         postfix  : *, optional
@@ -362,8 +362,8 @@ class tqdm(Comparable):
             frac = n / total
             percentage = frac * 100
 
-            remaining_str = format_interval((total - n) / rate) \
-                if rate else '?'
+            remaining = (total - n) / rate if rate else 0
+            remaining_str = format_interval(remaining) if rate else '?'
 
             # format the stats displayed to the left and right sides of the bar
             if prefix:
@@ -388,8 +388,10 @@ class tqdm(Comparable):
                     rate=inv_rate if inv_rate and inv_rate > 1 else rate,
                     rate_fmt=rate_fmt, rate_noinv=rate,
                     rate_noinv_fmt=rate_noinv_fmt, rate_inv=inv_rate,
-                    rate_inv_fmt=rate_inv_fmt, elapsed=elapsed_str,
-                    remaining=remaining_str, l_bar=l_bar, r_bar=r_bar,
+                    rate_inv_fmt=rate_inv_fmt,
+                    elapsed=elapsed_str, elapsed_s=elapsed,
+                    remaining=remaining_str, remaining_s=remaining,
+                    l_bar=l_bar, r_bar=r_bar,
                     desc=prefix or '', postfix=postfix, unit=unit,
                     # bar=full_bar,  # replaced by procedure below
                     **extra_kwargs)
@@ -777,8 +779,8 @@ class tqdm(Comparable):
               '{rate_fmt}{postfix}]'
             Possible vars: l_bar, bar, r_bar, n, n_fmt, total, total_fmt,
               percentage, rate, rate_fmt, rate_noinv, rate_noinv_fmt,
-              rate_inv, rate_inv_fmt, elapsed, remaining, desc, postfix,
-              unit.
+              rate_inv, rate_inv_fmt, elapsed, elapsed_s, remaining,
+              remaining_s, desc, postfix, unit.
             Note that a trailing ": " is automatically removed after {desc}
             if the latter is empty.
         initial  : int, optional
