@@ -179,15 +179,12 @@ def progressbar_rate(bar_str):
 
 def squash_ctrlchars(s):
     """Apply control characters in a string just like a terminal display"""
-    # List of supported control codes
-    ctrlcodes = [r'\r', r'\n', r'\x1b\[A']
-
     # Init variables
     curline = 0  # current line in our fake terminal
     lines = ['']  # state of our fake terminal
 
     # Split input string by control codes
-    RE_ctrl = re.compile("(%s)" % ("|".join(ctrlcodes)), flags=re.DOTALL)
+    RE_ctrl = re.compile("(%s)" % ("|".join(CTRLCHR)), flags=re.DOTALL)
     s_split = RE_ctrl.split(s)
     s_split = filter(None, s_split)  # filter out empty splits
 
@@ -1097,27 +1094,21 @@ def test_position():
              '\n\n\rpos2 bar:   0%',
              '\n\n\rpos2 bar:  50%',
              '\n\n\rpos2 bar: 100%',
-             '\n\n\x1b[A\x1b[A',
              '\n\rpos1 bar:  50%',
              '\n\n\rpos2 bar:   0%',
              '\n\n\rpos2 bar:  50%',
              '\n\n\rpos2 bar: 100%',
-             '\n\n\x1b[A\x1b[A',
              '\n\rpos1 bar: 100%',
-             '\n\x1b[A',
              '\rpos0 bar:  50%',
              '\n\rpos1 bar:   0%',
              '\n\n\rpos2 bar:   0%',
              '\n\n\rpos2 bar:  50%',
              '\n\n\rpos2 bar: 100%',
-             '\n\n\x1b[A\x1b[A',
              '\n\rpos1 bar:  50%',
              '\n\n\rpos2 bar:   0%',
              '\n\n\rpos2 bar:  50%',
              '\n\n\rpos2 bar: 100%',
-             '\n\n\x1b[A\x1b[A',
              '\n\rpos1 bar: 100%',
-             '\n\x1b[A',
              '\rpos0 bar: 100%',
              '\n']
     pos_line_diff(res, exres)
@@ -1171,7 +1162,6 @@ def test_position():
         exres = ['\rpos0 bar:   0%',
                  '\n\rpos1 bar:   0%',
                  '\n\n\rpos2 bar:   0%',
-                 '\n\x1b[A',
                  '\n\n\rpos3 bar:   0%',
                  '\rpos0 bar:  10%',
                  '\n\rpos2 bar:  10%',

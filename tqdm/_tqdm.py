@@ -1159,25 +1159,18 @@ class tqdm(Comparable):
             raise  # pragma: no cover
 
         with self._lock:
-            if pos:
-                self.moveto(pos)
-
             if self.leave:
                 if self.last_print_n < self.n:
                     # stats for overall rate (no weighted average)
                     self.avg_time = None
-                    self.sp(self.__repr__())
-                if pos:
-                    self.moveto(-pos)
-                elif not max([abs(getattr(i, "pos", 0))
-                              for i in self._instances] + [0]):
+                    self.display(pos=pos)
+                if not max([abs(getattr(i, "pos", 0))
+                            for i in self._instances] + [pos]):
                     # only if not nested (#477)
                     fp_write('\n')
             else:
-                self.sp('')  # clear up last bar
-                if pos:
-                    self.moveto(-pos)
-                else:
+                self.display(msg='', pos=pos)
+                if not pos:
                     fp_write('\r')
 
     def unpause(self):
