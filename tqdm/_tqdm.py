@@ -920,11 +920,7 @@ class tqdm(Comparable):
             # Initialize the screen printer
             self.sp = self.status_printer(self.fp)
             with self._lock:
-                if self.pos:
-                    self.moveto(abs(self.pos))
-                self.sp(self.__repr__())
-                if self.pos:
-                    self.moveto(-abs(self.pos))
+                self.display()
 
         # Init the time counter
         self.last_print_t = self._time()
@@ -1022,12 +1018,7 @@ class tqdm(Comparable):
 
                         self.n = n
                         with self._lock:
-                            if self.pos:
-                                self.moveto(abs(self.pos))
-                            # Print bar update
-                            sp(self.__repr__())
-                            if self.pos:
-                                self.moveto(-abs(self.pos))
+                            self.display()
 
                         # If no `miniters` was specified, adjust automatically
                         # to the max iteration rate seen so far between 2 prints
@@ -1111,14 +1102,7 @@ class tqdm(Comparable):
                     """), fp_write=getattr(self.fp, 'write', sys.stderr.write))
 
                 with self._lock:
-                    if self.pos:
-                        self.moveto(abs(self.pos))
-
-                    # Print bar update
-                    self.sp(self.__repr__())
-
-                    if self.pos:
-                        self.moveto(-abs(self.pos))
+                    self.display()
 
                 # If no `miniters` was specified, adjust automatically to the
                 # maximum iteration rate seen so far between two prints.
@@ -1296,11 +1280,27 @@ class tqdm(Comparable):
 
         if not nolock:
             self._lock.acquire()
-        self.moveto(abs(self.pos))
-        self.sp(self.__repr__())
-        self.moveto(-abs(self.pos))
+        self.display()
         if not nolock:
             self._lock.release()
+
+    def display(self, msg=None, pos=None):
+        """
+        Use `self.sp` and to display `msg` in the specified `pos`.
+
+        Parameters
+        ----------
+        msg  : what to display (default: repr(self))
+        pos  : position to display in. (default: abs(self.pos))
+        """
+        if pos is None:
+            pos = abs(self.pos)
+
+        if pos:
+            self.moveto(pos)
+        self.sp(self.__repr__() if msg is None else msg)
+        if pos:
+            self.moveto(-pos)
 
 
 def trange(*args, **kwargs):
