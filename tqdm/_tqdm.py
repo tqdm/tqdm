@@ -252,7 +252,7 @@ class tqdm(Comparable):
     @staticmethod
     def format_meter(n, total, elapsed, ncols=None, prefix='', ascii=False,
                      unit='it', unit_scale=False, rate=None, bar_format=None,
-                     postfix=None, unit_divisor=1000):
+                     postfix=None, unit_divisor=1000, **extra_kwargs):
         """
         Return a string-based progress bar given some parameters
 
@@ -381,26 +381,17 @@ class tqdm(Comparable):
             if bar_format:
                 # Custom bar formatting
                 # Populate a dict with all available progress indicators
-                bar_args = {'n': n,
-                            'n_fmt': n_fmt,
-                            'total': total,
-                            'total_fmt': total_fmt,
-                            'percentage': percentage,
-                            'rate': inv_rate if inv_rate and inv_rate > 1
-                            else rate,
-                            'rate_fmt': rate_fmt,
-                            'rate_noinv': rate,
-                            'rate_noinv_fmt': rate_noinv_fmt,
-                            'rate_inv': inv_rate,
-                            'rate_inv_fmt': rate_inv_fmt,
-                            'elapsed': elapsed_str,
-                            'remaining': remaining_str,
-                            'l_bar': l_bar,
-                            'r_bar': r_bar,
-                            'desc': prefix or '',
-                            'postfix': postfix,
-                            # 'bar': full_bar  # replaced by procedure below
-                            }
+                format_dict = dict(
+                    n=n, n_fmt=n_fmt, total=total, total_fmt=total_fmt,
+                    percentage=percentage,
+                    rate=inv_rate if inv_rate and inv_rate > 1 else rate,
+                    rate_fmt=rate_fmt, rate_noinv=rate,
+                    rate_noinv_fmt=rate_noinv_fmt, rate_inv=inv_rate,
+                    rate_inv_fmt=rate_inv_fmt, elapsed=elapsed_str,
+                    remaining=remaining_str, l_bar=l_bar, r_bar=r_bar,
+                    desc=prefix or '', postfix=postfix,
+                    # bar=full_bar,  # replaced by procedure below
+                    **extra_kwargs)
 
                 # auto-remove colon for empty `desc`
                 if not prefix:
@@ -411,11 +402,11 @@ class tqdm(Comparable):
                     # Format left/right sides of the bar, and format the bar
                     # later in the remaining space (avoid breaking display)
                     l_bar_user, r_bar_user = bar_format.split('{bar}')
-                    l_bar = l_bar_user.format(**bar_args)
-                    r_bar = r_bar_user.format(**bar_args)
+                    l_bar = l_bar_user.format(**format_dict)
+                    r_bar = r_bar_user.format(**format_dict)
                 else:
                     # Else no progress bar, we can just format and return
-                    return bar_format.format(**bar_args)
+                    return bar_format.format(**format_dict)
 
             # Formatting progress bar space available for bar's display
             if ncols:
