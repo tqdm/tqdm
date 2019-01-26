@@ -949,7 +949,7 @@ class tqdm(Comparable):
 
     @property
     def format_dict(self):
-        """Public API for read-only member access. Use for custom"""
+        """Public API for read-only member access"""
         return dict(n=self.n, total=self.total,
             elapsed=self._time() - self.start_t
             if hasattr(self, 'start_t') else 0,

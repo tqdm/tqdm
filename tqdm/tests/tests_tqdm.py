@@ -1026,6 +1026,29 @@ def test_bar_format():
 
 
 @with_setup(pretest, posttest)
+def test_custom_format():
+    """Test adding additional derived format arguments"""
+    class TqdmExtraFormat(tqdm):
+        """Provides a `total_time` format parameter"""
+        @property
+        def format_dict(self):
+            d = super(TqdmExtraFormat, self).format_dict
+            try:
+                total_time = d["elapsed"] * d["total"] / d["n"]
+            except ZeroDivisionError:
+                total_time = 0
+            d.update(total_time=self.format_interval(total_time) + " in total")
+            return d
+
+    timer = DiscreteTimer()
+    with closing(StringIO()) as our_file:
+        for i in TqdmExtraFormat(range(10), file=our_file,
+                bar_format="{total_time}: {percentage:.0f}%|{bar}{r_bar}"):
+            pass
+        assert "00:00 in total" in our_file.getvalue()
+
+
+@with_setup(pretest, posttest)
 def test_unpause():
     """Test unpause"""
     timer = DiscreteTimer()
