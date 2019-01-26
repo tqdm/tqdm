@@ -94,7 +94,8 @@ README.rst: .readme.rst tqdm/_tqdm.py tqdm/_main.py
 	@python mkdocs.py
 
 snapcraft.yaml: .snapcraft.yml
-	cat "$<" | sed -e 's/{version}/'`python -m tqdm --version`'/g' \
+	cat "$<" | sed -e 's/{version}/'"`python -m tqdm --version`"'/g' \
+    -e 's/{commit}/'"`git describe --always`"'/g' \
     -e 's/{source}/./g' -e 's/{icon}/logo.png/g' \
     -e 's/{description}/https:\/\/tqdm.github.io/g' > "$@"
 
