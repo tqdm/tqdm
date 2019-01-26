@@ -23,6 +23,7 @@
 	build
 	buildupload
 	pypi
+	snap
 	help
 	none
 
@@ -92,6 +93,11 @@ tqdm/tqdm.1: .tqdm.1.md
 README.rst: .readme.rst tqdm/_tqdm.py tqdm/_main.py
 	@python mkdocs.py
 
+snapcraft.yaml: .snapcraft.yml
+	cat "$<" | sed -e 's/{version}/'`python -m tqdm --version`'/g' \
+    -e 's/{source}/./g' -e 's/{icon}/logo.png/g' \
+    -e 's/{description}/https:\/\/tqdm.github.io/g' > "$@"
+
 distclean:
 	@+make coverclean
 	@+make prebuildclean
@@ -137,6 +143,10 @@ pypi:
 buildupload:
 	@make build
 	@make pypi
+
+snap:
+	@make snapcraft.yaml
+	snapcraft
 
 none:
 	# used for unit testing

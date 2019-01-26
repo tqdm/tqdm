@@ -7,6 +7,7 @@
 tqdm.egg-info
 build/
 dist/
+snapcraft.yaml
 
 # Unit test / coverage reports
 .tox/
