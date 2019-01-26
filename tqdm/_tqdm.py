@@ -79,8 +79,8 @@ class TqdmDefaultWriteLock(object):
     an argument to joblib or the parallelism lib you use.
     """
     def __init__(self):
-        # Create global parallelism locks to avoid racing issues with parallel bars
-        # works only if fork available (Linux/MacOSX, but not Windows)
+        # Create global parallelism locks to avoid racing issues with parallel
+        # bars works only if fork available (Linux/MacOSX, but not Windows)
         self.create_mp_lock()
         self.create_th_lock()
         cls = type(self)
@@ -210,8 +210,8 @@ class tqdm(Comparable):
     @staticmethod
     def ema(x, mu=None, alpha=0.3):
         """
-		Exponential moving average: smoothing to give progressively lower
-		weights to older values.
+        Exponential moving average: smoothing to give progressively lower
+        weights to older values.
 
         Parameters
         ----------
@@ -222,7 +222,7 @@ class tqdm(Comparable):
         alpha  : float, optional
             Smoothing factor in range [0, 1], [default: 0.3].
             Increase to give more weight to recent values.
-			Ranges from 0 (yields mu) to 1 (yields x).
+            Ranges from 0 (yields mu) to 1 (yields x).
         """
         return x if mu is None else (alpha * x) + (1 - alpha) * mu
 
@@ -252,7 +252,7 @@ class tqdm(Comparable):
     @staticmethod
     def format_meter(n, total, elapsed, ncols=None, prefix='', ascii=False,
                      unit='it', unit_scale=False, rate=None, bar_format=None,
-                     postfix=None, unit_divisor=1000):
+                     postfix=None, unit_divisor=1000, **extra_kwargs):
         """
         Return a string-based progress bar given some parameters
 
@@ -381,26 +381,17 @@ class tqdm(Comparable):
             if bar_format:
                 # Custom bar formatting
                 # Populate a dict with all available progress indicators
-                bar_args = {'n': n,
-                            'n_fmt': n_fmt,
-                            'total': total,
-                            'total_fmt': total_fmt,
-                            'percentage': percentage,
-                            'rate': inv_rate if inv_rate and inv_rate > 1
-                            else rate,
-                            'rate_fmt': rate_fmt,
-                            'rate_noinv': rate,
-                            'rate_noinv_fmt': rate_noinv_fmt,
-                            'rate_inv': inv_rate,
-                            'rate_inv_fmt': rate_inv_fmt,
-                            'elapsed': elapsed_str,
-                            'remaining': remaining_str,
-                            'l_bar': l_bar,
-                            'r_bar': r_bar,
-                            'desc': prefix or '',
-                            'postfix': postfix,
-                            # 'bar': full_bar  # replaced by procedure below
-                            }
+                format_dict = dict(
+                    n=n, n_fmt=n_fmt, total=total, total_fmt=total_fmt,
+                    percentage=percentage,
+                    rate=inv_rate if inv_rate and inv_rate > 1 else rate,
+                    rate_fmt=rate_fmt, rate_noinv=rate,
+                    rate_noinv_fmt=rate_noinv_fmt, rate_inv=inv_rate,
+                    rate_inv_fmt=rate_inv_fmt, elapsed=elapsed_str,
+                    remaining=remaining_str, l_bar=l_bar, r_bar=r_bar,
+                    desc=prefix or '', postfix=postfix,
+                    # bar=full_bar,  # replaced by procedure below
+                    **extra_kwargs)
 
                 # auto-remove colon for empty `desc`
                 if not prefix:
@@ -411,11 +402,11 @@ class tqdm(Comparable):
                     # Format left/right sides of the bar, and format the bar
                     # later in the remaining space (avoid breaking display)
                     l_bar_user, r_bar_user = bar_format.split('{bar}')
-                    l_bar = l_bar_user.format(**bar_args)
-                    r_bar = r_bar_user.format(**bar_args)
+                    l_bar = l_bar_user.format(**format_dict)
+                    r_bar = r_bar_user.format(**format_dict)
                 else:
                     # Else no progress bar, we can just format and return
-                    return bar_format.format(**bar_args)
+                    return bar_format.format(**format_dict)
 
             # Formatting progress bar space available for bar's display
             if ncols:
@@ -838,10 +829,13 @@ class tqdm(Comparable):
             self.disable = True
             self.pos = self._get_free_pos(self)
             self._instances.remove(self)
-            raise (TqdmDeprecationWarning("""\
-`nested` is deprecated and automated. Use position instead for manual control.
-""", fp_write=getattr(file, 'write', sys.stderr.write)) if "nested" in kwargs
-                else TqdmKeyError("Unknown argument(s): " + str(kwargs)))
+            from textwrap import dedent
+            raise (TqdmDeprecationWarning(dedent("""\
+                       `nested` is deprecated and automated.
+                       Use `position` instead for manual control.
+                       """), fp_write=getattr(file, 'write', sys.stderr.write))
+                   if "nested" in kwargs else
+                   TqdmKeyError("Unknown argument(s): " + str(kwargs)))
 
         # Preprocess the arguments
         if ((ncols is None) and (file in (sys.stderr, sys.stdout))) or \
@@ -926,11 +920,7 @@ class tqdm(Comparable):
             # Initialize the screen printer
             self.sp = self.status_printer(self.fp)
             with self._lock:
-                if self.pos:
-                    self.moveto(abs(self.pos))
-                self.sp(self.__repr__(elapsed=0))
-                if self.pos:
-                    self.moveto(-abs(self.pos))
+                self.display()
 
         # Init the time counter
         self.last_print_t = self._time()
@@ -953,14 +943,23 @@ class tqdm(Comparable):
     def __del__(self):
         self.close()
 
-    def __repr__(self, elapsed=None):
-        return self.format_meter(
-            self.n, self.total,
-            elapsed if elapsed is not None else self._time() - self.start_t,
-            self.dynamic_ncols(self.fp) if self.dynamic_ncols else self.ncols,
-            self.desc, self.ascii, self.unit,
-            self.unit_scale, 1 / self.avg_time if self.avg_time else None,
-            self.bar_format, self.postfix, self.unit_divisor)
+    @property
+    def format_dict(self):
+        """Public API for read-only member access"""
+        return dict(
+            n=self.n, total=self.total,
+            elapsed=self._time() - self.start_t
+            if hasattr(self, 'start_t') else 0,
+            ncols=self.dynamic_ncols(self.fp)
+            if self.dynamic_ncols else self.ncols,
+            prefix=self.desc, ascii=self.ascii, unit=self.unit,
+            unit_scale=self.unit_scale,
+            rate=1 / self.avg_time if self.avg_time else None,
+            bar_format=self.bar_format, postfix=self.postfix,
+            unit_divisor=self.unit_divisor)
+
+    def __repr__(self):
+        return self.format_meter(**self.format_dict)
 
     @property
     def _comparable(self):
@@ -992,12 +991,11 @@ class tqdm(Comparable):
             avg_time = self.avg_time
             _time = self._time
 
-            try:
-                sp = self.sp
-            except AttributeError:
-                raise TqdmDeprecationWarning("""\
-Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
-""", fp_write=getattr(self.fp, 'write', sys.stderr.write))
+            if not hasattr(self, 'sp'):
+                from textwrap import dedent
+                raise TqdmDeprecationWarning(dedent("""\
+                Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
+                """), fp_write=getattr(self.fp, 'write', sys.stderr.write))
 
             for obj in iterable:
                 yield obj
@@ -1019,12 +1017,7 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
 
                         self.n = n
                         with self._lock:
-                            if self.pos:
-                                self.moveto(abs(self.pos))
-                            # Print bar update
-                            sp(self.__repr__())
-                            if self.pos:
-                                self.moveto(-abs(self.pos))
+                            self.display()
 
                         # If no `miniters` was specified, adjust automatically
                         # to the max iteration rate seen so far between 2 prints
@@ -1098,22 +1091,17 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
                 # EMA (not just overall average)
                 if self.smoothing and delta_t and delta_it:
                     rate = delta_t / delta_it
-                    self.avg_time = self.ema(rate, self.avg_time, self.smoothing)
+                    self.avg_time = self.ema(
+                        rate, self.avg_time, self.smoothing)
 
                 if not hasattr(self, "sp"):
-                    raise TqdmDeprecationWarning("""\
-Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
-""", fp_write=getattr(self.fp, 'write', sys.stderr.write))
+                    from textwrap import dedent
+                    raise TqdmDeprecationWarning(dedent("""\
+                    Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
+                    """), fp_write=getattr(self.fp, 'write', sys.stderr.write))
 
                 with self._lock:
-                    if self.pos:
-                        self.moveto(abs(self.pos))
-
-                    # Print bar update
-                    self.sp(self.__repr__())
-
-                    if self.pos:
-                        self.moveto(-abs(self.pos))
+                    self.display()
 
                 # If no `miniters` was specified, adjust automatically to the
                 # maximum iteration rate seen so far between two prints.
@@ -1171,25 +1159,18 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
             raise  # pragma: no cover
 
         with self._lock:
-            if pos:
-                self.moveto(pos)
-
             if self.leave:
                 if self.last_print_n < self.n:
                     # stats for overall rate (no weighted average)
                     self.avg_time = None
-                    self.sp(self.__repr__())
-                if pos:
-                    self.moveto(-pos)
-                elif not max([abs(getattr(i, "pos", 0))
-                              for i in self._instances] + [0]):
+                    self.display(pos=pos)
+                if not max([abs(getattr(i, "pos", 0))
+                            for i in self._instances] + [pos]):
                     # only if not nested (#477)
                     fp_write('\n')
             else:
-                self.sp('')  # clear up last bar
-                if pos:
-                    self.moveto(-pos)
-                else:
+                self.display(msg='', pos=pos)
+                if not pos:
                     fp_write('\r')
 
     def unpause(self):
@@ -1262,6 +1243,7 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
             self.refresh()
 
     def moveto(self, n):
+        # TODO: private method
         self.fp.write(_unicode('\n' * n + _term_move_up() * -n))
         self.fp.flush()
 
@@ -1290,11 +1272,27 @@ Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
 
         if not nolock:
             self._lock.acquire()
-        self.moveto(abs(self.pos))
-        self.sp(self.__repr__())
-        self.moveto(-abs(self.pos))
+        self.display()
         if not nolock:
             self._lock.release()
+
+    def display(self, msg=None, pos=None):
+        """
+        Use `self.sp` and to display `msg` in the specified `pos`.
+
+        Parameters
+        ----------
+        msg  : what to display (default: repr(self))
+        pos  : position to display in. (default: abs(self.pos))
+        """
+        if pos is None:
+            pos = abs(self.pos)
+
+        if pos:
+            self.moveto(pos)
+        self.sp(self.__repr__() if msg is None else msg)
+        if pos:
+            self.moveto(-pos)
 
 
 def trange(*args, **kwargs):

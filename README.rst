@@ -536,6 +536,26 @@ Points to remember when using ``{postfix[...]}`` in the ``bar_format`` string:
   object. To prevent this behaviour, insert an extra item into the dictionary
   where the key is not a string.
 
+Additional ``bar_format`` parameters may also be defined by overriding
+``format_dict``:
+
+.. code:: python
+
+    from tqdm import tqdm
+    class TqdmExtraFormat(tqdm):
+        """Provides a `total_time` format parameter"""
+        @property
+        def format_dict(self):
+            d = super(TqdmExtraFormat, self).format_dict
+            total_time = d["elapsed"] * (d["total"] or 0) / max(d["n"], 1)
+            d.update(total_time=self.format_interval(total_time) + " in total")
+            return d
+
+    for i in TqdmExtraFormat(
+          range(10),
+          bar_format="{total_time}: {percentage:.0f}%|{bar}{r_bar}"):
+        pass
+
 Nested progress bars
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -870,7 +890,7 @@ There are also many |GitHub-Contributions| which we are grateful for.
 .. |Branch-Coverage-Status| image:: https://codecov.io/gh/tqdm/tqdm/branch/master/graph/badge.svg
    :target: https://codecov.io/gh/tqdm/tqdm
 .. |Codacy-Grade| image:: https://api.codacy.com/project/badge/Grade/3f965571598f44549c7818f29cdcf177
-   :target: https://www.codacy.com/app/tqdm/tqdm?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=tqdm/tqdm&amp;utm_campaign=Badge_Grade
+   :target: https://www.codacy.com/app/tqdm/tqdm/dashboard
 .. |GitHub-Status| image:: https://img.shields.io/github/tag/tqdm/tqdm.svg?maxAge=86400&logo=github&logoColor=white
    :target: https://github.com/tqdm/tqdm/releases
 .. |GitHub-Forks| image:: https://img.shields.io/github/forks/tqdm/tqdm.svg?logo=github&logoColor=white
@@ -905,8 +925,8 @@ There are also many |GitHub-Contributions| which we are grateful for.
    :target: https://www.openhub.net/p/tqdm?ref=Thin+badge
 .. |LICENCE| image:: https://img.shields.io/pypi/l/tqdm.svg
    :target: https://raw.githubusercontent.com/tqdm/tqdm/master/LICENCE
-.. |DOI-URI| image:: https://zenodo.org/badge/21637/tqdm/tqdm.svg
-   :target: https://zenodo.org/badge/latestdoi/21637/tqdm/tqdm
+.. |DOI-URI| image:: https://img.shields.io/badge/DOI-10.5281/zenodo.595120-blue.svg
+   :target: https://doi.org/10.5281/zenodo.595120
 .. |interactive-demo| image:: https://img.shields.io/badge/demo-interactive-orange.svg?logo=jupyter
    :target: https://notebooks.rmotr.com/demo/gh/tqdm/tqdm
 .. |Screenshot-Jupyter1| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/tqdm-jupyter-1.gif

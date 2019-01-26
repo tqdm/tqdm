@@ -61,7 +61,29 @@ RE_rate = re.compile(r'(\d+\.\d+)it/s')
 RE_ctrlchr = re.compile("(%s)" % '|'.join(CTRLCHR))  # Match control chars
 RE_ctrlchr_excl = re.compile('|'.join(CTRLCHR))  # Match and exclude ctrl chars
 RE_pos = re.compile(
-    r'((\x1b\[A|\r|\n)+((pos\d+) bar:\s+\d+%|\s{3,6})?)')  # NOQA
+    r'([\r\n]+((pos\d+) bar:\s+\d+%|\s{3,6})?[^\r\n]*)')
+
+
+def pos_line_diff(res_list, expected_list, raise_nonempty=True):
+    """
+    Return differences between two bar output lists.
+    To be used with `RE_pos`
+    """
+    l = len(res_list)
+    if l < len(expected_list):
+        res = [(None, e) for e in expected_list[l:]]
+    elif l > len(expected_list):
+        res = [(r, None) for r in res_list[l:]]
+    res = [(r, e) for r, e in zip(res_list, expected_list)
+           for pos in [len(e)-len(e.lstrip('\n'))]  # bar position
+           if not r.startswith(e)  # start matches
+           or not (r.endswith('\x1b[A' * pos)  # move up at end
+                   or r=='\n')  # final bar
+           or r[(-1-pos) * len('\x1b[A'):] == '\x1b[A']  # extra move up
+    if res and raise_nonempty:
+        raise AssertionError(
+            "Got => Expected\n" + '\n'.join('"%r" => "%r"' % i for i in res))
+    return res
 
 
 class DiscreteTimer(object):
@@ -157,15 +179,12 @@ def progressbar_rate(bar_str):
 
 def squash_ctrlchars(s):
     """Apply control characters in a string just like a terminal display"""
-    # List of supported control codes
-    ctrlcodes = [r'\r', r'\n', r'\x1b\[A']
-
     # Init variables
     curline = 0  # current line in our fake terminal
     lines = ['']  # state of our fake terminal
 
     # Split input string by control codes
-    RE_ctrl = re.compile("(%s)" % ("|".join(ctrlcodes)), flags=re.DOTALL)
+    RE_ctrl = re.compile("(%s)" % ("|".join(CTRLCHR)), flags=re.DOTALL)
     s_split = RE_ctrl.split(s)
     s_split = filter(None, s_split)  # filter out empty splits
 
@@ -355,16 +374,14 @@ def test_leave_option():
     with closing(StringIO()) as our_file:
         for _ in tqdm(_range(3), file=our_file, leave=True):
             pass
-        our_file.seek(0)
-        assert '| 3/3 ' in our_file.read()
-        our_file.seek(0)
-        assert '\n' == our_file.read()[-1]  # not '\r'
+        res = our_file.getvalue()
+        assert '| 3/3 ' in res
+        assert '\n' == res[-1]  # not '\r'
 
     with closing(StringIO()) as our_file2:
         for _ in tqdm(_range(3), file=our_file2, leave=False):
             pass
-        our_file2.seek(0)
-        assert '| 3/3 ' not in our_file2.read()
+        assert '| 3/3 ' not in our_file2.getvalue()
 
 
 @with_setup(pretest, posttest)
@@ -373,14 +390,12 @@ def test_trange():
     with closing(StringIO()) as our_file:
         for _ in trange(3, file=our_file, leave=True):
             pass
-        our_file.seek(0)
-        assert '| 3/3 ' in our_file.read()
+        assert '| 3/3 ' in our_file.getvalue()
 
     with closing(StringIO()) as our_file2:
         for _ in trange(3, file=our_file2, leave=False):
             pass
-        our_file2.seek(0)
-        assert '| 3/3 ' not in our_file2.read()
+        assert '| 3/3 ' not in our_file2.getvalue()
 
 
 @with_setup(pretest, posttest)
@@ -389,8 +404,7 @@ def test_min_interval():
     with closing(StringIO()) as our_file:
         for _ in tqdm(_range(3), file=our_file, mininterval=1e-10):
             pass
-        our_file.seek(0)
-        assert "  0%|          | 0/3 [00:00<" in our_file.read()
+        assert "  0%|          | 0/3 [00:00<" in our_file.getvalue()
 
 
 @with_setup(pretest, posttest)
@@ -428,10 +442,8 @@ def test_max_interval():
             t.close()  # because PyPy doesn't gc immediately
             t2.close()  # as above
 
-            our_file2.seek(0)
-            assert "25%" not in our_file2.read()
-        our_file.seek(0)
-        assert "25%" not in our_file.read()
+            assert "25%" not in our_file2.getvalue()
+        assert "25%" not in our_file.getvalue()
 
     # Test with maxinterval effect
     timer = DiscreteTimer()
@@ -447,8 +459,7 @@ def test_max_interval():
                 t.update(smallstep)
                 timer.sleep(1e-2)
 
-            our_file.seek(0)
-            assert "25%" in our_file.read()
+            assert "25%" in our_file.getvalue()
 
     # Test iteration based tqdm with maxinterval effect
     timer = DiscreteTimer()
@@ -464,8 +475,7 @@ def test_max_interval():
                 if i >= 3 * bigstep:
                     break
 
-        our_file.seek(0)
-        assert "15%" in our_file.read()
+        assert "15%" in our_file.getvalue()
 
     # Test different behavior with and without mininterval
     timer = DiscreteTimer()
@@ -535,15 +545,13 @@ def test_min_iters():
     with closing(StringIO()) as our_file:
         for _ in tqdm(_range(3), file=our_file, leave=True, miniters=4):
             our_file.write('blank\n')
-        our_file.seek(0)
-        assert '\nblank\nblank\n' in our_file.read()
+        assert '\nblank\nblank\n' in our_file.getvalue()
 
     with closing(StringIO()) as our_file:
         for _ in tqdm(_range(3), file=our_file, leave=True, miniters=1):
             our_file.write('blank\n')
-        our_file.seek(0)
         # assume automatic mininterval = 0 means intermediate output
-        assert '| 3/3 ' in our_file.read()
+        assert '| 3/3 ' in our_file.getvalue()
 
 
 @with_setup(pretest, posttest)
@@ -563,8 +571,7 @@ def test_dynamic_min_iters():
         # The third iteration should be displayed
         t.update()
 
-        our_file.seek(0)
-        out = our_file.read()
+        out = our_file.getvalue()
         assert t.dynamic_miniters
         t.__del__()  # simulate immediate del gc
 
@@ -585,8 +592,7 @@ def test_dynamic_min_iters():
         t.update(5)  # this should be stored as miniters
         t.update(1)
 
-        our_file.seek(0)
-        out = our_file.read()
+        out = our_file.getvalue()
         assert all(i in out for i in ("0/10", "1/10", "3/10"))
         assert "2/10" not in out
         assert t.dynamic_miniters and not t.smoothing
@@ -623,15 +629,13 @@ def test_big_min_interval():
     with closing(StringIO()) as our_file:
         for _ in tqdm(_range(2), file=our_file, mininterval=1E10):
             pass
-        our_file.seek(0)
-        assert '50%' not in our_file.read()
+        assert '50%' not in our_file.getvalue()
 
     with closing(StringIO()) as our_file:
         with tqdm(_range(2), file=our_file, mininterval=1E10) as t:
             t.update()
             t.update()
-            our_file.seek(0)
-            assert '50%' not in our_file.read()
+            assert '50%' not in our_file.getvalue()
 
 
 @with_setup(pretest, posttest)
@@ -652,8 +656,7 @@ def test_smoothed_dynamic_min_iters():
             for _ in _range(20):
                 t.update()
 
-            our_file.seek(0)
-            out = our_file.read()
+            out = our_file.getvalue()
             assert t.dynamic_miniters
     assert '  0%|          | 0/100 [00:00<' in out
     assert '10%' in out
@@ -684,8 +687,7 @@ def test_smoothed_dynamic_min_iters_with_min_interval():
             for _ in _range(4):
                 t.update()
                 timer.sleep(1e-2)
-            our_file.seek(0)
-            out = our_file.read()
+            out = our_file.getvalue()
             assert t.dynamic_miniters
 
     with closing(StringIO()) as our_file:
@@ -699,8 +701,7 @@ def test_smoothed_dynamic_min_iters_with_min_interval():
                     timer.sleep(0.1)
                 if i >= 14:
                     break
-            our_file.seek(0)
-            out2 = our_file.read()
+            out2 = our_file.getvalue()
 
     assert t.dynamic_miniters
     assert '  0%|          | 0/100 [00:00<' in out
@@ -738,12 +739,12 @@ def _rlock_creation_target():
         assert rlock_mock.call_count == 0
         # Creating a progress bar should initialize the lock
         with closing(StringIO()) as our_file:
-            with tqdm(file=our_file) as t:
+            with tqdm(file=our_file) as _:  # NOQA
                 pass
         assert rlock_mock.call_count == 1
         # Creating a progress bar again should reuse the lock
         with closing(StringIO()) as our_file:
-            with tqdm(file=our_file) as t:
+            with tqdm(file=our_file) as _:  # NOQA
                 pass
         assert rlock_mock.call_count == 1
 
@@ -754,15 +755,13 @@ def test_disable():
     with closing(StringIO()) as our_file:
         for _ in tqdm(_range(3), file=our_file, disable=True):
             pass
-        our_file.seek(0)
-        assert our_file.read() == ''
+        assert our_file.getvalue() == ''
 
     with closing(StringIO()) as our_file:
         progressbar = tqdm(total=3, file=our_file, miniters=1, disable=True)
         progressbar.update(3)
         progressbar.close()
-        our_file.seek(0)
-        assert our_file.read() == ''
+        assert our_file.getvalue() == ''
 
 
 @with_setup(pretest, posttest)
@@ -779,8 +778,7 @@ def test_unit():
     with closing(StringIO()) as our_file:
         for _ in tqdm(_range(3), file=our_file, miniters=1, unit="bytes"):
             pass
-        our_file.seek(0)
-        assert 'bytes/s' in our_file.read()
+        assert 'bytes/s' in our_file.getvalue()
 
 
 @with_setup(pretest, posttest)
@@ -796,8 +794,7 @@ def test_ascii():
         for _ in tqdm(_range(3), total=15, file=our_file, miniters=1,
                       mininterval=0, ascii=True):
             pass
-        our_file.seek(0)
-        res = our_file.read().strip("\r").split("\r")
+        res = our_file.getvalue().strip("\r").split("\r")
     assert '7%|6' in res[1]
     assert '13%|#3' in res[2]
     assert '20%|##' in res[3]
@@ -807,8 +804,7 @@ def test_ascii():
         with tqdm(total=15, file=our_file, ascii=False, mininterval=0) as t:
             for _ in _range(3):
                 t.update()
-        our_file.seek(0)
-        res = our_file.read().strip("\r").split("\r")
+        res = our_file.getvalue().strip("\r").split("\r")
     assert "7%|\u258b" in res[1]
     assert "13%|\u2588\u258e" in res[2]
     assert "20%|\u2588\u2588" in res[3]
@@ -823,8 +819,7 @@ def test_update():
                 as progressbar:
             assert len(progressbar) == 2
             progressbar.update(2)
-            our_file.seek(0)
-            assert '| 2/2' in our_file.read()
+            assert '| 2/2' in our_file.getvalue()
             progressbar.desc = 'dynamically notify of 4 increments in total'
             progressbar.total = 4
             try:
@@ -835,8 +830,7 @@ def test_update():
                 progressbar.update()  # should default to +1
             else:
                 raise ValueError("Should not support negative updates")
-            our_file.seek(0)
-            res = our_file.read()
+            res = our_file.getvalue()
     assert '| 3/4 ' in res
     assert 'dynamically notify of 4 increments in total' in res
 
@@ -873,13 +867,11 @@ def test_close():
             assert '| 3/3 ' in res  # Should be blank
         # close() called
         assert len(tqdm._instances) == 0
-        our_file.seek(0)
 
         exres = res + '\n'
-        if exres != our_file.read():
-            our_file.seek(0)
-            raise AssertionError(
-                "\nExpected:\n{0}\nGot:{1}\n".format(exres, our_file.read()))
+        if exres != our_file.getvalue():
+            raise AssertionError("\nExpected:\n{0}\nGot:{1}\n".format(
+                exres, our_file.getvalue()))
 
     # Closing after the output stream has closed
     with closing(StringIO()) as our_file:
@@ -901,8 +893,7 @@ def test_smoothing():
 
             for _ in t:
                 pass
-        our_file.seek(0)
-        assert '| 3/3 ' in our_file.read()
+        assert '| 3/3 ' in our_file.getvalue()
 
     # -- Test smoothing
     # Compile the regex to find the rate
@@ -1001,8 +992,8 @@ def test_deprecated_nested():
     try:
         tqdm(total=2, file=our_file, nested=True)
     except TqdmDeprecationWarning:
-        if """`nested` is deprecated and automated.\
- Use position instead for manual control.""" not in our_file.getvalue():
+        if """`nested` is deprecated and automated.
+Use `position` instead for manual control.""" not in our_file.getvalue():
             raise
     else:
         raise DeprecationError("Should not allow nested kwarg")
@@ -1023,6 +1014,26 @@ def test_bar_format():
         bar_format = r'hello world'
         with tqdm(ascii=False, bar_format=bar_format, file=our_file) as t:
             assert isinstance(t.bar_format, _unicode)
+
+
+@with_setup(pretest, posttest)
+def test_custom_format():
+    """Test adding additional derived format arguments"""
+    class TqdmExtraFormat(tqdm):
+        """Provides a `total_time` format parameter"""
+        @property
+        def format_dict(self):
+            d = super(TqdmExtraFormat, self).format_dict
+            total_time = d["elapsed"] * (d["total"] or 0) / max(d["n"], 1)
+            d.update(total_time=self.format_interval(total_time) + " in total")
+            return d
+
+    with closing(StringIO()) as our_file:
+        for i in TqdmExtraFormat(
+                range(10), file=our_file,
+                bar_format="{total_time}: {percentage:.0f}%|{bar}{r_bar}"):
+            pass
+        assert "00:00 in total" in our_file.getvalue()
 
 
 @with_setup(pretest, posttest)
@@ -1061,16 +1072,13 @@ def test_position():
     t = tqdm(total=2, desc='pos2 bar', leave=False, position=2, **kwargs)
     t.update()
     t.close()
-    our_file.seek(0)
-    out = our_file.read()
+    out = our_file.getvalue()
     res = [m[0] for m in RE_pos.findall(out)]
     exres = ['\n\n\rpos2 bar:   0%',
-             '\x1b[A\x1b[A\n\n\rpos2 bar:  50%',
-             '\x1b[A\x1b[A\n\n\r      ',
-             '\x1b[A\x1b[A']
-    if res != exres:
-        raise AssertionError("\nExpected:\n{0}\nGot:\n{1}\nRaw:\n{2}\n".format(
-            str(exres), str(res), str([out])))
+             '\n\n\rpos2 bar:  50%',
+             '\n\n\r      ']
+
+    pos_line_diff(res, exres)
 
     # Test iteration-based tqdm positioning
     our_file = StringIO()
@@ -1079,34 +1087,31 @@ def test_position():
         for _ in trange(2, desc='pos1 bar', position=1, **kwargs):
             for _ in trange(2, desc='pos2 bar', position=2, **kwargs):
                 pass
-    our_file.seek(0)
-    out = our_file.read()
+    out = our_file.getvalue()
     res = [m[0] for m in RE_pos.findall(out)]
     exres = ['\rpos0 bar:   0%',
              '\n\rpos1 bar:   0%',
-             '\x1b[A\n\n\rpos2 bar:   0%',
-             '\x1b[A\x1b[A\n\n\rpos2 bar:  50%',
-             '\x1b[A\x1b[A\n\n\rpos2 bar: 100%',
-             '\x1b[A\x1b[A\n\n\x1b[A\x1b[A\n\rpos1 bar:  50%',
-             '\x1b[A\n\n\rpos2 bar:   0%',
-             '\x1b[A\x1b[A\n\n\rpos2 bar:  50%',
-             '\x1b[A\x1b[A\n\n\rpos2 bar: 100%',
-             '\x1b[A\x1b[A\n\n\x1b[A\x1b[A\n\rpos1 bar: 100%',
-             '\x1b[A\n\x1b[A\rpos0 bar:  50%',
+             '\n\n\rpos2 bar:   0%',
+             '\n\n\rpos2 bar:  50%',
+             '\n\n\rpos2 bar: 100%',
+             '\n\rpos1 bar:  50%',
+             '\n\n\rpos2 bar:   0%',
+             '\n\n\rpos2 bar:  50%',
+             '\n\n\rpos2 bar: 100%',
+             '\n\rpos1 bar: 100%',
+             '\rpos0 bar:  50%',
              '\n\rpos1 bar:   0%',
-             '\x1b[A\n\n\rpos2 bar:   0%',
-             '\x1b[A\x1b[A\n\n\rpos2 bar:  50%',
-             '\x1b[A\x1b[A\n\n\rpos2 bar: 100%',
-             '\x1b[A\x1b[A\n\n\x1b[A\x1b[A\n\rpos1 bar:  50%',
-             '\x1b[A\n\n\rpos2 bar:   0%',
-             '\x1b[A\x1b[A\n\n\rpos2 bar:  50%',
-             '\x1b[A\x1b[A\n\n\rpos2 bar: 100%',
-             '\x1b[A\x1b[A\n\n\x1b[A\x1b[A\n\rpos1 bar: 100%',
-             '\x1b[A\n\x1b[A\rpos0 bar: 100%',
+             '\n\n\rpos2 bar:   0%',
+             '\n\n\rpos2 bar:  50%',
+             '\n\n\rpos2 bar: 100%',
+             '\n\rpos1 bar:  50%',
+             '\n\n\rpos2 bar:   0%',
+             '\n\n\rpos2 bar:  50%',
+             '\n\n\rpos2 bar: 100%',
+             '\n\rpos1 bar: 100%',
+             '\rpos0 bar: 100%',
              '\n']
-    if res != exres:
-        raise AssertionError("\nExpected:\n{0}\nGot:\n{1}\nRaw:\n{2}\n".format(
-            str(exres), str(res), str([out])))
+    pos_line_diff(res, exres)
 
     # Test manual tqdm positioning
     our_file = StringIO()
@@ -1119,22 +1124,18 @@ def test_position():
         t1.update()
         t3.update()
         t2.update()
-    our_file.seek(0)
-    out = our_file.read()
+    out = our_file.getvalue()
     res = [m[0] for m in RE_pos.findall(out)]
     exres = ['\rpos0 bar:   0%',
              '\n\rpos1 bar:   0%',
-             '\x1b[A\n\n\rpos2 bar:   0%',
-             '\x1b[A\x1b[A\rpos0 bar:  50%',
+             '\n\n\rpos2 bar:   0%',
+             '\rpos0 bar:  50%',
              '\n\n\rpos2 bar:  50%',
-             '\x1b[A\x1b[A\n\rpos1 bar:  50%',
-             '\x1b[A\rpos0 bar: 100%',
+             '\n\rpos1 bar:  50%',
+             '\rpos0 bar: 100%',
              '\n\n\rpos2 bar: 100%',
-             '\x1b[A\x1b[A\n\rpos1 bar: 100%',
-             '\x1b[A']
-    if res != exres:
-        raise AssertionError("\nExpected:\n{0}\nGot:\n{1}\nRaw:\n{2}\n".format(
-            str(exres), str(res), str([out])))
+             '\n\rpos1 bar: 100%']
+    pos_line_diff(res, exres)
     t1.close()
     t2.close()
     t3.close()
@@ -1148,11 +1149,9 @@ def test_position():
         res = [m[0] for m in RE_pos.findall(our_file.getvalue())]
         exres = ['\rpos0 bar:   0%',
                  '\n\rpos1 bar:   0%',
-                 '\x1b[A\n\n\rpos2 bar:   0%',
-                 '\x1b[A\x1b[A']
-        if res != exres:
-            raise AssertionError(
-                "\nExpected:\n{0}\nGot:\n{1}\n".format(str(exres), str(res)))
+                 '\n\n\rpos2 bar:   0%']
+        pos_line_diff(res, exres)
+
 
         t2.close()
         t4 = tqdm(total=10, file=our_file, desc='pos3 bar', mininterval=0)
@@ -1162,15 +1161,12 @@ def test_position():
         res = [m[0] for m in RE_pos.findall(our_file.getvalue())]
         exres = ['\rpos0 bar:   0%',
                  '\n\rpos1 bar:   0%',
-                 '\x1b[A\n\n\rpos2 bar:   0%',
-                 '\x1b[A\x1b[A\n\x1b[A\n\n\rpos3 bar:   0%',
-                 '\x1b[A\x1b[A\rpos0 bar:  10%',
+                 '\n\n\rpos2 bar:   0%',
+                 '\n\n\rpos3 bar:   0%',
+                 '\rpos0 bar:  10%',
                  '\n\rpos2 bar:  10%',
-                 '\x1b[A\n\n\rpos3 bar:  10%',
-                 '\x1b[A\x1b[A']
-        if res != exres:
-            raise AssertionError(
-                "\nExpected:\n{0}\nGot:\n{1}\n".format(str(exres), str(res)))
+                 '\n\n\rpos3 bar:  10%']
+        pos_line_diff(res, exres)
         t4.close()
         t3.close()
         t1.close()
@@ -1412,10 +1408,11 @@ def test_write():
             assert before_err == '\rpos0 bar:   0%|\rpos0 bar:  10%|'
             assert before_out == ''
             after_err_res = [m[0] for m in RE_pos.findall(after_err)]
-            assert after_err_res == [u'\rpos0 bar:   0%',
-                                     u'\rpos0 bar:  10%',
-                                     u'\r      ',
-                                     u'\r\rpos0 bar:  10%']
+            exres = [u'\rpos0 bar:   0%',
+                     u'\rpos0 bar:  10%',
+                     u'\r      ',
+                     u'\r\rpos0 bar:  10%']
+            pos_line_diff(after_err_res, exres)
             assert after_out == s + '\n'
     # Restore stdout and stderr
     sys.stderr = stde
