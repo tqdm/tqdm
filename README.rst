@@ -337,8 +337,8 @@ Parameters
     automatically and a metric prefix following the
     International System of Units standard will be added
     (kilo, mega, etc.) [default: False]. If any other non-zero
+    number, will scale ``total`` and ``n``.
 * dynamic_ncols  : bool, optional  
-    number, will scale ```total`` and ``n``.
     If set, constantly alters ``ncols`` to the environment (allowing
     for window resizes) [default: False].
 * smoothing  : float, optional  
@@ -353,7 +353,8 @@ Parameters
     '{rate_fmt}{postfix}]'
     Possible vars: l_bar, bar, r_bar, n, n_fmt, total, total_fmt,
     percentage, rate, rate_fmt, rate_noinv, rate_noinv_fmt,
-    rate_inv, rate_inv_fmt, elapsed, remaining, desc, postfix.
+    rate_inv, rate_inv_fmt, elapsed, elapsed_s, remaining,
+    remaining_s, desc, postfix, unit.
     Note that a trailing ": " is automatically removed after {desc}
     if the latter is empty.
 * initial  : int, optional  
@@ -379,7 +380,8 @@ Extra CLI Options
     String buffer size in bytes [default: 256]
     used when ``delim`` is specified.
 * bytes  : bool, optional  
-    If true, will count bytes and ignore ``delim``.
+    If true, will count bytes, ignore ``delim``, and default
+    ``unit_scale`` to True, ``unit_divisor`` to 1024, and ``unit`` to 'B'.
 * manpath  : str, optional  
     Directory in which to install tqdm man pages.
 * log  : str, optional  
