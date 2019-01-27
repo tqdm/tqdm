@@ -19,6 +19,7 @@ name  : type, optional
     TODO: find out why this is needed.
 """
 
+
 def doc2rst(doc, arglist=True):
     """
     arglist  : bool, whether to create argument lists

@@ -69,16 +69,16 @@ def pos_line_diff(res_list, expected_list, raise_nonempty=True):
     Return differences between two bar output lists.
     To be used with `RE_pos`
     """
-    l = len(res_list)
-    if l < len(expected_list):
-        res = [(None, e) for e in expected_list[l:]]
-    elif l > len(expected_list):
-        res = [(r, None) for r in res_list[l:]]
+    ln = len(res_list)
+    if ln < len(expected_list):
+        res = [(None, e) for e in expected_list[ln:]]
+    elif ln > len(expected_list):
+        res = [(r, None) for r in res_list[ln:]]
     res = [(r, e) for r, e in zip(res_list, expected_list)
            for pos in [len(e)-len(e.lstrip('\n'))]  # bar position
            if not r.startswith(e)  # start matches
            or not (r.endswith('\x1b[A' * pos)  # move up at end
-                   or r=='\n')  # final bar
+                   or r == '\n')  # final bar
            or r[(-1-pos) * len('\x1b[A'):] == '\x1b[A']  # extra move up
     if res and raise_nonempty:
         raise AssertionError(
@@ -1151,7 +1151,6 @@ def test_position():
                  '\n\rpos1 bar:   0%',
                  '\n\n\rpos2 bar:   0%']
         pos_line_diff(res, exres)
-
 
         t2.close()
         t4 = tqdm(total=10, file=our_file, desc='pos3 bar', mininterval=0)
