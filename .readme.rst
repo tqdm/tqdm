@@ -612,6 +612,20 @@ since it is not meant to be possible to distinguish between ``jupyter notebook``
 and ``jupyter console``. Use ``auto`` instead of ``autonotebook`` to suppress
 this warning.
 
+Custom Integration
+~~~~~~~~~~~~~~~~~~
+
+``tqdm`` may be inherited from to create custom callbacks (as with the
+``TqdmUpTo`` example `above <#hooks-and-callbacks>`__) or for custom frontends
+(e.g. GUIs such as notebook or plotting packages). In the latter case:
+
+1. ``def __init__()`` to call ``super().__init__(..., gui=True)`` to disable
+   terminal ``status_printer`` creation.
+2. Redefine: ``close()``, ``clear()``, ``display()``.
+
+Consider overloading ``display()`` to use e.g.
+``self.frontend(**self.format_dict)`` instead of ``self.sp(repr(self))``.
+
 Writing messages
 ~~~~~~~~~~~~~~~~
 

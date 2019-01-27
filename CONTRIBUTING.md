@@ -278,7 +278,7 @@ For experienced devs, once happy with local master:
 9. upload to PyPI using one of the following:
     a) `[python setup.py] make pypi`
     b) `twine upload -s -i $(git config user.signingkey) dist/tqdm-*`
-10. create new release on https://github.com/tqdm/tqdm/releases
+10. create new release on <https://github.com/tqdm/tqdm/releases>
     a) add helpful release notes
     b) attach `dist/tqdm-*` binaries (usually only `*.whl*`)
 11. run `make` in the `wiki` submodule to update release notes
