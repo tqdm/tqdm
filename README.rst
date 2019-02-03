@@ -323,9 +323,9 @@ Parameters
     Tweak this and ``mininterval`` to get very efficient loops.
     If your progress is erratic with both fast and slow iterations
     (network, skipping items, etc) you should set miniters=1.
-* ascii  : bool, optional  
+* ascii  : bool or str, optional  
     If unspecified or False, use unicode (smooth blocks) to fill
-    the meter. The fallback is to use ASCII characters ``1-9 #``.
+    the meter. The fallback is to use ASCII characters " 123456789#".
 * disable  : bool, optional  
     Whether to disable the entire progressbar wrapper
     [default: False]. If set to None, disable on non-TTY.
