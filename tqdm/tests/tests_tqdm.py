@@ -773,6 +773,15 @@ def test_infinite_total():
 
 
 @with_setup(pretest, posttest)
+def test_nototal():
+    """Test unknown total length"""
+    with closing(StringIO()) as our_file:
+        for i in tqdm((i for i in range(10)), file=our_file, unit_scale=10):
+            pass
+        assert "100it" in our_file.getvalue()
+
+
+@with_setup(pretest, posttest)
 def test_unit():
     """Test SI unit prefix"""
     with closing(StringIO()) as our_file:
