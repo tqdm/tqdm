@@ -780,6 +780,12 @@ def test_nototal():
             pass
         assert "100it" in our_file.getvalue()
 
+    with closing(StringIO()) as our_file:
+        for i in tqdm((i for i in range(10)), file=our_file,
+                      bar_format="{l_bar}{bar}{r_bar}"):
+            pass
+        assert "10/?" in our_file.getvalue()
+
 
 @with_setup(pretest, posttest)
 def test_unit():

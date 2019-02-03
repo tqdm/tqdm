@@ -327,8 +327,7 @@ class tqdm(Comparable):
                 rate *= unit_scale  # by default rate = 1 / self.avg_time
             unit_scale = False
 
-        format_interval = tqdm.format_interval
-        elapsed_str = format_interval(elapsed)
+        elapsed_str = tqdm.format_interval(elapsed)
 
         # if unspecified, attempt to use rate = average speed
         # (we allow manual override since predicting time is an arcane art)
@@ -347,15 +346,44 @@ class tqdm(Comparable):
         if unit_scale:
             n_fmt = format_sizeof(n, divisor=unit_divisor)
             total_fmt = format_sizeof(total, divisor=unit_divisor) \
-                if total else None
+                if total is not None else '?'
         else:
             n_fmt = str(n)
-            total_fmt = str(total)
+            total_fmt = str(total) if total is not None else '?'
 
         try:
             postfix = ', ' + postfix if postfix else ''
         except TypeError:
             pass
+
+        remaining = (total - n) / rate if rate and total else 0
+        remaining_str = tqdm.format_interval(remaining) if rate else '?'
+
+        # format the stats displayed to the left and right sides of the bar
+        if prefix:
+            # old prefix setup work around
+            bool_prefix_colon_already = (prefix[-2:] == ": ")
+            l_bar = prefix if bool_prefix_colon_already else prefix + ": "
+        else:
+            l_bar = ''
+
+        r_bar = '| {0}/{1} [{2}<{3}, {4}{5}]'.format(
+            n_fmt, total_fmt, elapsed_str, remaining_str, rate_fmt, postfix)
+
+        # Custom bar formatting
+        # Populate a dict with all available progress indicators
+        format_dict = dict(
+            n=n, n_fmt=n_fmt, total=total, total_fmt=total_fmt,
+            rate=inv_rate if inv_rate and inv_rate > 1 else rate,
+            rate_fmt=rate_fmt, rate_noinv=rate,
+            rate_noinv_fmt=rate_noinv_fmt, rate_inv=inv_rate,
+            rate_inv_fmt=rate_inv_fmt,
+            elapsed=elapsed_str, elapsed_s=elapsed,
+            remaining=remaining_str, remaining_s=remaining,
+            l_bar=l_bar, r_bar=r_bar,
+            desc=prefix or '', postfix=postfix, unit=unit,
+            # bar=full_bar,  # replaced by procedure below
+            **extra_kwargs)
 
         # total is known: we can predict some stats
         if total:
@@ -363,39 +391,14 @@ class tqdm(Comparable):
             frac = n / total
             percentage = frac * 100
 
-            remaining = (total - n) / rate if rate else 0
-            remaining_str = format_interval(remaining) if rate else '?'
-
-            # format the stats displayed to the left and right sides of the bar
-            if prefix:
-                # old prefix setup work around
-                bool_prefix_colon_already = (prefix[-2:] == ": ")
-                l_bar = prefix if bool_prefix_colon_already else prefix + ": "
-            else:
-                l_bar = ''
             l_bar += '{0:3.0f}%|'.format(percentage)
-            r_bar = '| {0}/{1} [{2}<{3}, {4}{5}]'.format(
-                n_fmt, total_fmt, elapsed_str, remaining_str, rate_fmt, postfix)
 
             if ncols == 0:
                 return l_bar[:-1] + r_bar[1:]
 
             if bar_format:
-                # Custom bar formatting
-                # Populate a dict with all available progress indicators
-                format_dict = dict(
-                    n=n, n_fmt=n_fmt, total=total, total_fmt=total_fmt,
-                    percentage=percentage,
-                    rate=inv_rate if inv_rate and inv_rate > 1 else rate,
-                    rate_fmt=rate_fmt, rate_noinv=rate,
-                    rate_noinv_fmt=rate_noinv_fmt, rate_inv=inv_rate,
-                    rate_inv_fmt=rate_inv_fmt,
-                    elapsed=elapsed_str, elapsed_s=elapsed,
-                    remaining=remaining_str, remaining_s=remaining,
-                    l_bar=l_bar, r_bar=r_bar,
-                    desc=prefix or '', postfix=postfix, unit=unit,
-                    # bar=full_bar,  # replaced by procedure below
-                    **extra_kwargs)
+                format_dict.update(l_bar=l_bar, percentage=percentage)
+                # , bar=full_bar  # replaced by procedure below
 
                 # auto-remove colon for empty `desc`
                 if not prefix:
@@ -445,8 +448,11 @@ class tqdm(Comparable):
             # Piece together the bar parts
             return l_bar + full_bar + r_bar
 
-        # no total: no progressbar, ETA, just progress stats
+        elif bar_format:
+            # user-specified bar_format but no total
+            return bar_format.format(bar='?', **format_dict)
         else:
+            # no total: no progressbar, ETA, just progress stats
             return ((prefix + ": ") if prefix else '') + \
                 '{0}{1} [{2}, {3}{4}]'.format(
                     n_fmt, unit, elapsed_str, rate_fmt, postfix)
