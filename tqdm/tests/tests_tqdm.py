@@ -68,16 +68,16 @@ def pos_line_diff(res_list, expected_list, raise_nonempty=True):
     Return differences between two bar output lists.
     To be used with `RE_pos`
     """
-    l = len(res_list)
-    if l < len(expected_list):
-        res = [(None, e) for e in expected_list[l:]]
-    elif l > len(expected_list):
-        res = [(r, None) for r in res_list[l:]]
+    ln = len(res_list)
+    if ln < len(expected_list):
+        res = [(None, e) for e in expected_list[ln:]]
+    elif ln > len(expected_list):
+        res = [(r, None) for r in res_list[ln:]]
     res = [(r, e) for r, e in zip(res_list, expected_list)
            for pos in [len(e)-len(e.lstrip('\n'))]  # bar position
            if not r.startswith(e)  # start matches
            or not (r.endswith('\x1b[A' * pos)  # move up at end
-                   or r=='\n')  # final bar
+                   or r == '\n')  # final bar
            or r[(-1-pos) * len('\x1b[A'):] == '\x1b[A']  # extra move up
     if res and raise_nonempty:
         raise AssertionError(
@@ -827,6 +827,21 @@ def test_infinite_total():
 
 
 @with_setup(pretest, posttest)
+def test_nototal():
+    """Test unknown total length"""
+    with closing(StringIO()) as our_file:
+        for i in tqdm((i for i in range(10)), file=our_file, unit_scale=10):
+            pass
+        assert "100it" in our_file.getvalue()
+
+    with closing(StringIO()) as our_file:
+        for i in tqdm((i for i in range(10)), file=our_file,
+                      bar_format="{l_bar}{bar}{r_bar}"):
+            pass
+        assert "10/?" in our_file.getvalue()
+
+
+@with_setup(pretest, posttest)
 def test_unit():
     """Test SI unit prefix"""
     with closing(StringIO()) as our_file:
@@ -862,6 +877,16 @@ def test_ascii():
     assert u"7%|\u258b" in res[1]
     assert u"13%|\u2588\u258e" in res[2]
     assert u"20%|\u2588\u2588" in res[3]
+
+    # Test custom bar
+    for ascii in [" .oO0", " #"]:
+        with closing(StringIO()) as our_file:
+            for _ in tqdm(_range(len(ascii) - 1), file=our_file, miniters=1,
+                          mininterval=0, ascii=ascii, ncols=1):
+                pass
+            res = our_file.getvalue().strip("\r").split("\r")
+        for bar, line in zip(ascii, res):
+            assert '|' + bar + '|' in line
 
 
 @with_setup(pretest, posttest)
@@ -1205,7 +1230,6 @@ def test_position():
                  '\n\rpos1 bar:   0%',
                  '\n\n\rpos2 bar:   0%']
         pos_line_diff(res, exres)
-
 
         t2.close()
         t4 = tqdm(total=10, file=our_file, desc='pos3 bar', mininterval=0)

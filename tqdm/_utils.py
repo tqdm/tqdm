@@ -188,6 +188,15 @@ def _supports_unicode(fp):
         return False
 
 
+def _is_ascii(s):
+    if isinstance(s, str):
+        for c in s:
+            if ord(c) > 255:
+                return False
+        return True
+    return _supports_unicode(s)
+
+
 def _environ_cols_wrapper():  # pragma: no cover
     """
     Return a function which gets width and height of console

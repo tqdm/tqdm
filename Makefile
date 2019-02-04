@@ -50,6 +50,7 @@ testnose:
 	nosetests tqdm -d -v
 
 testsetup:
+	@make README.rst
 	python setup.py check --restructuredtext --strict
 	python setup.py make none
 
@@ -80,12 +81,16 @@ viewasv:
 	asv preview
 
 tqdm/tqdm.1: .tqdm.1.md
+	# TODO: add to mkdocs.py
 	python -m tqdm --help | tail -n+5 |\
     sed -r -e 's/\\/\\\\/g' \
       -e 's/^  (--.*)=<(.*)>  : (.*)$$/\n\\\1=*\2*\n: \3./' \
       -e 's/  (-.*, )(--.*)  /\n\1\\\2\n: /' |\
     cat "$<" - |\
     pandoc -o "$@" -s -t man
+
+README.rst:
+	@python mkdocs.py
 
 distclean:
 	@+make coverclean
@@ -122,6 +127,7 @@ install:
 
 build:
 	@make prebuildclean
+	@make testsetup
 	python setup.py sdist bdist_wheel
 	# python setup.py bdist_wininst
 
@@ -129,7 +135,6 @@ pypi:
 	twine upload dist/*
 
 buildupload:
-	@make testsetup
 	@make build
 	@make pypi
 

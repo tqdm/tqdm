@@ -13,7 +13,7 @@ from __future__ import division
 # compatibility functions and utilities
 from ._utils import _supports_unicode, _environ_cols_wrapper, _range, _unich, \
     _term_move_up, _unicode, WeakSet, _basestring, _OrderedDict, \
-    Comparable, RE_ANSI, SimpleTextIOWrapper
+    Comparable, RE_ANSI, _is_ascii, SimpleTextIOWrapper
 from ._monitor import TMonitor
 # native libraries
 import sys
@@ -124,6 +124,9 @@ class TqdmDefaultWriteLock(object):
 # Do not create the multiprocessing lock because it sets the multiprocessing
 # context and does not allow the user to use 'spawn' or 'forkserver' methods.
 TqdmDefaultWriteLock.create_th_lock()
+
+ASCII_FMT = " 123456789#"
+UTF_FMT = u" " + u''.join(map(_unich, range(0x258F, 0x2587, -1)))
 
 
 class tqdm(Comparable):
@@ -274,10 +277,10 @@ class tqdm(Comparable):
         prefix  : str, optional
             Prefix message (included in total width) [default: ''].
             Use as {desc} in bar_format string.
-        ascii  : bool, optional
+        ascii  : bool, optional or str, optional
             If not set, use unicode (smooth blocks) to fill the meter
             [default: False]. The fallback is to use ASCII characters
-            (1-9 #).
+            " 123456789#".
         unit  : str, optional
             The iteration unit [default: 'it'].
         unit_scale  : bool or int or float, optional
@@ -296,7 +299,8 @@ class tqdm(Comparable):
               '{rate_fmt}{postfix}]'
             Possible vars: l_bar, bar, r_bar, n, n_fmt, total, total_fmt,
               percentage, rate, rate_fmt, rate_noinv, rate_noinv_fmt,
-              rate_inv, rate_inv_fmt, elapsed, remaining, desc, postfix.
+              rate_inv, rate_inv_fmt, elapsed, elapsed_s,
+              remaining, remaining_s, desc, postfix, unit.
             Note that a trailing ": " is automatically removed after {desc}
             if the latter is empty.
         postfix  : *, optional
@@ -319,14 +323,14 @@ class tqdm(Comparable):
 
         # apply custom scale if necessary
         if unit_scale and unit_scale not in (True, 1):
-            total *= unit_scale
+            if total:
+                total *= unit_scale
             n *= unit_scale
             if rate:
                 rate *= unit_scale  # by default rate = 1 / self.avg_time
             unit_scale = False
 
-        format_interval = tqdm.format_interval
-        elapsed_str = format_interval(elapsed)
+        elapsed_str = tqdm.format_interval(elapsed)
 
         # if unspecified, attempt to use rate = average speed
         # (we allow manual override since predicting time is an arcane art)
@@ -345,15 +349,44 @@ class tqdm(Comparable):
         if unit_scale:
             n_fmt = format_sizeof(n, divisor=unit_divisor)
             total_fmt = format_sizeof(total, divisor=unit_divisor) \
-                if total else None
+                if total is not None else '?'
         else:
             n_fmt = str(n)
-            total_fmt = str(total)
+            total_fmt = str(total) if total is not None else '?'
 
         try:
             postfix = ', ' + postfix if postfix else ''
         except TypeError:
             pass
+
+        remaining = (total - n) / rate if rate and total else 0
+        remaining_str = tqdm.format_interval(remaining) if rate else '?'
+
+        # format the stats displayed to the left and right sides of the bar
+        if prefix:
+            # old prefix setup work around
+            bool_prefix_colon_already = (prefix[-2:] == ": ")
+            l_bar = prefix if bool_prefix_colon_already else prefix + ": "
+        else:
+            l_bar = ''
+
+        r_bar = '| {0}/{1} [{2}<{3}, {4}{5}]'.format(
+            n_fmt, total_fmt, elapsed_str, remaining_str, rate_fmt, postfix)
+
+        # Custom bar formatting
+        # Populate a dict with all available progress indicators
+        format_dict = dict(
+            n=n, n_fmt=n_fmt, total=total, total_fmt=total_fmt,
+            rate=inv_rate if inv_rate and inv_rate > 1 else rate,
+            rate_fmt=rate_fmt, rate_noinv=rate,
+            rate_noinv_fmt=rate_noinv_fmt, rate_inv=inv_rate,
+            rate_inv_fmt=rate_inv_fmt,
+            elapsed=elapsed_str, elapsed_s=elapsed,
+            remaining=remaining_str, remaining_s=remaining,
+            l_bar=l_bar, r_bar=r_bar,
+            desc=prefix or '', postfix=postfix, unit=unit,
+            # bar=full_bar,  # replaced by procedure below
+            **extra_kwargs)
 
         # total is known: we can predict some stats
         if total:
@@ -361,37 +394,14 @@ class tqdm(Comparable):
             frac = n / total
             percentage = frac * 100
 
-            remaining_str = format_interval((total - n) / rate) \
-                if rate else '?'
-
-            # format the stats displayed to the left and right sides of the bar
-            if prefix:
-                # old prefix setup work around
-                bool_prefix_colon_already = (prefix[-2:] == ": ")
-                l_bar = prefix if bool_prefix_colon_already else prefix + ": "
-            else:
-                l_bar = ''
             l_bar += '{0:3.0f}%|'.format(percentage)
-            r_bar = '| {0}/{1} [{2}<{3}, {4}{5}]'.format(
-                n_fmt, total_fmt, elapsed_str, remaining_str, rate_fmt, postfix)
 
             if ncols == 0:
                 return l_bar[:-1] + r_bar[1:]
 
             if bar_format:
-                # Custom bar formatting
-                # Populate a dict with all available progress indicators
-                format_dict = dict(
-                    n=n, n_fmt=n_fmt, total=total, total_fmt=total_fmt,
-                    percentage=percentage,
-                    rate=inv_rate if inv_rate and inv_rate > 1 else rate,
-                    rate_fmt=rate_fmt, rate_noinv=rate,
-                    rate_noinv_fmt=rate_noinv_fmt, rate_inv=inv_rate,
-                    rate_inv_fmt=rate_inv_fmt, elapsed=elapsed_str,
-                    remaining=remaining_str, l_bar=l_bar, r_bar=r_bar,
-                    desc=prefix or '', postfix=postfix,
-                    # bar=full_bar,  # replaced by procedure below
-                    **extra_kwargs)
+                format_dict.update(l_bar=l_bar, percentage=percentage)
+                # , bar=full_bar  # replaced by procedure below
 
                 # auto-remove colon for empty `desc`
                 if not prefix:
@@ -415,34 +425,33 @@ class tqdm(Comparable):
                 N_BARS = 10
 
             # format bar depending on availability of unicode/ascii chars
-            if ascii:
-                bar_length, frac_bar_length = divmod(
-                    int(frac * N_BARS * 10), 10)
+            if ascii is True:
+                ascii = ASCII_FMT
+            elif ascii is False:
+                ascii = UTF_FMT
+            nsyms = len(ascii) - 1
+            bar_length, frac_bar_length = divmod(
+                    int(frac * N_BARS * nsyms), nsyms)
 
-                bar = '#' * bar_length
-                frac_bar = chr(48 + frac_bar_length) if frac_bar_length \
-                    else ' '
-
-            else:
-                bar_length, frac_bar_length = divmod(int(frac * N_BARS * 8), 8)
-
-                bar = _unich(0x2588) * bar_length
-                frac_bar = _unich(0x2590 - frac_bar_length) \
-                    if frac_bar_length else ' '
+            bar = ascii[-1] * bar_length
+            frac_bar = ascii[frac_bar_length]
 
             # whitespace padding
             if bar_length < N_BARS:
                 full_bar = bar + frac_bar + \
-                    ' ' * max(N_BARS - bar_length - 1, 0)
+                    ascii[0] * (N_BARS - bar_length - 1)
             else:
                 full_bar = bar + \
-                    ' ' * max(N_BARS - bar_length, 0)
+                    ascii[0] * (N_BARS - bar_length)
 
             # Piece together the bar parts
             return l_bar + full_bar + r_bar
 
-        # no total: no progressbar, ETA, just progress stats
+        elif bar_format:
+            # user-specified bar_format but no total
+            return bar_format.format(bar='?', **format_dict)
         else:
+            # no total: no progressbar, ETA, just progress stats
             return ((prefix + ": ") if prefix else '') + \
                 '{0}{1} [{2}, {3}{4}]'.format(
                     n_fmt, unit, elapsed_str, rate_fmt, postfix)
@@ -697,12 +706,11 @@ class tqdm(Comparable):
             _Rolling_and_Expanding.progress_apply = inner_generator()
 
     def __init__(self, iterable=None, desc=None, total=None, leave=True,
-                 file=None, write_bytes=None, ncols=None,
-                 mininterval=0.1, maxinterval=10.0,
+                 file=None, ncols=None, mininterval=0.1, maxinterval=10.0,
                  miniters=None, ascii=None, disable=False, unit='it',
                  unit_scale=False, dynamic_ncols=False, smoothing=0.3,
                  bar_format=None, initial=0, position=None, postfix=None,
-                 unit_divisor=1000, gui=False, **kwargs):
+                 unit_divisor=1000, write_bytes=None, gui=False, **kwargs):
         """
         Parameters
         ----------
@@ -729,11 +737,6 @@ class tqdm(Comparable):
             parameter is not specified, otherwise unicode will be written to
             the file.  This behavior can be overridden by passing `True` or
             `False` to `write_bytes`.
-        write_bytes  : bool or None, optional
-            Not passing or passing None will result in default behavior as
-            described by the `file` attribute.  Passing `True` will force
-            bytes to be written while passing `False` will force unicode to
-            be written.
         ncols  : int, optional
             The width of the entire output message. If specified,
             dynamically resizes the progressbar to stay within this bound.
@@ -755,9 +758,9 @@ class tqdm(Comparable):
             Tweak this and `mininterval` to get very efficient loops.
             If your progress is erratic with both fast and slow iterations
             (network, skipping items, etc) you should set miniters=1.
-        ascii  : bool, optional
+        ascii  : bool or str, optional
             If unspecified or False, use unicode (smooth blocks) to fill
-            the meter. The fallback is to use ASCII characters `1-9 #`.
+            the meter. The fallback is to use ASCII characters " 123456789#".
         disable  : bool, optional
             Whether to disable the entire progressbar wrapper
             [default: False]. If set to None, disable on non-TTY.
@@ -785,7 +788,8 @@ class tqdm(Comparable):
               '{rate_fmt}{postfix}]'
             Possible vars: l_bar, bar, r_bar, n, n_fmt, total, total_fmt,
               percentage, rate, rate_fmt, rate_noinv, rate_noinv_fmt,
-              rate_inv, rate_inv_fmt, elapsed, remaining, desc, postfix.
+              rate_inv, rate_inv_fmt, elapsed, elapsed_s, remaining,
+              remaining_s, desc, postfix, unit.
             Note that a trailing ": " is automatically removed after {desc}
             if the latter is empty.
         initial  : int, optional
@@ -800,6 +804,11 @@ class tqdm(Comparable):
             Calls `set_postfix(**postfix)` if possible (dict).
         unit_divisor  : float, optional
             [default: 1000], ignored unless `unit_scale` is True.
+        write_bytes  : bool or None, optional
+            Not passing or passing None will result in default behavior as
+            described by the `file` attribute.  Passing `True` will force
+            bytes to be written while passing `False` will force unicode to
+            be written.
         gui  : bool, optional
             WARNING: internal parameter - do not use.
             Use tqdm_gui(...) instead. If set, will attempt to use
@@ -891,7 +900,7 @@ class tqdm(Comparable):
         if ascii is None:
             ascii = not _supports_unicode(file)
 
-        if bar_format and not ascii:
+        if bar_format and not ((ascii is True) or _is_ascii(ascii)):
             # Convert bar format into unicode since terminal uses unicode
             bar_format = _unicode(bar_format)
 

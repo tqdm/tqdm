@@ -99,7 +99,7 @@ CLI_EXTRA_DOC = r"""
         Extra CLI Options
         -----------------
         name  : type, optional
-             TODO: find out why this is needed.
+            TODO: find out why this is needed.
         delim  : chr, optional
             Delimiting character [default: '\n']. Use '\0' for null.
             N.B.: on Windows systems, Python converts '\n' to '\r\n'.
