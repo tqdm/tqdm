@@ -824,6 +824,16 @@ def test_ascii():
     assert "13%|\u2588\u258e" in res[2]
     assert "20%|\u2588\u2588" in res[3]
 
+    # Test custom bar
+    for ascii in [" .oO0", " #"]:
+        with closing(StringIO()) as our_file:
+            for _ in tqdm(_range(len(ascii) - 1), file=our_file, miniters=1,
+                          mininterval=0, ascii=ascii, ncols=1):
+                pass
+            res = our_file.getvalue().strip("\r").split("\r")
+        for bar, line in zip(ascii, res):
+            assert '|' + bar + '|' in line
+
 
 @with_setup(pretest, posttest)
 def test_update():

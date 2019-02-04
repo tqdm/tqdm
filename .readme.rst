@@ -434,7 +434,7 @@ Points to remember when using ``{postfix[...]}`` in the ``bar_format`` string:
   where the key is not a string.
 
 Additional ``bar_format`` parameters may also be defined by overriding
-``format_dict``:
+``format_dict``, and the bar itself may be modified using ``ascii``:
 
 .. code:: python
 
@@ -449,9 +449,13 @@ Additional ``bar_format`` parameters may also be defined by overriding
             return d
 
     for i in TqdmExtraFormat(
-          range(10),
+          range(10), ascii=" .oO0",
           bar_format="{total_time}: {percentage:.0f}%|{bar}{r_bar}"):
         pass
+
+.. code::
+
+    00:01 in total: 40%|000o     | 4/10 [00:00<00:00,  9.96it/s]
 
 Nested progress bars
 ~~~~~~~~~~~~~~~~~~~~
