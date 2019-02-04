@@ -243,7 +243,8 @@ class tqdm_gui(tqdm):  # pragma: no cover
                 # EMA (not just overall average)
                 if self.smoothing and delta_t and delta_it:
                     rate = delta_t / delta_it
-                    self.avg_time = self.ema(rate, self.avg_time, self.smoothing)
+                    self.avg_time = self.ema(
+                        rate, self.avg_time, self.smoothing)
 
                 # Inline due to multiple calls
                 total = self.total

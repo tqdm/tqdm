@@ -1,8 +1,7 @@
 *.py[cod]
+
+# C extensions
 *.so
-/wiki/
-/docs/
-/feedstock/
 
 # Packages
 tqdm.egg-info
@@ -13,6 +12,7 @@ dist/
 .tox/
 .coverage
 __pycache__
+nosetests.xml
 
 # Translations
 *.mo
@@ -25,6 +25,14 @@ __pycache__
 # PyCharm
 .idea
 
+# IPython
+.ipynb_checkpoints
+
 # asv
 .asv/
 benchmarks/*.py[co]
+
+# Sumbodules
+/wiki/
+/docs/
+/feedstock/

@@ -195,6 +195,8 @@ Options:
         delim = tqdm_args.pop('delim', '\n')
         delim_per_char = tqdm_args.pop('bytes', False)
         manpath = tqdm_args.pop('manpath', None)
+        stdin = getattr(sys.stdin, 'buffer', sys.stdin)
+        stdout = getattr(sys.stdout, 'buffer', sys.stdout)
         if manpath is not None:
             from os import path
             from shutil import copyfile
@@ -210,14 +212,12 @@ Options:
             tqdm_args.setdefault('unit_divisor', 1024)
             log.debug(tqdm_args)
             with tqdm(**tqdm_args) as t:
-                posix_pipe(sys.stdin, sys.stdout,
-                           '', buf_size, t.update)
+                posix_pipe(stdin, stdout, '', buf_size, t.update)
         elif delim == '\n':
             log.debug(tqdm_args)
-            for i in tqdm(sys.stdin, **tqdm_args):
-                sys.stdout.write(i)
+            for i in tqdm(stdin, **tqdm_args):
+                stdout.write(i)
         else:
             log.debug(tqdm_args)
             with tqdm(**tqdm_args) as t:
-                posix_pipe(sys.stdin, sys.stdout,
-                           delim, buf_size, t.update)
+                posix_pipe(stdin, stdout, delim, buf_size, t.update)

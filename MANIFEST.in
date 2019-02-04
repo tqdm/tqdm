@@ -9,6 +9,7 @@ include tox.ini
 
 # Test suite
 recursive-include tqdm/tests *.py
+include requirements-dev.txt
 
 # Sub-packages
 recursive-include tqdm/autonotebook *.py

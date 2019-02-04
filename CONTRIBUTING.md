@@ -13,6 +13,8 @@ make [<alias>]  # on UNIX-like environments
 python setup.py make [<alias>]  # if make is unavailable
 ```
 
+The latter depends on [`py-make>=0.1.0`](https://github.com/tqdm/py-make).
+
 Use the alias `help` (or leave blank) to list all available aliases.
 
 
@@ -80,9 +82,11 @@ Alternatively, use `nose` to run the tests just for the current Python version:
 This section is intended for the project's maintainers and describes
 how to build and upload a new release. Once again,
 `[python setup.py] make [<alias>]` will help.
+Also consider `pip install`ing development utilities:
+`-r requirements-dev.txt` or `tqdm[dev]`.
 
 
-## SEMANTIC VERSIONING
+## Semantic Versioning
 
 The tqdm repository managers should:
 
@@ -97,7 +101,7 @@ Note: tools can be used to automate this process, such as
 [python-semanticversion](https://github.com/rbarrois/python-semanticversion/).
 
 
-## CHECKING SETUP.PY
+## Checking setup.py
 
 To check that the `setup.py` file is compliant with PyPi requirements (e.g.
 version number; reStructuredText in README.rst) use:
@@ -114,7 +118,7 @@ to PyPi, use:
 ```
 
 
-## MERGING PULL REQUESTS
+## Merging Pull Requests
 
 This section describes how to cleanly merge PRs.
 
@@ -164,7 +168,7 @@ git merge --no-ff pr-branch-name
 
 ### 5 Version
 
-Modify tqdm/_version.py and amend the last (merge) commit:
+Modify `tqdm/_version.py` and amend the last (merge) commit:
 
 ```
 git add tqdm/_version.py
@@ -178,7 +182,7 @@ git push origin master
 ```
 
 
-## BUILDING A RELEASE AND UPLOADING TO PYPI
+## Building a Release and Uploading to PyPI
 
 Formally publishing requires additional steps: testing and tagging.
 
@@ -199,7 +203,7 @@ display as `v{major}.{minor}.{patch}-{commit_hash}`.
 
 ### Upload
 
-Build tqdm into a distributable python package:
+Build `tqdm` into a distributable python package:
 
 ```
 [python setup.py] make build
@@ -233,20 +237,19 @@ cannot re-upload another with the same version number
 updating just the metadata is possible: `[python setup.py] make pypimeta`
 
 
-## UPDATING GH-PAGES
+## Updating Websites
 
-The most important file is README.rst, which sould always be kept up-to-date
+The most important file is `README.rst`, which sould always be kept up-to-date
 and in sync with the in-line source documentation. This will affect all of the
 following:
 
 - The [main repository site](https://github.com/tqdm/tqdm) which automatically
-  serves the latest README.rst as well as links to all of github's features.
-  This is the preferred online referral link for tqdm.
+  serves the latest `README.rst` as well as links to all of github's features.
+  This is the preferred online referral link for `tqdm`.
 - The [PyPi mirror](https://pypi.org/project/tqdm) which automatically
-  serves the latest release built from README.rst as well as links to past
+  serves the latest release built from `README.rst` as well as links to past
   releases.
 - Many external web crawlers.
-
 
 Additionally (less maintained), there exists:
 
@@ -276,7 +279,7 @@ For experienced devs, once happy with local master:
     b) `twine upload -s -i $(git config user.signingkey) dist/tqdm-*`
 10. create new release on https://github.com/tqdm/tqdm/releases
     a) add helpful release notes
-    b) attach dist/tqdm-* binaries (usually only *.whl*)
+    b) attach `dist/tqdm-*` binaries (usually only `*.whl*`)
 11. run `make` in the `wiki` submodule to update release notes
 12. run `make deploy` in the `docs` submodule to update website
 13. accept the automated PR in the `feedstock` submodule to update conda
