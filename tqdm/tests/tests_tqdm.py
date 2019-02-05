@@ -343,7 +343,6 @@ class WriteTypeChecker(BytesIO):
     """File-like to assert the expected type is written"""
     def __init__(self, expected_type):
         super(WriteTypeChecker, self).__init__()
-
         self.expected_type = expected_type
 
     def write(self, s):
@@ -366,18 +365,15 @@ def test_native_string_io_for_default_file():
 @with_setup(pretest, posttest)
 def test_unicode_string_io_for_specified_file():
     """Unicode strings written to specified files"""
-    f = WriteTypeChecker(expected_type=type(u''))
-
-    for _ in tqdm(range(3), file=f):
+    for _ in tqdm(range(3), file=WriteTypeChecker(expected_type=type(u''))):
         pass
 
 
 @with_setup(pretest, posttest)
 def test_byte_string_io_for_specified_file_with_forced_bytes():
     """Byte strings written to specified files when forced"""
-    f = WriteTypeChecker(expected_type=type(b''))
-
-    for _ in tqdm(range(3), file=f, write_bytes=True):
+    for _ in tqdm(range(3), file=WriteTypeChecker(expected_type=type(b'')),
+                  write_bytes=True):
         pass
 
 

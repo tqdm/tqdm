@@ -89,7 +89,7 @@ tqdm/tqdm.1: .tqdm.1.md
     cat "$<" - |\
     pandoc -o "$@" -s -t man
 
-README.rst:
+README.rst: .readme.rst tqdm/_tqdm.py tqdm/_main.py
 	@python mkdocs.py
 
 distclean:

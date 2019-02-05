@@ -301,7 +301,7 @@ Parameters
 * file  : ``io.TextIOWrapper`` or ``io.StringIO``, optional  
     Specifies where to output the progress messages
     (default: sys.stderr). Uses ``file.write(str)`` and ``file.flush()``
-    methods.
+    methods.  For encoding, see ``write_bytes``.
 * ncols  : int, optional  
     The width of the entire output message. If specified,
     dynamically resizes the progressbar to stay within this bound.
@@ -369,6 +369,10 @@ Parameters
     Calls ``set_postfix(**postfix)`` if possible (dict).
 * unit_divisor  : float, optional  
     [default: 1000], ignored unless ``unit_scale`` is True.
+* write_bytes  : bool, optional  
+    If (default: None) and ``file`` is unspecified,
+    bytes will be written in Python 2. If ``True`` will also write
+    bytes. In all other cases will default to unicode.
 
 Extra CLI Options
 ~~~~~~~~~~~~~~~~~

@@ -733,10 +733,7 @@ class tqdm(Comparable):
         file  : `io.TextIOWrapper` or `io.StringIO`, optional
             Specifies where to output the progress messages
             (default: sys.stderr). Uses `file.write(str)` and `file.flush()`
-            methods.  Bytes will be written if running in Python 2 and this
-            parameter is not specified, otherwise unicode will be written to
-            the file.  This behavior can be overridden by passing `True` or
-            `False` to `write_bytes`.
+            methods.  For encoding, see `write_bytes`.
         ncols  : int, optional
             The width of the entire output message. If specified,
             dynamically resizes the progressbar to stay within this bound.
@@ -804,11 +801,10 @@ class tqdm(Comparable):
             Calls `set_postfix(**postfix)` if possible (dict).
         unit_divisor  : float, optional
             [default: 1000], ignored unless `unit_scale` is True.
-        write_bytes  : bool or None, optional
-            Not passing or passing None will result in default behavior as
-            described by the `file` attribute.  Passing `True` will force
-            bytes to be written while passing `False` will force unicode to
-            be written.
+        write_bytes  : bool, optional
+            If (default: None) and `file` is unspecified,
+            bytes will be written in Python 2. If `True` will also write
+            bytes. In all other cases will default to unicode.
         gui  : bool, optional
             WARNING: internal parameter - do not use.
             Use tqdm_gui(...) instead. If set, will attempt to use
@@ -818,23 +814,17 @@ class tqdm(Comparable):
         -------
         out  : decorated iterator.
         """
-
         if write_bytes is None:
-            write_bytes = (file is None) and (sys.version_info < (3,))
+            write_bytes = file is None and sys.version_info < (3,)
 
         if file is None:
             file = sys.stderr
 
         if write_bytes:
-            # Despite coercing unicode into bytes, the std streams in
-            # in Python 2 should have bytes written to them.  This is
-            # particularly important when a test framework or such
-            # substitutes a file-like for stdout or stderr that expects bytes
-            # and does not coerce unicode.
-
-            encoding = getattr(file, 'encoding', 'utf-8')
-
-            file = SimpleTextIOWrapper(file, encoding=encoding)
+            # Despite coercing unicode into bytes, py2 sys.std* streams
+            # should have bytes written to them.
+            file = SimpleTextIOWrapper(
+                file, encoding=getattr(file, 'encoding', 'utf-8'))
 
         if disable is None and hasattr(file, "isatty") and not file.isatty():
             disable = True

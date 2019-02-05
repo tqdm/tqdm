@@ -143,22 +143,20 @@ class Comparable(object):
 
 
 class SimpleTextIOWrapper(object):
-    """Change only `.write()` of the wrapped object by encoding the passed
+    """
+    Change only `.write()` of the wrapped object by encoding the passed
     value and passing the result to the wrapped object's `.write()` method.
     """
-
     # pylint: disable=too-few-public-methods
-
     def __init__(self, wrapped, encoding):
         object.__setattr__(self, '_wrapped', wrapped)
         object.__setattr__(self, 'encoding', encoding)
 
     def write(self, s):
-        """Encode `s` and pass the result to the wrapped object's `.write()`
-        method.
         """
-        b = s.encode(getattr(self, 'encoding'))
-        return getattr(self, '_wrapped').write(b)
+        Encode `s` and pass to the wrapped object's `.write()` method.
+        """
+        return getattr(self, '_wrapped').write(s.encode(getattr(self, 'encoding')))
 
     def __getattr__(self, name):
         return getattr(self._wrapped, name)
