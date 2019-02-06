@@ -658,7 +658,7 @@ class tqdm(Comparable):
 
                 if len(args) > 0:
                     # *args intentionally not supported (see #244, #299)
-                    TqdmDeprecationWarning(
+                    raise TqdmDeprecationWarning(
                         "Except func, normal arguments are intentionally" +
                         " not supported by" +
                         " `(DataFrame|Series|GroupBy).progress_apply`." +

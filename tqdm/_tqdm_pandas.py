@@ -35,7 +35,7 @@ def tqdm_pandas(tclass, *targs, **tkwargs):
 
     if isinstance(tclass, type) or (getattr(tclass, '__name__', '').startswith(
             'tqdm_')):  # delayed adapter case
-        TqdmDeprecationWarning("""\
+        raise TqdmDeprecationWarning("""\
 Please use `tqdm.pandas(...)` instead of `tqdm_pandas(tqdm, ...)`.
 """, fp_write=getattr(tkwargs.get('file', None), 'write', sys.stderr.write))
         tclass.pandas(*targs, **tkwargs)
