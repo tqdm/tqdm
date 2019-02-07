@@ -576,7 +576,9 @@ available to keep nested bars on their respective lines.
 
 For manual control over positioning (e.g. for multi-threaded use),
 you may specify ``position=n`` where ``n=0`` for the outermost bar,
-``n=1`` for the next, and so on:
+``n=1`` for the next, and so on. If the first position starts at ``0`` it will
+print a newline, so you may want to start with ``1`` to prevent the other 
+progress bars from shifting down:
 
 .. code:: python
 
