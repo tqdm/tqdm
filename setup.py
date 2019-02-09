@@ -46,8 +46,6 @@ setup(
     description='Fast, Extensible Progress Meter',
     long_description=README_rst,
     license='MPLv2.0, MIT Licences',
-    author='Noam Yorav-Raphael',
-    author_email='noamraph@gmail.com',
     url='https://github.com/tqdm/tqdm',
     maintainer='tqdm developers',
     maintainer_email='python.tqdm@gmail.com',

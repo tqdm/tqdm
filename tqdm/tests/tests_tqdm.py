@@ -1,8 +1,6 @@
 # Advice: use repr(our_file.read()) to print the full output of tqdm
 # (else '\r' will replace the previous lines and you'll see only the latest.
 
-from __future__ import unicode_literals
-
 import sys
 import csv
 import re
@@ -21,6 +19,7 @@ try:
 except ImportError:
     from io import StringIO
 
+from io import BytesIO
 from io import IOBase  # to support unicode strings
 
 
@@ -69,16 +68,16 @@ def pos_line_diff(res_list, expected_list, raise_nonempty=True):
     Return differences between two bar output lists.
     To be used with `RE_pos`
     """
-    l = len(res_list)
-    if l < len(expected_list):
-        res = [(None, e) for e in expected_list[l:]]
-    elif l > len(expected_list):
-        res = [(r, None) for r in res_list[l:]]
+    ln = len(res_list)
+    if ln < len(expected_list):
+        res = [(None, e) for e in expected_list[ln:]]
+    elif ln > len(expected_list):
+        res = [(r, None) for r in res_list[ln:]]
     res = [(r, e) for r, e in zip(res_list, expected_list)
            for pos in [len(e)-len(e.lstrip('\n'))]  # bar position
            if not r.startswith(e)  # start matches
            or not (r.endswith('\x1b[A' * pos)  # move up at end
-                   or r=='\n')  # final bar
+                   or r == '\n')  # final bar
            or r[(-1-pos) * len('\x1b[A'):] == '\x1b[A']  # extra move up
     if res and raise_nonempty:
         raise AssertionError(
@@ -338,6 +337,57 @@ def test_all_defaults():
     # except:
     #     pass
     sys.stderr.write('\rTest default kwargs ... ')
+
+
+class WriteTypeChecker(BytesIO):
+    """File-like to assert the expected type is written"""
+    def __init__(self, expected_type):
+        super(WriteTypeChecker, self).__init__()
+        self.expected_type = expected_type
+
+    def write(self, s):
+        assert isinstance(s, self.expected_type)
+
+
+@with_setup(pretest, posttest)
+def test_native_string_io_for_default_file():
+    """Native strings written to unspecified files"""
+    stderr = sys.stderr
+    try:
+        sys.stderr = WriteTypeChecker(expected_type=type(''))
+
+        for _ in tqdm(range(3)):
+            pass
+    finally:
+        sys.stderr = stderr
+
+
+@with_setup(pretest, posttest)
+def test_unicode_string_io_for_specified_file():
+    """Unicode strings written to specified files"""
+    for _ in tqdm(range(3), file=WriteTypeChecker(expected_type=type(u''))):
+        pass
+
+
+@with_setup(pretest, posttest)
+def test_byte_string_io_for_specified_file_with_forced_bytes():
+    """Byte strings written to specified files when forced"""
+    for _ in tqdm(range(3), file=WriteTypeChecker(expected_type=type(b'')),
+                  write_bytes=True):
+        pass
+
+
+@with_setup(pretest, posttest)
+def test_unicode_string_io_for_unspecified_file_with_forced_unicode():
+    """Unicode strings written to unspecified file when forced"""
+    stderr = sys.stderr
+    try:
+        sys.stderr = WriteTypeChecker(expected_type=type(u''))
+
+        for _ in tqdm(range(3), write_bytes=False):
+            pass
+    finally:
+        sys.stderr = stderr
 
 
 @with_setup(pretest, posttest)
@@ -773,6 +823,21 @@ def test_infinite_total():
 
 
 @with_setup(pretest, posttest)
+def test_nototal():
+    """Test unknown total length"""
+    with closing(StringIO()) as our_file:
+        for i in tqdm((i for i in range(10)), file=our_file, unit_scale=10):
+            pass
+        assert "100it" in our_file.getvalue()
+
+    with closing(StringIO()) as our_file:
+        for i in tqdm((i for i in range(10)), file=our_file,
+                      bar_format="{l_bar}{bar}{r_bar}"):
+            pass
+        assert "10/?" in our_file.getvalue()
+
+
+@with_setup(pretest, posttest)
 def test_unit():
     """Test SI unit prefix"""
     with closing(StringIO()) as our_file:
@@ -805,9 +870,19 @@ def test_ascii():
             for _ in _range(3):
                 t.update()
         res = our_file.getvalue().strip("\r").split("\r")
-    assert "7%|\u258b" in res[1]
-    assert "13%|\u2588\u258e" in res[2]
-    assert "20%|\u2588\u2588" in res[3]
+    assert u"7%|\u258b" in res[1]
+    assert u"13%|\u2588\u258e" in res[2]
+    assert u"20%|\u2588\u2588" in res[3]
+
+    # Test custom bar
+    for ascii in [" .oO0", " #"]:
+        with closing(StringIO()) as our_file:
+            for _ in tqdm(_range(len(ascii) - 1), file=our_file, miniters=1,
+                          mininterval=0, ascii=ascii, ncols=1):
+                pass
+            res = our_file.getvalue().strip("\r").split("\r")
+        for bar, line in zip(ascii, res):
+            assert '|' + bar + '|' in line
 
 
 @with_setup(pretest, posttest)
@@ -1151,7 +1226,6 @@ def test_position():
                  '\n\rpos1 bar:   0%',
                  '\n\n\rpos2 bar:   0%']
         pos_line_diff(res, exres)
-
 
         t2.close()
         t4 = tqdm(total=10, file=our_file, desc='pos3 bar', mininterval=0)

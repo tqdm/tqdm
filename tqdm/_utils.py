@@ -142,6 +142,30 @@ class Comparable(object):
         return not self < other
 
 
+class SimpleTextIOWrapper(object):
+    """
+    Change only `.write()` of the wrapped object by encoding the passed
+    value and passing the result to the wrapped object's `.write()` method.
+    """
+    # pylint: disable=too-few-public-methods
+    def __init__(self, wrapped, encoding):
+        object.__setattr__(self, '_wrapped', wrapped)
+        object.__setattr__(self, 'encoding', encoding)
+
+    def write(self, s):
+        """
+        Encode `s` and pass to the wrapped object's `.write()` method.
+        """
+        return getattr(self, '_wrapped').write(s.encode(getattr(
+            self, 'encoding')))
+
+    def __getattr__(self, name):
+        return getattr(self._wrapped, name)
+
+    def __setattr__(self, name, value):  # pragma: no cover
+        return setattr(self._wrapped, name, value)
+
+
 def _is_utf(encoding):
     try:
         u'\u2588\u2589'.encode(encoding)
@@ -161,6 +185,15 @@ def _supports_unicode(fp):
         return _is_utf(fp.encoding)
     except AttributeError:
         return False
+
+
+def _is_ascii(s):
+    if isinstance(s, str):
+        for c in s:
+            if ord(c) > 255:
+                return False
+        return True
+    return _supports_unicode(s)
 
 
 def _environ_cols_wrapper():  # pragma: no cover
