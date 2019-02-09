@@ -32,7 +32,7 @@ __licence__ = "MPLv2.0"
 __version__ = "0.2.1"
 __license__ = __licence__
 
-RE_SCN = re.compile("([0-9]+)\s+([0-9]+)\s+(.*)$", flags=re.M)
+RE_SCN = re.compile(r"([0-9]+)\s+([0-9]+)\s+(.*)$", flags=re.M)
 
 
 def main():
@@ -90,26 +90,26 @@ def main():
                             l_raw = m.readline()
                         except IOError:
                             break
-                        l = l_raw.strip()
-                        if l.startswith("Extracting"):
-                            exname = l.lstrip("Extracting").lstrip()
+                        ln = l_raw.strip()
+                        if ln.startswith("Extracting"):
+                            exname = ln.lstrip("Extracting").lstrip()
                             s = fcomp.get(exname, 0)  # 0 is likely folders
                             t.update(s)
                             tall.update(s)
-                        elif l:
+                        elif ln:
                             if not any(
-                                    l.startswith(i)
+                                    ln.startswith(i)
                                     for i in ("7-Zip ", "p7zip Version ",
                                               "Everything is Ok", "Folders: ",
                                               "Files: ", "Size: ",
                                               "Compressed: ")):
-                                if l.startswith("Processing archive: "):
+                                if ln.startswith("Processing archive: "):
                                     if not args.silent:
                                         t.write(t.format_interval(
                                             t.start_t - tall.start_t) + ' ' +
-                                            l.lstrip("Processing archive: "))
+                                            ln.lstrip("Processing archive: "))
                                 else:
-                                    t.write(l)
+                                    t.write(ln)
             ex.wait()
 
 
