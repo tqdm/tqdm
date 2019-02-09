@@ -900,6 +900,7 @@ The main developers, ranked by surviving lines of code
 - Guangshuo Chen (`chengs <https://github.com/chengs>`__, ~1%)
 - Hadrien Mary (`hadim <https://github.com/hadim>`__, ~1%)
 - Mikhail Korobov (`kmike <https://github.com/kmike>`__, ~1%)
+- Kyle Altendorf (`altendky <https://github.com/altendky>`__, ~1%)
 
 There are also many |GitHub-Contributions| which we are grateful for.
 
