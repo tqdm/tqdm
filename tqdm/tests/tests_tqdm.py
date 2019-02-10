@@ -74,11 +74,11 @@ def pos_line_diff(res_list, expected_list, raise_nonempty=True):
     elif ln > len(expected_list):
         res = [(r, None) for r in res_list[ln:]]
     res = [(r, e) for r, e in zip(res_list, expected_list)
-           for pos in [len(e)-len(e.lstrip('\n'))]  # bar position
+           for pos in [len(e) - len(e.lstrip('\n'))]  # bar position
            if not r.startswith(e)  # start matches
            or not (r.endswith('\x1b[A' * pos)  # move up at end
                    or r == '\n')  # final bar
-           or r[(-1-pos) * len('\x1b[A'):] == '\x1b[A']  # extra move up
+           or r[(-1 - pos) * len('\x1b[A'):] == '\x1b[A']  # extra move up
     if res and raise_nonempty:
         raise AssertionError(
             "Got => Expected\n" + '\n'.join('"%r" => "%r"' % i for i in res))
@@ -355,21 +355,9 @@ def test_native_string_io_for_default_file():
     stderr = sys.stderr
     try:
         sys.stderr = WriteTypeChecker(expected_type=type(''))
-
         for _ in tqdm(range(3)):
             pass
-    finally:
-        sys.stderr = stderr
-
-
-@with_setup(pretest, posttest)
-def test_native_string_io_for_default_file_with_encoding_none():
-    """Native strings written to unspecified files"""
-    stderr = sys.stderr
-    try:
-        sys.stderr = WriteTypeChecker(expected_type=type(''))
-        sys.stderr.encoding = None
-
+        sys.stderr.encoding = None  # py2 behaviour
         for _ in tqdm(range(3)):
             pass
     finally:
@@ -384,20 +372,16 @@ def test_unicode_string_io_for_specified_file():
 
 
 @with_setup(pretest, posttest)
-def test_byte_string_io_for_specified_file_with_forced_bytes():
-    """Byte strings written to specified files when forced"""
+def test_write_bytes():
+    """Test write_bytes argument with and without `file`"""
+    # specified file (and bytes)
     for _ in tqdm(range(3), file=WriteTypeChecker(expected_type=type(b'')),
                   write_bytes=True):
         pass
-
-
-@with_setup(pretest, posttest)
-def test_unicode_string_io_for_unspecified_file_with_forced_unicode():
-    """Unicode strings written to unspecified file when forced"""
+    # unspecified file (and unicode)
     stderr = sys.stderr
     try:
         sys.stderr = WriteTypeChecker(expected_type=type(u''))
-
         for _ in tqdm(range(3), write_bytes=False):
             pass
     finally:

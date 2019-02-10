@@ -41,7 +41,7 @@ all:
 
 flake8:
 	@+flake8 --max-line-length=80 --exclude .asv,.tox,.ipynb_checkpoints,build \
-    -j 8 --count --statistics --exit-zero .
+    --ignore=W503,W504 -j 8 --count --statistics --exit-zero .
 
 test:
 	tox --skip-missing-interpreters

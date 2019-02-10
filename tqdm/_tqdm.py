@@ -431,7 +431,7 @@ class tqdm(Comparable):
                 ascii = UTF_FMT
             nsyms = len(ascii) - 1
             bar_length, frac_bar_length = divmod(
-                    int(frac * N_BARS * nsyms), nsyms)
+                int(frac * N_BARS * nsyms), nsyms)
 
             bar = ascii[-1] * bar_length
             frac_bar = ascii[frac_bar_length]
