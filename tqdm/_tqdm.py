@@ -431,7 +431,7 @@ class tqdm(Comparable):
                 ascii = UTF_FMT
             nsyms = len(ascii) - 1
             bar_length, frac_bar_length = divmod(
-                    int(frac * N_BARS * nsyms), nsyms)
+                int(frac * N_BARS * nsyms), nsyms)
 
             bar = ascii[-1] * bar_length
             frac_bar = ascii[frac_bar_length]
@@ -824,7 +824,7 @@ class tqdm(Comparable):
             # Despite coercing unicode into bytes, py2 sys.std* streams
             # should have bytes written to them.
             file = SimpleTextIOWrapper(
-                file, encoding=getattr(file, 'encoding', 'utf-8'))
+                file, encoding=getattr(file, 'encoding', None) or 'utf-8')
 
         if disable is None and hasattr(file, "isatty") and not file.isatty():
             disable = True

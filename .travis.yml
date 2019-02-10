@@ -22,6 +22,8 @@ matrix:
   - python: 3.6
     env: TOXENV=flake8
   - python: 3.6
+    env: TOXENV=setup.py
+  - python: 3.6
     env: TOXENV=perf
 # use cache for big builds like pandas (to minimise build time).
 # If issues, clear cache
