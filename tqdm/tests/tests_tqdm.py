@@ -363,6 +363,20 @@ def test_native_string_io_for_default_file():
 
 
 @with_setup(pretest, posttest)
+def test_native_string_io_for_default_file_with_encoding_none():
+    """Native strings written to unspecified files"""
+    stderr = sys.stderr
+    try:
+        sys.stderr = WriteTypeChecker(expected_type=type(''))
+        sys.stderr.encoding = None
+
+        for _ in tqdm(range(3)):
+            pass
+    finally:
+        sys.stderr = stderr
+
+
+@with_setup(pretest, posttest)
 def test_unicode_string_io_for_specified_file():
     """Unicode strings written to specified files"""
     for _ in tqdm(range(3), file=WriteTypeChecker(expected_type=type(u''))):
