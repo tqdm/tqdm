@@ -828,7 +828,7 @@ class tqdm(Comparable):
             if encoding is None:
                 encoding = 'utf-8'
 
-             file = SimpleTextIOWrapper(file, encoding=encoding)
+            file = SimpleTextIOWrapper(file, encoding=encoding)
 
         if disable is None and hasattr(file, "isatty") and not file.isatty():
             disable = True
