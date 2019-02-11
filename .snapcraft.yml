@@ -1,0 +1,18 @@
+name: tqdm
+version: '{version}'
+summary: A fast, extensible progress bar for Python and CLI
+description: |
+  {description}
+grade: stable
+confinement: strict
+base: core18
+icon: {icon}
+parts:
+  tqdm:
+    plugin: python
+    python-version: python3
+    source: {source}
+    source-commit: {commit}
+apps:
+  tqdm:
+    command: bin/tqdm
