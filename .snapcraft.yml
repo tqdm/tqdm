@@ -1,6 +1,5 @@
 name: tqdm
-version: '1.0'
-version-script: python -m tqdm --version
+version: '{version}'
 summary: A fast, extensible progress bar for Python and CLI
 description: |
   {description}
