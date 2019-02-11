@@ -16,5 +16,3 @@ parts:
 apps:
   tqdm:
     command: bin/tqdm
-    plugs:
-      - home
