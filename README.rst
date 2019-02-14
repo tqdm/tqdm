@@ -3,7 +3,7 @@
 tqdm
 ====
 
-|PyPI-Versions| |PyPI-Status| |Conda-Forge-Status|
+|PyPI-Versions| |PyPI-Status| |Conda-Forge-Status| |Snapcraft|
 
 |Build-Status| |Coverage-Status| |Branch-Coverage-Status| |Codacy-Grade| |Libraries-Rank| |PyPI-Downloads|
 
@@ -942,6 +942,8 @@ There are also many |GitHub-Contributions| which we are grateful for.
    :target: https://pypi.org/project/tqdm
 .. |Conda-Forge-Status| image:: https://img.shields.io/conda/v/conda-forge/tqdm.svg?label=conda-forge
    :target: https://anaconda.org/conda-forge/tqdm
+.. |Snapcraft| image:: https://img.shields.io/badge/snap-install-82BEA0.svg?logo=snapcraft
+   :target: https://snapcraft.io/tqdm
 .. |Libraries-Rank| image:: https://img.shields.io/librariesio/sourcerank/pypi/tqdm.svg?logo=koding&logoColor=white
    :target: https://libraries.io/pypi/tqdm
 .. |Libraries-Dependents| image:: https://img.shields.io/librariesio/dependent-repos/pypi/tqdm.svg?logo=koding&logoColor=white
