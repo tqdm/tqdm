@@ -36,6 +36,7 @@ grade: stable
 confinement: strict
 base: core18
 icon: {icon}
+license: MPL-2.0
 parts:
   tqdm:
     plugin: python
