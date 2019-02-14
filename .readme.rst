@@ -98,6 +98,15 @@ Latest Conda release
 
     conda install -c conda-forge tqdm
 
+Latest Snapcraft release
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+|Snapcraft|
+
+.. code:: sh
+
+    snap install tqdm
+
 
 Changelog
 ---------

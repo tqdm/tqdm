@@ -98,6 +98,15 @@ Latest Conda release
 
     conda install -c conda-forge tqdm
 
+Latest Snapcraft release
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+|Snapcraft|
+
+.. code:: sh
+
+    snap install tqdm
+
 
 Changelog
 ---------
@@ -940,7 +949,7 @@ There are also many |GitHub-Contributions| which we are grateful for.
    :target: https://pypi.org/project/tqdm
 .. |PyPI-Versions| image:: https://img.shields.io/pypi/pyversions/tqdm.svg?logo=python&logoColor=white
    :target: https://pypi.org/project/tqdm
-.. |Conda-Forge-Status| image:: https://img.shields.io/conda/v/conda-forge/tqdm.svg?label=conda-forge
+.. |Conda-Forge-Status| image:: https://img.shields.io/conda/v/conda-forge/tqdm.svg?label=conda-forge&logo=conda-forge
    :target: https://anaconda.org/conda-forge/tqdm
 .. |Snapcraft| image:: https://img.shields.io/badge/snap-install-82BEA0.svg?logo=snapcraft
    :target: https://snapcraft.io/tqdm
