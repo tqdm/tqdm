@@ -17,9 +17,15 @@ tags:
  - parallel
  - cli
  - utilities
+ - shell
+ - batch
 authors:
  - name: Casper O da Costa-Luis
    orcid: 0000-0002-7211-1557
+   affiliation: 1
+affiliations:
+ - name: "Independent (Non-affiliated)"
+   index: 1
 date: 16 February 2019
 bibliography: paper.bib
 ---
@@ -29,8 +35,8 @@ bibliography: paper.bib
 
 **`tqdm`** is a progress bar library designed to be fast and extensible. It is
 written in Python, though ports in other languages are available. `tqdm` means
-**progress** in Arabic (*taqadum*, تقدّم) and is an abbreviation for
-**I love you so much** in Spanish (*te quiero demasiado*) [@tqdm-ar;@tqdm-es].
+**progress** in Arabic (*taqadum* [@tqdm-ar]) and is an abbreviation for
+**I love you so much** in Spanish (*te quiero demasiado* [@tqdm-es]).
 
 # Features
 
@@ -54,7 +60,7 @@ from tqdm import tqdm
 from time import sleep
 for i in tqdm(range(100)):
     sleep(0.1)
-100%|█████████████████████████████████████████| 100/100 [00:10<00:00,  9.95it/s]
+100%|#########################################| 100/100 [00:10<00:00,  9.95it/s]
 ```
 
 Supported features include:
@@ -86,7 +92,7 @@ $ cat *.txt | python3 -m tqdm --unit loc --unit_scale | wc -l
 1.08Mloc [00:07, 142kloc/s]
  # same if `total` is known
 $ cat *.txt | python3 -m tqdm --unit loc --unit_scale --total 1075075 | wc -l
-100%|█████████████████████████████████████| 1.08/1.08M [00:07<00:00,  142kloc/s]
+100%|#####################################| 1.08/1.08M [00:07<00:00,  142kloc/s]
 1075075
 ```
 
