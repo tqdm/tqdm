@@ -38,6 +38,26 @@ written in Python, though ports in other languages are available. `tqdm` means
 **progress** in Arabic (*taqadum* [@tqdm-ar]) and is an abbreviation for
 **I love you so much** in Spanish (*te quiero demasiado* [@tqdm-es]).
 
+It is a common programming problem to have iterative operations where progress
+monitoring is desirable or advantageous. Including statements within a `for` loop to `print` out the current iteration number is a common strategy. However, there are many improvements which could be made in such a scenario:
+
+- preventing excessive printing, such as only displaying every $n$^th^
+  iteration;
+- displaying iteration rate;
+- displaying elapsed and estimated completion times, and
+- showing all of the above on one continuously updating line.
+
+Addressing all these issues may well take up more developer time and effort than
+the rest of the content of the loop. Any changes to iteration rates or attempts
+to re-use the printing logic in a different loop may well result in suboptimal
+display rates -- displaying every $n$^th^ iteration may be too (in)frequent --
+requiring manual adjustment of $n$ to fix.
+
+`tqdm` addresses all of these problems once and for all, taking advantage of
+Pythonic patterns to make it a trivial task to add visually appealing,
+customisable progress bars without any significant performance degradation even
+in the most demanding of scenarios.
+
 # Features
 
 Exhaustive documentation may be found on the project's [home
@@ -72,12 +92,12 @@ Supported features include:
 - Automatic use of Unicode to render smooth-filling progress bars on supported
   terminals
 - Support for custom rendering frontends, including:
-  * Command-line interface
-  * Jupyter HTML notebooks
-  * `matplotlib`
+    * Command-line interface
+    * *Jupyter* HTML notebooks
+    * `matplotlib`
 - Support for custom hooks/callbacks, including:
-  * `pandas`
-  * `keras` [@keras]
+    * `pandas`
+    * `keras` [@keras]
 
 ## Command-line Interface
 
@@ -104,12 +124,12 @@ As of January 2019, `tqdm` has received:
 - over 315 thousand code inclusions [@tqdm-results];
   * over 23 thousand dependent repositories [@tqdm-dependents];
   * 7 thousand dependent libraries [@lib-io];
-- A SourceRank of 22 [@sourcerank], in the world's top 20 Python packages as of
+- a SourceRank of 22 [@sourcerank], in the world's top 20 Python packages as of
   early 2019 [@sourcerank-descending];
 - 9 thousand stars on GitHub [@stars;@stars-hist], and the top trending
   repository during a period in December 2015 [@trend-hist];
 - 500 thousand documentation hits [@hits];
-- Usage in several textbooks [@miller;@boxel;@nandy] and peer-reviewed
+- usage in several textbooks [@miller;@boxel;@nandy] and peer-reviewed
   scientific publications [@stein;@cook;@madhikar;@palmer;@knight].
 
 ## References in Blogs and Public Media
@@ -129,7 +149,7 @@ As of January 2019, `tqdm` has received:
 
 ## Code Metrics
 
-- Unit tested on Travis CI [@travis]
+- Unit tested on cloud-based continuous integration [@travis]
 - Style and security checked on
   [Codacy](https://app.codacy.com/project/tqdm/tqdm/dashboard) [@code-review]
 - Code coverage reported on [Coveralls](https://coveralls.io/github/tqdm/tqdm)
