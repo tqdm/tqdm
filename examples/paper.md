@@ -130,7 +130,8 @@ As of January 2019, `tqdm` has received:
   repository during a period in December 2015 [@trend-hist];
 - 500 thousand documentation hits [@hits];
 - usage in several textbooks [@miller;@boxel;@nandy] and peer-reviewed
-  scientific publications [@stein;@cook;@madhikar;@palmer;@knight].
+  scientific publications
+  [@stein;@cook;@madhikar;@palmer;@knight;@moriwaki;@jackson].
 
 ## References in Blogs and Public Media
 
