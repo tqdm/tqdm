@@ -964,7 +964,7 @@ There are also many |GitHub-Contributions| which we are grateful for.
 .. |DOI-URI| image:: https://img.shields.io/badge/DOI-10.5281/zenodo.595120-blue.svg
    :target: https://doi.org/10.5281/zenodo.595120
 .. |interactive-demo| image:: https://img.shields.io/badge/demo-interactive-orange.svg?logo=jupyter
-   :target: https://notebooks.rmotr.com/demo/gh/tqdm/tqdm
+   :target: https://notebooks.ai/demo/gh/tqdm/tqdm
 .. |Screenshot-Jupyter1| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/tqdm-jupyter-1.gif
 .. |Screenshot-Jupyter2| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/tqdm-jupyter-2.gif
 .. |Screenshot-Jupyter3| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/tqdm-jupyter-3.gif
