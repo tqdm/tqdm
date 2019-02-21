@@ -872,7 +872,7 @@ The monitor thread may be disabled application-wide by setting
 Contributions
 -------------
 
-|GitHub-Commits| |GitHub-Issues| |GitHub-PRs| |OpenHub-Status|
+|GitHub-Commits| |GitHub-Issues| |GitHub-PRs| |OpenHub-Status| |GitHub-Contributions|
 
 All source code is hosted on `GitHub <https://github.com/tqdm/tqdm>`__.
 Contributions are welcome.
@@ -880,6 +880,24 @@ Contributions are welcome.
 See the
 `CONTRIBUTING <https://raw.githubusercontent.com/tqdm/tqdm/master/CONTRIBUTING.md>`__
 file for more information.
+
+Developers who have made significant contributions, ranked by *LoC*
+(surviving lines of code,
+`git fame -wMC --excl '\.(png|gif)$' <https://github.com/casperdcl/git-fame>`__),
+are:
+
+==================== ================================================== ==== ================================
+Name                 ID                                                 LoC  Notes
+==================== ================================================== ==== ================================
+Casper da Costa-Luis `casperdcl <https://github.com/casperdcl>`__       ~3/4 primary maintainer |Gift-Casper|
+Stephen Larroque     `lrq3000 <https://github.com/lrq3000>`__           ~1/6 team member
+Noam Yorav-Raphael   `noamraph <https://github.com/noamraph>`__         ~1%  original author
+Matthew Stevens      `mjstevens777 <https://github.com/mjstevens777>`__ ~1%
+Guangshuo Chen       `chengs <https://github.com/chengs>`__             ~1%
+Hadrien Mary         `hadim <https://github.com/hadim>`__               ~1%  team member
+Mikhail Korobov      `kmike <https://github.com/kmike>`__               ~1%  team member
+Kyle Altendorf       `altendky <https://github.com/altendky>`__         ~1%
+==================== ================================================== ==== ================================
 
 Ports to Other Languages
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -894,24 +912,6 @@ LICENCE
 Open Source (OSI approved): |LICENCE|
 
 Citation information: |DOI-URI|
-
-
-Authors
--------
-
-The main developers, ranked by surviving lines of code
-(`git fame -wMC --excl '\.(png|gif)$' <https://github.com/casperdcl/git-fame>`__), are:
-
-- Casper da Costa-Luis (`casperdcl <https://github.com/casperdcl>`__, ~2/3, |Gift-Casper|)
-- Stephen Larroque (`lrq3000 <https://github.com/lrq3000>`__, ~1/5)
-- Matthew Stevens (`mjstevens777 <https://github.com/mjstevens777>`__, ~2%)
-- Noam Yorav-Raphael (`noamraph <https://github.com/noamraph>`__, ~2%, original author)
-- Guangshuo Chen (`chengs <https://github.com/chengs>`__, ~1%)
-- Hadrien Mary (`hadim <https://github.com/hadim>`__, ~1%)
-- Mikhail Korobov (`kmike <https://github.com/kmike>`__, ~1%)
-- Kyle Altendorf (`altendky <https://github.com/altendky>`__, ~1%)
-
-There are also many |GitHub-Contributions| which we are grateful for.
 
 |README-Hits| (Since 19 May 2016)
 
