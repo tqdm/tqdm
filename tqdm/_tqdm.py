@@ -12,11 +12,12 @@ from __future__ import absolute_import
 from __future__ import division
 # compatibility functions and utilities
 from ._utils import _supports_unicode, _environ_cols_wrapper, _range, _unich, \
-    _term_move_up, _unicode, WeakSet, _basestring, _OrderedDict, \
+    _term_move_up, _unicode, WeakSet, _basestring, \
     Comparable, RE_ANSI, _is_ascii, SimpleTextIOWrapper
 from ._monitor import TMonitor
 # native libraries
 import sys
+from collections import OrderedDict
 from numbers import Number
 from time import time
 from contextlib import contextmanager
@@ -1268,7 +1269,7 @@ class tqdm(Comparable):
         kwargs  : dict, optional
         """
         # Sort in alphabetical order to be more deterministic
-        postfix = _OrderedDict([] if ordered_dict is None else ordered_dict)
+        postfix = OrderedDict([] if ordered_dict is None else ordered_dict)
         for key in sorted(kwargs.keys()):
             postfix[key] = kwargs[key]
         # Preprocess stats according to datatype
