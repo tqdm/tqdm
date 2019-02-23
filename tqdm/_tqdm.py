@@ -164,11 +164,11 @@ class tqdm(Comparable):
             if abs(num) < 999.5:
                 if abs(num) < 99.95:
                     if abs(num) < 9.995:
-                        return '{0:1.2f}'.format(num) + unit + suffix
-                    return '{0:2.1f}'.format(num) + unit + suffix
-                return '{0:3.0f}'.format(num) + unit + suffix
+                        return '{:1.2f}'.format(num) + unit + suffix
+                    return '{:2.1f}'.format(num) + unit + suffix
+                return '{:3.0f}'.format(num) + unit + suffix
             num /= divisor
-        return '{0:3.1f}Y'.format(num) + suffix
+        return '{:3.1f}Y'.format(num) + suffix
 
     @staticmethod
     def format_interval(t):
@@ -188,9 +188,9 @@ class tqdm(Comparable):
         mins, s = divmod(int(t), 60)
         h, m = divmod(mins, 60)
         if h:
-            return '{0:d}:{1:02d}:{2:02d}'.format(h, m, s)
+            return '{:d}:{:02d}:{:02d}'.format(h, m, s)
         else:
-            return '{0:02d}:{1:02d}'.format(m, s)
+            return '{:02d}:{:02d}'.format(m, s)
 
     @staticmethod
     def format_num(n):
@@ -207,7 +207,7 @@ class tqdm(Comparable):
         out  : str
             Formatted number.
         """
-        f = '{0:.3g}'.format(n).replace('+0', '+').replace('-0', '-')
+        f = '{:.3g}'.format(n).replace('+0', '+').replace('-0', '-')
         n = str(n)
         return f if len(f) < len(n) else n
 
@@ -340,10 +340,10 @@ class tqdm(Comparable):
         inv_rate = 1 / rate if rate else None
         format_sizeof = tqdm.format_sizeof
         rate_noinv_fmt = ((format_sizeof(rate) if unit_scale else
-                           '{0:5.2f}'.format(rate))
+                           '{:5.2f}'.format(rate))
                           if rate else '?') + unit + '/s'
         rate_inv_fmt = ((format_sizeof(inv_rate) if unit_scale else
-                         '{0:5.2f}'.format(inv_rate))
+                         '{:5.2f}'.format(inv_rate))
                         if inv_rate else '?') + 's/' + unit
         rate_fmt = rate_inv_fmt if inv_rate and inv_rate > 1 else rate_noinv_fmt
 
@@ -371,7 +371,7 @@ class tqdm(Comparable):
         else:
             l_bar = ''
 
-        r_bar = '| {0}/{1} [{2}<{3}, {4}{5}]'.format(
+        r_bar = '| {}/{} [{}<{}, {}{}]'.format(
             n_fmt, total_fmt, elapsed_str, remaining_str, rate_fmt, postfix)
 
         # Custom bar formatting
@@ -395,7 +395,7 @@ class tqdm(Comparable):
             frac = n / total
             percentage = frac * 100
 
-            l_bar += '{0:3.0f}%|'.format(percentage)
+            l_bar += '{:3.0f}%|'.format(percentage)
 
             if ncols == 0:
                 return l_bar[:-1] + r_bar[1:]
@@ -454,7 +454,7 @@ class tqdm(Comparable):
         else:
             # no total: no progressbar, ETA, just progress stats
             return ((prefix + ": ") if prefix else '') + \
-                '{0}{1} [{2}, {3}{4}]'.format(
+                '{}{} [{}, {}{}]'.format(
                     n_fmt, unit, elapsed_str, rate_fmt, postfix)
 
     def __new__(cls, *args, **kwargs):
@@ -482,8 +482,8 @@ class tqdm(Comparable):
     @classmethod
     def _get_free_pos(cls, instance=None):
         """Skips specified instance."""
-        positions = set(abs(inst.pos) for inst in cls._instances
-                        if inst is not instance and hasattr(inst, "pos"))
+        positions = {abs(inst.pos) for inst in cls._instances
+                        if inst is not instance and hasattr(inst, "pos")}
         return min(set(range(len(positions) + 1)).difference(positions))
 
     @classmethod

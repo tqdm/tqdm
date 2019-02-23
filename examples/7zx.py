@@ -59,8 +59,8 @@ def main():
             if totals_s != totals[s]:
                 log.warn("%s: individual total %d != 7z total %d" % (
                     fn, totals_s, totals[s]))
-        fcomp = dict((n, int(c if args.compressed else u))
-                     for (u, c, n) in finfo[:-1])
+        fcomp = {n: int(c if args.compressed else u)
+                     for (u, c, n) in finfo[:-1]}
         # log.debug(fcomp)
         # zips  : {'zipname' : {'filename' : int(size)}}
         zips[fn] = fcomp

@@ -119,7 +119,7 @@ def pretest():
         if n:
             tqdm._instances.clear()
             raise EnvironmentError(
-                "{0} `tqdm` instances still in existence PRE-test".format(n))
+                "{} `tqdm` instances still in existence PRE-test".format(n))
 
 
 def posttest():
@@ -128,7 +128,7 @@ def posttest():
         if n:
             tqdm._instances.clear()
             raise EnvironmentError(
-                "{0} `tqdm` instances still in existence POST-test".format(n))
+                "{} `tqdm` instances still in existence POST-test".format(n))
 
 
 class UnicodeIO(IOBase):
@@ -937,7 +937,7 @@ def test_close():
 
         exres = res + '\n'
         if exres != our_file.getvalue():
-            raise AssertionError("\nExpected:\n{0}\nGot:{1}\n".format(
+            raise AssertionError("\nExpected:\n{}\nGot:{}\n".format(
                 exres, our_file.getvalue()))
 
     # Closing after the output stream has closed

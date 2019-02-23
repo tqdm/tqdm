@@ -107,9 +107,9 @@ def simple_progress(iterable=None, total=None, file=sys.stdout, desc='',
         mins, s = divmod(int(t), 60)
         h, m = divmod(mins, 60)
         if h:
-            return '{0:d}:{1:02d}:{2:02d}'.format(h, m, s)
+            return '{:d}:{:02d}:{:02d}'.format(h, m, s)
         else:
-            return '{0:02d}:{1:02d}'.format(m, s)
+            return '{:02d}:{:02d}'.format(m, s)
 
     def update_and_print(i=1):
         n[0] += i
