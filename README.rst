@@ -883,7 +883,7 @@ file for more information.
 
 Developers who have made significant contributions, ranked by *LoC*
 (surviving lines of code,
-`git fame -wMC --excl '\.(png|gif)$' <https://github.com/casperdcl/git-fame>`__),
+`git fame -wMC --excl '\.(png|gif|enc)$' <https://github.com/casperdcl/git-fame>`__),
 are:
 
 ==================== ================================================== ==== ================================

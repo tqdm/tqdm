@@ -16,19 +16,27 @@ matrix:
     sudo: true  # required for py37
     env: TOXENV=py37
     before_deploy:
-      - pip install py-make
-      - pymake build  # releases
-      #- pip install .[dev]
+      - pip install .[dev]
+      - pymake build
       #- pymake submodules
       #- cd wiki && pymake && cd ..
+      - openssl aes-256-cbc -K $encrypted_a6d6301302b7_key
+        -iv $encrypted_a6d6301302b7_iv -in .tqdm.gpg.enc -out .tqdm.gpg -d
+      - gpg --import .tqdm.gpg
+      - rm .tqdm.gpg
     deploy:
+      - provider: script
+        script: twine upload -s -i tqdm@caspersci.uk.to dist/tqdm-*
+        skip_cleanup: true
+        on:
+          tags: true
       - provider: releases
         api_key: $GITHUB_TOKEN
         file_glob: true
         file: dist/tqdm-*.whl*
         skip_cleanup: true
         draft: true
-        name: "tqdm v$TRAVIS_TAG stable"
+        name: tqdm v$TRAVIS_TAG stable
         on:
           tags: true
   - python: pypy2.7-5.10.0
