@@ -130,6 +130,28 @@ jobs:
       script: 'docker push docker.pkg.github.com/tqdm/tqdm/tqdm:devel || :'
       on:
         branch: devel
+  - name: snap
+    python: 3.7
+    dist: xenial
+    addons:
+      apt:
+        packages:
+        - snapd
+    install:
+    - sudo snap install snapcraft --classic
+    script:
+    - make snap
+    deploy:
+    - provider: snap
+      snap: tqdm*.snap
+      channel: stable
+      skip_cleanup: true
+      on:
+        tags: true
+    - provider: snap
+      snap: tqdm*.snap
+      channel: candidate
+      skip_cleanup: true
 before_install:
 # fix a crash with multiprocessing on Travis
 # - sudo rm -rf /dev/shm
