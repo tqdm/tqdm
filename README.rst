@@ -7,7 +7,7 @@ tqdm
 
 |Build-Status| |Coverage-Status| |Branch-Coverage-Status| |Codacy-Grade| |Libraries-Rank| |PyPI-Downloads|
 
-|DOI-URI| |LICENCE| |OpenHub-Status| |interactive-demo|
+|DOI-URI| |LICENCE| |OpenHub-Status| |binder-demo| |notebook-demo|
 
 
 ``tqdm`` means "progress" in Arabic (taqadum, تقدّم)
@@ -512,7 +512,7 @@ Examples and Advanced Usage
     - this has an
       `excellent article <https://github.com/tqdm/tqdm/wiki/How-to-make-a-great-Progress-Bar>`__
       on how to make a **great** progressbar, or
-- run the |interactive-demo|.
+- run the |notebook-demo| or |binder-demo|.
 
 Description and additional stats
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -963,8 +963,10 @@ Citation information: |DOI-URI|
    :target: https://raw.githubusercontent.com/tqdm/tqdm/master/LICENCE
 .. |DOI-URI| image:: https://img.shields.io/badge/DOI-10.5281/zenodo.595120-blue.svg
    :target: https://doi.org/10.5281/zenodo.595120
-.. |interactive-demo| image:: https://img.shields.io/badge/demo-interactive-orange.svg?logo=jupyter
+.. |notebook-demo| image:: https://img.shields.io/badge/launch-notebook-orange.svg?logo=jupyter
    :target: https://notebooks.ai/demo/gh/tqdm/tqdm
+.. |binder-demo| image:: https://mybinder.org/badge_logo.svg
+   :target: https://mybinder.org/v2/gh/tqdm/tqdm/master?filepath=DEMO.ipynb
 .. |Screenshot-Jupyter1| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/tqdm-jupyter-1.gif
 .. |Screenshot-Jupyter2| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/tqdm-jupyter-2.gif
 .. |Screenshot-Jupyter3| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/tqdm-jupyter-3.gif
