@@ -153,6 +153,12 @@ jobs:
       snap: tqdm*.snap
       channel: candidate
       skip_cleanup: true
+    - provider: snap
+      snap: tqdm*.snap
+      channel: edge
+      skip_cleanup: true
+      on:
+        branch: devel
 before_install:
 # fix a crash with multiprocessing on Travis
 # - sudo rm -rf /dev/shm
