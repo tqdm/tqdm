@@ -3,7 +3,7 @@
 tqdm
 ====
 
-|PyPI-Versions| |PyPI-Status| |Conda-Forge-Status| |Snapcraft|
+|PyPI-Versions| |PyPI-Status| |Conda-Forge-Status| |Snapcraft| |Docker|
 
 |Build-Status| |Coverage-Status| |Branch-Coverage-Status| |Codacy-Grade| |Libraries-Rank| |PyPI-Downloads|
 
@@ -107,6 +107,15 @@ Latest Snapcraft release
 
     snap install tqdm
 
+Latest Docker release
+~~~~~~~~~~~~~~~~~~~~~
+
+|Docker|
+
+.. code:: sh
+
+    docker pull tqdm/tqdm
+    docker run -i --rm tqdm/tqdm --help
 
 Changelog
 ---------
@@ -953,6 +962,8 @@ Citation information: |DOI-URI|
    :target: https://anaconda.org/conda-forge/tqdm
 .. |Snapcraft| image:: https://img.shields.io/badge/snap-install-82BEA0.svg?logo=snapcraft
    :target: https://snapcraft.io/tqdm
+.. |Docker| image:: https://img.shields.io/badge/docker-pull-blue.svg?logo=docker
+   :target: https://hub.docker.com/r/tqdm/tqdm
 .. |Libraries-Rank| image:: https://img.shields.io/librariesio/sourcerank/pypi/tqdm.svg?logo=koding&logoColor=white
    :target: https://libraries.io/pypi/tqdm
 .. |Libraries-Dependents| image:: https://img.shields.io/librariesio/dependent-repos/pypi/tqdm.svg?logo=koding&logoColor=white
