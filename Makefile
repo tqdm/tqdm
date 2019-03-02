@@ -24,6 +24,7 @@
 	buildupload
 	pypi
 	snap
+	docker
 	help
 	none
 
@@ -99,6 +100,11 @@ snapcraft.yaml: .snapcraft.yml
     -e 's/{source}/./g' -e 's/{icon}/logo.png/g' \
     -e 's/{description}/https:\/\/tqdm.github.io/g' > "$@"
 
+.dockerignore: .gitignore
+	cat $^ > "$@"
+	echo -e ".git" > "$@"
+	git clean -xdn | sed -nr 's/^Would remove (.*)$$/\1/p' >> "$@"
+
 distclean:
 	@+make coverclean
 	@+make prebuildclean
@@ -148,6 +154,10 @@ buildupload:
 snap:
 	@make snapcraft.yaml
 	snapcraft
-
+docker:
+	@make .dockerignore
+	@make coverclean
+	@make clean
+	docker build . -t tqdm/tqdm
 none:
 	# used for unit testing

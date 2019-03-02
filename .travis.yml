@@ -12,10 +12,17 @@ matrix:
   - python: 3.6
     env: TOXENV=py36
   - python: 3.7
-    dist: xenial
-    sudo: true  # required for py37
     env: TOXENV=py37
+    dist: xenial
+    sudo: true  # required for py37, docker
+    services:
+    - docker
     before_deploy:
+    - echo "$DOCKER_PWD" | docker login -u $DOCKER_USR --password-stdin
+    - make -B docker
+    - |
+      if [[ -n "$TRAVIS_TAG" ]]; then
+      docker tag tqdm/tqdm:latest tqdm/tqdm:$TRAVIS_TAG ; fi
     - pip install .[dev]
     - make build
     #- make submodules
@@ -37,6 +44,14 @@ matrix:
       skip_cleanup: true
       draft: true
       name: tqdm v$TRAVIS_TAG stable
+      on:
+        tags: true
+    - provider: script
+      script: docker push tqdm/tqdm:latest
+      on:
+        tags: true
+    - provider: script
+      script: docker push tqdm/tqdm:$TRAVIS_TAG
       on:
         tags: true
   - python: pypy2.7-5.10.0
