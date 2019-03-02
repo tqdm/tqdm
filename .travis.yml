@@ -16,29 +16,29 @@ matrix:
     sudo: true  # required for py37
     env: TOXENV=py37
     before_deploy:
-      - pip install .[dev]
-      - make build
-      #- make submodules
-      #- cd wiki && make && cd ..
-      - openssl aes-256-cbc -K $encrypted_a6d6301302b7_key
-        -iv $encrypted_a6d6301302b7_iv -in .tqdm.gpg.enc -out .tqdm.gpg -d
-      - gpg --import .tqdm.gpg
-      - rm .tqdm.gpg
+    - pip install .[dev]
+    - make build
+    #- make submodules
+    #- cd wiki && make && cd ..
+    - openssl aes-256-cbc -K $encrypted_a6d6301302b7_key
+      -iv $encrypted_a6d6301302b7_iv -in .tqdm.gpg.enc -out .tqdm.gpg -d
+    - gpg --import .tqdm.gpg
+    - rm .tqdm.gpg
     deploy:
-      - provider: script
-        script: twine upload -s -i tqdm@caspersci.uk.to dist/tqdm-*
-        skip_cleanup: true
-        on:
-          tags: true
-      - provider: releases
-        api_key: $GITHUB_TOKEN
-        file_glob: true
-        file: dist/tqdm-*.whl*
-        skip_cleanup: true
-        draft: true
-        name: tqdm v$TRAVIS_TAG stable
-        on:
-          tags: true
+    - provider: script
+      script: twine upload -s -i tqdm@caspersci.uk.to dist/tqdm-*
+      skip_cleanup: true
+      on:
+        tags: true
+    - provider: releases
+      api_key: $GITHUB_TOKEN
+      file_glob: true
+      file: dist/tqdm-*.whl*
+      skip_cleanup: true
+      draft: true
+      name: tqdm v$TRAVIS_TAG stable
+      on:
+        tags: true
   - python: pypy2.7-5.10.0
     env: TOXENV=pypy
   - python: pypy3.5-5.10.0
@@ -55,9 +55,9 @@ matrix:
 cache:
   pip: true
   directories:
-    - $HOME/.cache/pip
+  - $HOME/.cache/pip
 before_cache:
-  - rm -f $HOME/.cache/pip/log/debug.log
+- rm -f $HOME/.cache/pip/log/debug.log
 notifications:
   email: false
 # branches:  # remove travis double-check on pull requests in main repo
@@ -65,12 +65,12 @@ notifications:
 #     - master
 #     - /^\d\.\d+$/
 before_install:
-  # fix a crash with multiprocessing on Travis
-  # - sudo rm -rf /dev/shm
-  # - sudo ln -s /run/shm /dev/shm
-  - git fetch --tags
+# fix a crash with multiprocessing on Travis
+# - sudo rm -rf /dev/shm
+# - sudo ln -s /run/shm /dev/shm
+- git fetch --tags
 install:
-  - pip install tox
-  - pip install .
+- pip install tox
+- pip install .
 script:
-  - tox
+- tox
