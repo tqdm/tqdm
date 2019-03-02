@@ -138,7 +138,8 @@ jobs:
         packages:
         - snapd
     install:
-    - sudo snap install snapcraft --classic
+    - sudo snap install snapcraft --classic --beta
+    - sudo snap install multipass --classic --beta
     script:
     - make snap
     deploy:
