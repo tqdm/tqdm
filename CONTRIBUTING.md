@@ -231,11 +231,22 @@ running `make` within the wiki repository.
 
 [wiki]: https://github.com/tqdm/tqdm/wiki
 
+Docker images may be uploaded to <https://hub.docker.com/r/tqdm/tqdm>.
+Assuming `docker` is
+[installed](https://docs.docker.com/install/linux/docker-ce/ubuntu/):
+
+```
+make -B docker
+docker login
+docker push tqdm/tqdm:latest
+docker push tqdm/tqdm:$(docker run -i --rm tqdm/tqdm -v)
+```
+
 Snaps may be uploaded to <https://snapcraft.io/tqdm>.
 Assuming `snapcraft` is installed (`snap install snapcraft --classic --beta`):
 
 ```
-[python setup.py] make snap
+make snap
 snapcraft login
 snapcraft push tqdm*.snap --release stable
 ```
@@ -291,16 +302,20 @@ For experienced devs, once happy with local master:
 9. **`[AUTO:TravisCI]`** upload to PyPI. either:
     a) `[python setup.py] make pypi`, or
     b) `twine upload -s -i $(git config user.signingkey) dist/tqdm-*`
-10. upload to snapcraft:
-    a) `[python setup.py] make snap`, and
+10. **`[AUTO:TravisCI]`** upload to docker hub:
+    a) `make -B docker`
+    b) `docker push tqdm/tqdm:latest`
+    c) `docker push tqdm/tqdm:$(docker run -i --rm tqdm/tqdm -v)`
+11. upload to snapcraft:
+    a) `make snap`, and
     b) `snapcraft push tqdm*.snap --release stable`
-11. create new release on <https://github.com/tqdm/tqdm/releases>
+12. create new release on <https://github.com/tqdm/tqdm/releases>
     a) add helpful release notes
     b) **`[AUTO:TravisCI]`** attach `dist/tqdm-*` binaries
        (usually only `*.whl*`)
-12. **`[SUB]`** run `make` in the `wiki` submodule to update release notes
-13. **`[SUB]`** run `make deploy` in the `docs` submodule to update website
-14. **`[SUB]`** accept the automated PR in the `feedstock` submodule to update conda
+13. **`[SUB]`** run `make` in the `wiki` submodule to update release notes
+14. **`[SUB]`** run `make deploy` in the `docs` submodule to update website
+15. **`[SUB]`** accept the automated PR in the `feedstock` submodule to update conda
 
 Key:
 

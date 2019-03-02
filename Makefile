@@ -159,5 +159,6 @@ docker:
 	@make coverclean
 	@make clean
 	docker build . -t tqdm/tqdm
+	docker tag tqdm/tqdm:latest tqdm/tqdm:$(shell docker run -i --rm tqdm/tqdm -v)
 none:
 	# used for unit testing
