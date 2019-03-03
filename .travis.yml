@@ -48,13 +48,11 @@ matrix:
       on:
         tags: true
     - provider: script
-      script: docker push tqdm/tqdm:latest
-      on:
-        tags: true
-    - provider: script
       script: docker push tqdm/tqdm:$TRAVIS_TAG
       on:
         tags: true
+    - provider: script
+      script: docker push tqdm/tqdm:latest
     - provider: script
       script: docker push tqdm/tqdm:devel
       on:
