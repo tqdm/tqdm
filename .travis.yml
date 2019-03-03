@@ -17,7 +17,7 @@ matrix:
     sudo: true  # required for py37, docker
     services:
     - docker
-    before_deploy:
+    after_success:
     - echo "$DOCKER_PWD" | docker login -u $DOCKER_USR --password-stdin
     - make -B docker
     - |
