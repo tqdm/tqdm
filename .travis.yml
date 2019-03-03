@@ -23,6 +23,7 @@ matrix:
     - |
       if [[ -n "$TRAVIS_TAG" ]]; then
       docker tag tqdm/tqdm:latest tqdm/tqdm:$TRAVIS_TAG ; fi
+    - docker tag tqdm/tqdm:latest tqdm/tqdm:devel
     - pip install .[dev]
     - make build
     #- make submodules
@@ -54,6 +55,10 @@ matrix:
       script: docker push tqdm/tqdm:$TRAVIS_TAG
       on:
         tags: true
+    - provider: script
+      script: docker push tqdm/tqdm:devel
+      on:
+        branch: devel
   - python: pypy2.7-5.10.0
     env: TOXENV=pypy
   - python: pypy3.5-5.10.0
