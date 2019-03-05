@@ -29,9 +29,8 @@ affiliations:
 date: 16 February 2019
 bibliography: paper.bib
 ---
-![](../logo.png)
 
-# Summary
+# Introduction
 
 **`tqdm`** is a progress bar library designed to be fast and extensible. It is
 written in Python, though ports in other languages are available. `tqdm` means
@@ -62,10 +61,6 @@ in the most demanding of scenarios.
 
 Exhaustive documentation may be found on the project's [home
 page](https://github.com/tqdm/tqdm/#documentation).
-
-The package supports both Python versions 2 and 3, and is available for download
-via `conda` [@conda], `pip` [@pypi], `snap` [@snapcraft], and *Zenodo*
-[@zenodo].
 
 The two basic use cases are within Python code and within a Command-line
 interface:
@@ -116,62 +111,50 @@ $ cat *.txt | python3 -m tqdm --unit loc --unit_scale --total 1075075 
 1075075
 ```
 
-# Popularity
+# Availability
 
-As of January 2019, `tqdm` has received:
+The package supports both Python versions 2 and 3, and is available for download
+via `conda` [@conda], `pip` [@pypi], `snap` [@snapcraft], `docker` [@docker],
+and *Zenodo* [@zenodo].
+Web-based Jupyter interactive demonstrations are also available
+[@notebooks;@binder]
 
-- over 20 million downloads [@pypi-downloads];
-- over 315 thousand code inclusions [@tqdm-results];
-  * over 23 thousand dependent repositories [@tqdm-dependents];
-  * 7 thousand dependent libraries [@lib-io];
-- a SourceRank of 22 [@sourcerank], in the world's top 20 Python packages as of
-  early 2019 [@sourcerank-descending];
-- 9 thousand stars on GitHub [@stars;@stars-hist], and the top trending
-  repository during a period in December 2015 [@trend-hist];
-- 500 thousand documentation hits [@hits];
-- usage in several textbooks [@miller;@boxel;@nandy] and peer-reviewed
-  scientific publications
-  [@stein;@cook;@madhikar;@palmer;@knight;@moriwaki;@jackson].
+Unit tests are run at least weekly on cloud-based continuous integration
+[@travis], with code style and security issues checked on
+[Codacy](https://app.codacy.com/project/tqdm/tqdm/dashboard) [@code-review].
+Coverage is reported on [Coveralls](https://coveralls.io/github/tqdm/tqdm) and
+[Codecov](https://codecov.io/gh/tqdm/tqdm), and performance is monitored against
+regression [@asv].
 
-## References in Blogs and Public Media
+# Impact
 
-- A `tqdm` release becomes [Zenodo's 1 millionth
-  record](https://twitter.com/WikimediaItalia/status/914448810117545985)
-- [A Hymn to Progress](http://www.metafilter.com/161265/An-alternative-to-an-eternally-spinning-wheel#6644017),
-  a poem or song with suggested tune of *For those in Peril on the C*,
-  where "C" is a pun on *Sea* and the *C programming language*
-- [My top 5 'new' Python modules of
-  2015](http://blog.rtwilson.com/my-top-5-new-python-modules-of-2015/)
-- [`tqdm`, `imageio` and `Seaborn`: Three essential python modules
-  (Nov 2018)](https://dominikschmidt.xyz/python-modules-tqdm-imageio-seaborn/)
-- <https://pythontips.com/2018/06/03/top-14-most-famous-python-libraries-frameworks>
-- <https://github.com/IliaGavrilov/Machine_Learning_libraries_and_Python_3.6_tricks>
-- <https://github.com/robclewley/TqdmAudioRicker>
+As of January 2019, `tqdm` has accumulated over 20 million downloads
+[@pypi-downloads], and 315 thousand code inclusions [@tqdm-results]. Dependants
+of `tqdm` include 23 thousand repositories [@tqdm-dependents] and 7 thousand
+libraries [@lib-io]. `tqdm` has a SourceRank of 22 [@sourcerank], placing it in
+the world's top 20 Python packages as of early 2019 [@sourcerank-descending].
 
-## Code Metrics
+The source code of `tqdm` is hosted on GitHub, where it has received over 9
+thousand stars [@stars;@stars-hist], and was top trending repository during a
+period in December 2015 [@trend-hist]. The documentation has received over 500
+thousand hits [@hits], with highest rates during weekdays. Historical reading
+rates have also trended upwards at the end of holiday periods. This implies
+widespread use in commercial and academic settings.
+[OpenHub](https://www.openhub.net/p/tqdm) valuates the work according to the
+constructive cost model (COCOMO) as being worth approximately $50,000.
 
-- Unit tested on cloud-based continuous integration [@travis]
-- Style and security checked on
-  [Codacy](https://app.codacy.com/project/tqdm/tqdm/dashboard) [@code-review]
-- Code coverage reported on [Coveralls](https://coveralls.io/github/tqdm/tqdm)
-  and [Codecov](https://codecov.io/gh/tqdm/tqdm)
-- Valuated using the COCOMO model by [OpenHub](https://www.openhub.net/p/tqdm)
-- Performance tested against regression [@asv]
+The library has also been used in several textbooks [@miller;@boxel;@nandy] and
+peer-reviewed scientific publications
+[@stein;@cook;@madhikar;@palmer;@knight;@moriwaki;@jackson].
+The [`tqdm` wiki](https://github.com/tqdm/tqdm/wiki) also lists other references
+in public media.
 
 # Licence
 
-`tqdm`'s source code is OSS, and may be cited using the DOI
+`tqdm`'s source code is OSS, and all versions are archived at the DOI
 [10.5281/zenodo.595120](https://doi.org/10.5281/zenodo.595120). The primary
 maintainer [Casper da Costa-Luis](https://github.com/casperdcl) releases
 contributions under the terms of the MPLv2.0, while all other contributions are
 released under the terms of the MIT licence [@licence].
-
-# See also
-
-- Ports of [`tqdm` in other languages on
-  GitHub](https://github.com/search?q=tqdm&type=Repositories)
-  * [Official List of Ports](https://tqdm.github.io/ports/)
-- [Interactive demonstration of `tqdm` in a Jupyter
-  Notebook](https://notebooks.rmotr.com/demo/gh/tqdm/tqdm)
 
 # References
