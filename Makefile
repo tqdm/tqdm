@@ -53,6 +53,7 @@ testnose:
 
 testsetup:
 	@make README.rst
+	@make tqdm/tqdm.1
 	python setup.py check --restructuredtext --strict
 	python setup.py make none
 
@@ -82,7 +83,7 @@ viewasv:
 	asv publish
 	asv preview
 
-tqdm/tqdm.1: .tqdm.1.md
+tqdm/tqdm.1: .tqdm.1.md tqdm/_main.py tqdm/_tqdm.py
 	# TODO: add to mkdocs.py
 	python -m tqdm --help | tail -n+5 |\
     sed -r -e 's/\\/\\\\/g' \
