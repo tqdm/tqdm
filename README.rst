@@ -943,7 +943,7 @@ Citation information: |DOI-URI|
 .. |GitHub-Commits| image:: https://img.shields.io/github/commit-activity/y/tqdm/tqdm.svg?logo=git&logoColor=white
    :target: https://github.com/tqdm/tqdm/graphs/commit-activity
 .. |GitHub-Issues| image:: https://img.shields.io/github/issues-closed/tqdm/tqdm.svg?logo=github&logoColor=white
-   :target: https://github.com/tqdm/tqdm/issues
+   :target: https://github.com/tqdm/tqdm/issues?q=
 .. |GitHub-PRs| image:: https://img.shields.io/github/issues-pr-closed/tqdm/tqdm.svg?logo=github&logoColor=white
    :target: https://github.com/tqdm/tqdm/pulls
 .. |GitHub-Contributions| image:: https://img.shields.io/github/contributors/tqdm/tqdm.svg?logo=github&logoColor=white

@@ -57,6 +57,16 @@ Pythonic patterns to make it a trivial task to add visually appealing,
 customisable progress bars without any significant performance degradation even
 in the most demanding of scenarios.
 
+`tqdm` is intended to be used in frontends (giving end users a visual indication
+of progress of computations or data transfer). It is also useful for developers
+for debugging purposes, both as a profiling tool and also as a way of displaying
+logging information of an iterative task (such as error during training of
+machine learning algorithms). Due to its ease of use, the library is also an
+ideal candidate for inclusion in Python educational courses. For general (not
+necessarily Python) purposes, the command-line interface (CLI) mode further
+presents a useful tool for CLI users and system administrators monitoring data
+flow through pipes.
+
 # Features
 
 Exhaustive documentation may be found on the project's [home
@@ -94,9 +104,9 @@ Supported features include:
     * `pandas`
     * `keras` [@keras]
 
-## Command-line Interface
+## Command-line Interface (CLI)
 
-A Command-line interface is also provided, where `tqdm` may be used a pipe:
+A CLI is also provided, where `tqdm` may be used a pipe:
 
 ```sh
  # count lines of text in all *.txt files
