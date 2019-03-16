@@ -42,7 +42,7 @@ parts:
     plugin: python
     python-version: python3
     source: {source}
-    source-commit: {commit}
+    source-commit: '{commit}'
     parse-info: [setup.py]
 apps:
   tqdm:

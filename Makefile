@@ -27,6 +27,7 @@
 	docker
 	help
 	none
+	run
 
 help:
 	@python setup.py make -p
@@ -163,3 +164,6 @@ docker:
 	docker tag tqdm/tqdm:latest tqdm/tqdm:$(shell docker run -i --rm tqdm/tqdm -v)
 none:
 	# used for unit testing
+
+run:
+	python -Om tqdm --help
