@@ -21,7 +21,6 @@ from numbers import Number
 from time import time
 from contextlib import contextmanager
 # For parallelism safety
-import multiprocessing as mp
 import threading as th
 from warnings import warn
 
@@ -104,7 +103,8 @@ class TqdmDefaultWriteLock(object):
     def create_mp_lock(cls):
         if not hasattr(cls, 'mp_lock'):
             try:
-                cls.mp_lock = mp.RLock()  # multiprocessing lock
+                from multiprocessing import RLock
+                cls.mp_lock = RLock()  # multiprocessing lock
             except ImportError:  # pragma: no cover
                 cls.mp_lock = None
             except OSError:  # pragma: no cover
