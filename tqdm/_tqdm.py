@@ -13,7 +13,7 @@ from __future__ import division
 # compatibility functions and utilities
 from ._utils import _supports_unicode, _environ_cols_wrapper, _range, _unich, \
     _term_move_up, _unicode, WeakSet, _basestring, _OrderedDict, \
-    Comparable, RE_ANSI, _is_ascii, SimpleTextIOWrapper
+    Comparable, _is_ascii, SimpleTextIOWrapper, ansilen, ansitrim
 from ._monitor import TMonitor
 # native libraries
 import sys
@@ -255,7 +255,7 @@ class tqdm(Comparable):
     @staticmethod
     def format_meter(n, total, elapsed, ncols=None, prefix='', ascii=False,
                      unit='it', unit_scale=False, rate=None, bar_format=None,
-                     postfix=None, unit_divisor=1000, **extra_kwargs):
+                     bar_width=0, postfix=None, unit_divisor=1000, **extra_kwargs):
         """
         Return a string-based progress bar given some parameters
 
@@ -303,6 +303,9 @@ class tqdm(Comparable):
               remaining, remaining_s, desc, postfix, unit.
             Note that a trailing ": " is automatically removed after {desc}
             if the latter is empty.
+        bar_width  : int, optional
+            Specify a fixed bar width.  A bar width of 0 means it can change
+            with each update [default: 0]
         postfix  : *, optional
             Similar to `prefix`, but placed at the end
             (e.g. for additional stats).
@@ -419,10 +422,32 @@ class tqdm(Comparable):
                     return bar_format.format(**format_dict)
 
             # Formatting progress bar space available for bar's display
-            if ncols:
-                N_BARS = max(1, ncols - len(RE_ANSI.sub('', l_bar + r_bar)))
+            l_bar_len = ansilen(l_bar)
+            r_bar_len = ansilen(r_bar)
+            remaining_space = ncols or 999
+
+            if remaining_space < l_bar_len:
+                # l_bar is larger than remaining space
+                return ansitrim(l_bar, remaining_space)
+            remaining_space -= l_bar_len
+
+            if bar_width:
+                N_BARS = bar_width
+            elif ncols:
+                N_BARS = max(1, ncols - (l_bar_len + r_bar_len))
             else:
                 N_BARS = 10
+
+            if remaining_space < N_BARS:
+                # there isn't enough space for the full bar
+                N_BARS = remaining_space
+                remaining_space = 0
+            else:
+                remaining_space -= N_BARS
+
+            if remaining_space < r_bar_len:
+                # there isn't enough space for the r_bar
+                r_bar = ansitrim(r_bar, remaining_space)
 
             # format bar depending on availability of unicode/ascii chars
             if ascii is True:
@@ -707,8 +732,9 @@ class tqdm(Comparable):
                  file=None, ncols=None, mininterval=0.1, maxinterval=10.0,
                  miniters=None, ascii=None, disable=False, unit='it',
                  unit_scale=False, dynamic_ncols=False, smoothing=0.3,
-                 bar_format=None, initial=0, position=None, postfix=None,
-                 unit_divisor=1000, write_bytes=None, gui=False, **kwargs):
+                 bar_format=None, bar_width=None, initial=0, position=None,
+                 postfix=None, unit_divisor=1000, write_bytes=None, gui=False,
+                 **kwargs):
         """
         Parameters
         ----------
@@ -787,6 +813,8 @@ class tqdm(Comparable):
               remaining_s, desc, postfix, unit.
             Note that a trailing ": " is automatically removed after {desc}
             if the latter is empty.
+        bar_width  : int, optional
+            Specify a fixed bar width. [default: no fixed width]
         initial  : int, optional
             The initial counter value. Useful when restarting a progress
             bar [default: 0].
@@ -917,6 +945,7 @@ class tqdm(Comparable):
         self.avg_time = None
         self._time = time
         self.bar_format = bar_format
+        self.bar_width = bar_width
         self.postfix = None
         if postfix:
             try:
@@ -1299,8 +1328,8 @@ class tqdm(Comparable):
             prefix=self.desc, ascii=self.ascii, unit=self.unit,
             unit_scale=self.unit_scale,
             rate=1 / self.avg_time if self.avg_time else None,
-            bar_format=self.bar_format, postfix=self.postfix,
-            unit_divisor=self.unit_divisor)
+            bar_format=self.bar_format, bar_width=self.bar_width,
+            postfix=self.postfix, unit_divisor=self.unit_divisor)
 
     def display(self, msg=None, pos=None):
         """

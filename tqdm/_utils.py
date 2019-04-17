@@ -268,3 +268,27 @@ def _environ_cols_linux(fp):  # pragma: no cover
 
 def _term_move_up():  # pragma: no cover
     return '' if (os.name == 'nt') and (colorama is None) else '\x1b[A'
+
+
+def ansilen(data):
+    """
+    Returns the real on-screen length of a string that may contain ANSI control codes.
+    """
+    return len(RE_ANSI.sub('', data))
+
+
+def ansitrim(data, length):
+    """
+    Trim a string that may or may not contain ANSI control characters.
+    """
+    real_len = ansilen(data)
+    has_ansi = len(data) != real_len
+    if not has_ansi:
+        return data[0:length]
+
+    while real_len > length:
+        data = data[0:-1]
+        real_len = ansilen(data)
+    if data.endswith("\033[0m"):
+        return data
+    return data + "\033[0m"

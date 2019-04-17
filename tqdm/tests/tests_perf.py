@@ -298,7 +298,7 @@ def test_iter_overhead_simplebar_hard():
 
     # Compute relative overhead of tqdm against native range()
     try:
-        assert time_tqdm() < 3 * time_bench()
+        assert time_tqdm() < 3.2 * time_bench()
     except AssertionError:
         raise AssertionError('trange(%g): %f, simple_progress(%g): %f' %
                              (total, time_tqdm(), total, time_bench()))
@@ -330,7 +330,7 @@ def test_manual_overhead_simplebar_hard():
 
     # Compute relative overhead of tqdm against native range()
     try:
-        assert time_tqdm() < 3 * time_bench()
+        assert time_tqdm() < 3.2 * time_bench()
     except AssertionError:
         raise AssertionError('tqdm(%g): %f, simple_progress(%g): %f' %
                              (total, time_tqdm(), total, time_bench()))

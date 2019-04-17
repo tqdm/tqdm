@@ -8,6 +8,7 @@ import os
 from nose import with_setup
 from nose.plugins.skip import SkipTest
 from nose.tools import assert_raises
+from nose.tools import eq_
 from contextlib import contextmanager
 
 from tqdm import tqdm
@@ -263,6 +264,45 @@ def test_format_meter():
         "100kiB [00:13, 7.69kiB/s]"
     assert format_meter(100, 1000, 12, ncols=0, rate=7.33) == \
         " 10% 100/1000 [00:12<02:02,  7.33it/s]"
+    eq_(
+        # ncols is small, l_bar is too large
+        # l_bar gets chopped
+        # no bar
+        # no r_bar
+        format_meter(0, 1000, 13, ncols=10, bar_width=10, bar_format="************{bar}$$$$$$$$$$"),
+        "**********"  # 10/12 stars since ncols is 10
+    )
+    eq_(
+        # n_cols allows for l_bar and some of bar
+        # l_bar displays
+        # bar gets chopped
+        # no r_bar
+        format_meter(0, 1000, 13, ncols=20, bar_width=10, bar_format="************{bar}$$$$$$$$$$"),
+        "************        "  # all 12 stars and 8/10 bar parts
+    )
+    eq_(
+        # n_cols allows for l_bar, bar, and some of r_bar
+        # l_bar displays
+        # bar displays
+        # r_bar gets chopped
+        format_meter(0, 1000, 13, ncols=30, bar_width=10, bar_format="************{bar}$$$$$$$$$$"),
+        "************          $$$$$$$$"  # all 12 stars and 10 bar parts, but only 8/10 dollar signs
+    )
+    eq_(
+        # left bar contains sone ANSI, make sure we trim it properly when escape is before trim zone
+        format_meter(0, 1000, 13, ncols=10, bar_width=10, bar_format="*****\033[22m****\033[0m***{bar}$$$$$$$$$$"),
+        "*****\033[22m****\033[0m*\033[0m"  # we only know it has ANSI codes, so we append an END code anyway
+    )
+    eq_(
+        # left bar contains sone ANSI, make sure we trim it properly when escape is at trim zone
+        format_meter(0, 1000, 13, ncols=10, bar_width=10, bar_format="*****\033[22m*****\033[0m**{bar}$$$$$$$$$$"),
+        "*****\033[22m*****\033[0m"
+    )
+    eq_(
+        # left bar contains sone ANSI, make sure we trim it properly when escape is after trim zone
+        format_meter(0, 1000, 13, ncols=10, bar_width=10, bar_format="*****\033[22m******\033[0m*{bar}$$$$$$$$$$"),
+        "*****\033[22m*****\033[0m"
+    )
     # Check that bar_format correctly adapts {bar} size to the rest
     assert format_meter(20, 100, 12, ncols=13, rate=8.1,
                         bar_format=r'{l_bar}{bar}|{n_fmt}/{total_fmt}') == \
@@ -876,7 +916,7 @@ def test_ascii():
     for ascii in [" .oO0", " #"]:
         with closing(StringIO()) as our_file:
             for _ in tqdm(_range(len(ascii) - 1), file=our_file, miniters=1,
-                          mininterval=0, ascii=ascii, ncols=1):
+                          mininterval=0, ascii=ascii, ncols=27):
                 pass
             res = our_file.getvalue().strip("\r").split("\r")
         for bar, line in zip(ascii, res):
