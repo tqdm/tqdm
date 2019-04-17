@@ -3,7 +3,7 @@ IPython/Jupyter Notebook progressbar decorator for iterators.
 Includes a default (x)range iterator printing to stderr.
 
 Usage:
-  >>> from tqdm_notebook import tnrange[, tqdm_notebook]
+  >>> from tqdm import tnrange[, tqdm_notebook]
   >>> for i in tnrange(10): #same as: for i in tqdm_notebook(xrange(10))
   ...     ...
 """
