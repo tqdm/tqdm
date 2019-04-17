@@ -343,3 +343,27 @@ else:
     def _text_width(s):
         return sum(
             2 if east_asian_width(ch) in 'FW' else 1 for ch in _unicode(s))
+
+
+def ansilen(data):
+    """
+    Returns the real on-screen length of a string that may contain ANSI control codes.
+    """
+    return len(_text_width(RE_ANSI.sub('', data)))
+
+
+def ansitrim(data, length):
+    """
+    Trim a string that may or may not contain ANSI control characters.
+    """
+    real_len = ansilen(data)
+    has_ansi = len(data) != real_len
+    if not has_ansi:
+        return data[0:length]
+
+    while real_len > length:
+        data = data[0:-1]
+        real_len = ansilen(data)
+    if data.endswith("\033[0m"):
+        return data
+    return data + "\033[0m"

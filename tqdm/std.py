@@ -11,7 +11,7 @@ from __future__ import absolute_import, division
 # compatibility functions and utilities
 from .utils import _supports_unicode, _environ_cols_wrapper, _range, _unich, \
     _term_move_up, _unicode, WeakSet, _basestring, _OrderedDict, _text_width, \
-    Comparable, RE_ANSI, _is_ascii, FormatReplace, \
+    Comparable, _is_ascii, FormatReplace, ansilen, ansitrim, \
     SimpleTextIOWrapper, CallbackIOWrapper
 from ._monitor import TMonitor
 # native libraries
@@ -479,12 +479,14 @@ class tqdm(Comparable):
             # Formatting progress bar space available for bar's display
             full_bar = Bar(
                 frac,
-                max(1, ncols - _text_width(RE_ANSI.sub('', nobar)))
+                max(1, ncols - ansilen(nobar))
                 if ncols else 10,
                 charset=Bar.ASCII if ascii is True else ascii or Bar.UTF)
             if not _is_ascii(full_bar.charset) and _is_ascii(bar_format):
                 bar_format = _unicode(bar_format)
-            return bar_format.format(bar=full_bar, **format_dict)
+            res = bar_format.format(bar=full_bar, **format_dict)
+            if ncols:
+                return ansitrim(res, ncols)
 
         elif bar_format:
             # user-specified bar_format but no total
