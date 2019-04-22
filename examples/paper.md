@@ -72,8 +72,7 @@ flow through pipes.
 Exhaustive documentation may be found on the project's [home
 page](https://github.com/tqdm/tqdm/#documentation).
 
-The two basic use cases are within Python code and within a Command-line
-interface:
+The two basic use cases are within Python code and within a CLI:
 
 ## Python Iterable Wrapper
 
