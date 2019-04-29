@@ -1,0 +1,7 @@
+[build-system]
+requires = ["setuptools>=41", "wheel", "setuptools_scm[toml]>=3.4.3"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools_scm]
+write_to = "tqdm/_version.py"
+write_to_template = "__version__ = \"{version}\"\n"
