@@ -166,6 +166,16 @@ class SimpleTextIOWrapper(object):
         return setattr(self._wrapped, name, value)
 
 
+def _unwrap_fp(fp):
+    """
+    If fp is a SimpleTextIOWrapper, returns the wrapped fp. Otherwise,
+    passes through 'fp'.
+    """
+    if isinstance(fp, SimpleTextIOWrapper):
+        return fp._wrapped
+    return fp
+
+
 def _is_utf(encoding):
     try:
         u'\u2588\u2589'.encode(encoding)

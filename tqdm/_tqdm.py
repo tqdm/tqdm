@@ -13,7 +13,7 @@ from __future__ import division
 # compatibility functions and utilities
 from ._utils import _supports_unicode, _environ_cols_wrapper, _range, _unich, \
     _term_move_up, _unicode, WeakSet, _basestring, _OrderedDict, \
-    Comparable, RE_ANSI, _is_ascii, SimpleTextIOWrapper
+    Comparable, RE_ANSI, _is_ascii, _unwrap_fp, SimpleTextIOWrapper
 from ._monitor import TMonitor
 # native libraries
 import sys
@@ -533,7 +533,7 @@ class tqdm(Comparable):
         Disable tqdm within context and refresh tqdm when exits.
         Useful when writing to standard output stream
         """
-        fp = file if file is not None else sys.stdout
+        fp = _unwrap_fp(file) if file is not None else sys.stdout
 
         if not nolock:
             cls.get_lock().acquire()
@@ -543,8 +543,11 @@ class tqdm(Comparable):
             # Clear instance if in the target output file
             # or if write output + tqdm output are both either
             # sys.stdout or sys.stderr (because both are mixed in terminal)
-            if hasattr(inst, "start_t") and (inst.fp == fp or all(
-                    f in (sys.stdout, sys.stderr) for f in (fp, inst.fp))):
+            if not hasattr(inst, 'start_t'):
+                continue
+            inst_fp = _unwrap_fp(inst.fp)
+            if inst_fp == fp or \
+               all(f in (sys.stdout, sys.stderr) for f in (fp, inst_fp)):
                 inst.clear(nolock=True)
                 inst_cleared.append(inst)
         yield
