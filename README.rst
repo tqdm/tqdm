@@ -517,11 +517,12 @@ Examples and Advanced Usage
 - See the `examples <https://github.com/tqdm/tqdm/tree/master/examples>`__
   folder;
 - import the module and run ``help()``;
-- consult the `wiki <https://github.com/tqdm/tqdm/wiki>`__.
+- consult the `wiki <https://github.com/tqdm/tqdm/wiki>`__;
     - this has an
       `excellent article <https://github.com/tqdm/tqdm/wiki/How-to-make-a-great-Progress-Bar>`__
-      on how to make a **great** progressbar, or
-- run the |notebook-demo| or |binder-demo|.
+      on how to make a **great** progressbar;
+- run the |notebook-demo| or |binder-demo|, or
+- check out the `slides from PyData London <https://tqdm.github.io/PyData2019/slides.html>`__.
 
 Description and additional stats
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
