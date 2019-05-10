@@ -1316,6 +1316,13 @@ class tqdm(Comparable):
         if pos:
             self.moveto(-pos)
 
+    def reset(self, total=None):
+        """Resets a bar to n=0 for repeated use"""
+        self.last_print_n = self.n = 0
+        self.last_print_t = self.start_t = self._time()
+        if total is not None:
+            self.total = total
+        self.refresh()
 
 def trange(*args, **kwargs):
     """
