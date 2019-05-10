@@ -895,15 +895,9 @@ def test_update():
             assert '| 2/2' in our_file.getvalue()
             progressbar.desc = 'dynamically notify of 4 increments in total'
             progressbar.total = 4
-            try:
-                progressbar.update(-10)
-            except ValueError as e:
-                if str(e) != "n (-10) cannot be negative":
-                    raise
-                progressbar.update()  # should default to +1
-            else:
-                raise ValueError("Should not support negative updates")
-            res = our_file.getvalue()
+            progressbar.update(-1)
+            progressbar.update(2)
+        res = our_file.getvalue()
     assert '| 3/4 ' in res
     assert 'dynamically notify of 4 increments in total' in res
 

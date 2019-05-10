@@ -1100,7 +1100,7 @@ class tqdm(Comparable):
             return
 
         if n < 0:
-            raise ValueError("n ({0}) cannot be negative".format(n))
+            self.last_print_n += n  # for auto-refresh logic to work
         self.n += n
 
         # check counter first to reduce calls to time()
