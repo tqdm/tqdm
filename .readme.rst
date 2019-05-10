@@ -649,8 +649,63 @@ Custom Integration
 Consider overloading ``display()`` to use e.g.
 ``self.frontend(**self.format_dict)`` instead of ``self.sp(repr(self))``.
 
+Dynamic Monitor/Meter
+~~~~~~~~~~~~~~~~~~~~~
+
+You can use a ``tqdm`` as a meter which is not monotonically increasing.
+This could be because ``n`` decreases (e.g. a CPU usage monitor) or ``total``
+changes.
+
+One example would be recursively searching for files. The ``total`` is the
+number of objects found so far, while ``n`` is the number of those objects which
+are files (rather than folders):
+
+.. code:: python
+
+    from tqdm import tqdm
+    import os.path
+
+    def find_files_recursively(path, show_progress=True):
+        files = []
+        # total=1 assumes `path` is a file
+        t = tqdm(total=1, unit="file", disable=not show_progress)
+        if not os.path.exists(path):
+            raise IOError("Cannot find:" + path)
+
+        def append_found_file(f):
+            files.append(f)
+            t.update()
+
+        def list_found_dir(path):
+            """returns os.listdir(path) assuming os.path.isdir(path)"""
+            listing = os.listdir(path)
+            # subtract 1 since a "file" we found was actually this directory
+            t.total += len(listing) - 1
+            # fancy way to give info without forcing a refresh
+            t.set_postfix(dir=path[-10:], refresh=False)
+            t.update(0)  # may trigger a refresh
+            return listing
+
+        def recursively_search(path):
+            if os.path.isdir(path):
+                for f in list_found_dir(path):
+                    recursively_search(os.path.join(path, f))
+            else:
+                append_found_file(path)
+
+        recursively_search(path)
+        t.set_postfix(dir=path)
+        t.close()
+        return files
+
+Using ``update(0)`` is a handy way to let ``tqdm`` decide when to trigger a
+display refresh to avoid console spamming.
+
 Writing messages
 ~~~~~~~~~~~~~~~~
+
+This is a work in progress (see
+`#737 <https://github.com/tqdm/tqdm/issues/737>`__).
 
 Since ``tqdm`` uses a simple printing mechanism to display progress bars,
 you should not write any message in the terminal using ``print()`` while
@@ -842,7 +897,7 @@ Citation information: |DOI-URI|
    :target: https://github.com/tqdm/tqdm/graphs/contributors
 .. |GitHub-Updated| image:: https://img.shields.io/github/last-commit/tqdm/tqdm/master.svg?logo=github&logoColor=white&label=pushed
    :target: https://github.com/tqdm/tqdm/pulse
-.. |Gift-Casper| image:: https://img.shields.io/badge/gift-donate-ff69b4.svg
+.. |Gift-Casper| image:: https://img.shields.io/badge/dynamic/json.svg?color=ff69b4&label=gifts%20received&prefix=%C2%A3&query=%24..sum&url=https%3A%2F%2Fcaspersci.uk.to%2Fgifts.json
    :target: https://caspersci.uk.to/donate
 .. |PyPI-Status| image:: https://img.shields.io/pypi/v/tqdm.svg
    :target: https://pypi.org/project/tqdm
