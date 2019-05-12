@@ -253,16 +253,6 @@ class tqdm_notebook(tqdm):
         # void -> avoid extraneous `\n` in IPython output cell
         return
 
-    def set_description(self, desc=None, **_):
-        """
-        Set/modify description of the progress bar.
-
-        Parameters
-        ----------
-        desc  : str, optional
-        """
-        self.sp(desc=desc)
-
 
 def tnrange(*args, **kwargs):
     """
