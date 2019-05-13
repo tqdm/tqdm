@@ -329,29 +329,19 @@ Returns
           """
 
       def close(self):
-          """
-          Cleanup and (if leave=False) close the progressbar.
-          """
-
-      def unpause(self):
-          """
-          Restart tqdm timer from last print time.
-          """
+          """Cleanup and (if leave=False) close the progressbar."""
 
       def clear(self, nomove=False):
-          """
-          Clear current bar display
-          """
+          """Clear current bar display."""
 
       def refresh(self):
-          """
-          Force refresh the display of this bar
-          """
+          """Force refresh the display of this bar."""
 
-      def write(cls, s, file=sys.stdout, end="\n"):
-          """
-          Print a message via tqdm (without overlap with bars)
-          """
+      def unpause(self):
+          """Restart tqdm timer from last print time."""
+
+      def reset(self, total=None):
+          """Resets a bar to n=0 for repeated use."""
 
       def set_description(self, desc=None, refresh=True):
           """
@@ -375,6 +365,28 @@ Returns
               Forces refresh [default: True].
           """
 
+      @classmethod
+      def write(cls, s, file=sys.stdout, end="\n"):
+          """Print a message via tqdm (without overlap with bars)."""
+
+      @property
+      def format_dict(self):
+          """Public API for read-only member access."""
+
+      def display(self, msg=None, pos=None):
+          """
+          Use ``self.sp`` to display ``msg`` in the specified ``pos``.
+
+          Consider overloading this function when inheriting to use e.g.:
+          ``self.some_frontend(**self.format_dict)`` instead of ``self.sp``.
+
+          Parameters
+          ----------
+          msg  : str, optional. What to display (default: ``repr(self)``).
+          pos  : int, optional. Position to ``moveto``
+            (default: ``abs(self.pos)``).
+          """
+
     def trange(*args, **kwargs):
         """
         A shortcut for tqdm(xrange(*args), **kwargs).
@@ -382,24 +394,16 @@ Returns
         """
 
     class tqdm_gui(tqdm):
-        """
-        Experimental GUI version of tqdm!
-        """
+        """Experimental GUI version"""
 
     def tgrange(*args, **kwargs):
-        """
-        Experimental GUI version of trange!
-        """
+        """Experimental GUI version of trange"""
 
     class tqdm_notebook(tqdm):
-        """
-        Experimental IPython/Jupyter Notebook widget using tqdm!
-        """
+        """Experimental IPython/Jupyter Notebook widget"""
 
     def tnrange(*args, **kwargs):
-        """
-        Experimental IPython/Jupyter Notebook widget using tqdm!
-        """
+        """Experimental IPython/Jupyter Notebook widget version of trange"""
 
 
 Examples and Advanced Usage
