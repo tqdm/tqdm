@@ -1127,6 +1127,21 @@ def test_unpause():
 
 
 @with_setup(pretest, posttest)
+def test_reset():
+    """Test resetting a bar for re-use"""
+    with closing(StringIO()) as our_file:
+        with tqdm(total=10, file=our_file,
+                  miniters=1, mininterval=0, maxinterval=0) as t:
+            t.update(9)
+            t.reset()
+            t.update()
+            t.reset(total=12)
+            t.update(10)
+        assert '| 1/10' in our_file.getvalue()
+        assert '| 10/12' in our_file.getvalue()
+
+
+@with_setup(pretest, posttest)
 def test_position():
     """Test positioned progress bars"""
     if nt_and_no_colorama:
