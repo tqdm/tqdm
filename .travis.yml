@@ -22,7 +22,7 @@ matrix:
     - make -B docker
     - |
       if [[ -n "$TRAVIS_TAG" ]]; then
-      docker tag tqdm/tqdm:latest tqdm/tqdm:$TRAVIS_TAG ; fi
+      docker tag tqdm/tqdm:latest tqdm/tqdm:${TRAVIS_TAG#v} ; fi
     - docker tag tqdm/tqdm:latest tqdm/tqdm:devel
     - pip install .[dev]
     - make build
@@ -44,11 +44,11 @@ matrix:
       file: dist/tqdm-*.whl*
       skip_cleanup: true
       draft: true
-      name: tqdm v$TRAVIS_TAG stable
+      name: tqdm $TRAVIS_TAG stable
       on:
         tags: true
     - provider: script
-      script: docker push tqdm/tqdm:$TRAVIS_TAG
+      script: docker push tqdm/tqdm:${TRAVIS_TAG#v}
       on:
         tags: true
     - provider: script
