@@ -209,8 +209,9 @@ class tqdm_notebook(tqdm):
 
         # Replace with IPython progress bar display (with correct total)
         unit_scale = 1 if self.unit_scale is True else self.unit_scale or 1
+        total = self.total * unit_scale if self.total else self.total
         self.sp = self.status_printer(
-            self.fp, self.total * unit_scale, self.desc, self.ncols)
+            self.fp, total, self.desc, self.ncols)
         self.desc = None  # trick to place description before the bar
 
         # Print initial bar state
