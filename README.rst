@@ -478,8 +478,10 @@ Returns
 
           Parameters
           ----------
+          ordered_dict  : dict or OrderedDict, optional
           refresh  : bool, optional
               Forces refresh [default: True].
+          kwargs  : dict, optional
           """
 
       @classmethod
