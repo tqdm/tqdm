@@ -1208,7 +1208,15 @@ class tqdm(Comparable):
         self.last_print_t = cur_t
 
     def reset(self, total=None):
-        """Resets a bar to n=0 for repeated use."""
+        """
+        Resets to 0 iterations for repeated use.
+
+        Consider combining with `leave=True`.
+
+        Parameters
+        ----------
+        total  : int, optional. Total to use for the new bar.
+        """
         self.last_print_n = self.n = 0
         self.last_print_t = self.start_t = self._time()
         if total is not None:

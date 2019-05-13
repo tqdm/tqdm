@@ -450,7 +450,15 @@ Returns
           """Restart tqdm timer from last print time."""
 
       def reset(self, total=None):
-          """Resets a bar to n=0 for repeated use."""
+          """
+          Resets to 0 iterations for repeated use.
+
+          Consider combining with ``leave=True``.
+
+          Parameters
+          ----------
+          total  : int, optional. Total to use for the new bar.
+          """
 
       def set_description(self, desc=None, refresh=True):
           """
