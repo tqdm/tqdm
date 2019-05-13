@@ -480,7 +480,7 @@ class tqdm(Comparable):
 
     @classmethod
     def _get_free_pos(cls, instance=None):
-        """Skips specified instance"""
+        """Skips specified instance."""
         positions = set(abs(inst.pos) for inst in cls._instances
                         if inst is not instance and hasattr(inst, "pos"))
         return min(set(range(len(positions) + 1)).difference(positions))
@@ -517,9 +517,7 @@ class tqdm(Comparable):
 
     @classmethod
     def write(cls, s, file=None, end="\n", nolock=False):
-        """
-        Print a message via tqdm (without overlap with bars)
-        """
+        """Print a message via tqdm (without overlap with bars)."""
         fp = file if file is not None else sys.stdout
         with cls.external_write_mode(file=file, nolock=nolock):
             # Write the message
@@ -965,21 +963,6 @@ class tqdm(Comparable):
     def __del__(self):
         self.close()
 
-    @property
-    def format_dict(self):
-        """Public API for read-only member access"""
-        return dict(
-            n=self.n, total=self.total,
-            elapsed=self._time() - self.start_t
-            if hasattr(self, 'start_t') else 0,
-            ncols=self.dynamic_ncols(self.fp)
-            if self.dynamic_ncols else self.ncols,
-            prefix=self.desc, ascii=self.ascii, unit=self.unit,
-            unit_scale=self.unit_scale,
-            rate=1 / self.avg_time if self.avg_time else None,
-            bar_format=self.bar_format, postfix=self.postfix,
-            unit_divisor=self.unit_divisor)
-
     def __repr__(self):
         return self.format_meter(**self.format_dict)
 
@@ -1100,7 +1083,7 @@ class tqdm(Comparable):
             return
 
         if n < 0:
-            raise ValueError("n ({0}) cannot be negative".format(n))
+            self.last_print_n += n  # for auto-refresh logic to work
         self.n += n
 
         # check counter first to reduce calls to time()
@@ -1152,9 +1135,7 @@ class tqdm(Comparable):
                 self.last_print_t = cur_t
 
     def close(self):
-        """
-        Cleanup and (if leave=False) close the progressbar.
-        """
+        """Cleanup and (if leave=False) close the progressbar."""
         if self.disable:
             return
 
@@ -1195,13 +1176,52 @@ class tqdm(Comparable):
                 if not pos:
                     fp_write('\r')
 
+    def clear(self, nolock=False):
+        """Clear current bar display."""
+        if self.disable:
+            return
+
+        if not nolock:
+            self._lock.acquire()
+        self.moveto(abs(self.pos))
+        self.sp('')
+        self.fp.write('\r')  # place cursor back at the beginning of line
+        self.moveto(-abs(self.pos))
+        if not nolock:
+            self._lock.release()
+
+    def refresh(self, nolock=False):
+        """Force refresh the display of this bar."""
+        if self.disable:
+            return
+
+        if not nolock:
+            self._lock.acquire()
+        self.display()
+        if not nolock:
+            self._lock.release()
+
     def unpause(self):
-        """
-        Restart tqdm timer from last print time.
-        """
+        """Restart tqdm timer from last print time."""
         cur_t = self._time()
         self.start_t += cur_t - self.last_print_t
         self.last_print_t = cur_t
+
+    def reset(self, total=None):
+        """
+        Resets to 0 iterations for repeated use.
+
+        Consider combining with `leave=True`.
+
+        Parameters
+        ----------
+        total  : int, optional. Total to use for the new bar.
+        """
+        self.last_print_n = self.n = 0
+        self.last_print_t = self.start_t = self._time()
+        if total is not None:
+            self.total = total
+        self.refresh()
 
     def set_description(self, desc=None, refresh=True):
         """
@@ -1218,9 +1238,7 @@ class tqdm(Comparable):
             self.refresh()
 
     def set_description_str(self, desc=None, refresh=True):
-        """
-        Set/modify description without ': ' appended.
-        """
+        """Set/modify description without ': ' appended."""
         self.desc = desc or ''
         if refresh:
             self.refresh()
@@ -1269,43 +1287,33 @@ class tqdm(Comparable):
         self.fp.write(_unicode('\n' * n + _term_move_up() * -n))
         self.fp.flush()
 
-    def clear(self, nolock=False):
-        """
-        Clear current bar display
-        """
-        if self.disable:
-            return
-
-        if not nolock:
-            self._lock.acquire()
-        self.moveto(abs(self.pos))
-        self.sp('')
-        self.fp.write('\r')  # place cursor back at the beginning of line
-        self.moveto(-abs(self.pos))
-        if not nolock:
-            self._lock.release()
-
-    def refresh(self, nolock=False):
-        """
-        Force refresh the display of this bar
-        """
-        if self.disable:
-            return
-
-        if not nolock:
-            self._lock.acquire()
-        self.display()
-        if not nolock:
-            self._lock.release()
+    @property
+    def format_dict(self):
+        """Public API for read-only member access."""
+        return dict(
+            n=self.n, total=self.total,
+            elapsed=self._time() - self.start_t
+            if hasattr(self, 'start_t') else 0,
+            ncols=self.dynamic_ncols(self.fp)
+            if self.dynamic_ncols else self.ncols,
+            prefix=self.desc, ascii=self.ascii, unit=self.unit,
+            unit_scale=self.unit_scale,
+            rate=1 / self.avg_time if self.avg_time else None,
+            bar_format=self.bar_format, postfix=self.postfix,
+            unit_divisor=self.unit_divisor)
 
     def display(self, msg=None, pos=None):
         """
-        Use `self.sp` and to display `msg` in the specified `pos`.
+        Use `self.sp` to display `msg` in the specified `pos`.
+
+        Consider overloading this function when inheriting to use e.g.:
+        `self.some_frontend(**self.format_dict)` instead of `self.sp`.
 
         Parameters
         ----------
-        msg  : what to display (default: repr(self))
-        pos  : position to display in. (default: abs(self.pos))
+        msg  : str, optional. What to display (default: `repr(self)`).
+        pos  : int, optional. Position to `moveto`
+          (default: `abs(self.pos)`).
         """
         if pos is None:
             pos = abs(self.pos)

@@ -895,15 +895,9 @@ def test_update():
             assert '| 2/2' in our_file.getvalue()
             progressbar.desc = 'dynamically notify of 4 increments in total'
             progressbar.total = 4
-            try:
-                progressbar.update(-10)
-            except ValueError as e:
-                if str(e) != "n (-10) cannot be negative":
-                    raise
-                progressbar.update()  # should default to +1
-            else:
-                raise ValueError("Should not support negative updates")
-            res = our_file.getvalue()
+            progressbar.update(-1)
+            progressbar.update(2)
+        res = our_file.getvalue()
     assert '| 3/4 ' in res
     assert 'dynamically notify of 4 increments in total' in res
 
@@ -1130,6 +1124,21 @@ def test_unpause():
         r_before = progressbar_rate(get_bar(our_file.getvalue(), 2))
         r_after = progressbar_rate(get_bar(our_file.getvalue(), 3))
     assert r_before == r_after
+
+
+@with_setup(pretest, posttest)
+def test_reset():
+    """Test resetting a bar for re-use"""
+    with closing(StringIO()) as our_file:
+        with tqdm(total=10, file=our_file,
+                  miniters=1, mininterval=0, maxinterval=0) as t:
+            t.update(9)
+            t.reset()
+            t.update()
+            t.reset(total=12)
+            t.update(10)
+        assert '| 1/10' in our_file.getvalue()
+        assert '| 10/12' in our_file.getvalue()
 
 
 @with_setup(pretest, posttest)

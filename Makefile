@@ -24,8 +24,10 @@
 	buildupload
 	pypi
 	snap
+	docker
 	help
 	none
+	run
 
 help:
 	@python setup.py make -p
@@ -52,6 +54,7 @@ testnose:
 
 testsetup:
 	@make README.rst
+	@make tqdm/tqdm.1
 	python setup.py check --restructuredtext --strict
 	python setup.py make none
 
@@ -81,7 +84,7 @@ viewasv:
 	asv publish
 	asv preview
 
-tqdm/tqdm.1: .tqdm.1.md
+tqdm/tqdm.1: .tqdm.1.md tqdm/_main.py tqdm/_tqdm.py
 	# TODO: add to mkdocs.py
 	python -m tqdm --help | tail -n+5 |\
     sed -r -e 's/\\/\\\\/g' \
@@ -98,6 +101,11 @@ snapcraft.yaml: .snapcraft.yml
     -e 's/{commit}/'"`git describe --always`"'/g' \
     -e 's/{source}/./g' -e 's/{icon}/logo.png/g' \
     -e 's/{description}/https:\/\/tqdm.github.io/g' > "$@"
+
+.dockerignore: .gitignore
+	cat $^ > "$@"
+	echo -e ".git" > "$@"
+	git clean -xdn | sed -nr 's/^Would remove (.*)$$/\1/p' >> "$@"
 
 distclean:
 	@+make coverclean
@@ -148,6 +156,14 @@ buildupload:
 snap:
 	@make snapcraft.yaml
 	snapcraft
-
+docker:
+	@make .dockerignore
+	@make coverclean
+	@make clean
+	docker build . -t tqdm/tqdm
+	docker tag tqdm/tqdm:latest tqdm/tqdm:$(shell docker run -i --rm tqdm/tqdm -v)
 none:
 	# used for unit testing
+
+run:
+	python -Om tqdm --help

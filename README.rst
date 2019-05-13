@@ -3,15 +3,15 @@
 tqdm
 ====
 
-|PyPI-Versions| |PyPI-Status| |Conda-Forge-Status| |Snapcraft|
+|PyPI-Versions| |PyPI-Status| |Conda-Forge-Status| |Docker| |Snapcraft|
 
 |Build-Status| |Coverage-Status| |Branch-Coverage-Status| |Codacy-Grade| |Libraries-Rank| |PyPI-Downloads|
 
-|DOI-URI| |LICENCE| |OpenHub-Status| |interactive-demo|
+|DOI-URI| |LICENCE| |OpenHub-Status| |binder-demo| |notebook-demo|
 
 
-``tqdm`` means "progress" in Arabic (taqadum, تقدّم)
-and is an abbreviation for "I love you so much" in Spanish (te quiero demasiado).
+``tqdm`` means "progress" in Arabic (*taqadum*, تقدّم)
+and is an abbreviation for "I love you so much" in Spanish (*te quiero demasiado*).
 
 Instantly make your loops show a smart progress meter - just wrap any
 iterable with ``tqdm(iterable)``, and you're done!
@@ -107,6 +107,15 @@ Latest Snapcraft release
 
     snap install tqdm
 
+Latest Docker release
+~~~~~~~~~~~~~~~~~~~~~
+
+|Docker|
+
+.. code:: sh
+
+    docker pull tqdm/tqdm
+    docker run -i --rm tqdm/tqdm --help
 
 Changelog
 ---------
@@ -429,28 +438,26 @@ Returns
           """
 
       def close(self):
-          """
-          Cleanup and (if leave=False) close the progressbar.
-          """
-
-      def unpause(self):
-          """
-          Restart tqdm timer from last print time.
-          """
+          """Cleanup and (if leave=False) close the progressbar."""
 
       def clear(self, nomove=False):
-          """
-          Clear current bar display
-          """
+          """Clear current bar display."""
 
       def refresh(self):
-          """
-          Force refresh the display of this bar
-          """
+          """Force refresh the display of this bar."""
 
-      def write(cls, s, file=sys.stdout, end="\n"):
+      def unpause(self):
+          """Restart tqdm timer from last print time."""
+
+      def reset(self, total=None):
           """
-          Print a message via tqdm (without overlap with bars)
+          Resets to 0 iterations for repeated use.
+
+          Consider combining with ``leave=True``.
+
+          Parameters
+          ----------
+          total  : int, optional. Total to use for the new bar.
           """
 
       def set_description(self, desc=None, refresh=True):
@@ -471,8 +478,32 @@ Returns
 
           Parameters
           ----------
+          ordered_dict  : dict or OrderedDict, optional
           refresh  : bool, optional
               Forces refresh [default: True].
+          kwargs  : dict, optional
+          """
+
+      @classmethod
+      def write(cls, s, file=sys.stdout, end="\n"):
+          """Print a message via tqdm (without overlap with bars)."""
+
+      @property
+      def format_dict(self):
+          """Public API for read-only member access."""
+
+      def display(self, msg=None, pos=None):
+          """
+          Use ``self.sp`` to display ``msg`` in the specified ``pos``.
+
+          Consider overloading this function when inheriting to use e.g.:
+          ``self.some_frontend(**self.format_dict)`` instead of ``self.sp``.
+
+          Parameters
+          ----------
+          msg  : str, optional. What to display (default: ``repr(self)``).
+          pos  : int, optional. Position to ``moveto``
+            (default: ``abs(self.pos)``).
           """
 
     def trange(*args, **kwargs):
@@ -482,24 +513,16 @@ Returns
         """
 
     class tqdm_gui(tqdm):
-        """
-        Experimental GUI version of tqdm!
-        """
+        """Experimental GUI version"""
 
     def tgrange(*args, **kwargs):
-        """
-        Experimental GUI version of trange!
-        """
+        """Experimental GUI version of trange"""
 
     class tqdm_notebook(tqdm):
-        """
-        Experimental IPython/Jupyter Notebook widget using tqdm!
-        """
+        """Experimental IPython/Jupyter Notebook widget"""
 
     def tnrange(*args, **kwargs):
-        """
-        Experimental IPython/Jupyter Notebook widget using tqdm!
-        """
+        """Experimental IPython/Jupyter Notebook widget version of trange"""
 
 
 Examples and Advanced Usage
@@ -508,11 +531,12 @@ Examples and Advanced Usage
 - See the `examples <https://github.com/tqdm/tqdm/tree/master/examples>`__
   folder;
 - import the module and run ``help()``;
-- consult the `wiki <https://github.com/tqdm/tqdm/wiki>`__.
+- consult the `wiki <https://github.com/tqdm/tqdm/wiki>`__;
     - this has an
       `excellent article <https://github.com/tqdm/tqdm/wiki/How-to-make-a-great-Progress-Bar>`__
-      on how to make a **great** progressbar, or
-- run the |interactive-demo|.
+      on how to make a **great** progressbar;
+- run the |notebook-demo| or |binder-demo|, or
+- check out the `slides from PyData London <https://tqdm.github.io/PyData2019/slides.html>`__.
 
 Description and additional stats
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -748,8 +772,63 @@ Custom Integration
 Consider overloading ``display()`` to use e.g.
 ``self.frontend(**self.format_dict)`` instead of ``self.sp(repr(self))``.
 
+Dynamic Monitor/Meter
+~~~~~~~~~~~~~~~~~~~~~
+
+You can use a ``tqdm`` as a meter which is not monotonically increasing.
+This could be because ``n`` decreases (e.g. a CPU usage monitor) or ``total``
+changes.
+
+One example would be recursively searching for files. The ``total`` is the
+number of objects found so far, while ``n`` is the number of those objects which
+are files (rather than folders):
+
+.. code:: python
+
+    from tqdm import tqdm
+    import os.path
+
+    def find_files_recursively(path, show_progress=True):
+        files = []
+        # total=1 assumes `path` is a file
+        t = tqdm(total=1, unit="file", disable=not show_progress)
+        if not os.path.exists(path):
+            raise IOError("Cannot find:" + path)
+
+        def append_found_file(f):
+            files.append(f)
+            t.update()
+
+        def list_found_dir(path):
+            """returns os.listdir(path) assuming os.path.isdir(path)"""
+            listing = os.listdir(path)
+            # subtract 1 since a "file" we found was actually this directory
+            t.total += len(listing) - 1
+            # fancy way to give info without forcing a refresh
+            t.set_postfix(dir=path[-10:], refresh=False)
+            t.update(0)  # may trigger a refresh
+            return listing
+
+        def recursively_search(path):
+            if os.path.isdir(path):
+                for f in list_found_dir(path):
+                    recursively_search(os.path.join(path, f))
+            else:
+                append_found_file(path)
+
+        recursively_search(path)
+        t.set_postfix(dir=path)
+        t.close()
+        return files
+
+Using ``update(0)`` is a handy way to let ``tqdm`` decide when to trigger a
+display refresh to avoid console spamming.
+
 Writing messages
 ~~~~~~~~~~~~~~~~
+
+This is a work in progress (see
+`#737 <https://github.com/tqdm/tqdm/issues/737>`__).
 
 Since ``tqdm`` uses a simple printing mechanism to display progress bars,
 you should not write any message in the terminal using ``print()`` while
@@ -872,7 +951,7 @@ The monitor thread may be disabled application-wide by setting
 Contributions
 -------------
 
-|GitHub-Commits| |GitHub-Issues| |GitHub-PRs| |OpenHub-Status|
+|GitHub-Commits| |GitHub-Issues| |GitHub-PRs| |OpenHub-Status| |GitHub-Contributions|
 
 All source code is hosted on `GitHub <https://github.com/tqdm/tqdm>`__.
 Contributions are welcome.
@@ -880,6 +959,24 @@ Contributions are welcome.
 See the
 `CONTRIBUTING <https://raw.githubusercontent.com/tqdm/tqdm/master/CONTRIBUTING.md>`__
 file for more information.
+
+Developers who have made significant contributions, ranked by *LoC*
+(surviving lines of code,
+`git fame -wMC --excl '\.(png|gif|enc)$' <https://github.com/casperdcl/git-fame>`__),
+are:
+
+==================== ================================================== ==== ================================
+Name                 ID                                                 LoC  Notes
+==================== ================================================== ==== ================================
+Casper da Costa-Luis `casperdcl <https://github.com/casperdcl>`__       ~3/4 primary maintainer |Gift-Casper|
+Stephen Larroque     `lrq3000 <https://github.com/lrq3000>`__           ~1/6 team member
+Noam Yorav-Raphael   `noamraph <https://github.com/noamraph>`__         ~1%  original author
+Matthew Stevens      `mjstevens777 <https://github.com/mjstevens777>`__ ~1%
+Guangshuo Chen       `chengs <https://github.com/chengs>`__             ~1%
+Hadrien Mary         `hadim <https://github.com/hadim>`__               ~1%  team member
+Mikhail Korobov      `kmike <https://github.com/kmike>`__               ~1%  team member
+Kyle Altendorf       `altendky <https://github.com/altendky>`__         ~1%
+==================== ================================================== ==== ================================
 
 Ports to Other Languages
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -894,24 +991,6 @@ LICENCE
 Open Source (OSI approved): |LICENCE|
 
 Citation information: |DOI-URI|
-
-
-Authors
--------
-
-The main developers, ranked by surviving lines of code
-(`git fame -wMC --excl '\.(png|gif)$' <https://github.com/casperdcl/git-fame>`__), are:
-
-- Casper da Costa-Luis (`casperdcl <https://github.com/casperdcl>`__, ~2/3, |Gift-Casper|)
-- Stephen Larroque (`lrq3000 <https://github.com/lrq3000>`__, ~1/5)
-- Matthew Stevens (`mjstevens777 <https://github.com/mjstevens777>`__, ~2%)
-- Noam Yorav-Raphael (`noamraph <https://github.com/noamraph>`__, ~2%, original author)
-- Guangshuo Chen (`chengs <https://github.com/chengs>`__, ~1%)
-- Hadrien Mary (`hadim <https://github.com/hadim>`__, ~1%)
-- Mikhail Korobov (`kmike <https://github.com/kmike>`__, ~1%)
-- Kyle Altendorf (`altendky <https://github.com/altendky>`__, ~1%)
-
-There are also many |GitHub-Contributions| which we are grateful for.
 
 |README-Hits| (Since 19 May 2016)
 
@@ -934,15 +1013,15 @@ There are also many |GitHub-Contributions| which we are grateful for.
 .. |GitHub-Commits| image:: https://img.shields.io/github/commit-activity/y/tqdm/tqdm.svg?logo=git&logoColor=white
    :target: https://github.com/tqdm/tqdm/graphs/commit-activity
 .. |GitHub-Issues| image:: https://img.shields.io/github/issues-closed/tqdm/tqdm.svg?logo=github&logoColor=white
-   :target: https://github.com/tqdm/tqdm/issues
+   :target: https://github.com/tqdm/tqdm/issues?q=
 .. |GitHub-PRs| image:: https://img.shields.io/github/issues-pr-closed/tqdm/tqdm.svg?logo=github&logoColor=white
    :target: https://github.com/tqdm/tqdm/pulls
 .. |GitHub-Contributions| image:: https://img.shields.io/github/contributors/tqdm/tqdm.svg?logo=github&logoColor=white
    :target: https://github.com/tqdm/tqdm/graphs/contributors
 .. |GitHub-Updated| image:: https://img.shields.io/github/last-commit/tqdm/tqdm/master.svg?logo=github&logoColor=white&label=pushed
    :target: https://github.com/tqdm/tqdm/pulse
-.. |Gift-Casper| image:: https://img.shields.io/badge/gift-donate-ff69b4.svg
-   :target: https://caspersci.uk.to/donate.html
+.. |Gift-Casper| image:: https://img.shields.io/badge/dynamic/json.svg?color=ff69b4&label=gifts%20received&prefix=%C2%A3&query=%24..sum&url=https%3A%2F%2Fcaspersci.uk.to%2Fgifts.json
+   :target: https://caspersci.uk.to/donate
 .. |PyPI-Status| image:: https://img.shields.io/pypi/v/tqdm.svg
    :target: https://pypi.org/project/tqdm
 .. |PyPI-Downloads| image:: https://img.shields.io/pypi/dm/tqdm.svg?label=pypi%20downloads&logo=python&logoColor=white
@@ -953,6 +1032,8 @@ There are also many |GitHub-Contributions| which we are grateful for.
    :target: https://anaconda.org/conda-forge/tqdm
 .. |Snapcraft| image:: https://img.shields.io/badge/snap-install-82BEA0.svg?logo=snapcraft
    :target: https://snapcraft.io/tqdm
+.. |Docker| image:: https://img.shields.io/badge/docker-pull-blue.svg?logo=docker
+   :target: https://hub.docker.com/r/tqdm/tqdm
 .. |Libraries-Rank| image:: https://img.shields.io/librariesio/sourcerank/pypi/tqdm.svg?logo=koding&logoColor=white
    :target: https://libraries.io/pypi/tqdm
 .. |Libraries-Dependents| image:: https://img.shields.io/librariesio/dependent-repos/pypi/tqdm.svg?logo=koding&logoColor=white
@@ -963,8 +1044,10 @@ There are also many |GitHub-Contributions| which we are grateful for.
    :target: https://raw.githubusercontent.com/tqdm/tqdm/master/LICENCE
 .. |DOI-URI| image:: https://img.shields.io/badge/DOI-10.5281/zenodo.595120-blue.svg
    :target: https://doi.org/10.5281/zenodo.595120
-.. |interactive-demo| image:: https://img.shields.io/badge/demo-interactive-orange.svg?logo=jupyter
-   :target: https://notebooks.rmotr.com/demo/gh/tqdm/tqdm
+.. |notebook-demo| image:: https://img.shields.io/badge/launch-notebook-orange.svg?logo=jupyter
+   :target: https://notebooks.ai/demo/gh/tqdm/tqdm
+.. |binder-demo| image:: https://mybinder.org/badge_logo.svg
+   :target: https://mybinder.org/v2/gh/tqdm/tqdm/master?filepath=DEMO.ipynb
 .. |Screenshot-Jupyter1| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/tqdm-jupyter-1.gif
 .. |Screenshot-Jupyter2| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/tqdm-jupyter-2.gif
 .. |Screenshot-Jupyter3| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/tqdm-jupyter-3.gif

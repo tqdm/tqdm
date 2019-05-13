@@ -150,7 +150,7 @@ class tqdm_notebook(tqdm):
                     npos = s.find(r'/|/')  # cause we use bar_format=r'{n}|...'
                     # Check that n can be found in s (else n > total)
                     if npos >= 0:
-                        n = int(s[:npos])  # get n from string
+                        n = float(s[:npos])  # get n from string
                         s = s[npos + 3:]  # remove from string
 
                         # Update bar with current n value
@@ -208,8 +208,9 @@ class tqdm_notebook(tqdm):
         self.ncols = '100%' if self.dynamic_ncols else kwargs.get("ncols", None)
 
         # Replace with IPython progress bar display (with correct total)
+        unit_scale = 1 if self.unit_scale is True else self.unit_scale or 1
         self.sp = self.status_printer(
-            self.fp, self.total, self.desc, self.ncols)
+            self.fp, self.total * unit_scale, self.desc, self.ncols)
         self.desc = None  # trick to place description before the bar
 
         # Print initial bar state

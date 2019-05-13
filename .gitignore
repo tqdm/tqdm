@@ -9,6 +9,7 @@ build/
 dist/
 snapcraft.yaml
 tqdm_*_amd64.snap
+.dockerignore
 
 # Unit test / coverage reports
 .tox/

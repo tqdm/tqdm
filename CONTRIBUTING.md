@@ -203,6 +203,9 @@ display as `v{major}.{minor}.{patch}-{commit_hash}`.
 
 ### Upload
 
+Travis CI should automatically do this after pushing tags.
+Manual instructions are given below in case of failure.
+
 Build `tqdm` into a distributable python package:
 
 ```
@@ -220,12 +223,33 @@ Finally, upload everything to pypi. This can be done easily using the
 ```
 
 Also, the new release can (should) be added to GitHub by creating a new
-release from the web interface; uploading packages from the `dist/` folder
+release from the [web interface](https://github.com/tqdm/tqdm/releases);
+uploading packages from the `dist/` folder
 created by `[python setup.py] make build`.
 The [wiki] can be automatically updated with GitHub release notes by
 running `make` within the wiki repository.
 
 [wiki]: https://github.com/tqdm/tqdm/wiki
+
+Docker images may be uploaded to <https://hub.docker.com/r/tqdm/tqdm>.
+Assuming `docker` is
+[installed](https://docs.docker.com/install/linux/docker-ce/ubuntu/):
+
+```
+make -B docker
+docker login
+docker push tqdm/tqdm:latest
+docker push tqdm/tqdm:$(docker run -i --rm tqdm/tqdm -v)
+```
+
+Snaps may be uploaded to <https://snapcraft.io/tqdm>.
+Assuming `snapcraft` is installed (`snap install snapcraft --classic --beta`):
+
+```
+make snap
+snapcraft login
+snapcraft push tqdm*.snap --release stable
+```
 
 ### Notes
 
@@ -275,15 +299,27 @@ For experienced devs, once happy with local master:
 6. `git tag vM.m.p && git push --tags`
 7. `[python setup.py] make distclean`
 8. `[python setup.py] make build`
-9. upload to PyPI using one of the following:
-    a) `[python setup.py] make pypi`
+9. **`[AUTO:TravisCI]`** upload to PyPI. either:
+    a) `[python setup.py] make pypi`, or
     b) `twine upload -s -i $(git config user.signingkey) dist/tqdm-*`
-10. create new release on <https://github.com/tqdm/tqdm/releases>
+10. **`[AUTO:TravisCI]`** upload to docker hub:
+    a) `make -B docker`
+    b) `docker push tqdm/tqdm:latest`
+    c) `docker push tqdm/tqdm:$(docker run -i --rm tqdm/tqdm -v)`
+11. upload to snapcraft:
+    a) `make snap`, and
+    b) `snapcraft push tqdm*.snap --release stable`
+12. create new release on <https://github.com/tqdm/tqdm/releases>
     a) add helpful release notes
-    b) attach `dist/tqdm-*` binaries (usually only `*.whl*`)
-11. run `make` in the `wiki` submodule to update release notes
-12. run `make deploy` in the `docs` submodule to update website
-13. accept the automated PR in the `feedstock` submodule to update conda
+    b) **`[AUTO:TravisCI]`** attach `dist/tqdm-*` binaries
+       (usually only `*.whl*`)
+13. **`[SUB]`** run `make` in the `wiki` submodule to update release notes
+14. **`[SUB]`** run `make deploy` in the `docs` submodule to update website
+15. **`[SUB]`** accept the automated PR in the `feedstock` submodule to update conda
 
-The last three steps require a one-time `make submodules` to clone
-`docs`, `wiki`, and `feedstock`.
+Key:
+
+- **`[AUTO:TravisCI]`**: Travis CI should automatically do this after
+  `git push --tags` (6)
+- **`[SUB]`**:  Requires one-time `make submodules` to clone
+  `docs`, `wiki`, and `feedstock`
