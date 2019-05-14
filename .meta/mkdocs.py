@@ -66,6 +66,6 @@ for k, v in DOC_tqdm_tqdm.items():
     README_rst = README_rst.replace('{DOC_tqdm.tqdm.%s}' % k, v)
 
 if __name__ == "__main__":
-    fndoc = path.join(src_dir, 'README.rst')
+    fndoc = path.join(path.dirname(src_dir), 'README.rst')
     with io_open(fndoc, mode='w', encoding='utf-8') as fd:
         fd.write(README_rst)

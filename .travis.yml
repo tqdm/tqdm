@@ -29,7 +29,7 @@ matrix:
     #- make submodules
     #- cd wiki && make && cd ..
     - openssl aes-256-cbc -K $encrypted_a6d6301302b7_key
-      -iv $encrypted_a6d6301302b7_iv -in .tqdm.gpg.enc -out .tqdm.gpg -d
+      -iv $encrypted_a6d6301302b7_iv -in .meta/.tqdm.gpg.enc -out .tqdm.gpg -d
     - gpg --import .tqdm.gpg
     - rm .tqdm.gpg
     deploy:
