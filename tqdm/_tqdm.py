@@ -951,8 +951,7 @@ class tqdm(Comparable):
         if self.total is not None:
             return self.total > 0
         if self.iterable is None:
-            raise TypeError('Boolean cast is undefined'
-                            ' for tqdm objects that have no iterable or total')
+            raise TypeError('bool() undefined when iterable == total == None')
         return bool(self.iterable)
 
     def __nonzero__(self):

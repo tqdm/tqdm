@@ -1710,32 +1710,31 @@ def test_threading():
 @with_setup(pretest, posttest)
 def test_bool():
     """Test boolean cast"""
-
     def internal(our_file, disable):
-        with trange(10, file=our_file, disable=disable) as t:
+        kwargs = dict(file=our_file, disable=disable)
+        with trange(10, **kwargs) as t:
             assert t
-        with trange(0, file=our_file, disable=disable) as t:
+        with trange(0, **kwargs) as t:
             assert not t
-
-        def get_bool_for_tqdm(*args, **kwargs):
-            kwargs['file'] = our_file
-            kwargs['disable'] = disable
-            with tqdm(*args, **kwargs) as t:
-                return bool(t)
-
-        assert get_bool_for_tqdm(total=10)
-        assert not get_bool_for_tqdm(total=0)
-        assert not get_bool_for_tqdm([])
-        assert get_bool_for_tqdm([0])
-        assert get_bool_for_tqdm((x for x in []))
-        assert get_bool_for_tqdm((x for x in [1,2,3]))
-        try:
-            get_bool_for_tqdm()
-        except TypeError:
-            pass
-        else:
-            raise TypeError(
-                "Expected tqdm() with neither total nor iterable to fail")
+        with tqdm(total=10, **kwargs) as t:
+            assert bool(t)
+        with tqdm(total=0, **kwargs) as t:
+            assert not bool(t)
+        with tqdm([], **kwargs) as t:
+            assert not t
+        with tqdm([0], **kwargs) as t:
+            assert t
+        with tqdm((x for x in []), **kwargs) as t:
+            assert t
+        with tqdm((x for x in [1,2,3]), **kwargs) as t:
+            assert t
+        with tqdm(**kwargs) as t:
+            try:
+                print(bool(t))
+            except TypeError:
+                pass
+            else:
+                raise TypeError("Expected bool(tqdm()) to fail")
 
     # test with and without disable
     with closing(StringIO()) as our_file:
