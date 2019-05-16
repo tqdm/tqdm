@@ -947,6 +947,16 @@ class tqdm(Comparable):
         # NB: Avoid race conditions by setting start_t at the very end of init
         self.start_t = self.last_print_t
 
+    def __bool__(self):
+        if self.total is not None:
+            return self.total > 0
+        if self.iterable is None:
+            raise TypeError('bool() undefined when iterable == total == None')
+        return bool(self.iterable)
+
+    def __nonzero__(self):
+        return self.__bool__()
+
     def __len__(self):
         return self.total if self.iterable is None else \
             (self.iterable.shape[0] if hasattr(self.iterable, "shape")
