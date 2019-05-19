@@ -7,7 +7,7 @@ tqdm
 
 |Build-Status| |Coverage-Status| |Branch-Coverage-Status| |Codacy-Grade| |Libraries-Rank| |PyPI-Downloads|
 
-|DOI-URI| |LICENCE| |OpenHub-Status| |binder-demo| |notebook-demo|
+|DOI| |LICENCE| |OpenHub-Status| |binder-demo| |notebook-demo|
 
 
 ``tqdm`` means "progress" in Arabic (*taqadum*, تقدّم)
@@ -283,7 +283,7 @@ Documentation
 
 .. code:: python
 
-    class tqdm(object):
+    class tqdm():
       """
       Decorate an iterable object, returning an iterator which acts exactly
       like the original iterable, but prints a dynamically updating
@@ -416,6 +416,7 @@ Returns
 
 .. code:: python
 
+    class tqdm():
       def update(self, n=1):
           """
           Manually update the progress bar, useful for streams
@@ -990,7 +991,7 @@ LICENCE
 
 Open Source (OSI approved): |LICENCE|
 
-Citation information: |DOI-URI|
+Citation information: |DOI| (publication), |DOI-code| (code)
 
 |README-Hits| (Since 19 May 2016)
 
@@ -1042,7 +1043,9 @@ Citation information: |DOI-URI|
    :target: https://www.openhub.net/p/tqdm?ref=Thin+badge
 .. |LICENCE| image:: https://img.shields.io/pypi/l/tqdm.svg
    :target: https://raw.githubusercontent.com/tqdm/tqdm/master/LICENCE
-.. |DOI-URI| image:: https://img.shields.io/badge/DOI-10.5281/zenodo.595120-blue.svg
+.. |DOI| image:: https://img.shields.io/badge/DOI-10.21105/joss.01277-green.svg
+   :target: https://doi.org/10.21105/joss.01277
+.. |DOI-code| image:: https://img.shields.io/badge/DOI-10.5281/zenodo.595120-blue.svg
    :target: https://doi.org/10.5281/zenodo.595120
 .. |notebook-demo| image:: https://img.shields.io/badge/launch-notebook-orange.svg?logo=jupyter
    :target: https://notebooks.ai/demo/gh/tqdm/tqdm
