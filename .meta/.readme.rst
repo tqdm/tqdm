@@ -7,8 +7,7 @@ tqdm
 
 |Build-Status| |Coverage-Status| |Branch-Coverage-Status| |Codacy-Grade| |Libraries-Rank| |PyPI-Downloads|
 
-|DOI| |LICENCE| |OpenHub-Status| |binder-demo| |notebook-demo|
-
+|DOI| |LICENCE| |OpenHub-Status| |binder-demo| |notebook-demo| |awesome-python|
 
 ``tqdm`` means "progress" in Arabic (*taqadum*, تقدّم)
 and is an abbreviation for "I love you so much" in Spanish (*te quiero demasiado*).
@@ -877,6 +876,8 @@ Citation information: |DOI| (publication), |DOI-code| (code)
     :target: https://github.com/tqdm/tqdm/network/dependents
 .. |OpenHub-Status| image:: https://www.openhub.net/p/tqdm/widgets/project_thin_badge?format=gif
    :target: https://www.openhub.net/p/tqdm?ref=Thin+badge
+.. |awesome-python| image:: https://awesome.re/mentioned-badge.svg
+   :target: https://github.com/vinta/awesome-python)
 .. |LICENCE| image:: https://img.shields.io/pypi/l/tqdm.svg
    :target: https://raw.githubusercontent.com/tqdm/tqdm/master/LICENCE
 .. |DOI| image:: https://img.shields.io/badge/DOI-10.21105/joss.01277-green.svg
