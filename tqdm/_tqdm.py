@@ -839,16 +839,18 @@ class tqdm(Comparable):
         if disable:
             self.iterable = iterable
             self.disable = disable
-            self.pos = self._get_free_pos(self)
-            self._instances.remove(self)
+            with self._lock:
+                self.pos = self._get_free_pos(self)
+                self._instances.remove(self)
             self.n = initial
             self.total = total
             return
 
         if kwargs:
             self.disable = True
-            self.pos = self._get_free_pos(self)
-            self._instances.remove(self)
+            with self._lock:
+                self.pos = self._get_free_pos(self)
+                self._instances.remove(self)
             from textwrap import dedent
             raise (TqdmDeprecationWarning(dedent("""\
                        `nested` is deprecated and automated.
