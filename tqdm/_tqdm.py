@@ -462,7 +462,8 @@ class tqdm(Comparable):
         # Add to the list of instances
         if not hasattr(cls, '_instances'):
             cls._instances = WeakSet()
-        if not hasattr(cls, '_closed_taken_positions'):  # For positions that are still taken, but their instances were closed
+        # For positions that are still taken, but their instances were closed
+        if not hasattr(cls, '_closed_taken_positions'):
             cls._closed_taken_positions = set()
         # Construct the lock if it does not exist
         with cls.get_lock():
