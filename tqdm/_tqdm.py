@@ -1189,14 +1189,12 @@ class tqdm(Comparable):
                 if not pos:
                     fp_write('\r')
 
-        """
-        If the bars changed position,
-        they will only be redrawn on the next iteration, which looks bad, so we redraw them now.
-        """
-        for bar in self._instances:
-            if bar._should_refresh:
-                bar.refresh()
-                bar._should_refresh = False
+        """If the bars changed position,
+        they will only be redrawn on the next iteration, which looks bad, so we redraw them now."""
+        for inst in self._instances:
+            if inst._should_refresh:
+                inst.refresh()
+                inst._should_refresh = False
 
     def clear(self, nolock=False):
         """Clear current bar display."""
