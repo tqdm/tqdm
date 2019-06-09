@@ -514,6 +514,7 @@ class tqdm(Comparable):
                             # Clear the bar from its current position before moving it up
                             inst.clear()
                             inst.pos = first_free_pos
+                            inst._should_refresh = True
         # Kill monitor if no instances are left
         if not cls._instances and cls.monitor:
             cls._closed_taken_positions.clear()
@@ -957,6 +958,8 @@ class tqdm(Comparable):
         # NB: Avoid race conditions by setting start_t at the very end of init
         self.start_t = self.last_print_t
 
+        self._should_refresh = False
+
     def __len__(self):
         return self.total if self.iterable is None else \
             (self.iterable.shape[0] if hasattr(self.iterable, "shape")
@@ -1191,7 +1194,9 @@ class tqdm(Comparable):
         they will only be redrawn on the next iteration, which looks bad, so we redraw them now.
         """
         for bar in self._instances:
-            bar.refresh()
+            if bar._should_refresh:
+                bar.refresh()
+                bar._should_refresh = False
 
     def clear(self, nolock=False):
         """Clear current bar display."""
