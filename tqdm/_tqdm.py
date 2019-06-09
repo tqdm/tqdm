@@ -481,6 +481,7 @@ class tqdm(Comparable):
     @classmethod
     def _get_free_pos(cls, instance=None):
         """Skips specified instance."""
+        # TODO: fix, doesn't account for bars that closed, with leave=True
         positions = set(abs(inst.pos) for inst in cls._instances
                         if inst is not instance and hasattr(inst, "pos"))
         return min(set(range(len(positions) + 1)).difference(positions))
@@ -502,9 +503,13 @@ class tqdm(Comparable):
             if not instance.gui:
                 for inst in cls._instances:
                     # negative `pos` means fixed
-                    if hasattr(inst, "pos") and inst.pos > abs(instance.pos):
-                        inst.pos -= 1
-                        # TODO: check this doesn't overwrite another fixed bar
+                    if hasattr(inst, "pos") and inst.pos > abs(instance.pos) and not instance.leave:
+                        first_free_pos = cls._get_free_pos()
+                        # Only move if there is a free position above you
+                        if first_free_pos < inst.pos:
+                            # Clear the bar from its current position before moving it up
+                            inst.clear()
+                            inst.pos = first_free_pos
         # Kill monitor if no instances are left
         if not cls._instances and cls.monitor:
             try:
@@ -1175,6 +1180,13 @@ class tqdm(Comparable):
                 self.display(msg='', pos=pos)
                 if not pos:
                     fp_write('\r')
+
+        """
+        If the bars changed position,
+        they will only be redrawn on the next iteration, which looks bad, so we redraw them now.
+        """
+        for bar in self._instances:
+            bar.refresh()
 
     def clear(self, nolock=False):
         """Clear current bar display."""
