@@ -462,6 +462,8 @@ class tqdm(Comparable):
         # Add to the list of instances
         if not hasattr(cls, '_instances'):
             cls._instances = WeakSet()
+        if not hasattr(cls, '_closed_taken_positions'):  # For positions that are still taken, but their instances were closed
+            cls._closed_taken_positions = set()
         # Construct the lock if it does not exist
         with cls.get_lock():
             cls._instances.add(instance)
@@ -481,9 +483,8 @@ class tqdm(Comparable):
     @classmethod
     def _get_free_pos(cls, instance=None):
         """Skips specified instance."""
-        # TODO: fix, doesn't account for bars that closed, with leave=True
         positions = set(abs(inst.pos) for inst in cls._instances
-                        if inst is not instance and hasattr(inst, "pos"))
+                        if inst is not instance and hasattr(inst, "pos")).union(cls._closed_taken_positions)
         return min(set(range(len(positions) + 1)).difference(positions))
 
     @classmethod
@@ -495,6 +496,8 @@ class tqdm(Comparable):
         with cls._lock:
             try:
                 cls._instances.remove(instance)
+                if instance.leave:
+                    cls._closed_taken_positions.add(abs(instance.pos))
             except KeyError:
                 # if not instance.gui:  # pragma: no cover
                 #     raise
@@ -512,6 +515,7 @@ class tqdm(Comparable):
                             inst.pos = first_free_pos
         # Kill monitor if no instances are left
         if not cls._instances and cls.monitor:
+            cls._closed_taken_positions.clear()
             try:
                 cls.monitor.exit()
                 del cls.monitor
