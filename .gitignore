@@ -4,29 +4,17 @@
 *.so
 
 # Packages
-*.egg
-*.egg-info
-dist
-build
-eggs
-parts
-bin
-var
-sdist
-develop-eggs
-.installed.cfg
-lib
-lib64
-__pycache__
-MANIFEST
-cover/
-
-# Installer logs
-pip-log.txt
+tqdm.egg-info
+build/
+dist/
+snapcraft.yaml
+tqdm_*_amd64.snap
+.dockerignore
 
 # Unit test / coverage reports
-.coverage
 .tox/
+.coverage
+__pycache__
 nosetests.xml
 
 # Translations
@@ -39,3 +27,15 @@ nosetests.xml
 
 # PyCharm
 .idea
+
+# IPython
+.ipynb_checkpoints
+
+# asv
+.asv/
+benchmarks/*.py[co]
+
+# Sumbodules
+/wiki/
+/docs/
+/feedstock/

@@ -1,7 +1,8 @@
 # How to import tqdm without enforcing it as a dependency
 try:
     from tqdm import tqdm
-except:
+except ImportError:
+
     def tqdm(*args, **kwargs):
         if args:
             return args[0]
