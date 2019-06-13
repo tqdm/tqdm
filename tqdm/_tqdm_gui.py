@@ -11,10 +11,12 @@ Usage:
 # a result precise floating numbers (instead of truncated int)
 from __future__ import division, absolute_import
 # import compatibility functions and utilities
+# import sys
 from time import time
 from ._utils import _range
 # to inherit from the tqdm class
-from ._tqdm import tqdm
+from ._tqdm import tqdm, TqdmExperimentalWarning
+from warnings import warn
 
 
 __author__ = {"github.com/": ["casperdcl", "lrq3000"]}
@@ -25,15 +27,13 @@ class tqdm_gui(tqdm):  # pragma: no cover
     """
     Experimental GUI version of tqdm!
     """
-    def __init__(self, *args, **kwargs):
 
-        # try:  # pragma: no cover
+    # TODO: @classmethod: write() on GUI?
+
+    def __init__(self, *args, **kwargs):
         import matplotlib as mpl
         import matplotlib.pyplot as plt
         from collections import deque
-        # except ImportError:  # gui not available
-        #   kwargs['gui'] = False
-        # else:
         kwargs['gui'] = True
 
         super(tqdm_gui, self).__init__(*args, **kwargs)
@@ -42,7 +42,7 @@ class tqdm_gui(tqdm):  # pragma: no cover
         if self.disable or not kwargs['gui']:
             return
 
-        self.fp.write('Warning: GUI is experimental/alpha\n')
+        warn('GUI is experimental/alpha', TqdmExperimentalWarning)
         self.mpl = mpl
         self.plt = plt
         self.sp = None
@@ -137,14 +137,12 @@ class tqdm_gui(tqdm):  # pragma: no cover
             if delta_it >= miniters:
                 cur_t = time()
                 delta_t = cur_t - last_print_t
-                if delta_t >= mininterval:  # pragma: no cover
+                if delta_t >= mininterval:
                     elapsed = cur_t - start_t
                     # EMA (not just overall average)
-                    if smoothing:  # and delta_it
-                        avg_time = delta_t / delta_it \
-                            if avg_time is None \
-                            else smoothing * delta_t / delta_it + \
-                            (1 - smoothing) * avg_time
+                    if smoothing and delta_t and delta_it:
+                        rate = delta_t / delta_it
+                        avg_time = self.ema(rate, avg_time, smoothing)
 
                     # Inline due to multiple calls
                     total = self.total
@@ -208,11 +206,12 @@ class tqdm_gui(tqdm):  # pragma: no cover
                         elif mininterval and delta_t:
                             # EMA-weight miniters to converge
                             # towards the timeframe of mininterval
-                            miniters = smoothing * delta_it * mininterval \
-                                / delta_t + (1 - smoothing) * miniters
+                            rate = delta_it
+                            if mininterval and delta_t:
+                                rate *= mininterval / delta_t
+                            miniters = self.ema(rate, miniters, smoothing)
                         else:
-                            miniters = smoothing * delta_it + \
-                                (1 - smoothing) * miniters
+                            miniters = self.ema(delta_it, miniters, smoothing)
 
                     # Store old values for next call
                     last_print_n = n
@@ -242,11 +241,10 @@ class tqdm_gui(tqdm):  # pragma: no cover
             if delta_t >= self.mininterval:
                 elapsed = cur_t - self.start_t
                 # EMA (not just overall average)
-                if self.smoothing:  # and delta_it
-                    self.avg_time = delta_t / delta_it \
-                        if self.avg_time is None \
-                        else self.smoothing * delta_t / delta_it + \
-                        (1 - self.smoothing) * self.avg_time
+                if self.smoothing and delta_t and delta_it:
+                    rate = delta_t / delta_it
+                    self.avg_time = self.ema(
+                        rate, self.avg_time, self.smoothing)
 
                 # Inline due to multiple calls
                 total = self.total

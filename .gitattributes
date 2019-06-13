@@ -1,0 +1,13 @@
+[attr]py-file  eol=lf
+*.py           py-file
+
+.git*          export-ignore
+.mailmap       export-ignore
+images/        export-ignore
+benchmarks/    export-ignore
+MANIFEST.in    export-ignore
+.travis.yml    export-ignore
+codecov.yml    export-ignore
+asv.conf.json  export-ignore
+.style.yapf    export-ignore
+.tqdm.1.md     export-ignore
