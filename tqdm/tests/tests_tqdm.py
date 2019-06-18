@@ -1689,7 +1689,7 @@ def test_unit_scale():
     """Test numeric `unit_scale`"""
     with closing(StringIO()) as our_file:
         for _ in tqdm(_range(9), unit_scale=9, file=our_file,
-                      miniters=1,  mininterval=0):
+                      miniters=1, mininterval=0):
             pass
         out = our_file.getvalue()
         assert '81/81' in out
@@ -1727,7 +1727,7 @@ def test_bool():
             assert t
         with tqdm((x for x in []), **kwargs) as t:
             assert t
-        with tqdm((x for x in [1,2,3]), **kwargs) as t:
+        with tqdm((x for x in [1, 2, 3]), **kwargs) as t:
             assert t
         with tqdm(**kwargs) as t:
             try:
