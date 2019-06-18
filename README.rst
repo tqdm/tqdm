@@ -969,13 +969,13 @@ are:
 Name                 ID                                                 LoC  Notes
 ==================== ================================================== ==== ================================
 Casper da Costa-Luis `casperdcl <https://github.com/casperdcl>`__       ~3/4 primary maintainer |Gift-Casper|
-Stephen Larroque     `lrq3000 <https://github.com/lrq3000>`__           ~1/6 team member
-Noam Yorav-Raphael   `noamraph <https://github.com/noamraph>`__         ~1%  original author
-Matthew Stevens      `mjstevens777 <https://github.com/mjstevens777>`__ ~1%
+Stephen Larroque     `lrq3000 <https://github.com/lrq3000>`__           ~10% team member
+Kyle Altendorf       `altendky <https://github.com/altendky>`__         ~2%
 Guangshuo Chen       `chengs <https://github.com/chengs>`__             ~1%
+Matthew Stevens      `mjstevens777 <https://github.com/mjstevens777>`__ ~1%
+Noam Yorav-Raphael   `noamraph <https://github.com/noamraph>`__         ~1%  original author
 Hadrien Mary         `hadim <https://github.com/hadim>`__               ~1%  team member
 Mikhail Korobov      `kmike <https://github.com/kmike>`__               ~1%  team member
-Kyle Altendorf       `altendky <https://github.com/altendky>`__         ~1%
 ==================== ================================================== ==== ================================
 
 Ports to Other Languages
