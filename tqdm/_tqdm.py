@@ -459,22 +459,22 @@ class tqdm(Comparable):
     def __new__(cls, *args, **kwargs):
         # Create a new instance
         instance = object.__new__(cls)
-        # Add to the list of instances
-        if not hasattr(cls, '_instances'):
-            cls._instances = WeakSet()
         # Construct the lock if it does not exist
         with cls.get_lock():
+            # Add to the list of instances
+            if not hasattr(cls, '_instances'):
+                cls._instances = WeakSet()
             cls._instances.add(instance)
-        # Create the monitoring thread
-        if cls.monitor_interval and (cls.monitor is None or not
-                                     cls.monitor.report()):
-            try:
-                cls.monitor = TMonitor(cls, cls.monitor_interval)
-            except Exception as e:  # pragma: nocover
-                warn("tqdm:disabling monitor support"
-                     " (monitor_interval = 0) due to:\n" + str(e),
-                     TqdmMonitorWarning)
-                cls.monitor_interval = 0
+            # Create the monitoring thread
+            if cls.monitor_interval and (cls.monitor is None or not
+                                         cls.monitor.report()):
+                try:
+                    cls.monitor = TMonitor(cls, cls.monitor_interval)
+                except Exception as e:  # pragma: nocover
+                    warn("tqdm:disabling monitor support"
+                         " (monitor_interval = 0) due to:\n" + str(e),
+                         TqdmMonitorWarning)
+                    cls.monitor_interval = 0
         # Return the instance
         return instance
 
@@ -505,15 +505,15 @@ class tqdm(Comparable):
                     if hasattr(inst, "pos") and inst.pos > abs(instance.pos):
                         inst.pos -= 1
                         # TODO: check this doesn't overwrite another fixed bar
-        # Kill monitor if no instances are left
-        if not cls._instances and cls.monitor:
-            try:
-                cls.monitor.exit()
-                del cls.monitor
-            except AttributeError:  # pragma: nocover
-                pass
-            else:
-                cls.monitor = None
+            # Kill monitor if no instances are left
+            if not cls._instances and cls.monitor:
+                try:
+                    cls.monitor.exit()
+                    del cls.monitor
+                except AttributeError:  # pragma: nocover
+                    pass
+                else:
+                    cls.monitor = None
 
     @classmethod
     def write(cls, s, file=None, end="\n", nolock=False):
@@ -839,16 +839,18 @@ class tqdm(Comparable):
         if disable:
             self.iterable = iterable
             self.disable = disable
-            self.pos = self._get_free_pos(self)
-            self._instances.remove(self)
+            with self._lock:
+                self.pos = self._get_free_pos(self)
+                self._instances.remove(self)
             self.n = initial
             self.total = total
             return
 
         if kwargs:
             self.disable = True
-            self.pos = self._get_free_pos(self)
-            self._instances.remove(self)
+            with self._lock:
+                self.pos = self._get_free_pos(self)
+                self._instances.remove(self)
             from textwrap import dedent
             raise (TqdmDeprecationWarning(dedent("""\
                        `nested` is deprecated and automated.
