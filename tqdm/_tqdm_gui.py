@@ -3,7 +3,7 @@ GUI progressbar decorator for iterators.
 Includes a default (x)range iterator printing to stderr.
 
 Usage:
-  >>> from tqdm_gui import tgrange[, tqdm_gui]
+  >>> from tqdm import tgrange[, tqdm_gui]
   >>> for i in tgrange(10): #same as: for i in tqdm_gui(xrange(10))
   ...     ...
 """
