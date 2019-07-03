@@ -1,3 +1,13 @@
+# primary maintainer
+* @casperdcl
+LICENCE @tqdm/maintainers
 # Require maintainer's :+1: for changes to the .github/ repo-config files
 # mainly due to https://github.com/probot/settings privilege escalation
 .github/* @github/pages
+# @mention if >= 30%
+DEMO.ipynb @casperdcl @martinzugnoni
+demo.yml @casperdcl @martinzugnoni
+codecov.yml @lrq3000
+setup.py @casperdcl @lrq3000
+tqdm/_tqdm_notebook.py @lrq3000 @casperdcl
+tqdm/tests/tests_pandas.py @casperdcl @chengs
