@@ -1097,16 +1097,13 @@ class tqdm(Comparable):
     def __hash__(self):
         return id(self)
 
-    @coroutine
     def __aiter__(self):
-        self.start()
         return self
 
-    @coroutine
-    def __anext__(self):
+    async def __anext__(self):
         try:
             self.update()
-            return next(self.iterable)
+            return await self.iterable.__anext__()
         except StopIteration:
             self.close()
             raise StopAsyncIteration
