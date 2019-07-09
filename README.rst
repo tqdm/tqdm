@@ -962,7 +962,7 @@ file for more information.
 
 Developers who have made significant contributions, ranked by *LoC*
 (surviving lines of code,
-`git fame -wMC --excl '\.(png|gif|enc)$' <https://github.com/casperdcl/git-fame>`__),
+`git fame <https://github.com/casperdcl/git-fame>`__ ``-wMC --excl '\.(png|gif|enc)$'``),
 are:
 
 ==================== ================================================== ==== ================================
@@ -977,6 +977,8 @@ Noam Yorav-Raphael   `noamraph <https://github.com/noamraph>`__         ~1%  ori
 Hadrien Mary         `hadim <https://github.com/hadim>`__               ~1%  team member
 Mikhail Korobov      `kmike <https://github.com/kmike>`__               ~1%  team member
 ==================== ================================================== ==== ================================
+
+|sourcerer-0| |sourcerer-1| |sourcerer-2| |sourcerer-3| |sourcerer-4| |sourcerer-5| |sourcerer-7|
 
 Ports to Other Languages
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1057,3 +1059,19 @@ Citation information: |DOI| (publication), |DOI-code| (code)
 .. |Screenshot-Jupyter3| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/tqdm-jupyter-3.gif
 .. |README-Hits| image:: https://caspersci.uk.to/cgi-bin/hits.cgi?q=tqdm&style=social&r=https://github.com/tqdm/tqdm&l=https://caspersci.uk.to/images/tqdm.png&f=https://raw.githubusercontent.com/tqdm/tqdm/master/images/logo.gif
    :target: https://caspersci.uk.to/cgi-bin/hits.cgi?q=tqdm&a=plot&r=https://github.com/tqdm/tqdm&l=https://caspersci.uk.to/images/tqdm.png&f=https://raw.githubusercontent.com/tqdm/tqdm/master/images/logo.gif&style=social
+.. |sourcerer-0| image:: https://sourcerer.io/fame/casperdcl/tqdm/tqdm/images/0
+   :target: https://sourcerer.io/fame/casperdcl/tqdm/tqdm/links/0
+.. |sourcerer-1| image:: https://sourcerer.io/fame/casperdcl/tqdm/tqdm/images/1
+   :target: https://sourcerer.io/fame/casperdcl/tqdm/tqdm/links/1
+.. |sourcerer-2| image:: https://sourcerer.io/fame/casperdcl/tqdm/tqdm/images/2
+   :target: https://sourcerer.io/fame/casperdcl/tqdm/tqdm/links/2
+.. |sourcerer-3| image:: https://sourcerer.io/fame/casperdcl/tqdm/tqdm/images/3
+   :target: https://sourcerer.io/fame/casperdcl/tqdm/tqdm/links/3
+.. |sourcerer-4| image:: https://sourcerer.io/fame/casperdcl/tqdm/tqdm/images/4
+   :target: https://sourcerer.io/fame/casperdcl/tqdm/tqdm/links/4
+.. |sourcerer-5| image:: https://sourcerer.io/fame/casperdcl/tqdm/tqdm/images/5
+   :target: https://sourcerer.io/fame/casperdcl/tqdm/tqdm/links/5
+.. |sourcerer-6| image:: https://sourcerer.io/fame/casperdcl/tqdm/tqdm/images/6
+   :target: https://sourcerer.io/fame/casperdcl/tqdm/tqdm/links/6
+.. |sourcerer-7| image:: https://sourcerer.io/fame/casperdcl/tqdm/tqdm/images/7
+   :target: https://sourcerer.io/fame/casperdcl/tqdm/tqdm/links/7
