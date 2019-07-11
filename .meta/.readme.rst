@@ -758,7 +758,7 @@ Monitoring thread, intervals and miniters
 
 - Avoid unnecessary frequent bar refreshing: ``mininterval`` defines how long
   to wait between each refresh. ``tqdm`` always gets updated in the background,
-  but it will diplay only every ``mininterval``.
+  but it will display only every ``mininterval``.
 - Reduce number of calls to check system clock/time.
 - ``mininterval`` is more intuitive to configure than ``miniters``.
   A clever adjustment system ``dynamic_miniters`` will automatically adjust
