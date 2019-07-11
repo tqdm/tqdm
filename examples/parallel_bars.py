@@ -12,7 +12,7 @@ def progresser(n):
     total = 5000
     text = "#{}, est. {:<04.2}s".format(n, interval * total)
     # NB: ensure position>0 to prevent printing '\n' on completion.
-    # `tqdm` can't autmoate this since this thread
+    # `tqdm` can't automate this since this thread
     # may not know about other bars in other threads #477.
     for _ in tqdm(range(total), desc=text, position=n + 1):
         sleep(interval)

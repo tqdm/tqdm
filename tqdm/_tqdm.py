@@ -151,7 +151,7 @@ class tqdm(Comparable):
             Number ( >= 1) to format.
         suffix  : str, optional
             Post-postfix [default: ''].
-        divisor  : float, optionl
+        divisor  : float, optional
             Divisor between prefixes [default: 1000].
 
         Returns

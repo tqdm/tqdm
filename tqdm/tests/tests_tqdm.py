@@ -1222,7 +1222,7 @@ def test_position():
     t2.close()
     t3.close()
 
-    # Test auto repositionning of bars when a bar is prematurely closed
+    # Test auto repositioning of bars when a bar is prematurely closed
     # tqdm._instances.clear()  # reset number of instances
     with closing(StringIO()) as our_file:
         t1 = tqdm(total=10, file=our_file, desc='pos0 bar', mininterval=0)

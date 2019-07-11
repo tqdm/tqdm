@@ -781,7 +781,7 @@ updates at least every 10 seconds by default.
 This value can be directly changed by setting the ``monitor_interval`` of
 any ``tqdm`` instance (i.e. ``t = tqdm.tqdm(...); t.monitor_interval = 2``).
 The monitor thread may be disabled application-wide by setting
-``tqdm.tqdm.monitor_interval = 0`` before instantiatiation of any ``tqdm`` bar.
+``tqdm.tqdm.monitor_interval = 0`` before instantiation of any ``tqdm`` bar.
 
 
 Contributions
