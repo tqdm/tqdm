@@ -151,7 +151,7 @@ def main(fp=sys.stderr, argv=None):
     # d = RE_OPTS.sub(r'  --\1=<\1>  : \2', d)
     split = RE_OPTS.split(d)
     opt_types_desc = zip(split[1::3], split[2::3], split[3::3])
-    d = ''.join('\n  --{0}=<{0}>  : {1}{2}'.format(*otd)
+    d = ''.join('\n  --{0} <{0}>  : {1}{2}'.format(*otd)
                 for otd in opt_types_desc if otd[0] not in UNSUPPORTED_OPTS)
 
     d = """Usage:
