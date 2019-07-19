@@ -1043,7 +1043,7 @@ Citation information: |DOI| (publication), |DOI-code| (code)
 .. |OpenHub-Status| image:: https://www.openhub.net/p/tqdm/widgets/project_thin_badge?format=gif
    :target: https://www.openhub.net/p/tqdm?ref=Thin+badge
 .. |awesome-python| image:: https://awesome.re/mentioned-badge.svg
-   :target: https://github.com/vinta/awesome-python)
+   :target: https://github.com/vinta/awesome-python
 .. |LICENCE| image:: https://img.shields.io/pypi/l/tqdm.svg
    :target: https://raw.githubusercontent.com/tqdm/tqdm/master/LICENCE
 .. |DOI| image:: https://img.shields.io/badge/DOI-10.21105/joss.01277-green.svg
