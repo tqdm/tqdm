@@ -10,7 +10,33 @@ from tqdm import tqdm as TQDM
 
 
 def print(*args, sep=' ', file=None, end='\n', color=None):
+    ncols, _rows = os.get_terminal_size(1)
+
+    frame = inspect.stack()[1]
+    fpath = frame.filename
+    fname = os.path.basename(fpath)
+    dirpath = os.path.dirname(fpath)
+    dirname = os.path.basename(dirpath)
+
+    lineno = frame.lineno
+    funcname = frame.function
+    # sys.stdout.write("*"*30 + '\n')
+    # sys.stdout.write(fname)
+    # sys.stdout.write('\n' + "*" * 30)
+    funcwidth = max(len(f) for f in getFuncNames(fname))
+    funcname = ("{:<%d}" % funcwidth).format(funcname)
+    # sys.stdout.write("*"*30 + '\n')
+    # sys.stdout.write("'" + funcname + "'")
+    # sys.stdout.write('\n' + "*"*30)
+
+    R = colorama.Style.RESET_ALL
+    l_bar = f"{F.YELLOW + dirname + R}/{F.CYAN + fname + R}({funcname}):{lineno} -> " + (
+        ("{:<%d}" % (int(0.75 * ncols))).format("{desc}"))
+
+    bar_format = dt.now().strftime("%H:%M") + " | " f"{l_bar}"
+
     msg = sep.join(map(str, args))
+    msg = l_bar.format(desc=msg)
     if color is not None: msg = color + msg + colorama.Style.RESET_ALL
     return tqdm.write(msg, end=end, file=file)
 
@@ -69,6 +95,7 @@ class tqdm(TQDM):
                          unit_scale, dynamic_ncols, smoothing,
                          bar_format, initial, position, postfix,
                          unit_divisor, write_bytes, gui, **kwargs)
+
 
 
 for i in tqdm([1,2,3,4,5], desc='hello'):
