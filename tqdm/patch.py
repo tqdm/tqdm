@@ -2,8 +2,7 @@ import ast
 import inspect
 import os
 import sys; sys.path.extend(('.', '..'))
-import time
-
+from datetime import datetime as dt
 import colorama
 from colorama import Fore as F
 
@@ -62,7 +61,7 @@ class tqdm(TQDM):
             R = colorama.Style.RESET_ALL
             l_bar = f"{F.YELLOW + dirname + R}/{F.CYAN + fname + R}({funcname}):{lineno} -> " + (("{:<%d}" %(int(0.75*ncols))).format("{desc}"))
 
-            bar_format = f"{l_bar}" "{bar}{r_bar}"
+            bar_format = dt.now().strftime("%H:%M") + " | " f"{l_bar}" "{bar}{r_bar}"
 
         super().__init__(iterable, desc, total, leave,
                          file, ncols, mininterval, maxinterval,
