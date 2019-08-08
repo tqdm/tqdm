@@ -25,9 +25,10 @@ matrix:
     - |
       if [[ -n "$TRAVIS_TAG" ]]; then
       docker tag tqdm/tqdm:latest tqdm/tqdm:${TRAVIS_TAG#v}
-      docker tag tqdm/tqdm:latest docker.pkg.github.com/tqdm/tqdm/tqdm:${TRAVIS_TAG#v}
-      ; fi
+      docker tag tqdm/tqdm:latest docker.pkg.github.com/tqdm/tqdm/tqdm:${TRAVIS_TAG#v} ; fi
     - docker tag tqdm/tqdm:latest tqdm/tqdm:devel
+    - docker tag tqdm/tqdm:latest docker.pkg.github.com/tqdm/tqdm/tqdm:latest
+    - docker tag tqdm/tqdm:latest docker.pkg.github.com/tqdm/tqdm/tqdm:devel
     - pip install .[dev]
     - make build
     #- make submodules
@@ -62,7 +63,13 @@ matrix:
     - provider: script
       script: docker push tqdm/tqdm:latest
     - provider: script
+      script: docker push docker.pkg.github.com/tqdm/tqdm/tqdm:latest
+    - provider: script
       script: docker push tqdm/tqdm:devel
+      on:
+        branch: devel
+    - provider: script
+      script: docker push docker.pkg.github.com/tqdm/tqdm/tqdm:devel
       on:
         branch: devel
   - python: pypy2.7-5.10.0
