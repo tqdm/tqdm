@@ -922,7 +922,7 @@ Monitoring thread, intervals and miniters
 
 - Avoid unnecessary frequent bar refreshing: ``mininterval`` defines how long
   to wait between each refresh. ``tqdm`` always gets updated in the background,
-  but it will diplay only every ``mininterval``.
+  but it will display only every ``mininterval``.
 - Reduce number of calls to check system clock/time.
 - ``mininterval`` is more intuitive to configure than ``miniters``.
   A clever adjustment system ``dynamic_miniters`` will automatically adjust
@@ -945,7 +945,7 @@ updates at least every 10 seconds by default.
 This value can be directly changed by setting the ``monitor_interval`` of
 any ``tqdm`` instance (i.e. ``t = tqdm.tqdm(...); t.monitor_interval = 2``).
 The monitor thread may be disabled application-wide by setting
-``tqdm.tqdm.monitor_interval = 0`` before instantiatiation of any ``tqdm`` bar.
+``tqdm.tqdm.monitor_interval = 0`` before instantiation of any ``tqdm`` bar.
 
 
 Contributions
@@ -962,7 +962,7 @@ file for more information.
 
 Developers who have made significant contributions, ranked by *LoC*
 (surviving lines of code,
-`git fame -wMC --excl '\.(png|gif|enc)$' <https://github.com/casperdcl/git-fame>`__),
+`git fame <https://github.com/casperdcl/git-fame>`__ ``-wMC --excl '\.(png|gif|enc)$'``),
 are:
 
 ==================== ================================================== ==== ================================
@@ -977,6 +977,8 @@ Noam Yorav-Raphael   `noamraph <https://github.com/noamraph>`__         ~1%  ori
 Hadrien Mary         `hadim <https://github.com/hadim>`__               ~1%  team member
 Mikhail Korobov      `kmike <https://github.com/kmike>`__               ~1%  team member
 ==================== ================================================== ==== ================================
+
+|sourcerer-0| |sourcerer-1| |sourcerer-2| |sourcerer-3| |sourcerer-4| |sourcerer-5| |sourcerer-7|
 
 Ports to Other Languages
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1057,3 +1059,19 @@ Citation information: |DOI| (publication), |DOI-code| (code)
 .. |Screenshot-Jupyter3| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/tqdm-jupyter-3.gif
 .. |README-Hits| image:: https://caspersci.uk.to/cgi-bin/hits.cgi?q=tqdm&style=social&r=https://github.com/tqdm/tqdm&l=https://caspersci.uk.to/images/tqdm.png&f=https://raw.githubusercontent.com/tqdm/tqdm/master/images/logo.gif
    :target: https://caspersci.uk.to/cgi-bin/hits.cgi?q=tqdm&a=plot&r=https://github.com/tqdm/tqdm&l=https://caspersci.uk.to/images/tqdm.png&f=https://raw.githubusercontent.com/tqdm/tqdm/master/images/logo.gif&style=social
+.. |sourcerer-0| image:: https://sourcerer.io/fame/casperdcl/tqdm/tqdm/images/0
+   :target: https://sourcerer.io/fame/casperdcl/tqdm/tqdm/links/0
+.. |sourcerer-1| image:: https://sourcerer.io/fame/casperdcl/tqdm/tqdm/images/1
+   :target: https://sourcerer.io/fame/casperdcl/tqdm/tqdm/links/1
+.. |sourcerer-2| image:: https://sourcerer.io/fame/casperdcl/tqdm/tqdm/images/2
+   :target: https://sourcerer.io/fame/casperdcl/tqdm/tqdm/links/2
+.. |sourcerer-3| image:: https://sourcerer.io/fame/casperdcl/tqdm/tqdm/images/3
+   :target: https://sourcerer.io/fame/casperdcl/tqdm/tqdm/links/3
+.. |sourcerer-4| image:: https://sourcerer.io/fame/casperdcl/tqdm/tqdm/images/4
+   :target: https://sourcerer.io/fame/casperdcl/tqdm/tqdm/links/4
+.. |sourcerer-5| image:: https://sourcerer.io/fame/casperdcl/tqdm/tqdm/images/5
+   :target: https://sourcerer.io/fame/casperdcl/tqdm/tqdm/links/5
+.. |sourcerer-6| image:: https://sourcerer.io/fame/casperdcl/tqdm/tqdm/images/6
+   :target: https://sourcerer.io/fame/casperdcl/tqdm/tqdm/links/6
+.. |sourcerer-7| image:: https://sourcerer.io/fame/casperdcl/tqdm/tqdm/images/7
+   :target: https://sourcerer.io/fame/casperdcl/tqdm/tqdm/links/7

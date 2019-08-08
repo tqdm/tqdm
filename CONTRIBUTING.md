@@ -309,7 +309,7 @@ For experienced devs, once happy with local master:
 11. upload to snapcraft:
     a) `make snap`, and
     b) `snapcraft push tqdm*.snap --release stable`
-12. create new release on <https://github.com/tqdm/tqdm/releases>
+12. Wait for travis to draft a new release on <https://github.com/tqdm/tqdm/releases>
     a) add helpful release notes
     b) **`[AUTO:TravisCI]`** attach `dist/tqdm-*` binaries
        (usually only `*.whl*`)
