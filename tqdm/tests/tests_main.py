@@ -61,7 +61,7 @@ def test_main():
         IN_DATA = '\0'.join(IN_DATA_LIST)
         sys.stdin.write(IN_DATA)
         sys.stdin.seek(0)
-        sys.argv = ['', '--ascii', '--bytes', '--unit_scale', 'False']
+        sys.argv = ['', '--ascii', '--bytes=True', '--unit_scale', 'False']
         with closing(UnicodeIO()) as fp:
             main(fp=fp)
             assert str(len(IN_DATA)) in fp.getvalue()
