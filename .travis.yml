@@ -17,10 +17,13 @@ matrix:
     - docker
     after_success:
     - echo "$DOCKER_PWD" | docker login -u $DOCKER_USR --password-stdin
+    - echo "$GITHUB_TOKEN" | docker login docker.pkg.github.com -u $GITHUB_USR --password-stdin
     - make -B docker
     - |
       if [[ -n "$TRAVIS_TAG" ]]; then
-      docker tag tqdm/tqdm:latest tqdm/tqdm:${TRAVIS_TAG#v} ; fi
+      docker tag tqdm/tqdm:latest tqdm/tqdm:${TRAVIS_TAG#v}
+      docker tag tqdm/tqdm:latest docker.pkg.github.com/tqdm/tqdm/tqdm:${TRAVIS_TAG#v}
+      ; fi
     - docker tag tqdm/tqdm:latest tqdm/tqdm:devel
     - pip install .[dev]
     - make build
@@ -47,6 +50,10 @@ matrix:
         tags: true
     - provider: script
       script: docker push tqdm/tqdm:${TRAVIS_TAG#v}
+      on:
+        tags: true
+    - provider: script
+      script: docker push docker.pkg.github.com/tqdm/tqdm/tqdm:${TRAVIS_TAG#v}
       on:
         tags: true
     - provider: script

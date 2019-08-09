@@ -152,7 +152,7 @@ class tqdm(Comparable):
             Number ( >= 1) to format.
         suffix  : str, optional
             Post-postfix [default: ''].
-        divisor  : float, optionl
+        divisor  : float, optional
             Divisor between prefixes [default: 1000].
 
         Returns
@@ -572,8 +572,8 @@ class tqdm(Comparable):
             pandas.core.
             ( frame.DataFrame
             | series.Series
-            | groupby.DataFrameGroupBy
-            | groupby.SeriesGroupBy
+            | groupby.(generic.)DataFrameGroupBy
+            | groupby.(generic.)SeriesGroupBy
             ).progress_apply
 
         A new instance will be create every time `progress_apply` is called,
@@ -602,18 +602,32 @@ class tqdm(Comparable):
         from pandas.core.frame import DataFrame
         from pandas.core.series import Series
         from pandas import Panel
-        try:
-            # pandas>=0.18.0
+        try:  # pandas>=0.18.0
             from pandas.core.window import _Rolling_and_Expanding
         except ImportError:  # pragma: no cover
             _Rolling_and_Expanding = None
-        try:
-            # pandas>=0.23.0
-            from pandas.core.groupby.groupby import DataFrameGroupBy, \
-                SeriesGroupBy, GroupBy, PanelGroupBy
+        try:  # pandas>=0.25.0
+            from pandas.core.groupby.generic import DataFrameGroupBy, \
+                SeriesGroupBy  # , NDFrameGroupBy
         except ImportError:
-            from pandas.core.groupby import DataFrameGroupBy, \
-                SeriesGroupBy, GroupBy, PanelGroupBy
+            try:  # pandas>=0.23.0
+                from pandas.core.groupby.groupby import DataFrameGroupBy, \
+                    SeriesGroupBy
+            except ImportError:
+                from pandas.core.groupby import DataFrameGroupBy, \
+                    SeriesGroupBy
+        try:  # pandas>=0.23.0
+            from pandas.core.groupby.groupby import GroupBy
+        except ImportError:
+            from pandas.core.groupby import GroupBy
+
+        try:  # pandas>=0.23.0
+            from pandas.core.groupby.groupby import PanelGroupBy
+        except ImportError:
+            try:
+                from pandas.core.groupby import PanelGroupBy
+            except ImportError:  # pandas>=0.25.0
+                PanelGroupBy = None
 
         deprecated_t = [tkwargs.pop('deprecated_t', None)]
 
@@ -695,7 +709,8 @@ class tqdm(Comparable):
         DataFrame.progress_applymap = inner_generator('applymap')
 
         Panel.progress_apply = inner_generator()
-        PanelGroupBy.progress_apply = inner_generator()
+        if PanelGroupBy is not None:
+            PanelGroupBy.progress_apply = inner_generator()
 
         GroupBy.progress_apply = inner_generator()
         GroupBy.progress_aggregate = inner_generator('aggregate')

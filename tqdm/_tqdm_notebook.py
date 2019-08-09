@@ -165,7 +165,7 @@ class tqdm_notebook(tqdm):
 
             # Change bar style
             if bar_style:
-                # Hack-ish way to avoid the danger bar_style being overriden by
+                # Hack-ish way to avoid the danger bar_style being overridden by
                 # success because the bar gets closed after the error...
                 if not (pbar.bar_style == 'danger' and bar_style == 'success'):
                     pbar.bar_style = bar_style
