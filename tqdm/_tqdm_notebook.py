@@ -191,7 +191,8 @@ class tqdm_notebook(tqdm):
 
     def __init__(self, *args, **kwargs):
         # Setup default output
-        if kwargs.get('file', sys.stderr) is sys.stderr:
+        file_kwarg = kwargs.get('file', sys.stderr)
+        if file_kwarg is sys.stderr or file_kwarg is None:
             kwargs['file'] = sys.stdout  # avoid the red block in IPython
 
         # Initialize parent class + avoid printing by using gui=True
