@@ -723,7 +723,8 @@ class tqdm(Comparable):
                  miniters=None, ascii=None, disable=False, unit='it',
                  unit_scale=False, dynamic_ncols=False, smoothing=0.3,
                  bar_format=None, initial=0, position=None, postfix=None,
-                 unit_divisor=1000, write_bytes=None, gui=False, **kwargs):
+                 unit_divisor=1000, write_bytes=None, gui=False, multi=None,
+                 **kwargs):
         """
         Parameters
         ----------
@@ -822,6 +823,8 @@ class tqdm(Comparable):
             WARNING: internal parameter - do not use.
             Use tqdm_gui(...) instead. If set, will attempt to use
             matplotlib animations for a graphical output [default: False].
+        multi  : `tqdm_multi`, optional
+            The associated tqdm_multi instance
 
         Returns
         -------
@@ -940,6 +943,7 @@ class tqdm(Comparable):
                 self.set_postfix(refresh=False, **postfix)
             except TypeError:
                 self.postfix = postfix
+        self.multi = multi
 
         # Init the iterations counters
         self.last_print_n = initial
@@ -1010,7 +1014,10 @@ class tqdm(Comparable):
         # (note: keep this check outside the loop for performance)
         if self.disable:
             for obj in iterable:
-                yield obj
+                try:
+                    yield obj
+                except Exception as error:
+                    self.failure_callback(error=error)
         else:
             mininterval = self.mininterval
             maxinterval = self.maxinterval
@@ -1228,6 +1235,8 @@ class tqdm(Comparable):
         if not nolock:
             self._lock.release()
 
+        self.run_callbacks()
+
     def unpause(self):
         """Restart tqdm timer from last print time."""
         cur_t = self._time()
@@ -1350,6 +1359,39 @@ class tqdm(Comparable):
         self.sp(self.__repr__() if msg is None else msg)
         if pos:
             self.moveto(-pos)
+
+    def _is_complete(self):
+        """(Needs refactoring) A way to see if a progress bar and/or task has finished"""
+        return self.n >= self.total
+
+    def handle_result(self):
+        """
+        Called when the tqdm instance is finished. Can return data which will be
+        handled by the success_callback() as `result`, or raise an exception which
+        will be passed to the failure_callback() as `error`. [default: pass]
+        """
+        pass
+
+    def success_callback(self, result=None):
+        """
+        Called after handle_result() has finsihed without an exception. Has access
+        to any results returned from handle_result() as `result`. [default: pass]
+        """
+        pass
+
+    def failure_callback(self, error=None):
+        """
+        Called after handle_result() raises an exception. Has access to the error
+        message returned from handle_result() as `error`. [default: pass]
+        """
+        pass
+
+    def run_callbacks(self):
+        try:
+            result = self.handle_result()
+            self.success_callback(result=result)
+        except Exception as error:
+            self.failure_callback(error=error)
 
 
 def trange(*args, **kwargs):
