@@ -962,7 +962,7 @@ file for more information.
 
 Developers who have made significant contributions, ranked by *LoC*
 (surviving lines of code,
-`git fame <https://github.com/casperdcl/git-fame>`__ ``-wMC --excl '\.(png|gif|enc)$'``),
+`git fame <https://github.com/casperdcl/git-fame>`__ ``-wMC``),
 are:
 
 ==================== ================================================== ==== ================================
