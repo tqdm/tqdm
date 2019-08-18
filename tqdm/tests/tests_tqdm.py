@@ -68,20 +68,26 @@ def pos_line_diff(res_list, expected_list, raise_nonempty=True):
     Return differences between two bar output lists.
     To be used with `RE_pos`
     """
-    ln = len(res_list)
-    if ln < len(expected_list):
-        res = [(None, e) for e in expected_list[ln:]]
-    elif ln > len(expected_list):
-        res = [(r, None) for r in res_list[ln:]]
     res = [(r, e) for r, e in zip(res_list, expected_list)
            for pos in [len(e) - len(e.lstrip('\n'))]  # bar position
+           if r != e  # simple comparison
            if not r.startswith(e)  # start matches
-           or not (r.endswith('\x1b[A' * pos)  # move up at end
-                   or r == '\n')  # final bar
-           or r[(-1 - pos) * len('\x1b[A'):] == '\x1b[A']  # extra move up
-    if res and raise_nonempty:
+           or not (
+               # move up at end (maybe less due to closing bars)
+               any(r.endswith(end + i * '\x1b[A') for i in range(pos + 1)
+                   for end in [
+                       ']',  # bar
+                       '  '])  # cleared
+               or '100%' in r  # completed bar
+               or r == '\n')  # final bar
+           or r[(-1 - pos) * len('\x1b[A'):] == '\x1b[A']  # too many moves up
+    if raise_nonempty and (res or len(res_list) != len(expected_list)):
+        if len(res_list) < len(expected_list):
+            res.extend([(None, e) for e in expected_list[len(res_list):]])
+        elif len(res_list) > len(expected_list):
+            res.extend([(r, None) for r in res_list[len(expected_list):]])
         raise AssertionError(
-            "Got => Expected\n" + '\n'.join('"%r" => "%r"' % i for i in res))
+            "Got => Expected\n" + '\n'.join('%r => %r' % i for i in res))
     return res
 
 
@@ -932,13 +938,17 @@ def test_close():
             progressbar.update(3)
             res = our_file.getvalue()
             assert '| 3/3 ' in res  # Should be blank
+            assert '\n' not in res
         # close() called
         assert len(tqdm._instances) == 0
 
-        exres = res + '\n'
-        if exres != our_file.getvalue():
-            raise AssertionError("\nExpected:\n{0}\nGot:{1}\n".format(
-                exres, our_file.getvalue()))
+        exres = res.rsplit(', ', 1)[0]
+        res = our_file.getvalue()
+        assert res[-1] == '\n'
+        if not res.startswith(exres):
+            raise AssertionError(
+                "\n<<< Expected:\n{0}\n>>> Got:\n{1}\n===".format(
+                    exres + ', ...it/s]\n', our_file.getvalue()))
 
     # Closing after the output stream has closed
     with closing(StringIO()) as our_file:
@@ -1176,21 +1186,28 @@ def test_position():
              '\n\n\rpos2 bar:   0%',
              '\n\n\rpos2 bar:  50%',
              '\n\n\rpos2 bar: 100%',
-             '\n\rpos1 bar:  50%',
+             '\rpos2 bar: 100%',
+             '\n\n\rpos1 bar:  50%',
              '\n\n\rpos2 bar:   0%',
              '\n\n\rpos2 bar:  50%',
              '\n\n\rpos2 bar: 100%',
-             '\n\rpos1 bar: 100%',
-             '\rpos0 bar:  50%',
+             '\rpos2 bar: 100%',
+             '\n\n\rpos1 bar: 100%',
+             '\rpos1 bar: 100%',
+             '\n\rpos0 bar:  50%',
              '\n\rpos1 bar:   0%',
              '\n\n\rpos2 bar:   0%',
              '\n\n\rpos2 bar:  50%',
              '\n\n\rpos2 bar: 100%',
-             '\n\rpos1 bar:  50%',
+             '\rpos2 bar: 100%',
+             '\n\n\rpos1 bar:  50%',
              '\n\n\rpos2 bar:   0%',
              '\n\n\rpos2 bar:  50%',
              '\n\n\rpos2 bar: 100%',
-             '\n\rpos1 bar: 100%',
+             '\rpos2 bar: 100%',
+             '\n\n\rpos1 bar: 100%',
+             '\rpos1 bar: 100%',
+             '\n\rpos0 bar: 100%',
              '\rpos0 bar: 100%',
              '\n']
     pos_line_diff(res, exres)
@@ -1243,7 +1260,10 @@ def test_position():
         exres = ['\rpos0 bar:   0%',
                  '\n\rpos1 bar:   0%',
                  '\n\n\rpos2 bar:   0%',
-                 '\n\n\rpos3 bar:   0%',
+                 '\n\n\r      ',
+                 '\r\x1b[A\x1b[A',
+                 '\rpos1 bar:   0%',
+                 '\n\n\n\rpos3 bar:   0%',
                  '\rpos0 bar:  10%',
                  '\n\rpos2 bar:  10%',
                  '\n\n\rpos3 bar:  10%']
@@ -1489,10 +1509,10 @@ def test_write():
             assert before_err == '\rpos0 bar:   0%|\rpos0 bar:  10%|'
             assert before_out == ''
             after_err_res = [m[0] for m in RE_pos.findall(after_err)]
-            exres = [u'\rpos0 bar:   0%',
-                     u'\rpos0 bar:  10%',
-                     u'\r      ',
-                     u'\r\rpos0 bar:  10%']
+            exres = ['\rpos0 bar:   0%|',
+                     '\rpos0 bar:  10%|',
+                     '\r               ',
+                     '\r\rpos0 bar:  10%|']
             pos_line_diff(after_err_res, exres)
             assert after_out == s + '\n'
     # Restore stdout and stderr

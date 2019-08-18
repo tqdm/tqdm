@@ -43,8 +43,7 @@ all:
 	@+make build
 
 flake8:
-	@+flake8 --max-line-length=80 --exclude .asv,.tox,.ipynb_checkpoints,build \
-    --ignore=W503,W504 -j 8 --count --statistics --exit-zero .
+	@+flake8 -j 8 --count --statistics --exit-zero .
 
 test:
 	tox --skip-missing-interpreters
@@ -55,7 +54,7 @@ testnose:
 testsetup:
 	@make README.rst
 	@make tqdm/tqdm.1
-	python setup.py check --restructuredtext --strict
+	python setup.py check --metadata --restructuredtext --strict
 	python setup.py make none
 
 testcoverage:
