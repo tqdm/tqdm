@@ -661,11 +661,8 @@ you may specify ``position=n`` where ``n=0`` for the outermost bar,
 
     if __name__ == '__main__':
         freeze_support()  # for Windows support
-        p = Pool(len(L),
-                 # again, for Windows support
-                 initializer=tqdm.set_lock, initargs=(RLock(),))
+        p = Pool(len(L), initializer=tqdm.set_lock, initargs=(RLock(),))
         p.map(progresser, L)
-        print("\n" * (len(L) - 2))
 
 Hooks and callbacks
 ~~~~~~~~~~~~~~~~~~~
