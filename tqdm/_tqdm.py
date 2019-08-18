@@ -744,6 +744,7 @@ class tqdm(Comparable):
         leave  : bool, optional
             If [default: True], keeps all traces of the progressbar
             upon termination of iteration.
+            If `None`, will leave only if `position` is `0`.
         file  : `io.TextIOWrapper` or `io.StringIO`, optional
             Specifies where to output the progress messages
             (default: sys.stderr). Uses `file.write(str)` and `file.flush()`
@@ -1189,15 +1190,14 @@ class tqdm(Comparable):
                 return
             raise  # pragma: no cover
 
+        leave = pos == 0 if self.leave is None else self.leave
+
         with self._lock:
-            if self.leave:
+            if leave:
                 if self.last_print_n < self.n:
                     # stats for overall rate (no weighted average)
                     self.avg_time = None
-                    self.display(pos=pos)
-                if not max([abs(getattr(i, "pos", 0))
-                            for i in self._instances] + [pos]):
-                    # only if not nested (#477)
+                    self.display(pos=0)
                     fp_write('\n')
             else:
                 self.display(msg='', pos=pos)
