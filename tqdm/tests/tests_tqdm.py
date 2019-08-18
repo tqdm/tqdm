@@ -70,10 +70,17 @@ def pos_line_diff(res_list, expected_list, raise_nonempty=True):
     """
     res = [(r, e) for r, e in zip(res_list, expected_list)
            for pos in [len(e) - len(e.lstrip('\n'))]  # bar position
+           if r != e  # simple comparison
            if not r.startswith(e)  # start matches
-           or not (r.endswith('\x1b[A' * pos)  # move up at end
-                   or r == '\n')  # final bar
-           or r[(-1 - pos) * len('\x1b[A'):] == '\x1b[A']  # extra move up
+           or not (# move up at end (maybe less due to closing bars)
+                   any(r.endswith(term + i * '\x1b[A') for i in range(pos + 1)
+                       # cleared (blank) or full bar
+                       for term in [']', '   '])
+                   or '100%' in r  # completed bar
+                   or r == '\n'  # final bar
+                  )
+           or r[(-1 - pos) * len('\x1b[A'):] == '\x1b[A'  # extra move up
+           ]
     if raise_nonempty and (res or len(res_list) != len(expected_list)):
         if len(res_list) < len(expected_list):
             res.extend([(None, e) for e in expected_list[len(res_list):]])
@@ -1252,7 +1259,10 @@ def test_position():
         exres = ['\rpos0 bar:   0%',
                  '\n\rpos1 bar:   0%',
                  '\n\n\rpos2 bar:   0%',
-                 '\n\n\rpos3 bar:   0%',
+                 '\n\n\r      ',
+                 '\r\x1b[A\x1b[A',
+                 '\rpos1 bar:   0%',
+                 '\n\n\n\rpos3 bar:   0%',
                  '\rpos0 bar:  10%',
                  '\n\rpos2 bar:  10%',
                  '\n\n\rpos3 bar:  10%']
