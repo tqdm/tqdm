@@ -932,13 +932,16 @@ def test_close():
             progressbar.update(3)
             res = our_file.getvalue()
             assert '| 3/3 ' in res  # Should be blank
+            assert '\n' not in res
         # close() called
         assert len(tqdm._instances) == 0
 
-        exres = res + '\n'
-        if exres != our_file.getvalue():
-            raise AssertionError("\nExpected:\n{0}\nGot:{1}\n".format(
-                exres, our_file.getvalue()))
+        exres = res.rsplit(', ', 1)[0]
+        res = our_file.getvalue()
+        assert res[-1] == '\n'
+        if not res.startswith(exres):
+            raise AssertionError("\n<<< Expected:\n{0}\n>>> Got:\n{1}\n===".format(
+                exres + ', ...it/s]\n', our_file.getvalue()))
 
     # Closing after the output stream has closed
     with closing(StringIO()) as our_file:
