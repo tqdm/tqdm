@@ -476,7 +476,7 @@ Nested progress bars
 On Windows `colorama <https://github.com/tartley/colorama>`__ will be used if
 available to keep nested bars on their respective lines.
 
-For manual control over positioning (e.g. for multi-threaded use),
+For manual control over positioning (e.g. for multi-processing use),
 you may specify ``position=n`` where ``n=0`` for the outermost bar,
 ``n=1`` for the next, and so on:
 
@@ -484,7 +484,7 @@ you may specify ``position=n`` where ``n=0`` for the outermost bar,
 
     from time import sleep
     from tqdm import trange, tqdm
-    from multiprocessing import Pool, freeze_support, RLock
+    from multiprocessing import Pool, freeze_support
 
     L = list(range(9))
 
@@ -492,13 +492,38 @@ you may specify ``position=n`` where ``n=0`` for the outermost bar,
         interval = 0.001 / (n + 2)
         total = 5000
         text = "#{}, est. {:<04.2}s".format(n, interval * total)
-        for i in trange(total, desc=text, position=n):
+        for _ in trange(total, desc=text, position=n):
             sleep(interval)
 
     if __name__ == '__main__':
         freeze_support()  # for Windows support
-        p = Pool(len(L), initializer=tqdm.set_lock, initargs=(RLock(),))
+        p = Pool(len(L), initializer=tqdm.set_lock, initargs=(tqdm.get_lock(),))
         p.map(progresser, L)
+
+Note that in python 3, threads do not require manual positioning,
+and ``tqdm.write`` is safe to use:
+
+.. code:: python
+
+    from time import sleep
+    from tqdm import tqdm, trange
+    from concurrent.futures import ThreadPoolExecutor
+
+    L = list(range(9))
+
+    def progresser(n):
+        interval = 0.001 / (n + 2)
+        total = 5000
+        text = "#{}, est. {:<04.2}s".format(n, interval * total)
+        for _ in trange(total, desc=text):
+            sleep(interval)
+        if n == 6:
+            tqdm.write("n == 6 completed.")
+            tqdm.write("`tqdm.write()` is thread-safe in py3!")
+
+    if __name__ == '__main__':
+        with ThreadPoolExecutor() as p:
+            p.map(progresser, L)
 
 Hooks and callbacks
 ~~~~~~~~~~~~~~~~~~~
