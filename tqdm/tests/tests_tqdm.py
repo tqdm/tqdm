@@ -68,20 +68,19 @@ def pos_line_diff(res_list, expected_list, raise_nonempty=True):
     Return differences between two bar output lists.
     To be used with `RE_pos`
     """
-    ln = len(res_list)
-    if ln < len(expected_list):
-        res = [(None, e) for e in expected_list[ln:]]
-    elif ln > len(expected_list):
-        res = [(r, None) for r in res_list[ln:]]
     res = [(r, e) for r, e in zip(res_list, expected_list)
            for pos in [len(e) - len(e.lstrip('\n'))]  # bar position
            if not r.startswith(e)  # start matches
            or not (r.endswith('\x1b[A' * pos)  # move up at end
                    or r == '\n')  # final bar
            or r[(-1 - pos) * len('\x1b[A'):] == '\x1b[A']  # extra move up
-    if res and raise_nonempty:
+    if raise_nonempty and (res or len(res_list) != len(expected_list)):
+        if len(res_list) < len(expected_list):
+            res.extend([(None, e) for e in expected_list[len(res_list):]])
+        elif len(res_list) > len(expected_list):
+            res.extend([(r, None) for r in res_list[len(expected_list):]])
         raise AssertionError(
-            "Got => Expected\n" + '\n'.join('"%r" => "%r"' % i for i in res))
+            "Got => Expected\n" + '\n'.join('%r => %r' % i for i in res))
     return res
 
 
