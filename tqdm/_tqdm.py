@@ -1194,11 +1194,10 @@ class tqdm(Comparable):
 
         with self._lock:
             if leave:
-                if self.last_print_n < self.n:
-                    # stats for overall rate (no weighted average)
-                    self.avg_time = None
-                    self.display(pos=0)
-                    fp_write('\n')
+                # stats for overall rate (no weighted average)
+                self.avg_time = None
+                self.display(pos=0)
+                fp_write('\n')
             else:
                 self.display(msg='', pos=pos)
                 if not pos:
