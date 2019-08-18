@@ -73,13 +73,15 @@ def pos_line_diff(res_list, expected_list, raise_nonempty=True):
            if r != e  # simple comparison
            if not r.startswith(e)  # start matches
            or not (# move up at end (maybe less due to closing bars)
-                   any(r.endswith(term + i * '\x1b[A') for i in range(pos + 1)
-                       # cleared (blank) or full bar
-                       for term in [']', '   '])
+                   any(r.endswith(end + i * '\x1b[A') for i in range(pos + 1)
+                       for end in [
+                           ']',  # bar
+                           '  '  # cleared
+                       ])
                    or '100%' in r  # completed bar
                    or r == '\n'  # final bar
                   )
-           or r[(-1 - pos) * len('\x1b[A'):] == '\x1b[A'  # extra move up
+           or r[(-1 - pos) * len('\x1b[A'):] == '\x1b[A'  # too many moves up
            ]
     if raise_nonempty and (res or len(res_list) != len(expected_list)):
         if len(res_list) < len(expected_list):
@@ -1508,10 +1510,10 @@ def test_write():
             assert before_err == '\rpos0 bar:   0%|\rpos0 bar:  10%|'
             assert before_out == ''
             after_err_res = [m[0] for m in RE_pos.findall(after_err)]
-            exres = [u'\rpos0 bar:   0%',
-                     u'\rpos0 bar:  10%',
-                     u'\r      ',
-                     u'\r\rpos0 bar:  10%']
+            exres = ['\rpos0 bar:   0%|',
+                     '\rpos0 bar:  10%|',
+                     '\r               ',
+                     '\r\rpos0 bar:  10%|']
             pos_line_diff(after_err_res, exres)
             assert after_out == s + '\n'
     # Restore stdout and stderr
