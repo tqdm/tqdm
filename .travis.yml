@@ -57,19 +57,19 @@ matrix:
       on:
         tags: true
     - provider: script
-      script: docker push docker.pkg.github.com/tqdm/tqdm/tqdm:${TRAVIS_TAG#v}
+      script: 'docker push docker.pkg.github.com/tqdm/tqdm/tqdm:${TRAVIS_TAG#v} || :'
       on:
         tags: true
     - provider: script
       script: docker push tqdm/tqdm:latest
     - provider: script
-      script: docker push docker.pkg.github.com/tqdm/tqdm/tqdm:latest
+      script: 'docker push docker.pkg.github.com/tqdm/tqdm/tqdm:latest || :'
     - provider: script
       script: docker push tqdm/tqdm:devel
       on:
         branch: devel
     - provider: script
-      script: docker push docker.pkg.github.com/tqdm/tqdm/tqdm:devel
+      script: 'docker push docker.pkg.github.com/tqdm/tqdm/tqdm:devel || :'
       on:
         branch: devel
   - python: pypy2.7-5.10.0
