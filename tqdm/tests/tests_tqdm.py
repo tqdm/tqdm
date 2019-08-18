@@ -72,17 +72,15 @@ def pos_line_diff(res_list, expected_list, raise_nonempty=True):
            for pos in [len(e) - len(e.lstrip('\n'))]  # bar position
            if r != e  # simple comparison
            if not r.startswith(e)  # start matches
-           or not (# move up at end (maybe less due to closing bars)
-                   any(r.endswith(end + i * '\x1b[A') for i in range(pos + 1)
-                       for end in [
-                           ']',  # bar
-                           '  '  # cleared
-                       ])
-                   or '100%' in r  # completed bar
-                   or r == '\n'  # final bar
-                  )
-           or r[(-1 - pos) * len('\x1b[A'):] == '\x1b[A'  # too many moves up
-           ]
+           or not (
+               # move up at end (maybe less due to closing bars)
+               any(r.endswith(end + i * '\x1b[A') for i in range(pos + 1)
+                   for end in [
+                       ']',  # bar
+                       '  '])  # cleared
+               or '100%' in r  # completed bar
+               or r == '\n')  # final bar
+           or r[(-1 - pos) * len('\x1b[A'):] == '\x1b[A']  # too many moves up
     if raise_nonempty and (res or len(res_list) != len(expected_list)):
         if len(res_list) < len(expected_list):
             res.extend([(None, e) for e in expected_list[len(res_list):]])
@@ -948,8 +946,9 @@ def test_close():
         res = our_file.getvalue()
         assert res[-1] == '\n'
         if not res.startswith(exres):
-            raise AssertionError("\n<<< Expected:\n{0}\n>>> Got:\n{1}\n===".format(
-                exres + ', ...it/s]\n', our_file.getvalue()))
+            raise AssertionError(
+                "\n<<< Expected:\n{0}\n>>> Got:\n{1}\n===".format(
+                    exres + ', ...it/s]\n', our_file.getvalue()))
 
     # Closing after the output stream has closed
     with closing(StringIO()) as our_file:
