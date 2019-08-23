@@ -135,55 +135,63 @@ class tqdm_notebook(tqdm):
             container.layout.flex_flow = 'row wrap'
         display(container)
 
-        def print_status(s='', close=False, bar_style=None, desc=None):
-            # Note: contrary to native tqdm, s='' does NOT clear bar
-            # goal is to keep all infos if error happens so user knows
-            # at which iteration the loop failed.
+        return container
 
-            # Clear previous output (really necessary?)
-            # clear_output(wait=1)
+    def display(self, msg=None, pos=None,
+                # additional signals
+                close=False, bar_style=None):
+        # Note: contrary to native tqdm, msg='' does NOT clear bar
+        # goal is to keep all infos if error happens so user knows
+        # at which iteration the loop failed.
 
-            # Get current iteration value from format_meter string
-            if total:
-                # n = None
-                if s:
-                    npos = s.find(r'/|/')  # cause we use bar_format=r'{n}|...'
-                    # Check that n can be found in s (else n > total)
-                    if npos >= 0:
-                        n = float(s[:npos])  # get n from string
-                        s = s[npos + 3:]  # remove from string
+        # Clear previous output (really necessary?)
+        # clear_output(wait=1)
 
-                        # Update bar with current n value
-                        if n is not None:
-                            pbar.value = n
+        # Update description
+        if self.desc:
+            pbar.description = self.desc
+            self.desc = None  # trick to place description before the bar
+            if IPYW >= 7:
+                pbar.style.description_width = 'initial'
 
-            # Print stats
-            if s:  # never clear the bar (signal: s='')
-                s = s.replace('||', '')  # remove inesthetical pipes
-                s = escape(s)  # html escape special characters (like '?')
-                ptext.value = s
+        if not msg and not close:
+            msg = self.__repr__()
 
-            # Change bar style
-            if bar_style:
-                # Hack-ish way to avoid the danger bar_style being overridden by
-                # success because the bar gets closed after the error...
-                if not (pbar.bar_style == 'danger' and bar_style == 'success'):
-                    pbar.bar_style = bar_style
+        pbar, ptext = self.container.children
 
-            # Special signal to close the bar
-            if close and pbar.bar_style != 'danger':  # hide only if no error
-                try:
-                    container.close()
-                except AttributeError:
-                    container.visible = False
+        # Get current iteration value from format_meter string
+        if self.total:
+            # n = None
+            if msg:
+                npos = msg.find(r'/|/')  # cause we use bar_format=r'{n}|...'
+                # Check that n can be found in msg (else n > total)
+                if npos >= 0:
+                    n = float(msg[:npos])  # get n from string
+                    msg = msg[npos + 3:]  # remove from string
 
-            # Update description
-            if desc:
-                pbar.description = desc
-                if IPYW >= 7:
-                    pbar.style.description_width = 'initial'
+                    # Update bar with current n value
+                    if n is not None:
+                        pbar.value = n
 
-        return print_status
+        # Print stats
+        if msg:  # never clear the bar (signal: msg='')
+            msg = msg.replace('||', '')  # remove inesthetical pipes
+            msg = escape(msg)  # html escape special characters (like '?')
+            ptext.value = msg
+
+        # Change bar style
+        if bar_style:
+            # Hack-ish way to avoid the danger bar_style being overridden by
+            # success because the bar gets closed after the error...
+            if not (pbar.bar_style == 'danger' and bar_style == 'success'):
+                pbar.bar_style = bar_style
+
+        # Special signal to close the bar
+        if close and pbar.bar_style != 'danger':  # hide only if no error
+            try:
+                self.container.close()
+            except AttributeError:
+                self.container.visible = False
 
     def __init__(self, *args, **kwargs):
         # Setup default output
@@ -200,23 +208,19 @@ class tqdm_notebook(tqdm):
         if self.disable or not kwargs['gui']:
             return
 
-        # Delete first pbar generated from super() (wrong total and text)
-        # DEPRECATED by using gui=True
-        # self.sp('', close=True)
-
         # Get bar width
         self.ncols = '100%' if self.dynamic_ncols else kwargs.get("ncols", None)
 
         # Replace with IPython progress bar display (with correct total)
         unit_scale = 1 if self.unit_scale is True else self.unit_scale or 1
         total = self.total * unit_scale if self.total else self.total
-        self.sp = self.status_printer(
+        self.container = self.status_printer(
             self.fp, total, self.desc, self.ncols)
-        self.desc = None  # trick to place description before the bar
+        self.sp = self.display
 
         # Print initial bar state
         if not self.disable:
-            self.sp(self.__repr__())  # same as self.refresh without clearing
+            self.display()
 
     def __iter__(self, *args, **kwargs):
         try:
@@ -254,16 +258,6 @@ class tqdm_notebook(tqdm):
     def moveto(self, *args, **kwargs):
         # void -> avoid extraneous `\n` in IPython output cell
         return
-
-    def set_description(self, desc=None, **_):
-        """
-        Set/modify description of the progress bar.
-
-        Parameters
-        ----------
-        desc  : str, optional
-        """
-        self.sp(desc=desc)
 
 
 def tnrange(*args, **kwargs):
