@@ -147,37 +147,33 @@ class tqdm_notebook(tqdm):
         # Clear previous output (really necessary?)
         # clear_output(wait=1)
 
-        # Update description
-        if self.desc:
-            pbar.description = self.desc
-            self.desc = None  # trick to place description before the bar
-            if IPYW >= 7:
-                pbar.style.description_width = 'initial'
-
         if not msg and not close:
             msg = self.__repr__()
 
         pbar, ptext = self.container.children
+        pbar.value = self.n
 
-        # Get current iteration value from format_meter string
-        if self.total:
-            # n = None
-            if msg:
-                npos = msg.find(r'/|/')  # cause we use bar_format=r'{n}|...'
-                # Check that n can be found in msg (else n > total)
-                if npos >= 0:
-                    n = float(msg[:npos])  # get n from string
-                    msg = msg[npos + 3:]  # remove from string
+        if msg:
+            # html escape special characters (like '&')
+            if '<bar/>' in msg:
+                left, right = map(escape, msg.split('<bar/>', 1))
+            else:
+                left, right = '', escape(msg)
 
-                    # Update bar with current n value
-                    if n is not None:
-                        pbar.value = n
+            # remove inesthetical pipes
+            if left and left[-1] == '|':
+                left = left[:-1]
+            if right and right[0] == '|':
+                right = right[1:]
 
-        # Print stats
-        if msg:  # never clear the bar (signal: msg='')
-            msg = msg.replace('||', '')  # remove inesthetical pipes
-            msg = escape(msg)  # html escape special characters (like '?')
-            ptext.value = msg
+            # Update description
+            pbar.description = left
+            if IPYW >= 7:
+                pbar.style.description_width = 'initial'
+
+            # never clear the bar (signal: msg='')
+            if right:
+                ptext.value = right
 
         # Change bar style
         if bar_style:
@@ -198,12 +194,10 @@ class tqdm_notebook(tqdm):
         if kwargs.get('file', sys.stderr) is sys.stderr:
             kwargs['file'] = sys.stdout  # avoid the red block in IPython
 
-        # Remove the bar from the printed string, only print stats
-        if not kwargs.get('bar_format', None):
-            kwargs['bar_format'] = r'{n}/|/{l_bar}{r_bar}'
-
         # Initialize parent class + avoid printing by using gui=True
         kwargs['gui'] = True
+        kwargs.setdefault('bar_format', '{l_bar}{bar}{r_bar}')
+        kwargs['bar_format'] = kwargs['bar_format'].replace('{bar}', '<bar/>')
         super(tqdm_notebook, self).__init__(*args, **kwargs)
         if self.disable or not kwargs['gui']:
             return
