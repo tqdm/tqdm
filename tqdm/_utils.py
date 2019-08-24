@@ -121,6 +121,21 @@ if True:  # pragma: no cover
                     return d
 
 
+class FormatReplace(object):
+    """
+    >>> a = FormatReplace('something')
+    >>> "{:5d}".format(a)
+    'something'
+    """
+    def __init__(self, replace=''):
+        self.replace = replace
+        self.format_called = 0
+
+    def __format__(self, _):
+        self.format_called += 1
+        return self.replace
+
+
 class Comparable(object):
     """Assumes child has self._comparable attr/@property"""
     def __lt__(self, other):

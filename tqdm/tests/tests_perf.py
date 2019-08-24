@@ -159,6 +159,18 @@ def simple_progress(iterable=None, total=None, file=sys.stdout, desc='',
         return update_and_print
 
 
+def assert_performance(thresh, name_left, time_left, name_right, time_right):
+    """raises if time_left > thresh * time_right"""
+    if time_left > thresh * time_right:
+        raise ValueError(
+            ('{name[0]}: {time[0]:f}, '
+             '{name[1]}: {time[0]:f}, '
+             'ratio {ratio:f} > {thresh:f}').format(
+                name=(name_left, name_right),
+                time=(time_left, time_right),
+                ratio=time_left / time_right, thresh=thresh))
+
+
 @with_setup(pretest, posttest)
 @retry_on_except()
 def test_iter_overhead():
@@ -180,10 +192,7 @@ def test_iter_overhead():
                 a += i
                 our_file.write(a)
 
-    # Compute relative overhead of tqdm against native range()
-    if time_tqdm() > 9 * time_bench():
-        raise AssertionError('trange(%g): %f, range(%g): %f' %
-                             (total, time_tqdm(), total, time_bench()))
+    assert_performance(6, 'trange', time_tqdm(), 'range', time_bench())
 
 
 @with_setup(pretest, posttest)
@@ -207,10 +216,7 @@ def test_manual_overhead():
                 a += i
                 our_file.write(a)
 
-    # Compute relative overhead of tqdm against native range()
-    if time_tqdm() > 10 * time_bench():
-        raise AssertionError('tqdm(%g): %f, range(%g): %f' %
-                             (total, time_tqdm(), total, time_bench()))
+    assert_performance(6, 'tqdm', time_tqdm(), 'range', time_bench())
 
 
 @with_setup(pretest, posttest)
@@ -235,12 +241,7 @@ def test_iter_overhead_hard():
                 a += i
                 our_file.write(("%i" % a) * 40)
 
-    # Compute relative overhead of tqdm against native range()
-    try:
-        assert time_tqdm() < 60 * time_bench()
-    except AssertionError:
-        raise AssertionError('trange(%g): %f, range(%g): %f' %
-                             (total, time_tqdm(), total, time_bench()))
+    assert_performance(85, 'trange', time_tqdm(), 'range', time_bench())
 
 
 @with_setup(pretest, posttest)
@@ -265,12 +266,7 @@ def test_manual_overhead_hard():
                 a += i
                 our_file.write(("%i" % a) * 40)
 
-    # Compute relative overhead of tqdm against native range()
-    try:
-        assert time_tqdm() < 100 * time_bench()
-    except AssertionError:
-        raise AssertionError('tqdm(%g): %f, range(%g): %f' %
-                             (total, time_tqdm(), total, time_bench()))
+    assert_performance(85, 'tqdm', time_tqdm(), 'range', time_bench())
 
 
 @with_setup(pretest, posttest)
@@ -296,12 +292,8 @@ def test_iter_overhead_simplebar_hard():
             for i in s:
                 a += i
 
-    # Compute relative overhead of tqdm against native range()
-    try:
-        assert time_tqdm() < 3.5 * time_bench()
-    except AssertionError:
-        raise AssertionError('trange(%g): %f, simple_progress(%g): %f' %
-                             (total, time_tqdm(), total, time_bench()))
+    assert_performance(
+        5, 'trange', time_tqdm(), 'simple_progress', time_bench())
 
 
 @with_setup(pretest, posttest)
@@ -329,9 +321,5 @@ def test_manual_overhead_simplebar_hard():
                 a += i
                 simplebar_update(10)
 
-    # Compute relative overhead of tqdm against native range()
-    try:
-        assert time_tqdm() < 3.5 * time_bench()
-    except AssertionError:
-        raise AssertionError('tqdm(%g): %f, simple_progress(%g): %f' %
-                             (total, time_tqdm(), total, time_bench()))
+    assert_performance(
+        5, 'tqdm', time_tqdm(), 'simple_progress', time_bench())

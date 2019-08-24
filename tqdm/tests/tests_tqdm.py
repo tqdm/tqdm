@@ -13,6 +13,7 @@ from contextlib import contextmanager
 from tqdm import tqdm
 from tqdm import trange
 from tqdm import TqdmDeprecationWarning
+from tqdm._tqdm import Bar
 
 try:
     from StringIO import StringIO
@@ -327,6 +328,15 @@ def test_si_format():
                                      unit_scale=True)
     assert '1000.0Y ' in format_meter(1, 999999999999999999999999999, 1,
                                       unit_scale=True)
+
+
+def test_bar_formatspec():
+    """Test Bar.__format__ spec"""
+    assert "{0:5a}".format(Bar(0.3)) == "#5   "
+    assert "{0:2}".format(Bar(0.5, charset=" .oO0")) == "0 "
+    assert "{0:2a}".format(Bar(0.5, charset=" .oO0")) == "# "
+    assert "{0:-6a}".format(Bar(0.5, 10)) == '##  '
+    assert "{0:2b}".format(Bar(0.5, 10)) == '  '
 
 
 @with_setup(pretest, posttest)
