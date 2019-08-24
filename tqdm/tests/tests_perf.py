@@ -191,7 +191,7 @@ def test_iter_overhead():
                 a += i
                 our_file.write(a)
 
-    assert_performance(9, 'trange', time_tqdm(), 'range', time_bench())
+    assert_performance(6, 'trange', time_tqdm(), 'range', time_bench())
 
 
 @with_setup(pretest, posttest)
@@ -215,7 +215,7 @@ def test_manual_overhead():
                 a += i
                 our_file.write(a)
 
-    assert_performance(10, 'tqdm', time_tqdm(), 'range', time_bench())
+    assert_performance(6, 'tqdm', time_tqdm(), 'range', time_bench())
 
 @with_setup(pretest, posttest)
 @retry_on_except()
@@ -239,7 +239,7 @@ def test_iter_overhead_hard():
                 a += i
                 our_file.write(("%i" % a) * 40)
 
-    assert_performance(60, 'trange', time_tqdm(), 'range', time_bench())
+    assert_performance(85, 'trange', time_tqdm(), 'range', time_bench())
 
 
 @with_setup(pretest, posttest)
@@ -264,7 +264,7 @@ def test_manual_overhead_hard():
                 a += i
                 our_file.write(("%i" % a) * 40)
 
-    assert_performance(100, 'tqdm', time_tqdm(), 'range', time_bench())
+    assert_performance(85, 'tqdm', time_tqdm(), 'range', time_bench())
 
 
 @with_setup(pretest, posttest)
@@ -291,7 +291,7 @@ def test_iter_overhead_simplebar_hard():
                 a += i
 
     assert_performance(
-        3.5, 'trange', time_tqdm(), 'simple_progress', time_bench())
+        5, 'trange', time_tqdm(), 'simple_progress', time_bench())
 
 
 @with_setup(pretest, posttest)
@@ -320,4 +320,4 @@ def test_manual_overhead_simplebar_hard():
                 simplebar_update(10)
 
     assert_performance(
-        3.5, 'tqdm', time_tqdm(), 'simple_progress', time_bench())
+        5, 'tqdm', time_tqdm(), 'simple_progress', time_bench())
