@@ -470,6 +470,8 @@ class tqdm(Comparable):
                 frac,
                 max(1, ncols - len(RE_ANSI.sub('', nobar))) if ncols else 10,
                 charset=Bar.ASCII if ascii is True else ascii or Bar.UTF)
+            if not _is_ascii(full_bar.charset) and _is_ascii(bar_format):
+                bar_format = _unicode(bar_format)
             return bar_format.format(bar=full_bar, **format_dict)
 
         elif bar_format:
