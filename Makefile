@@ -46,7 +46,8 @@ flake8:
 	@+flake8 -j 8 --count --statistics --exit-zero .
 
 test:
-	tox --skip-missing-interpreters
+	TOX_SKIP_ENV=perf tox --skip-missing-interpreters -p all
+	tox -e perf
 
 testnose:
 	nosetests tqdm -d -v
