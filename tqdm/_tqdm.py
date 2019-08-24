@@ -138,6 +138,7 @@ class Bar(object):
     """
     ASCII = " 123456789#"
     UTF = u" " + u''.join(map(_unich, range(0x258F, 0x2587, -1)))
+    BLANK = "  "
 
     def __init__(self, frac, default_len=10, charset=UTF):
         assert 0 <= frac <= 1
@@ -150,7 +151,7 @@ class Bar(object):
         if format_spec:
             _type = format_spec[-1].lower()
             try:
-                charset = dict(a=self.ASCII, u=self.UTF)[_type]
+                charset = dict(a=self.ASCII, u=self.UTF, b=self.BLANK)[_type]
             except KeyError:
                 charset = self.charset
             else:
