@@ -125,8 +125,58 @@ class TqdmDefaultWriteLock(object):
 # context and does not allow the user to use 'spawn' or 'forkserver' methods.
 TqdmDefaultWriteLock.create_th_lock()
 
-ASCII_FMT = " 123456789#"
-UTF_FMT = u" " + u''.join(map(_unich, range(0x258F, 0x2587, -1)))
+
+class EmptyFormat(object):
+    def __init__(self):
+        self.format_called = 0
+
+    def __format__(self, _):
+        self.format_called += 1
+        return ""
+
+
+class Bar(object):
+    """
+    `str.format`-able bar
+
+    >>> "{:6a}".format(Bar(0.5))
+    '###   '
+    """
+    ASCII = " 123456789#"
+    UTF = u" " + u''.join(map(_unich, range(0x258F, 0x2587, -1)))
+    def __init__(self, frac, default_len=10, charset=UTF):
+        assert 0 <= frac <= 1
+        assert default_len > 0
+        self.frac = frac
+        self.default_len = default_len
+        self.charset = charset
+
+    def __format__(self, format_spec):
+        if format_spec:
+            _type = format_spec[-1].lower()
+            try:
+                charset = dict(a=self.ASCII, u=self.UTF)[_type]
+            except KeyError:
+                charset = self.charset
+            else:
+                format_spec = format_spec[:-1]
+            N_BARS = int(format_spec) if format_spec else self.default_len
+        else:
+            charset = self.charset
+            N_BARS = self.default_len
+
+        nsyms = len(charset) - 1
+        bar_length, frac_bar_length = divmod(
+            int(self.frac * N_BARS * nsyms), nsyms)
+
+        bar = charset[-1] * bar_length
+        frac_bar = charset[frac_bar_length]
+
+        # whitespace padding
+        if bar_length < N_BARS:
+            return bar + frac_bar + \
+                charset[0] * (N_BARS - bar_length - 1)
+        return bar + charset[0] * (N_BARS - bar_length)
 
 
 class tqdm(Comparable):
@@ -270,10 +320,9 @@ class tqdm(Comparable):
             Number of seconds passed since start.
         ncols  : int, optional
             The width of the entire output message. If specified,
-            dynamically resizes the progress meter to stay within this bound
-            [default: None]. The fallback meter width is 10 for the progress
-            bar + no limit for the iterations counter and statistics. If 0,
-            will not print any meter (only stats).
+            dynamically resizes `{bar}` to stay within this bound
+            [default: None]. If `0`, will not print any bar (only stats).
+            The fallback is `{bar:10}`.
         prefix  : str, optional
             Prefix message (included in total width) [default: ''].
             Use as {desc} in bar_format string.
@@ -399,53 +448,28 @@ class tqdm(Comparable):
             if ncols == 0:
                 return l_bar[:-1] + r_bar[1:]
 
+            format_dict.update(l_bar=l_bar)
             if bar_format:
-                format_dict.update(l_bar=l_bar, percentage=percentage)
-                # , bar=full_bar  # replaced by procedure below
+                format_dict.update(percentage=percentage)
 
                 # auto-remove colon for empty `desc`
                 if not prefix:
                     bar_format = bar_format.replace("{desc}: ", '')
+            else:
+                bar_format = "{l_bar}{bar}{r_bar}"
 
-                # Interpolate supplied bar format with the dict
-                if '{bar}' in bar_format:
-                    # Format left/right sides of the bar, and format the bar
-                    # later in the remaining space (avoid breaking display)
-                    l_bar_user, r_bar_user = bar_format.split('{bar}')
-                    l_bar = l_bar_user.format(**format_dict)
-                    r_bar = r_bar_user.format(**format_dict)
-                else:
-                    # Else no progress bar, we can just format and return
-                    return bar_format.format(**format_dict)
+            full_bar = EmptyFormat()
+            nobar = bar_format.format(bar=full_bar, **format_dict)
+            if not full_bar.format_called:
+                # no {bar}, we can just format and return
+                return nobar
 
             # Formatting progress bar space available for bar's display
-            if ncols:
-                N_BARS = max(1, ncols - len(RE_ANSI.sub('', l_bar + r_bar)))
-            else:
-                N_BARS = 10
-
-            # format bar depending on availability of unicode/ascii chars
-            if ascii is True:
-                ascii = ASCII_FMT
-            elif ascii is False:
-                ascii = UTF_FMT
-            nsyms = len(ascii) - 1
-            bar_length, frac_bar_length = divmod(
-                int(frac * N_BARS * nsyms), nsyms)
-
-            bar = ascii[-1] * bar_length
-            frac_bar = ascii[frac_bar_length]
-
-            # whitespace padding
-            if bar_length < N_BARS:
-                full_bar = bar + frac_bar + \
-                    ascii[0] * (N_BARS - bar_length - 1)
-            else:
-                full_bar = bar + \
-                    ascii[0] * (N_BARS - bar_length)
-
-            # Piece together the bar parts
-            return l_bar + full_bar + r_bar
+            full_bar = Bar(
+                frac,
+                max(1, ncols - len(RE_ANSI.sub('', nobar))) if ncols else 10,
+                charset=Bar.ASCII if ascii is True else ascii or Bar.UTF)
+            return _unicode(bar_format).format(bar=full_bar, **format_dict)
 
         elif bar_format:
             # user-specified bar_format but no total
