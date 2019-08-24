@@ -13,7 +13,7 @@ from __future__ import division
 # compatibility functions and utilities
 from ._utils import _supports_unicode, _environ_cols_wrapper, _range, _unich, \
     _term_move_up, _unicode, WeakSet, _basestring, _OrderedDict, \
-    Comparable, RE_ANSI, _is_ascii, SimpleTextIOWrapper
+    Comparable, RE_ANSI, _is_ascii, SimpleTextIOWrapper, FormatReplace
 from ._monitor import TMonitor
 # native libraries
 import sys
@@ -124,15 +124,6 @@ class TqdmDefaultWriteLock(object):
 # Do not create the multiprocessing lock because it sets the multiprocessing
 # context and does not allow the user to use 'spawn' or 'forkserver' methods.
 TqdmDefaultWriteLock.create_th_lock()
-
-
-class EmptyFormat(object):
-    def __init__(self):
-        self.format_called = 0
-
-    def __format__(self, _):
-        self.format_called += 1
-        return ""
 
 
 class Bar(object):
@@ -459,7 +450,7 @@ class tqdm(Comparable):
             else:
                 bar_format = "{l_bar}{bar}{r_bar}"
 
-            full_bar = EmptyFormat()
+            full_bar = FormatReplace()
             nobar = bar_format.format(bar=full_bar, **format_dict)
             if not full_bar.format_called:
                 # no {bar}, we can just format and return
