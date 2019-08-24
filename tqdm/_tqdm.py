@@ -144,6 +144,7 @@ class Bar(object):
     """
     ASCII = " 123456789#"
     UTF = u" " + u''.join(map(_unich, range(0x258F, 0x2587, -1)))
+
     def __init__(self, frac, default_len=10, charset=UTF):
         assert 0 <= frac <= 1
         assert default_len > 0
