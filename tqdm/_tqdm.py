@@ -128,13 +128,16 @@ TqdmDefaultWriteLock.create_th_lock()
 
 class Bar(object):
     """
-    `str.format`-able bar
+    `str.format`-able bar with format specifiers: `[width][type]`
 
-    >>> "{:6a}".format(Bar(0.5))
-    '###   '
-
-    >>> "{:-6}".format(Bar(0.5, 10))  # 6 less than default width
-    '##  '
+    - `width`
+      + unspecified (default): use `self.default_len`
+      + `int >= 0`: overrides `self.default_len`
+      + `int < 0`: subtract from `self.default_len`
+    - `type`
+      + `a`: ascii (`charset=self.ASCII` override)
+      + `u`: unicode (`charset=self.UTF` override)
+      + `b`: blank (`charset="  "` override)
     """
     ASCII = " 123456789#"
     UTF = u" " + u''.join(map(_unich, range(0x258F, 0x2587, -1)))

@@ -243,25 +243,29 @@ of a neat one-line progress bar.
 
 - Consoles in general: require support for carriage return (``CR``, ``\r``).
 - Nested progress bars:
-    * Consoles in general: require support for moving cursors up to the
-      previous line. For example,
-      `IDLE <https://github.com/tqdm/tqdm/issues/191#issuecomment-230168030>`__,
-      `ConEmu <https://github.com/tqdm/tqdm/issues/254>`__ and
-      `PyCharm <https://github.com/tqdm/tqdm/issues/203>`__ (also
-      `here <https://github.com/tqdm/tqdm/issues/208>`__,
-      `here <https://github.com/tqdm/tqdm/issues/307>`__, and
-      `here <https://github.com/tqdm/tqdm/issues/454#issuecomment-335416815>`__)
-      lack full support.
-    * Windows: additionally may require the Python module ``colorama``
-      to ensure nested bars stay within their respective lines.
+
+  * Consoles in general: require support for moving cursors up to the
+    previous line. For example,
+    `IDLE <https://github.com/tqdm/tqdm/issues/191#issuecomment-230168030>`__,
+    `ConEmu <https://github.com/tqdm/tqdm/issues/254>`__ and
+    `PyCharm <https://github.com/tqdm/tqdm/issues/203>`__ (also
+    `here <https://github.com/tqdm/tqdm/issues/208>`__,
+    `here <https://github.com/tqdm/tqdm/issues/307>`__, and
+    `here <https://github.com/tqdm/tqdm/issues/454#issuecomment-335416815>`__)
+    lack full support.
+  * Windows: additionally may require the Python module ``colorama``
+    to ensure nested bars stay within their respective lines.
+
 - Unicode:
-    * Environments which report that they support unicode will have solid smooth
-      progressbars. The fallback is an ```ascii``-only bar.
-    * Windows consoles often only partially support unicode and thus
-      `often require explicit ascii=True <https://github.com/tqdm/tqdm/issues/454#issuecomment-335416815>`__
-      (also `here <https://github.com/tqdm/tqdm/issues/499>`__). This is due to
-      either normal-width unicode characters being incorrectly displayed as
-      "wide", or some unicode characters not rendering.
+
+  * Environments which report that they support unicode will have solid smooth
+    progressbars. The fallback is an ```ascii``-only bar.
+  * Windows consoles often only partially support unicode and thus
+    `often require explicit ascii=True <https://github.com/tqdm/tqdm/issues/454#issuecomment-335416815>`__
+    (also `here <https://github.com/tqdm/tqdm/issues/499>`__). This is due to
+    either normal-width unicode characters being incorrectly displayed as
+    "wide", or some unicode characters not rendering.
+
 - Wrapping enumerated iterables: use ``enumerate(tqdm(...))`` instead of
   ``tqdm(enumerate(...))``. The same applies to ``numpy.ndenumerate``.
   This is because enumerate functions tend to hide the length of iterables.
@@ -368,9 +372,11 @@ Examples and Advanced Usage
   folder;
 - import the module and run ``help()``;
 - consult the `wiki <https://github.com/tqdm/tqdm/wiki>`__;
-    - this has an
+
+    * this has an
       `excellent article <https://github.com/tqdm/tqdm/wiki/How-to-make-a-great-Progress-Bar>`__
       on how to make a **great** progressbar;
+
 - run the |notebook-demo| or |binder-demo|, or
 - check out the `slides from PyData London <https://tqdm.github.io/PyData2019/slides.html>`__.
 
@@ -434,6 +440,23 @@ Additional ``bar_format`` parameters may also be defined by overriding
 .. code::
 
     00:01 in total: 40%|000o     | 4/10 [00:00<00:00,  9.96it/s]
+
+Note that ``{bar}`` also supports a format specifier ``[width][type]``.
+
+- ``width``
+
+  * unspecified (default): automatic to fill ``ncols``
+  * ``int >= 0``: fixed width overriding ``ncols`` logic
+  * ``int < 0``: subtract from the automatic default
+
+- ``type``
+
+  * ``a``: ascii (``ascii=True`` override)
+  * ``u``: unicode (``ascii=False`` override)
+  * ``b``: blank (``ascii="  "`` override)
+
+This means a fixed bar with right-justified text may be created by using:
+``bar_format="{l_bar}{bar:10}|{bar:-10b}right-justified"``
 
 Nested progress bars
 ~~~~~~~~~~~~~~~~~~~~
