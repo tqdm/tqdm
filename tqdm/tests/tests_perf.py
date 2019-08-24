@@ -160,6 +160,7 @@ def simple_progress(iterable=None, total=None, file=sys.stdout, desc='',
 
 
 def assert_performance(thresh, name_left, time_left, name_right, time_right):
+    """raises if time_left > thresh * time_right"""
     if time_left > thresh * time_right:
         raise ValueError(
             ('{name[0]}: {time[0]:f}, '
@@ -216,6 +217,7 @@ def test_manual_overhead():
                 our_file.write(a)
 
     assert_performance(6, 'tqdm', time_tqdm(), 'range', time_bench())
+
 
 @with_setup(pretest, posttest)
 @retry_on_except()

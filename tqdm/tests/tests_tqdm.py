@@ -335,8 +335,8 @@ def test_bar_formatspec():
     assert "{0:5a}".format(Bar(0.3)) == "#5   "
     assert "{0:2}".format(Bar(0.5, charset=" .oO0")) == "0 "
     assert "{0:2a}".format(Bar(0.5, charset=" .oO0")) == "# "
-    assert "{0:-6a}".format(Bar(0.5, 10))  == '##  '
-    assert "{0:2b}".format(Bar(0.5, 10))  == '  '
+    assert "{0:-6a}".format(Bar(0.5, 10)) == '##  '
+    assert "{0:2b}".format(Bar(0.5, 10)) == '  '
 
 
 @with_setup(pretest, posttest)
