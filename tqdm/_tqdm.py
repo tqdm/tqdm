@@ -132,6 +132,9 @@ class Bar(object):
 
     >>> "{:6a}".format(Bar(0.5))
     '###   '
+
+    >>> "{:-6}".format(Bar(0.5, 10))  # 6 less than default width
+    '##  '
     """
     ASCII = " 123456789#"
     UTF = u" " + u''.join(map(_unich, range(0x258F, 0x2587, -1)))
@@ -152,7 +155,12 @@ class Bar(object):
                 charset = self.charset
             else:
                 format_spec = format_spec[:-1]
-            N_BARS = int(format_spec) if format_spec else self.default_len
+            if format_spec:
+                N_BARS = int(format_spec)
+                if N_BARS < 0:
+                    N_BARS += self.default_len
+            else:
+                N_BARS = self.default_len
         else:
             charset = self.charset
             N_BARS = self.default_len
@@ -461,7 +469,7 @@ class tqdm(Comparable):
                 frac,
                 max(1, ncols - len(RE_ANSI.sub('', nobar))) if ncols else 10,
                 charset=Bar.ASCII if ascii is True else ascii or Bar.UTF)
-            return _unicode(bar_format).format(bar=full_bar, **format_dict)
+            return bar_format.format(bar=full_bar, **format_dict)
 
         elif bar_format:
             # user-specified bar_format but no total
@@ -899,14 +907,10 @@ class tqdm(Comparable):
                 dynamic_ncols = _environ_cols_wrapper()
                 if dynamic_ncols:
                     ncols = dynamic_ncols(file)
-                # elif ncols is not None:
-                #     ncols = 79
             else:
                 _dynamic_ncols = _environ_cols_wrapper()
                 if _dynamic_ncols:
                     ncols = _dynamic_ncols(file)
-                # else:
-                #     ncols = 79
 
         if miniters is None:
             miniters = 0
