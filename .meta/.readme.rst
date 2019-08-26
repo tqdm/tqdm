@@ -303,7 +303,7 @@ Parameters
 Extra CLI Options
 ~~~~~~~~~~~~~~~~~
 
-{DOC_tqdm._main.CLI_EXTRA_DOC}
+{DOC_tqdm.cli.CLI_EXTRA_DOC}
 Returns
 ~~~~~~~
 
