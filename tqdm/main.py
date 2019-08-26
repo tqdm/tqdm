@@ -1,4 +1,4 @@
-from ._tqdm import tqdm, TqdmTypeError, TqdmKeyError
+from .std import tqdm, TqdmTypeError, TqdmKeyError
 from ._version import __version__  # NOQA
 import sys
 import re

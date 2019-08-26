@@ -13,15 +13,16 @@ from __future__ import division, absolute_import
 # import compatibility functions and utilities
 from ._utils import _range
 # to inherit from the tqdm class
-from ._tqdm import tqdm, TqdmExperimentalWarning
+from .std import tqdm as std_tqdm
+from .std import TqdmExperimentalWarning
 from warnings import warn
 
 
 __author__ = {"github.com/": ["casperdcl", "lrq3000"]}
-__all__ = ['tqdm_gui', 'tgrange']
+__all__ = ['tqdm_gui', 'tgrange', 'tqdm', 'trange']
 
 
-class tqdm_gui(tqdm):  # pragma: no cover
+class tqdm_gui(std_tqdm):  # pragma: no cover
     """
     Experimental GUI version of tqdm!
     """
@@ -309,7 +310,12 @@ class tqdm_gui(tqdm):  # pragma: no cover
 
 def tgrange(*args, **kwargs):
     """
-    A shortcut for tqdm_gui(xrange(*args), **kwargs).
-    On Python3+ range is used instead of xrange.
+    A shortcut for `tqdm.gui.tqdm(xrange(*args), **kwargs)`.
+    On Python3+, `range` is used instead of `xrange`.
     """
     return tqdm_gui(_range(*args), **kwargs)
+
+
+# Aliases
+tqdm = tqdm_gui
+trange = tgrange

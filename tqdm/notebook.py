@@ -14,7 +14,7 @@ from __future__ import division, absolute_import
 import sys
 from ._utils import _range
 # to inherit from the tqdm class
-from ._tqdm import tqdm
+from .std import tqdm as std_tqdm
 
 
 if True:  # pragma: no cover
@@ -77,10 +77,10 @@ if True:  # pragma: no cover
 
 
 __author__ = {"github.com/": ["lrq3000", "casperdcl", "alexanderkuk"]}
-__all__ = ['tqdm_notebook', 'tnrange']
+__all__ = ['tqdm_notebook', 'tnrange', 'tqdm', 'trange']
 
 
-class tqdm_notebook(tqdm):
+class tqdm_notebook(std_tqdm):
     """
     Experimental IPython/Jupyter Notebook widget using tqdm!
     """
@@ -257,7 +257,12 @@ class tqdm_notebook(tqdm):
 
 def tnrange(*args, **kwargs):
     """
-    A shortcut for tqdm_notebook(xrange(*args), **kwargs).
-    On Python3+ range is used instead of xrange.
+    A shortcut for `tqdm.notebook.tqdm(xrange(*args), **kwargs)`.
+    On Python3+, `range` is used instead of `xrange`.
     """
     return tqdm_notebook(_range(*args), **kwargs)
+
+
+# Aliases
+tqdm = tqdm_notebook
+trange = tnrange

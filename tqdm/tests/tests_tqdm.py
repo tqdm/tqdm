@@ -13,7 +13,7 @@ from contextlib import contextmanager
 from tqdm import tqdm
 from tqdm import trange
 from tqdm import TqdmDeprecationWarning
-from tqdm._tqdm import Bar
+from tqdm.std import Bar
 
 try:
     from StringIO import StringIO
