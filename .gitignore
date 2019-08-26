@@ -38,3 +38,7 @@ benchmarks/*.py[co]
 /wiki/
 /docs/
 /feedstock/
+
+
+.venv/  # virtual env
+examples/test.py  # pre-commit testing

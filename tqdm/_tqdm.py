@@ -351,7 +351,7 @@ class tqdm(Comparable):
             total_fmt = format_sizeof(total, divisor=unit_divisor) \
                 if total is not None else '?'
         else:
-            n_fmt = str(n)
+            n_fmt = ("{" + "n:>{}".format(len(str(total))) + "}").format(n=n) if total is not None else str(n)
             total_fmt = str(total) if total is not None else '?'
 
         try:

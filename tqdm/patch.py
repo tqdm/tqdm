@@ -1,17 +1,23 @@
 import ast
 import inspect
 import os
-import sys; sys.path.extend(('.', '..'))
 from datetime import datetime as dt
+
 import colorama
 from colorama import Fore as F
 
 from tqdm import tqdm as TQDM
 
 
-def print(*args, sep=' ', file=None, end='\n', color=None):
-    ncols, _rows = os.get_terminal_size(1)
+def getCols(default=120):
+    try:
+        ncols, _rows = os.get_terminal_size(1)
+    except:
+        ncols = default
+    return ncols
 
+def print(*args, sep=' ', file=None, end='\n', color=None):
+    ncols = getCols()
     frame = inspect.stack()[1]
     fpath = frame.filename
     fname = os.path.basename(fpath)
@@ -20,24 +26,18 @@ def print(*args, sep=' ', file=None, end='\n', color=None):
 
     lineno = frame.lineno
     funcname = frame.function
-    # sys.stdout.write("*"*30 + '\n')
-    # sys.stdout.write(fname)
-    # sys.stdout.write('\n' + "*" * 30)
     funcwidth = max(len(f) for f in getFuncNames(fname))
     funcname = ("{:<%d}" % funcwidth).format(funcname)
-    # sys.stdout.write("*"*30 + '\n')
-    # sys.stdout.write("'" + funcname + "'")
-    # sys.stdout.write('\n' + "*"*30)
 
     R = colorama.Style.RESET_ALL
     l_bar = f"{F.YELLOW + dirname + R}/{F.CYAN + fname + R}({funcname}):{lineno} -> " + (
-        ("{:<%d}" % (int(0.75 * ncols))).format("{desc}"))
+        ("{:<%d}" % (int(0.7*ncols))).format("{desc}"))
 
     bar_format = dt.now().strftime("%H:%M") + " | " f"{l_bar}"
 
     msg = sep.join(map(str, args))
-    msg = l_bar.format(desc=msg)
     if color is not None: msg = color + msg + colorama.Style.RESET_ALL
+    msg = bar_format.format(desc=msg)
     return tqdm.write(msg, end=end, file=file)
 
 
@@ -61,10 +61,9 @@ class tqdm(TQDM):
                  unit_divisor=1000, write_bytes=None, gui=False, **kwargs):
 
         if desc is None: desc = "Doing stuff..."
-        # if not desc.endswith(":"): desc += ":"
+        if not desc.endswith(":"): desc += ":"
         if ncols is None:
-            cols, rows = os.get_terminal_size(1)
-            ncols = cols
+            ncols = getCols()
 
         frame = inspect.stack()[1]
         fpath = frame.filename
@@ -74,18 +73,12 @@ class tqdm(TQDM):
 
         lineno = frame.lineno
         funcname = frame.function
-        # sys.stdout.write("*"*30 + '\n')
-        # sys.stdout.write(fname)
-        # sys.stdout.write('\n' + "*" * 30)
         funcwidth = max(len(f) for f in getFuncNames(fname))
         funcname = ("{:<%d}" %funcwidth).format(funcname)
-        # sys.stdout.write("*"*30 + '\n')
-        # sys.stdout.write("'" + funcname + "'")
-        # sys.stdout.write('\n' + "*"*30)
 
         if bar_format is None:
             R = colorama.Style.RESET_ALL
-            l_bar = f"{F.YELLOW + dirname + R}/{F.CYAN + fname + R}({funcname}):{lineno} -> " + (("{:<%d}" %(int(0.75*ncols))).format("{desc}"))
+            l_bar = f"{F.YELLOW + dirname + R}/{F.CYAN + fname + R}({funcname}):{lineno} -> " + ("{" + "{}:<{}".format("desc", int(0.7*ncols)) + "}")
 
             bar_format = dt.now().strftime("%H:%M") + " | " f"{l_bar}" "{bar}{r_bar}"
 
@@ -95,11 +88,3 @@ class tqdm(TQDM):
                          unit_scale, dynamic_ncols, smoothing,
                          bar_format, initial, position, postfix,
                          unit_divisor, write_bytes, gui, **kwargs)
-
-
-
-for i in tqdm([1,2,3,4,5], desc='hello'):
-#     # i**2
-    print('hi', color=colorama.Fore.GREEN)
-    # time.sleep(1)
-# print(getFuncNames('patch.py'))
