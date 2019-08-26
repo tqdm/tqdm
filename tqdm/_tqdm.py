@@ -479,7 +479,17 @@ class tqdm(Comparable):
 
         elif bar_format:
             # user-specified bar_format but no total
-            return bar_format.format(bar='?', **format_dict)
+            l_bar += '|'
+            format_dict.update(l_bar=l_bar, percentage=0)
+            full_bar = FormatReplace()
+            nobar = bar_format.format(bar=full_bar, **format_dict)
+            if not full_bar.format_called:
+                return nobar
+            full_bar = Bar(
+                0,
+                max(1, ncols - len(RE_ANSI.sub('', nobar))) if ncols else 10,
+                charset=Bar.BLANK)
+            return bar_format.format(bar=full_bar, **format_dict)
         else:
             # no total: no progressbar, ETA, just progress stats
             return ((prefix + ": ") if prefix else '') + \
