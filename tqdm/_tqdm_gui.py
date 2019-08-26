@@ -11,8 +11,6 @@ Usage:
 # a result precise floating numbers (instead of truncated int)
 from __future__ import division, absolute_import
 # import compatibility functions and utilities
-# import sys
-from time import time
 from ._utils import _range
 # to inherit from the tqdm class
 from ._tqdm import tqdm, TqdmExperimentalWarning
@@ -118,6 +116,7 @@ class tqdm_gui(tqdm):  # pragma: no cover
         # dynamic_ncols = self.dynamic_ncols
         smoothing = self.smoothing
         avg_time = self.avg_time
+        time = self._time
         bar_format = self.bar_format
 
         plt = self.plt
@@ -130,21 +129,24 @@ class tqdm_gui(tqdm):  # pragma: no cover
 
         for obj in iterable:
             yield obj
-            # Update and print the progressbar.
+            # Update and possibly print the progressbar.
             # Note: does not call self.update(1) for speed optimisation.
             n += 1
-            delta_it = n - last_print_n
-            # check the counter first (avoid calls to time())
-            if delta_it >= miniters:
-                cur_t = time()
-                delta_t = cur_t - last_print_t
+            # check counter first to avoid calls to time()
+            if n - last_print_n >= self.miniters:
+                miniters = self.miniters  # watch monitoring thread changes
+                delta_t = time() - last_print_t
                 if delta_t >= mininterval:
+                    cur_t = time()
+                    delta_it = n - last_print_n
                     elapsed = cur_t - start_t
                     # EMA (not just overall average)
                     if smoothing and delta_t and delta_it:
                         rate = delta_t / delta_it
                         avg_time = self.ema(rate, avg_time, smoothing)
+                        self.avg_time = avg_time
 
+                    self.n = n
                     # Inline due to multiple calls
                     total = self.total
                     # instantaneous rate
@@ -199,12 +201,17 @@ class tqdm_gui(tqdm):  # pragma: no cover
                     plt.pause(1e-9)
 
                     # If no `miniters` was specified, adjust automatically
-                    # to the maximum iteration rate seen so far.
+                    # to the max iteration rate seen so far between 2 prints
                     if dynamic_miniters:
-                        if maxinterval and delta_t > maxinterval:
-                            # Set miniters to correspond to maxinterval
-                            miniters = delta_it * maxinterval / delta_t
-                        elif mininterval and delta_t:
+                        if maxinterval and delta_t >= maxinterval:
+                            # Adjust miniters to time interval by rule of 3
+                            if mininterval:
+                                # Set miniters to correspond to mininterval
+                                miniters = delta_it * mininterval / delta_t
+                            else:
+                                # Set miniters to correspond to maxinterval
+                                miniters = delta_it * maxinterval / delta_t
+                        elif smoothing:
                             # EMA-weight miniters to converge
                             # towards the timeframe of mininterval
                             rate = delta_it
@@ -212,16 +219,19 @@ class tqdm_gui(tqdm):  # pragma: no cover
                                 rate *= mininterval / delta_t
                             miniters = self.ema(rate, miniters, smoothing)
                         else:
-                            miniters = self.ema(delta_it, miniters, smoothing)
+                            # Maximum nb of iterations between 2 prints
+                            miniters = max(miniters, delta_it)
 
                     # Store old values for next call
-                    last_print_n = n
-                    last_print_t = cur_t
+                    self.n = self.last_print_n = last_print_n = n
+                    self.last_print_t = last_print_t = cur_t
+                    self.miniters = miniters
 
         # Closing the progress bar.
         # Update some internal variables for close().
         self.last_print_n = last_print_n
         self.n = n
+        self.miniters = miniters
         self.close()
 
     def update(self, n=1):
@@ -231,15 +241,15 @@ class tqdm_gui(tqdm):  # pragma: no cover
             return
 
         if n < 0:
-            n = 1
+            self.last_print_n += n  # for auto-refresh logic to work
         self.n += n
 
-        delta_it = self.n - self.last_print_n  # should be n?
-        if delta_it >= self.miniters:
-            # We check the counter first, to reduce the overhead of time()
-            cur_t = time()
-            delta_t = cur_t - self.last_print_t
+        # check counter first to reduce calls to time()
+        if self.n - self.last_print_n >= self.miniters:
+            delta_t = self._time() - self.last_print_t
             if delta_t >= self.mininterval:
+                cur_t = self._time()
+                delta_it = self.n - self.last_print_n  # >= n
                 elapsed = cur_t - self.start_t
                 # EMA (not just overall average)
                 if self.smoothing and delta_t and delta_it:
@@ -303,21 +313,26 @@ class tqdm_gui(tqdm):  # pragma: no cover
                 self.plt.pause(1e-9)
 
                 # If no `miniters` was specified, adjust automatically to the
-                # maximum iteration rate seen so far.
+                # maximum iteration rate seen so far between two prints.
                 # e.g.: After running `tqdm.update(5)`, subsequent
                 # calls to `tqdm.update()` will only cause an update after
                 # at least 5 more iterations.
                 if self.dynamic_miniters:
-                    if self.maxinterval and delta_t > self.maxinterval:
-                        self.miniters = self.miniters * self.maxinterval \
-                            / delta_t
-                    elif self.mininterval and delta_t:
-                        self.miniters = self.smoothing * delta_it \
-                            * self.mininterval / delta_t + \
+                    if self.maxinterval and delta_t >= self.maxinterval:
+                        if self.mininterval:
+                            self.miniters = delta_it * self.mininterval \
+                                / delta_t
+                        else:
+                            self.miniters = delta_it * self.maxinterval \
+                                / delta_t
+                    elif self.smoothing:
+                        self.miniters = self.smoothing * delta_it * \
+                            (self.mininterval / delta_t
+                             if self.mininterval and delta_t
+                             else 1) + \
                             (1 - self.smoothing) * self.miniters
                     else:
-                        self.miniters = self.smoothing * delta_it + \
-                            (1 - self.smoothing) * self.miniters
+                        self.miniters = max(self.miniters, delta_it)
 
                 # Store old values for next call
                 self.last_print_n = self.n
@@ -331,7 +346,8 @@ class tqdm_gui(tqdm):  # pragma: no cover
 
         self.disable = True
 
-        self._instances.remove(self)
+        with self.get_lock():
+            self._instances.remove(self)
 
         # Restore toolbars
         self.mpl.rcParams['toolbar'] = self.toolbar
