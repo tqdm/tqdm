@@ -40,7 +40,7 @@ It can also be executed as a module with pipes:
         tqdm --total $(find docs/ -type f | wc -l) --unit files >> backup.log
     100%|███████████████████████████████▉| 8014/8014 [01:37<00:00, 82.29files/s]
 
-Overhead is low -- about 60ns per iteration (80ns with ``tqdm_gui``), and is
+Overhead is low -- about 60ns per iteration (80ns with ``tqdm.gui``), and is
 unit tested against performance regression.
 By comparison, the well-established
 `ProgressBar <https://github.com/niltonvolpato/python-progressbar>`__ has
@@ -352,16 +352,16 @@ Returns
         On Python3+ range is used instead of xrange.
         """
 
-    class tqdm_gui(tqdm):
+    class tqdm.gui.tqdm(tqdm.tqdm):
         """Experimental GUI version"""
 
-    def tgrange(*args, **kwargs):
+    def tqdm.gui.trange(*args, **kwargs):
         """Experimental GUI version of trange"""
 
-    class tqdm_notebook(tqdm):
+    class tqdm.notebook.tqdm(tqdm.tqdm):
         """Experimental IPython/Jupyter Notebook widget"""
 
-    def tnrange(*args, **kwargs):
+    def tqdm.notebook.trange(*args, **kwargs):
         """Experimental IPython/Jupyter Notebook widget version of trange"""
 
 
@@ -589,7 +589,7 @@ for ``DataFrame.progress_apply`` and ``DataFrameGroupBy.progress_apply``:
     df = pd.DataFrame(np.random.randint(0, 100, (100000, 6)))
 
     # Register `pandas.progress_apply` and `pandas.Series.map_apply` with `tqdm`
-    # (can use `tqdm_gui`, `tqdm_notebook`, optional kwargs, etc.)
+    # (can use `tqdm.gui.tqdm`, `tqdm.notebook.tqdm`, optional kwargs, etc.)
     tqdm.pandas(desc="my bar!")
 
     # Now you can use `progress_apply` instead of `apply`
@@ -606,15 +606,15 @@ folder or import the module and run ``help()``.
 IPython/Jupyter Integration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-IPython/Jupyter is supported via the ``tqdm_notebook`` submodule:
+IPython/Jupyter is supported via the ``tqdm.notebook`` submodule:
 
 .. code:: python
 
-    from tqdm import tnrange, tqdm_notebook
+    from tqdm.notebook import trange, tqdm
     from time import sleep
 
-    for i in tnrange(3, desc='1st loop'):
-        for j in tqdm_notebook(range(100), desc='2nd loop'):
+    for i in trange(3, desc='1st loop'):
+        for j in tqdm(range(100), desc='2nd loop'):
             sleep(0.01)
 
 In addition to ``tqdm`` features, the submodule provides a native Jupyter
