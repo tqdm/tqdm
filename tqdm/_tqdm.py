@@ -1076,9 +1076,9 @@ class tqdm(Comparable):
             # check counter first to avoid calls to time()
             if n - last_print_n >= self.miniters:
                 miniters = self.miniters  # watch monitoring thread changes
-                delta_t = _time() - last_print_t
+                delta_t = time() - last_print_t
                 if delta_t >= mininterval:
-                    cur_t = _time()
+                    cur_t = time()
                     delta_it = n - last_print_n
                     # EMA (not just overall average)
                     if smoothing and delta_t and delta_it:
