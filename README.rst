@@ -818,6 +818,11 @@ Custom Integration
 Consider overloading ``display()`` to use e.g.
 ``self.frontend(**self.format_dict)`` instead of ``self.sp(repr(self))``.
 
+`tqdm/notebook.py <https://github.com/tqdm/tqdm/blob/master/tqdm/notebook.py>`__
+and `tqdm/gui.py <https://github.com/tqdm/tqdm/blob/master/tqdm/gui.py>`__
+submodules are examples of inheritance which don't (yet) strictly conform to the
+above recommendation.
+
 Dynamic Monitor/Meter
 ~~~~~~~~~~~~~~~~~~~~~
 
