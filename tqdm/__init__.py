@@ -2,7 +2,7 @@ from .std import tqdm, trange
 from .gui import tqdm as tqdm_gui  # TODO: remove in v5.0.0
 from .gui import trange as tgrange  # TODO: remove in v5.0.0
 from ._tqdm_pandas import tqdm_pandas
-from .main import main
+from .cli import main  # TODO: remove in v5.0.0
 from ._monitor import TMonitor, TqdmSynchronisationWarning
 from ._version import __version__  # NOQA
 from .std import TqdmTypeError, TqdmKeyError, TqdmWarning, \
