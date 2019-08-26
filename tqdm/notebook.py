@@ -12,7 +12,7 @@ Usage:
 from __future__ import division, absolute_import
 # import compatibility functions and utilities
 import sys
-from ._utils import _range
+from .utils import _range
 # to inherit from the tqdm class
 from .std import tqdm as std_tqdm
 

@@ -11,7 +11,7 @@ Usage:
 # a result precise floating numbers (instead of truncated int)
 from __future__ import division, absolute_import
 # import compatibility functions and utilities
-from ._utils import _range
+from .utils import _range
 # to inherit from the tqdm class
 from .std import tqdm as std_tqdm
 from .std import TqdmExperimentalWarning
