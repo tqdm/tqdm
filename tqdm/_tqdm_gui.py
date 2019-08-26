@@ -54,7 +54,8 @@ class tqdm_gui(tqdm):  # pragma: no cover
         self.mininterval = max(self.mininterval, 0.5)
         self.fig, ax = plt.subplots(figsize=(9, 2.2))
         # self.fig.subplots_adjust(bottom=0.2)
-        if self.total:
+        total = len(self)
+        if total is not None:
             self.xdata = []
             self.ydata = []
             self.zdata = []
@@ -65,7 +66,7 @@ class tqdm_gui(tqdm):  # pragma: no cover
         self.line1, = ax.plot(self.xdata, self.ydata, color='b')
         self.line2, = ax.plot(self.xdata, self.zdata, color='k')
         ax.set_ylim(0, 0.001)
-        if self.total:
+        if total is not None:
             ax.set_xlim(0, 100)
             ax.set_xlabel('percent')
             self.fig.legend((self.line1, self.line2), ('cur', 'est'),
