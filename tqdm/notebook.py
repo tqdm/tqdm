@@ -3,8 +3,8 @@ IPython/Jupyter Notebook progressbar decorator for iterators.
 Includes a default (x)range iterator printing to stderr.
 
 Usage:
-  >>> from tqdm import tnrange[, tqdm_notebook]
-  >>> for i in tnrange(10): #same as: for i in tqdm_notebook(xrange(10))
+  >>> from tqdm.notebook import trange[, tqdm]
+  >>> for i in trange(10): #same as: for i in tqdm(xrange(10))
   ...     ...
 """
 # future division is important to divide integers and get as

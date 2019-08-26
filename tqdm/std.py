@@ -627,7 +627,8 @@ class tqdm(Comparable):
         --------
         >>> import pandas as pd
         >>> import numpy as np
-        >>> from tqdm import tqdm, tqdm_gui
+        >>> from tqdm import tqdm
+        >>> from tqdm.gui import tqdm as tqdm_gui
         >>>
         >>> df = pd.DataFrame(np.random.randint(0, 100, (100000, 6)))
         >>> tqdm.pandas(ncols=50)  # can use tqdm_gui, optional kwargs, etc
@@ -862,7 +863,7 @@ class tqdm(Comparable):
             bytes. In all other cases will default to unicode.
         gui  : bool, optional
             WARNING: internal parameter - do not use.
-            Use tqdm_gui(...) instead. If set, will attempt to use
+            Use tqdm.gui.tqdm(...) instead. If set, will attempt to use
             matplotlib animations for a graphical output [default: False].
 
         Returns
@@ -1065,7 +1066,7 @@ class tqdm(Comparable):
         if not hasattr(self, 'sp'):
             from textwrap import dedent
             raise TqdmDeprecationWarning(dedent("""\
-            Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
+            Please use `tqdm.gui.tqdm(...)` instead of `tqdm(..., gui=True)`
             """), fp_write=getattr(self.fp, 'write', sys.stderr.write))
 
         for obj in iterable:
@@ -1166,10 +1167,10 @@ class tqdm(Comparable):
                         rate, self.avg_time, self.smoothing)
 
                 if not hasattr(self, "sp"):
-                    from textwrap import dedent
-                    raise TqdmDeprecationWarning(dedent("""\
-                    Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`
-                    """), fp_write=getattr(self.fp, 'write', sys.stderr.write))
+                    raise TqdmDeprecationWarning(
+                        "Please use `tqdm.gui.tqdm(...)`"
+                        " instead of `tqdm(..., gui=True)`\n",
+                        fp_write=getattr(self.fp, 'write', sys.stderr.write))
 
                 with self._lock:
                     self.display()

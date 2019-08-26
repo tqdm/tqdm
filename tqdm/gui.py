@@ -3,8 +3,8 @@ GUI progressbar decorator for iterators.
 Includes a default (x)range iterator printing to stderr.
 
 Usage:
-  >>> from tqdm import tgrange[, tqdm_gui]
-  >>> for i in tgrange(10): #same as: for i in tqdm_gui(xrange(10))
+  >>> from tqdm.gui import trange[, tqdm]
+  >>> for i in trange(10): #same as: for i in tqdm(xrange(10))
   ...     ...
 """
 # future division is important to divide integers and get as
