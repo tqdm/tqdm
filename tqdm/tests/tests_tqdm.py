@@ -1319,7 +1319,8 @@ def test_deprecated_gui():
             t.update(1)
         except TqdmDeprecationWarning as e:
             if ('Please use `tqdm.gui.tqdm(...)` instead of'
-                ' `tqdm(..., gui=True)`') not in our_file.getvalue():
+                ' `tqdm(..., gui=True)`') \
+                    not in our_file.getvalue():
                 raise e
         else:
             raise DeprecationError('Should not allow manual gui=True without'
@@ -1335,7 +1336,8 @@ def test_deprecated_gui():
                 pass
         except TqdmDeprecationWarning as e:
             if ('Please use `tqdm.gui.tqdm(...)` instead of'
-                ' `tqdm(..., gui=True)`') not in our_file.getvalue():
+                ' `tqdm(..., gui=True)`') \
+                    not in our_file.getvalue():
                 raise e
         else:
             raise DeprecationError('Should not allow manual gui=True without'
