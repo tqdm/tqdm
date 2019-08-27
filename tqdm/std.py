@@ -1022,9 +1022,13 @@ class tqdm(Comparable):
     def __enter__(self):
         return self
 
-    def __exit__(self, *exc):
-        self.close()
-        return False
+    def __exit__(self, exc_type, exc_value, traceback):
+        try:
+            self.close()
+        except AttributeError:
+            # maybe eager thread cleanup upon external error
+            if exc_type is None:
+                raise
 
     def __del__(self):
         self.close()
