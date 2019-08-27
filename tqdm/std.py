@@ -1027,8 +1027,9 @@ class tqdm(Comparable):
             self.close()
         except AttributeError:
             # maybe eager thread cleanup upon external error
-            if exc_type is None:
+            if (exc_type, exc_value, traceback) == (None, None, None):
                 raise
+            warn("AttributeError ignored", TqdmWarning)
 
     def __del__(self):
         self.close()
