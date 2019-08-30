@@ -754,7 +754,8 @@ class tqdm(Comparable):
                  miniters=None, ascii=None, disable=False, unit='it',
                  unit_scale=False, dynamic_ncols=False, smoothing=0.3,
                  bar_format=None, initial=0, position=None, postfix=None,
-                 unit_divisor=1000, write_bytes=None, gui=False, **kwargs):
+                 unit_divisor=1000, write_bytes=None, gui=False, multi=None,
+                 **kwargs):
         """
         Parameters
         ----------
@@ -854,6 +855,8 @@ class tqdm(Comparable):
             WARNING: internal parameter - do not use.
             Use tqdm_gui(...) instead. If set, will attempt to use
             matplotlib animations for a graphical output [default: False].
+        multi  : `tqdm_multi`, optional
+            The associated tqdm_multi instance
 
         Returns
         -------
@@ -968,6 +971,7 @@ class tqdm(Comparable):
                 self.set_postfix(refresh=False, **postfix)
             except TypeError:
                 self.postfix = postfix
+        self.multi = multi
 
         # Init the iterations counters
         self.last_print_n = initial
@@ -1377,6 +1381,9 @@ class tqdm(Comparable):
         if pos:
             self.moveto(-pos)
 
+    def _is_complete(self):
+        """(Needs refactoring) A way to see if a progress bar and/or task has finished"""
+        return self.n >= self.total
 
 def trange(*args, **kwargs):
     """
