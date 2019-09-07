@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Advice: use repr(our_file.read()) to print the full output of tqdm
 # (else '\r' will replace the previous lines and you'll see only the latest.
 
@@ -277,6 +278,12 @@ def test_format_meter():
     assert format_meter(20, 100, 12, ncols=14, rate=8.1,
                         bar_format=r'{l_bar}{bar}|{n_fmt}/{total_fmt}') == \
         " 20%|" + unich(0x258d) + " |20/100"
+    # Check wide characters
+    if sys.version_info >= (3,):
+        assert format_meter(0, 1000, 13, ncols=68, prefix='ｆｕｌｌｗｉｄｔｈ: ') == \
+            "ｆｕｌｌｗｉｄｔｈ:   0%|                  | 0/1000 [00:13<?, ?it/s]"
+        assert format_meter(0, 1000, 13, ncols=68, prefix='ニッポン [ﾆｯﾎﾟﾝ]: ') == \
+            "ニッポン [ﾆｯﾎﾟﾝ]:   0%|                    | 0/1000 [00:13<?, ?it/s]"
     # Check that bar_format can print only {bar} or just one side
     assert format_meter(20, 100, 12, ncols=2, rate=8.1,
                         bar_format=r'{bar}') == \
