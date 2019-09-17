@@ -1,5 +1,6 @@
 from __future__ import print_function
 import tqdm
+import tqdm.cli
 from textwrap import dedent
 from io import open as io_open
 from os import path
@@ -47,7 +48,7 @@ DOC_tqdm_init_args = DOC_tqdm_init.partition(doc2rst(HEAD_ARGS))[-1]\
     .replace('\n      ', '\n    ')
 DOC_tqdm_init_args, _, DOC_tqdm_init_rets = DOC_tqdm_init_args\
     .partition(doc2rst(HEAD_RETS))
-DOC_cli = doc2rst(tqdm._main.CLI_EXTRA_DOC).partition(doc2rst(HEAD_CLI))[-1]
+DOC_cli = doc2rst(tqdm.cli.CLI_EXTRA_DOC).partition(doc2rst(HEAD_CLI))[-1]
 DOC_tqdm_tqdm = {}
 for i in dir(tqdm.tqdm):
     doc = getattr(tqdm.tqdm, i).__doc__
@@ -60,7 +61,7 @@ DOC_tqdm_init_args = DOC_tqdm_init_args.partition('* gui  : bool, optional')[0]
 
 README_rst = README_rst.replace('{DOC_tqdm}', DOC_tqdm)\
     .replace('{DOC_tqdm.tqdm.__init__.Parameters}', DOC_tqdm_init_args)\
-    .replace('{DOC_tqdm._main.CLI_EXTRA_DOC}', DOC_cli)\
+    .replace('{DOC_tqdm.cli.CLI_EXTRA_DOC}', DOC_cli)\
     .replace('{DOC_tqdm.tqdm.__init__.Returns}', DOC_tqdm_init_rets)
 for k, v in DOC_tqdm_tqdm.items():
     README_rst = README_rst.replace('{DOC_tqdm.tqdm.%s}' % k, v)

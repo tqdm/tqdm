@@ -40,7 +40,7 @@ It can also be executed as a module with pipes:
         tqdm --total $(find docs/ -type f | wc -l) --unit files >> backup.log
     100%|███████████████████████████████▉| 8014/8014 [01:37<00:00, 82.29files/s]
 
-Overhead is low -- about 60ns per iteration (80ns with ``tqdm_gui``), and is
+Overhead is low -- about 60ns per iteration (80ns with ``tqdm.gui``), and is
 unit tested against performance regression.
 By comparison, the well-established
 `ProgressBar <https://github.com/niltonvolpato/python-progressbar>`__ has
@@ -319,6 +319,7 @@ Parameters
 * leave  : bool, optional  
     If [default: True], keeps all traces of the progressbar
     upon termination of iteration.
+    If ``None``, will leave only if ``position`` is ``0``.
 * file  : ``io.TextIOWrapper`` or ``io.StringIO``, optional  
     Specifies where to output the progress messages
     (default: sys.stderr). Uses ``file.write(str)`` and ``file.flush()``
@@ -516,16 +517,16 @@ Returns
         On Python3+ range is used instead of xrange.
         """
 
-    class tqdm_gui(tqdm):
+    class tqdm.gui.tqdm(tqdm.tqdm):
         """Experimental GUI version"""
 
-    def tgrange(*args, **kwargs):
+    def tqdm.gui.trange(*args, **kwargs):
         """Experimental GUI version of trange"""
 
-    class tqdm_notebook(tqdm):
+    class tqdm.notebook.tqdm(tqdm.tqdm):
         """Experimental IPython/Jupyter Notebook widget"""
 
-    def tnrange(*args, **kwargs):
+    def tqdm.notebook.trange(*args, **kwargs):
         """Experimental IPython/Jupyter Notebook widget version of trange"""
 
 
@@ -537,9 +538,9 @@ Examples and Advanced Usage
 - import the module and run ``help()``;
 - consult the `wiki <https://github.com/tqdm/tqdm/wiki>`__;
 
-    * this has an
-      `excellent article <https://github.com/tqdm/tqdm/wiki/How-to-make-a-great-Progress-Bar>`__
-      on how to make a **great** progressbar;
+  * this has an
+    `excellent article <https://github.com/tqdm/tqdm/wiki/How-to-make-a-great-Progress-Bar>`__
+    on how to make a **great** progressbar;
 
 - run the |notebook-demo| or |binder-demo|, or
 - check out the `slides from PyData London <https://tqdm.github.io/PyData2019/slides.html>`__.
@@ -640,7 +641,7 @@ Nested progress bars
 On Windows `colorama <https://github.com/tartley/colorama>`__ will be used if
 available to keep nested bars on their respective lines.
 
-For manual control over positioning (e.g. for multi-threaded use),
+For manual control over positioning (e.g. for multi-processing use),
 you may specify ``position=n`` where ``n=0`` for the outermost bar,
 ``n=1`` for the next, and so on:
 
@@ -648,7 +649,7 @@ you may specify ``position=n`` where ``n=0`` for the outermost bar,
 
     from time import sleep
     from tqdm import trange, tqdm
-    from multiprocessing import Pool, freeze_support, RLock
+    from multiprocessing import Pool, freeze_support
 
     L = list(range(9))
 
@@ -656,16 +657,38 @@ you may specify ``position=n`` where ``n=0`` for the outermost bar,
         interval = 0.001 / (n + 2)
         total = 5000
         text = "#{}, est. {:<04.2}s".format(n, interval * total)
-        for i in trange(total, desc=text, position=n):
+        for _ in trange(total, desc=text, position=n):
             sleep(interval)
 
     if __name__ == '__main__':
         freeze_support()  # for Windows support
-        p = Pool(len(L),
-                 # again, for Windows support
-                 initializer=tqdm.set_lock, initargs=(RLock(),))
+        p = Pool(len(L), initializer=tqdm.set_lock, initargs=(tqdm.get_lock(),))
         p.map(progresser, L)
-        print("\n" * (len(L) - 2))
+
+Note that in python 3, threads do not require manual positioning,
+and ``tqdm.write`` is safe to use:
+
+.. code:: python
+
+    from time import sleep
+    from tqdm import tqdm, trange
+    from concurrent.futures import ThreadPoolExecutor
+
+    L = list(range(9))
+
+    def progresser(n):
+        interval = 0.001 / (n + 2)
+        total = 5000
+        text = "#{}, est. {:<04.2}s".format(n, interval * total)
+        for _ in trange(total, desc=text):
+            sleep(interval)
+        if n == 6:
+            tqdm.write("n == 6 completed.")
+            tqdm.write("`tqdm.write()` is thread-safe in py3!")
+
+    if __name__ == '__main__':
+        with ThreadPoolExecutor() as p:
+            p.map(progresser, L)
 
 Hooks and callbacks
 ~~~~~~~~~~~~~~~~~~~
@@ -731,7 +754,7 @@ for ``DataFrame.progress_apply`` and ``DataFrameGroupBy.progress_apply``:
     df = pd.DataFrame(np.random.randint(0, 100, (100000, 6)))
 
     # Register `pandas.progress_apply` and `pandas.Series.map_apply` with `tqdm`
-    # (can use `tqdm_gui`, `tqdm_notebook`, optional kwargs, etc.)
+    # (can use `tqdm.gui.tqdm`, `tqdm.notebook.tqdm`, optional kwargs, etc.)
     tqdm.pandas(desc="my bar!")
 
     # Now you can use `progress_apply` instead of `apply`
@@ -748,15 +771,15 @@ folder or import the module and run ``help()``.
 IPython/Jupyter Integration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-IPython/Jupyter is supported via the ``tqdm_notebook`` submodule:
+IPython/Jupyter is supported via the ``tqdm.notebook`` submodule:
 
 .. code:: python
 
-    from tqdm import tnrange, tqdm_notebook
+    from tqdm.notebook import trange, tqdm
     from time import sleep
 
-    for i in tnrange(3, desc='1st loop'):
-        for j in tqdm_notebook(range(100), desc='2nd loop'):
+    for i in trange(3, desc='1st loop'):
+        for j in tqdm(range(100), desc='2nd loop'):
             sleep(0.01)
 
 In addition to ``tqdm`` features, the submodule provides a native Jupyter
@@ -794,6 +817,11 @@ Custom Integration
 
 Consider overloading ``display()`` to use e.g.
 ``self.frontend(**self.format_dict)`` instead of ``self.sp(repr(self))``.
+
+`tqdm/notebook.py <https://github.com/tqdm/tqdm/blob/master/tqdm/notebook.py>`__
+and `tqdm/gui.py <https://github.com/tqdm/tqdm/blob/master/tqdm/gui.py>`__
+submodules are examples of inheritance which don't (yet) strictly conform to the
+above recommendation.
 
 Dynamic Monitor/Meter
 ~~~~~~~~~~~~~~~~~~~~~

@@ -3,7 +3,7 @@ import subprocess
 from os import path
 from shutil import rmtree
 from tempfile import mkdtemp
-from tqdm import main, TqdmKeyError, TqdmTypeError
+from tqdm.cli import main, TqdmKeyError, TqdmTypeError
 
 from tests_tqdm import with_setup, pretest, posttest, _range, closing, \
     UnicodeIO, StringIO
@@ -33,7 +33,7 @@ def test_main():
     ls_out = _sh('ls').replace('\r\n', '\n')
     ls = subprocess.Popen('ls', stdout=subprocess.PIPE,
                           stderr=subprocess.STDOUT)
-    res = _sh(sys.executable, '-c', 'from tqdm import main; main()',
+    res = _sh(sys.executable, '-c', 'from tqdm.cli import main; main()',
               stdin=ls.stdout, stderr=subprocess.STDOUT)
     ls.wait()
 

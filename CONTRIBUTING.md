@@ -34,7 +34,35 @@ typical steps would be:
 You can then add a message to describe your proposal.)
 
 
+## WHAT CODE LAYOUT SHOULD I FOLLOW?
+
+Don't worry too much - maintainers can help reorganise contributions.
+However it would be helpful to bear in mind:
+
+- The standard core of `tqdm`, i.e. [`tqdm.std.tqdm`](tqdm/std.py)
+    + must have no dependencies apart from pure python built-in standard libraries
+    + must have negligible impact on performance
+    + should have 100% coverage by unit tests
+    + should be appropriately commented
+    + will not break backward compatibility unless there is a very good reason
+        * e.g. breaking py26 compatibility purely in favour of readability (such as converting `dict(a=1)` to `{'a': 1}`) is not a good enough reason
+    + API changes should be discussed carefully
+    + remember, with millions of downloads per month, `tqdm` must be extremely fast and reliable
+- Any other kind of change may be included in a (possibly new) submodule
+    + submodules are likely single python files under the main [tqdm/](tqdm/) directory
+        * large submodules requiring a sub-folder should be included in [`MANIFEST.in`](MANIFEST.in)
+    + submodules extending `tqdm.std.tqdm` or any other module (e.g. [`tqdm.notebook.tqdm`](tqdm/notebook.py), [`tqdm.gui.tqdm`](tqdm/gui.py))
+    + can implement anything from experimental new features to support for third-party libraries such as `pandas`, `numpy`, etc.
+    + submodule maturity
+        * alpha: experimental; missing unit tests, comments, and/or feedback; raises `tqdm.TqdmExperimentalWarning`
+        * beta: well-used; commented, perhaps still missing tests
+        * stable: >10 users; commented, 80% coverage
+
+
 ## TESTING
+
+Once again, don't worry too much - tests are automated online, and maintainers
+can also help.
 
 To test functionality (such as before submitting a Pull
 Request), there are a number of unit tests.

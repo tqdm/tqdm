@@ -13,7 +13,7 @@ from contextlib import contextmanager
 from tqdm import tqdm
 from tqdm import trange
 from tqdm import TqdmDeprecationWarning
-from tqdm._tqdm import Bar
+from tqdm.std import Bar
 
 try:
     from StringIO import StringIO
@@ -1318,7 +1318,8 @@ def test_deprecated_gui():
         try:
             t.update(1)
         except TqdmDeprecationWarning as e:
-            if 'Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`' \
+            if ('Please use `tqdm.gui.tqdm(...)` instead of'
+                ' `tqdm(..., gui=True)`') \
                     not in our_file.getvalue():
                 raise e
         else:
@@ -1334,7 +1335,8 @@ def test_deprecated_gui():
             for _ in t:
                 pass
         except TqdmDeprecationWarning as e:
-            if 'Please use `tqdm_gui(...)` instead of `tqdm(..., gui=True)`' \
+            if ('Please use `tqdm.gui.tqdm(...)` instead of'
+                ' `tqdm(..., gui=True)`') \
                     not in our_file.getvalue():
                 raise e
         else:

@@ -4,8 +4,10 @@
     "progressbar", "progressmeter", "progress-bar", "meter", "rate", "eta",
     "console", "terminal", "time", "progress", "bar", "gui", "python",
     "parallel", "cli", "utilities", "shell", "batch"],
+  "related_identifiers": [
+    {"identifier": "10.21105/joss.01277", "relation": "cites"}],
   "creators": [
     {"name": "da Costa-Luis, Casper O.", "orcid": "0000-0002-7211-1557"}],
   "contributors": [
-    {"name": "tqdm developers", "type": "other", "affiliation": "tqdm"}]
+    {"name": "tqdm developers", "type": "Other", "affiliation": "tqdm"}]
 }
