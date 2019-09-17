@@ -27,7 +27,9 @@ iterable with ``tqdm(iterable)``, and you're done!
 ``tqdm(xrange(N))``.
 
 |Screenshot|
-    REPL: `ptpython <https://github.com/jonathanslenders/ptpython>`__
+    REPL: `ptpython <https://github.com/jonathanslenders/ptpython>`__ |
+    PyData London: `video <https://tqdm.github.io/video>`__
+    / `slides <https://tqdm.github.io/PyData2019/slides.html>`__
 
 It can also be executed as a module with pipes:
 
@@ -374,9 +376,10 @@ Parameters
     r_bar='| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, '
     '{rate_fmt}{postfix}]'
     Possible vars: l_bar, bar, r_bar, n, n_fmt, total, total_fmt,
-    percentage, rate, rate_fmt, rate_noinv, rate_noinv_fmt,
-    rate_inv, rate_inv_fmt, elapsed, elapsed_s, remaining,
-    remaining_s, desc, postfix, unit.
+    percentage, elapsed, elapsed_s, ncols, desc, unit,
+    rate, rate_fmt, rate_noinv, rate_noinv_fmt,
+    rate_inv, rate_inv_fmt, postfix, unit_divisor,
+    remaining, remaining_s.
     Note that a trailing ": " is automatically removed after {desc}
     if the latter is empty.
 * initial  : int, optional  
