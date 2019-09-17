@@ -351,9 +351,10 @@ class tqdm(Comparable):
             r_bar='| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, '
               '{rate_fmt}{postfix}]'
             Possible vars: l_bar, bar, r_bar, n, n_fmt, total, total_fmt,
-              percentage, rate, rate_fmt, rate_noinv, rate_noinv_fmt,
-              rate_inv, rate_inv_fmt, elapsed, elapsed_s,
-              remaining, remaining_s, desc, postfix, unit.
+              percentage, elapsed, elapsed_s, ncols, desc, unit,
+              rate, rate_fmt, rate_noinv, rate_noinv_fmt,
+              rate_inv, rate_inv_fmt, postfix, unit_divisor,
+              remaining, remaining_s.
             Note that a trailing ": " is automatically removed after {desc}
             if the latter is empty.
         postfix  : *, optional
@@ -429,16 +430,18 @@ class tqdm(Comparable):
         # Custom bar formatting
         # Populate a dict with all available progress indicators
         format_dict = dict(
+            # slight extension of self.format_dict
             n=n, n_fmt=n_fmt, total=total, total_fmt=total_fmt,
+            elapsed=elapsed_str, elapsed_s=elapsed,
+            ncols=ncols, desc=prefix or '', unit=unit,
             rate=inv_rate if inv_rate and inv_rate > 1 else rate,
             rate_fmt=rate_fmt, rate_noinv=rate,
             rate_noinv_fmt=rate_noinv_fmt, rate_inv=inv_rate,
             rate_inv_fmt=rate_inv_fmt,
-            elapsed=elapsed_str, elapsed_s=elapsed,
+            postfix=postfix, unit_divisor=unit_divisor,
+            # plus more useful definitions
             remaining=remaining_str, remaining_s=remaining,
             l_bar=l_bar, r_bar=r_bar,
-            desc=prefix or '', postfix=postfix, unit=unit,
-            # bar=full_bar,  # replaced by procedure below
             **extra_kwargs)
 
         # total is known: we can predict some stats
@@ -840,9 +843,10 @@ class tqdm(Comparable):
             r_bar='| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, '
               '{rate_fmt}{postfix}]'
             Possible vars: l_bar, bar, r_bar, n, n_fmt, total, total_fmt,
-              percentage, rate, rate_fmt, rate_noinv, rate_noinv_fmt,
-              rate_inv, rate_inv_fmt, elapsed, elapsed_s, remaining,
-              remaining_s, desc, postfix, unit.
+              percentage, elapsed, elapsed_s, ncols, desc, unit,
+              rate, rate_fmt, rate_noinv, rate_noinv_fmt,
+              rate_inv, rate_inv_fmt, postfix, unit_divisor,
+              remaining, remaining_s.
             Note that a trailing ": " is automatically removed after {desc}
             if the latter is empty.
         initial  : int, optional
