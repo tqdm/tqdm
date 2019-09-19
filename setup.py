@@ -53,7 +53,7 @@ setup(
     packages=['tqdm'] + ['tqdm.' + i for i in find_packages('tqdm')],
     provides=['tqdm'],
     extras_require=extras_require,
-    entry_points={'console_scripts': ['tqdm=tqdm._main:main'], },
+    entry_points={'console_scripts': ['tqdm=tqdm.cli:main'], },
     package_data={'tqdm': ['CONTRIBUTING.md', 'LICENCE', 'examples/*.py',
                            'tqdm.1', 'requirements-dev.txt']},
     python_requires='>=2.6, !=3.0.*, !=3.1.*',
