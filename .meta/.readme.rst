@@ -912,7 +912,7 @@ Citation information: |DOI| (publication), |DOI-code| (code)
    :target: https://github.com/tqdm/tqdm/pulse
 .. |Gift-Casper| image:: https://img.shields.io/badge/dynamic/json.svg?color=ff69b4&label=gifts%20received&prefix=%C2%A3&query=%24..sum&url=https%3A%2F%2Fcaspersci.uk.to%2Fgifts.json
    :target: https://caspersci.uk.to/donate
-.. |PyPI-Status| image:: https://img.shields.io/pypi/v/tqdm.svg
+.. |PyPI-Status| image:: https://img.shields.io/pypi/v/tqdm.svg?logo=PyPI&logoColor=white
    :target: https://pypi.org/project/tqdm
 .. |PyPI-Downloads| image:: https://img.shields.io/pypi/dm/tqdm.svg?label=pypi%20downloads&logo=python&logoColor=white
    :target: https://pypi.org/project/tqdm
@@ -922,7 +922,7 @@ Citation information: |DOI| (publication), |DOI-code| (code)
    :target: https://anaconda.org/conda-forge/tqdm
 .. |Snapcraft| image:: https://img.shields.io/badge/snap-install-82BEA0.svg?logo=snapcraft
    :target: https://snapcraft.io/tqdm
-.. |Docker| image:: https://img.shields.io/badge/docker-pull-blue.svg?logo=docker
+.. |Docker| image:: https://img.shields.io/badge/docker-pull-blue.svg?logo=docker&logoColor=white
    :target: https://hub.docker.com/r/tqdm/tqdm
 .. |Libraries-Rank| image:: https://img.shields.io/librariesio/sourcerank/pypi/tqdm.svg?logo=koding&logoColor=white
    :target: https://libraries.io/pypi/tqdm
