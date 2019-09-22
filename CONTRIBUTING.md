@@ -13,6 +13,8 @@ make [<alias>]  # on UNIX-like environments
 python setup.py make [<alias>]  # if make is unavailable
 ```
 
+The latter depends on [`py-make>=0.1.0`](https://github.com/tqdm/py-make).
+
 Use the alias `help` (or leave blank) to list all available aliases.
 
 
@@ -26,13 +28,41 @@ typical steps would be:
 3. make a local clone: `git clone https://github.com/your_account/tqdm.git`
 4. make changes on the local copy
 5. test (see below) and commit changes `git commit -a -m "my message"`
-6. `push` to your github account: `git push origin`
-7. create a Pull Request (PR) from your github fork
+6. `push` to your GitHub account: `git push origin`
+7. create a Pull Request (PR) from your GitHub fork
 (go to your fork's webpage and click on "Pull Request."
 You can then add a message to describe your proposal.)
 
 
+## WHAT CODE LAYOUT SHOULD I FOLLOW?
+
+Don't worry too much - maintainers can help reorganise contributions.
+However it would be helpful to bear in mind:
+
+- The standard core of `tqdm`, i.e. [`tqdm.std.tqdm`](tqdm/std.py)
+    + must have no dependencies apart from pure python built-in standard libraries
+    + must have negligible impact on performance
+    + should have 100% coverage by unit tests
+    + should be appropriately commented
+    + will not break backward compatibility unless there is a very good reason
+        * e.g. breaking py26 compatibility purely in favour of readability (such as converting `dict(a=1)` to `{'a': 1}`) is not a good enough reason
+    + API changes should be discussed carefully
+    + remember, with millions of downloads per month, `tqdm` must be extremely fast and reliable
+- Any other kind of change may be included in a (possibly new) submodule
+    + submodules are likely single python files under the main [tqdm/](tqdm/) directory
+        * large submodules requiring a sub-folder should be included in [`MANIFEST.in`](MANIFEST.in)
+    + submodules extending `tqdm.std.tqdm` or any other module (e.g. [`tqdm.notebook.tqdm`](tqdm/notebook.py), [`tqdm.gui.tqdm`](tqdm/gui.py))
+    + can implement anything from experimental new features to support for third-party libraries such as `pandas`, `numpy`, etc.
+    + submodule maturity
+        * alpha: experimental; missing unit tests, comments, and/or feedback; raises `tqdm.TqdmExperimentalWarning`
+        * beta: well-used; commented, perhaps still missing tests
+        * stable: >10 users; commented, 80% coverage
+
+
 ## TESTING
+
+Once again, don't worry too much - tests are automated online, and maintainers
+can also help.
 
 To test functionality (such as before submitting a Pull
 Request), there are a number of unit tests.
@@ -80,9 +110,11 @@ Alternatively, use `nose` to run the tests just for the current Python version:
 This section is intended for the project's maintainers and describes
 how to build and upload a new release. Once again,
 `[python setup.py] make [<alias>]` will help.
+Also consider `pip install`ing development utilities:
+`-r requirements-dev.txt` or `tqdm[dev]`.
 
 
-## SEMANTIC VERSIONING
+## Semantic Versioning
 
 The tqdm repository managers should:
 
@@ -97,24 +129,24 @@ Note: tools can be used to automate this process, such as
 [python-semanticversion](https://github.com/rbarrois/python-semanticversion/).
 
 
-## CHECKING SETUP.PY
+## Checking setup.py
 
-To check that the `setup.py` file is compliant with PyPi requirements (e.g.
-version number; reStructuredText in README.rst) use:
+To check that the `setup.py` file is compliant with PyPI requirements (e.g.
+version number; reStructuredText in `README.rst`) use:
 
 ```
 [python setup.py] make testsetup
 ```
 
 To upload just metadata (including overwriting mistakenly uploaded metadata)
-to PyPi, use:
+to PyPI, use:
 
 ```
 [python setup.py] make pypimeta
 ```
 
 
-## MERGING PULL REQUESTS
+## Merging Pull Requests
 
 This section describes how to cleanly merge PRs.
 
@@ -164,7 +196,7 @@ git merge --no-ff pr-branch-name
 
 ### 5 Version
 
-Modify tqdm/_version.py and ammend the last (merge) commit:
+Modify `tqdm/_version.py` and amend the last (merge) commit:
 
 ```
 git add tqdm/_version.py
@@ -178,7 +210,7 @@ git push origin master
 ```
 
 
-## BUILDING A RELEASE AND UPLOADING TO PYPI
+## Building a Release and Uploading to PyPI
 
 Formally publishing requires additional steps: testing and tagging.
 
@@ -186,7 +218,7 @@ Formally publishing requires additional steps: testing and tagging.
 
 - ensure that all online CI tests have passed
 - check `setup.py` and `MANIFEST.in` - which define the packaging
-process and info that will be uploaded to [pypi](pypi.python.org) -
+process and info that will be uploaded to [PyPI](https://pypi.org) -
 using `[python setup.py] make installdev`
 
 ### Tag
@@ -199,7 +231,10 @@ display as `v{major}.{minor}.{patch}-{commit_hash}`.
 
 ### Upload
 
-Build tqdm into a distributable python package:
+Travis CI should automatically do this after pushing tags.
+Manual instructions are given below in case of failure.
+
+Build `tqdm` into a distributable python package:
 
 ```
 [python setup.py] make build
@@ -215,38 +250,59 @@ Finally, upload everything to pypi. This can be done easily using the
 [python setup.py] make pypi
 ```
 
-Also, the new release can (should) be added to `github` by creating a new
-release from the web interface; uploading packages from the `dist/` folder
+Also, the new release can (should) be added to GitHub by creating a new
+release from the [web interface](https://github.com/tqdm/tqdm/releases);
+uploading packages from the `dist/` folder
 created by `[python setup.py] make build`.
-The [wiki] can be automatically updated with github release notes by
+The [wiki] can be automatically updated with GitHub release notes by
 running `make` within the wiki repository.
 
 [wiki]: https://github.com/tqdm/tqdm/wiki
 
+Docker images may be uploaded to <https://hub.docker.com/r/tqdm/tqdm>.
+Assuming `docker` is
+[installed](https://docs.docker.com/install/linux/docker-ce/ubuntu/):
+
+```
+make -B docker
+docker login
+docker push tqdm/tqdm:latest
+docker push tqdm/tqdm:$(docker run -i --rm tqdm/tqdm -v)
+```
+
+Snaps may be uploaded to <https://snapcraft.io/tqdm>.
+Assuming `snapcraft` is installed (`snap install snapcraft --classic --beta`):
+
+```
+make snap
+snapcraft login
+snapcraft push tqdm*.snap --release stable
+```
+
 ### Notes
 
-- you can also test on the pypi test servers `testpypi.python.org/pypi`
+- you can also test on the PyPI test servers `test.pypi.org`
 before the real deployment
-- in case of a mistake, you can delete an uploaded release on pypi, but you
+- in case of a mistake, you can delete an uploaded release on PyPI, but you
 cannot re-upload another with the same version number
-- in case of a mistake in the metadata on pypi (e.g. bad README),
+- in case of a mistake in the metadata on PyPI (e.g. bad README),
 updating just the metadata is possible: `[python setup.py] make pypimeta`
 
 
-## UPDATING GH-PAGES
+## Updating Websites
 
-The most important file is README.rst, which sould always be kept up-to-date
+The most important file is `.readme.rst`, which should always be kept up-to-date
 and in sync with the in-line source documentation. This will affect all of the
 following:
 
+- `README.rst` (generated by `mkdocs.py` during `make build`)
 - The [main repository site](https://github.com/tqdm/tqdm) which automatically
-  serves the latest README.rst as well as links to all of github's features.
-  This is the preferred online referral link for tqdm.
-- The [PyPi mirror](https://pypi.python.org/pypi/tqdm) which automatically
-  serves the latest release built from README.rst as well as links to past
+  serves the latest `README.rst` as well as links to all of GitHub's features.
+  This is the preferred online referral link for `tqdm`.
+- The [PyPI mirror](https://pypi.org/project/tqdm) which automatically
+  serves the latest release built from `README.rst` as well as links to past
   releases.
 - Many external web crawlers.
-
 
 Additionally (less maintained), there exists:
 
@@ -255,12 +311,12 @@ Additionally (less maintained), there exists:
   [gh-pages branch](https://github.com/tqdm/tqdm/tree/gh-pages), which is
   built using [asv](https://github.com/spacetelescope/asv/).
 - The [gh-pages root](https://tqdm.github.io/) which is built from a separate
-  outdated [github.io repo](https://github.com/tqdm/tqdm.github.io).
+  [github.io repo](https://github.com/tqdm/tqdm.github.io).
 
 
 ## QUICK DEV SUMMARY
 
-For expereinced devs, once happy with local master:
+For experienced devs, once happy with local master:
 
 1. bump version in `tqdm/_version.py`
 2. test (`[python setup.py] make alltests`)
@@ -271,4 +327,27 @@ For expereinced devs, once happy with local master:
 6. `git tag vM.m.p && git push --tags`
 7. `[python setup.py] make distclean`
 8. `[python setup.py] make build`
-9. `[python setup.py] make pypi`
+9. **`[AUTO:TravisCI]`** upload to PyPI. either:
+    a) `[python setup.py] make pypi`, or
+    b) `twine upload -s -i $(git config user.signingkey) dist/tqdm-*`
+10. **`[AUTO:TravisCI]`** upload to docker hub:
+    a) `make -B docker`
+    b) `docker push tqdm/tqdm:latest`
+    c) `docker push tqdm/tqdm:$(docker run -i --rm tqdm/tqdm -v)`
+11. upload to snapcraft:
+    a) `make snap`, and
+    b) `snapcraft push tqdm*.snap --release stable`
+12. Wait for travis to draft a new release on <https://github.com/tqdm/tqdm/releases>
+    a) add helpful release notes
+    b) **`[AUTO:TravisCI]`** attach `dist/tqdm-*` binaries
+       (usually only `*.whl*`)
+13. **`[SUB]`** run `make` in the `wiki` submodule to update release notes
+14. **`[SUB]`** run `make deploy` in the `docs` submodule to update website
+15. **`[SUB]`** accept the automated PR in the `feedstock` submodule to update conda
+
+Key:
+
+- **`[AUTO:TravisCI]`**: Travis CI should automatically do this after
+  `git push --tags` (6)
+- **`[SUB]`**:  Requires one-time `make submodules` to clone
+  `docs`, `wiki`, and `feedstock`

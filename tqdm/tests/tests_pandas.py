@@ -33,12 +33,12 @@ def test_pandas_rolling_expanding():
         tqdm.pandas(file=our_file, leave=True, ascii=True)
 
         series = pd.Series(randint(0, 50, (123,)))
-        res1 = series.rolling(10).progress_apply(lambda x: 1)
-        res2 = series.rolling(10).apply(lambda x: 1)
+        res1 = series.rolling(10).progress_apply(lambda x: 1, raw=True)
+        res2 = series.rolling(10).apply(lambda x: 1, raw=True)
         assert res1.equals(res2)
 
-        res3 = series.expanding(10).progress_apply(lambda x: 2)
-        res4 = series.expanding(10).apply(lambda x: 2)
+        res3 = series.expanding(10).progress_apply(lambda x: 2, raw=True)
+        res4 = series.expanding(10).apply(lambda x: 2, raw=True)
         assert res3.equals(res4)
 
         expects = ['114it']  # 123-10+1
@@ -104,7 +104,7 @@ def test_pandas_data_frame():
         assert res1.equals(res2)
 
         # apply
-        for axis in [0, 1]:
+        for axis in [0, 1, 'index', 'columns']:
             res3 = df.progress_apply(task_func, axis=axis)
             res4 = df.apply(task_func, axis=axis)
             assert res3.equals(res4)

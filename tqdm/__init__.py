@@ -1,13 +1,12 @@
-from ._tqdm import tqdm
-from ._tqdm import trange
-from ._tqdm_gui import tqdm_gui
-from ._tqdm_gui import tgrange
+from .std import tqdm, trange
+from .gui import tqdm as tqdm_gui  # TODO: remove in v5.0.0
+from .gui import trange as tgrange  # TODO: remove in v5.0.0
 from ._tqdm_pandas import tqdm_pandas
 from ._tqdm_function_decorator import tqdm_function_decorator
-from ._main import main
+from .cli import main  # TODO: remove in v5.0.0
 from ._monitor import TMonitor, TqdmSynchronisationWarning
 from ._version import __version__  # NOQA
-from ._tqdm import TqdmTypeError, TqdmKeyError, TqdmWarning, \
+from .std import TqdmTypeError, TqdmKeyError, TqdmWarning, \
     TqdmDeprecationWarning, TqdmExperimentalWarning, \
     TqdmMonitorWarning
 
@@ -22,15 +21,22 @@ __all__ = ['tqdm', 'tqdm_gui', 'trange', 'tgrange', 'tqdm_pandas',
 
 
 def tqdm_notebook(*args, **kwargs):  # pragma: no cover
-    """See tqdm._tqdm_notebook.tqdm_notebook for full documentation"""
-    from ._tqdm_notebook import tqdm_notebook as _tqdm_notebook
+    """See tqdm.notebook.tqdm for full documentation"""
+    from .notebook import tqdm as _tqdm_notebook
+    from warnings import warn
+    warn("This function will be removed in tqdm==5.0.0\n"
+         "Please use `tqdm.notebook.tqdm` instead of `tqdm.tqdm_notebook`",
+         TqdmDeprecationWarning)
     return _tqdm_notebook(*args, **kwargs)
 
 
 def tnrange(*args, **kwargs):  # pragma: no cover
     """
-    A shortcut for tqdm_notebook(xrange(*args), **kwargs).
-    On Python3+ range is used instead of xrange.
+    A shortcut for `tqdm.notebook.tqdm(xrange(*args), **kwargs)`.
+    On Python3+, `range` is used instead of `xrange`.
     """
-    from ._tqdm_notebook import tnrange as _tnrange
+    from .notebook import trange as _tnrange
+    from warnings import warn
+    warn("Please use `tqdm.notebook.trange` instead of `tqdm.tnrange`",
+         TqdmDeprecationWarning)
     return _tnrange(*args, **kwargs)

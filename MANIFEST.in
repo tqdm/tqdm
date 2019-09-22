@@ -9,8 +9,10 @@ include tox.ini
 
 # Test suite
 recursive-include tqdm/tests *.py
+include requirements-dev.txt
 
 # Examples/Documentation
 recursive-include examples *.py
 include README.rst
-include tqdm.1
+include tqdm/tqdm.1
+include DEMO.ipynb
