@@ -1,6 +1,8 @@
 import ast
+import builtins
 import inspect
 import os
+import sys
 from datetime import datetime as dt
 
 import colorama
@@ -16,29 +18,33 @@ def getCols(default=120):
         ncols = default
     return ncols
 
-def print(*args, sep=' ', file=None, end='\n', color=None):
+def print(*args, sep=' ', file=None, end='\n', color=None, flush=True):
+    R = colorama.Style.RESET_ALL
+
     ncols = getCols()
     frame = inspect.stack()[1]
     fpath = frame.filename
-    fname = os.path.basename(fpath)
+    fname = F.CYAN + os.path.basename(fpath) + R
     dirpath = os.path.dirname(fpath)
     dirname = os.path.basename(dirpath)
+    dirname = F.YELLOW + "{:<12}".format(dirname) + R
 
     lineno = frame.lineno
     funcname = frame.function
-    funcwidth = max(len(f) for f in getFuncNames(fname))
+    funcwidth = max((len(f) for f in getFuncNames(fpath)), default=10)
     funcname = ("{:<%d}" % funcwidth).format(funcname)
 
-    R = colorama.Style.RESET_ALL
-    l_bar = f"{F.YELLOW + dirname + R}/{F.CYAN + fname + R}({funcname}):{lineno} -> " + (
-        ("{:<%d}" % (int(0.7*ncols))).format("{desc}"))
+    l_bar = f"{dirname}/{fname}({funcname}):{lineno} -> " + (
+        ("{:<%d}" % (int(0.65*ncols))).format("{desc}"))
 
     bar_format = dt.now().strftime("%H:%M") + " | " f"{l_bar}"
 
     msg = sep.join(map(str, args))
-    if color is not None: msg = color + msg + colorama.Style.RESET_ALL
+    if color is not None: msg = color + msg + R
     msg = bar_format.format(desc=msg)
-    return tqdm.write(msg, end=end, file=file)
+    r = tqdm.write(msg, end=end, file=file)
+    if flush: sys.stdout.flush()
+    return r
 
 
 def wcl(infilepath):
@@ -47,9 +53,12 @@ def wcl(infilepath):
 
 
 def getFuncNames(infilepath):
-    with open(infilepath) as infile:
-        body = ast.parse(infile.read(), filename=infilepath)
-        return [f.name for f in body.body if isinstance(f, ast.FunctionDef)]
+    try:
+        with open(infilepath) as infile:
+            body = ast.parse(infile.read(), filename=infilepath)
+            return [f.name for f in body.body if isinstance(f, ast.FunctionDef)]
+    except:
+        return []
 
 
 class tqdm(TQDM):
@@ -62,23 +71,24 @@ class tqdm(TQDM):
 
         if desc is None: desc = "Doing stuff..."
         if not desc.endswith(":"): desc += ":"
-        if ncols is None:
-            ncols = getCols()
+        if ncols is None: ncols = getCols()
+
+        R = colorama.Style.RESET_ALL
 
         frame = inspect.stack()[1]
         fpath = frame.filename
-        fname = os.path.basename(fpath)
+        fname = F.CYAN + os.path.basename(fpath) + R
         dirpath = os.path.dirname(fpath)
-        dirname = os.path.basename(dirpath)
+        dirname = F.YELLOW + "{:<12}".format(os.path.basename(dirpath)) + R
 
         lineno = frame.lineno
         funcname = frame.function
-        funcwidth = max(len(f) for f in getFuncNames(fname))
+        funcwidth = max((len(f) for f in getFuncNames(fname)), default=10)
         funcname = ("{:<%d}" %funcwidth).format(funcname)
 
         if bar_format is None:
-            R = colorama.Style.RESET_ALL
-            l_bar = f"{F.YELLOW + dirname + R}/{F.CYAN + fname + R}({funcname}):{lineno} -> " + ("{" + "{}:<{}".format("desc", int(0.7*ncols)) + "}")
+
+            l_bar = f"{dirname}/{fname}({funcname}):{lineno} -> " + ("{" + "{}:<{}".format("desc", int(0.65*ncols)) + "}")
 
             bar_format = dt.now().strftime("%H:%M") + " | " f"{l_bar}" "{bar}{r_bar}"
 
@@ -88,3 +98,5 @@ class tqdm(TQDM):
                          unit_scale, dynamic_ncols, smoothing,
                          bar_format, initial, position, postfix,
                          unit_divisor, write_bytes, gui, **kwargs)
+
+builtins.__print__, builtins.print = builtins.print, print
