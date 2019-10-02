@@ -27,9 +27,7 @@ iterable with ``tqdm(iterable)``, and you're done!
 ``tqdm(xrange(N))``.
 
 |Screenshot|
-    REPL: `ptpython <https://github.com/jonathanslenders/ptpython>`__ |
-    PyData London: `video <https://tqdm.github.io/video>`__
-    / `slides <https://tqdm.github.io/PyData2019/slides.html>`__
+    |Video| |Slides|
 
 It can also be executed as a module with pipes:
 
@@ -886,6 +884,10 @@ Citation information: |DOI| (publication), |DOI-code| (code)
 
 .. |Logo| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/logo.gif
 .. |Screenshot| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/tqdm.gif
+.. |Video| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/video.jpg
+   :target: https://tqdm.github.io/video
+.. |Slides| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/slides.jpg
+   :target: https://tqdm.github.io/PyData2019/slides.html
 .. |Build-Status| image:: https://img.shields.io/travis/tqdm/tqdm/master.svg?logo=travis
    :target: https://travis-ci.org/tqdm/tqdm
 .. |Coverage-Status| image:: https://coveralls.io/repos/tqdm/tqdm/badge.svg?branch=master
@@ -912,7 +914,7 @@ Citation information: |DOI| (publication), |DOI-code| (code)
    :target: https://github.com/tqdm/tqdm/pulse
 .. |Gift-Casper| image:: https://img.shields.io/badge/dynamic/json.svg?color=ff69b4&label=gifts%20received&prefix=%C2%A3&query=%24..sum&url=https%3A%2F%2Fcaspersci.uk.to%2Fgifts.json
    :target: https://caspersci.uk.to/donate
-.. |PyPI-Status| image:: https://img.shields.io/pypi/v/tqdm.svg
+.. |PyPI-Status| image:: https://img.shields.io/pypi/v/tqdm.svg?logo=PyPI&logoColor=white
    :target: https://pypi.org/project/tqdm
 .. |PyPI-Downloads| image:: https://img.shields.io/pypi/dm/tqdm.svg?label=pypi%20downloads&logo=python&logoColor=white
    :target: https://pypi.org/project/tqdm
@@ -922,7 +924,7 @@ Citation information: |DOI| (publication), |DOI-code| (code)
    :target: https://anaconda.org/conda-forge/tqdm
 .. |Snapcraft| image:: https://img.shields.io/badge/snap-install-82BEA0.svg?logo=snapcraft
    :target: https://snapcraft.io/tqdm
-.. |Docker| image:: https://img.shields.io/badge/docker-pull-blue.svg?logo=docker
+.. |Docker| image:: https://img.shields.io/badge/docker-pull-blue.svg?logo=docker&logoColor=white
    :target: https://hub.docker.com/r/tqdm/tqdm
 .. |Libraries-Rank| image:: https://img.shields.io/librariesio/sourcerank/pypi/tqdm.svg?logo=koding&logoColor=white
    :target: https://libraries.io/pypi/tqdm

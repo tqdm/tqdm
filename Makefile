@@ -154,7 +154,7 @@ buildupload:
 	@make pypi
 
 snap:
-	@make snapcraft.yaml
+	@make -B snapcraft.yaml
 	snapcraft
 docker:
 	@make .dockerignore
