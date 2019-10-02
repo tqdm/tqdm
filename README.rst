@@ -116,6 +116,16 @@ Latest Docker release
     docker pull tqdm/tqdm
     docker run -i --rm tqdm/tqdm --help
 
+Other
+~~~~~
+
+There are other (unofficial) places where ``tqdm`` may be downloaded, particularly for CLI use:
+
+|Repology|
+
+.. |Repology| image:: https://repology.org/badge/tiny-repos/python:tqdm.svg
+   :target: https://repology.org/project/python:tqdm/versions
+
 Changelog
 ---------
 
