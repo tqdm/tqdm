@@ -27,9 +27,7 @@ iterable with ``tqdm(iterable)``, and you're done!
 ``tqdm(xrange(N))``.
 
 |Screenshot|
-    REPL: `ptpython <https://github.com/jonathanslenders/ptpython>`__ |
-    PyData London: `video <https://tqdm.github.io/video>`__
-    / `slides <https://tqdm.github.io/PyData2019/slides.html>`__
+    |Video| |Slides|
 
 It can also be executed as a module with pipes:
 
@@ -886,6 +884,10 @@ Citation information: |DOI| (publication), |DOI-code| (code)
 
 .. |Logo| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/logo.gif
 .. |Screenshot| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/tqdm.gif
+.. |Video| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/video.jpg
+   :target: https://tqdm.github.io/video
+.. |Slides| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/slides.jpg
+   :target: https://tqdm.github.io/PyData2019/slides.html
 .. |Build-Status| image:: https://img.shields.io/travis/tqdm/tqdm/master.svg?logo=travis
    :target: https://travis-ci.org/tqdm/tqdm
 .. |Coverage-Status| image:: https://coveralls.io/repos/tqdm/tqdm/badge.svg?branch=master
