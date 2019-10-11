@@ -292,4 +292,4 @@ except ImportError:
     _text_width = len
 else:
     def _text_width(s):
-        return len(s) + sum(east_asian_width(ch) in 'FW' for ch in _unicode(s))
+        return sum(2 if east_asian_width(ch) in 'FW' else 1 for ch in _unicode(s))
