@@ -12,7 +12,7 @@ from __future__ import absolute_import
 from __future__ import division
 # compatibility functions and utilities
 from .utils import _supports_unicode, _environ_cols_wrapper, _range, _unich, \
-    _term_move_up, _unicode, WeakSet, _basestring, _OrderedDict, \
+    _term_move_up, _unicode, WeakSet, _basestring, _OrderedDict, _text_width, \
     Comparable, RE_ANSI, _is_ascii, SimpleTextIOWrapper, FormatReplace
 from ._monitor import TMonitor
 # native libraries
@@ -474,7 +474,7 @@ class tqdm(Comparable):
             # Formatting progress bar space available for bar's display
             full_bar = Bar(
                 frac,
-                max(1, ncols - len(RE_ANSI.sub('', nobar))) if ncols else 10,
+                max(1, ncols - _text_width(RE_ANSI.sub('', nobar))) if ncols else 10,
                 charset=Bar.ASCII if ascii is True else ascii or Bar.UTF)
             if not _is_ascii(full_bar.charset) and _is_ascii(bar_format):
                 bar_format = _unicode(bar_format)
@@ -490,7 +490,7 @@ class tqdm(Comparable):
                 return nobar
             full_bar = Bar(
                 0,
-                max(1, ncols - len(RE_ANSI.sub('', nobar))) if ncols else 10,
+                max(1, ncols - _text_width(RE_ANSI.sub('', nobar))) if ncols else 10,
                 charset=Bar.BLANK)
             return bar_format.format(bar=full_bar, **format_dict)
         else:

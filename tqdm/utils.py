@@ -283,3 +283,13 @@ def _environ_cols_linux(fp):  # pragma: no cover
 
 def _term_move_up():  # pragma: no cover
     return '' if (os.name == 'nt') and (colorama is None) else '\x1b[A'
+
+
+try:
+    # TODO consider using wcswidth third-party package for 0-width characters
+    from unicodedata import east_asian_width
+except ImportError:
+    _text_width = len
+else:
+    def _text_width(s):
+        return sum(2 if east_asian_width(ch) in 'FW' else 1 for ch in _unicode(s))
