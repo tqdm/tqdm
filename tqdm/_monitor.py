@@ -93,7 +93,7 @@ class TMonitor(Thread):
                 if instances != self.get_instances():  # pragma: nocover
                     warn("Set changed size during iteration" +
                          " (see https://github.com/tqdm/tqdm/issues/481)",
-                         TqdmSynchronisationWarning)
+                         TqdmSynchronisationWarning, stacklevel=2)
 
     def report(self):
         return not self.was_killed.is_set()

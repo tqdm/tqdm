@@ -14,5 +14,5 @@ else:  # pragma: no cover
     from warnings import warn
     warn("Using `tqdm.autonotebook.tqdm` in notebook mode."
          " Use `tqdm.tqdm` instead to force console mode"
-         " (e.g. in jupyter console)", TqdmExperimentalWarning)
+         " (e.g. in jupyter console)", TqdmExperimentalWarning, stacklevel=2)
 __all__ = ["tqdm", "trange"]

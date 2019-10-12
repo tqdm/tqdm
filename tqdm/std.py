@@ -516,7 +516,7 @@ class tqdm(Comparable):
                 except Exception as e:  # pragma: nocover
                     warn("tqdm:disabling monitor support"
                          " (monitor_interval = 0) due to:\n" + str(e),
-                         TqdmMonitorWarning)
+                         TqdmMonitorWarning, stacklevel=2)
                     cls.monitor_interval = 0
         # Return the instance
         return instance
@@ -1033,7 +1033,7 @@ class tqdm(Comparable):
             # maybe eager thread cleanup upon external error
             if (exc_type, exc_value, traceback) == (None, None, None):
                 raise
-            warn("AttributeError ignored", TqdmWarning)
+            warn("AttributeError ignored", TqdmWarning, stacklevel=2)
 
     def __del__(self):
         self.close()

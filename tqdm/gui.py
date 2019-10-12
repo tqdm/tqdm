@@ -41,7 +41,7 @@ class tqdm_gui(std_tqdm):  # pragma: no cover
         if self.disable or not kwargs['gui']:
             return
 
-        warn('GUI is experimental/alpha', TqdmExperimentalWarning)
+        warn('GUI is experimental/alpha', TqdmExperimentalWarning, stacklevel=2)
         self.mpl = mpl
         self.plt = plt
         self.sp = None
