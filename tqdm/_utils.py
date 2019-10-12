@@ -3,4 +3,4 @@ from .std import TqdmDeprecationWarning
 from warnings import warn
 warn("This function will be removed in tqdm==5.0.0\n"
      "Please use `tqdm.utils.*` instead of `tqdm._utils.*`",
-     TqdmDeprecationWarning)
+     TqdmDeprecationWarning, stacklevel=2)
