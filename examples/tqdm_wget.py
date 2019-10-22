@@ -48,9 +48,10 @@ def my_hook(t):
         bsize  : int, optional
             Size of each block (in tqdm units) [default: 1].
         tsize  : int, optional
-            Total size (in tqdm units). If [default: None] remains unchanged.
+            Total size (in tqdm units). If [default: None] or -1,
+            remains unchanged.
         """
-        if tsize is not None:
+        if tsize not in (None, -1):
             t.total = tsize
         t.update((b - last_b[0]) * bsize)
         last_b[0] = b
