@@ -645,7 +645,10 @@ class tqdm(Comparable):
         """
         from pandas.core.frame import DataFrame
         from pandas.core.series import Series
-        from pandas import Panel
+        try:
+            from pandas import Panel
+        except Import Error:  # TODO: pandas>0.25.2
+            Panel = None
         try:  # pandas>=0.18.0
             from pandas.core.window import _Rolling_and_Expanding
         except ImportError:  # pragma: no cover
@@ -752,7 +755,8 @@ class tqdm(Comparable):
         DataFrameGroupBy.progress_apply = inner_generator()
         DataFrame.progress_applymap = inner_generator('applymap')
 
-        Panel.progress_apply = inner_generator()
+        if Panel is not None:
+            Panel.progress_apply = inner_generator()
         if PanelGroupBy is not None:
             PanelGroupBy.progress_apply = inner_generator()
 
