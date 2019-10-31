@@ -284,7 +284,7 @@ of a neat one-line progress bar.
   ``tqdm(zip(a, b))`` should be replaced with ``zip(tqdm(a), b)`` or even
   ``zip(tqdm(a), tqdm(b))``.
 - `Hanging pipes in python2 <https://github.com/tqdm/tqdm/issues/359>`__:
-  when using ``tqdm`` on the CLI, you may need to use python 3.5+ for correct
+  when using ``tqdm`` on the CLI, you may need to use Python 3.5+ for correct
   buffering.
 
 If you come across any other difficulties, browse and file |GitHub-Issues|.
@@ -654,7 +654,8 @@ available to keep nested bars on their respective lines.
 
 For manual control over positioning (e.g. for multi-processing use),
 you may specify ``position=n`` where ``n=0`` for the outermost bar,
-``n=1`` for the next, and so on:
+``n=1`` for the next, and so on. However, it's best to check if `tqdm` can work
+without manual `position` first.
 
 .. code:: python
 
@@ -673,11 +674,10 @@ you may specify ``position=n`` where ``n=0`` for the outermost bar,
 
     if __name__ == '__main__':
         freeze_support()  # for Windows support
-        p = Pool(len(L), initializer=tqdm.set_lock, initargs=(tqdm.get_lock(),))
+        p = Pool(initializer=tqdm.set_lock, initargs=(tqdm.get_lock(),))
         p.map(progresser, L)
 
-Note that in python 3, threads do not require manual positioning,
-and ``tqdm.write`` is safe to use:
+Note that in Python 3, ``tqdm.write`` is thread-safe:
 
 .. code:: python
 
