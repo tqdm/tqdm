@@ -59,25 +59,13 @@ jobs:
   - name: perf
     python: 3.6
     env: TOXENV=perf
-  - name: deploy
+  - name: PyPI and GitHub
     stage: deploy
     python: 3.7
     dist: xenial
-    sudo: true  # required for py37, docker
-    services:
-    - docker
+    sudo: true  # required for py37
     install:
     script:
-    - echo "$DOCKER_PWD" | docker login -u $DOCKER_USR --password-stdin
-    - echo "$GITHUB_TOKEN" | docker login docker.pkg.github.com -u $GITHUB_USR --password-stdin
-    - make -B docker
-    - |
-      if [[ -n "$TRAVIS_TAG" ]]; then
-      docker tag tqdm/tqdm:latest tqdm/tqdm:${TRAVIS_TAG#v}
-      docker tag tqdm/tqdm:latest docker.pkg.github.com/tqdm/tqdm/tqdm:${TRAVIS_TAG#v} ; fi
-    - docker tag tqdm/tqdm:latest tqdm/tqdm:devel
-    - docker tag tqdm/tqdm:latest docker.pkg.github.com/tqdm/tqdm/tqdm:latest
-    - docker tag tqdm/tqdm:latest docker.pkg.github.com/tqdm/tqdm/tqdm:devel
     - pip install .[dev]
     - make build
     #- make submodules
@@ -101,6 +89,26 @@ jobs:
       name: tqdm $TRAVIS_TAG stable
       on:
         tags: true
+  - name: docker
+    stage: deploy
+    python: 3.7
+    dist: xenial
+    sudo: true  # required for py37, docker
+    services:
+    - docker
+    install:
+    script:
+    - echo "$DOCKER_PWD" | docker login -u $DOCKER_USR --password-stdin
+    - echo "$GITHUB_TOKEN" | docker login docker.pkg.github.com -u $GITHUB_USR --password-stdin
+    - make -B docker
+    - |
+      if [[ -n "$TRAVIS_TAG" ]]; then
+      docker tag tqdm/tqdm:latest tqdm/tqdm:${TRAVIS_TAG#v}
+      docker tag tqdm/tqdm:latest docker.pkg.github.com/tqdm/tqdm/tqdm:${TRAVIS_TAG#v} ; fi
+    - docker tag tqdm/tqdm:latest tqdm/tqdm:devel
+    - docker tag tqdm/tqdm:latest docker.pkg.github.com/tqdm/tqdm/tqdm:latest
+    - docker tag tqdm/tqdm:latest docker.pkg.github.com/tqdm/tqdm/tqdm:devel
+    deploy:
     - provider: script
       script: docker push tqdm/tqdm:${TRAVIS_TAG#v}
       on:
