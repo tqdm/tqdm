@@ -29,7 +29,6 @@ def doc2rst(doc, arglist=True, raw=False):
     doc = doc.replace('`', '``')
     if raw:
         doc = doc.replace('\n ', '\n   ')
-        #doc = '\n'.join(i.rstrip() for i in doc.split('\n'))
     else:
         doc = dedent(doc)
         if arglist:
