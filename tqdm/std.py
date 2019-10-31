@@ -647,7 +647,7 @@ class tqdm(Comparable):
         from pandas.core.series import Series
         try:
             from pandas import Panel
-        except Import Error:  # TODO: pandas>0.25.2
+        except ImportError:  # TODO: pandas>0.25.2
             Panel = None
         try:  # pandas>=0.18.0
             from pandas.core.window import _Rolling_and_Expanding
