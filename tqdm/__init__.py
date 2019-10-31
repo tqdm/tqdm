@@ -24,7 +24,7 @@ def tqdm_notebook(*args, **kwargs):  # pragma: no cover
     from warnings import warn
     warn("This function will be removed in tqdm==5.0.0\n"
          "Please use `tqdm.notebook.tqdm` instead of `tqdm.tqdm_notebook`",
-         TqdmDeprecationWarning)
+         TqdmDeprecationWarning, stacklevel=2)
     return _tqdm_notebook(*args, **kwargs)
 
 
@@ -36,5 +36,5 @@ def tnrange(*args, **kwargs):  # pragma: no cover
     from .notebook import trange as _tnrange
     from warnings import warn
     warn("Please use `tqdm.notebook.trange` instead of `tqdm.tnrange`",
-         TqdmDeprecationWarning)
+         TqdmDeprecationWarning, stacklevel=2)
     return _tnrange(*args, **kwargs)

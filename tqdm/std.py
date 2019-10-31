@@ -12,7 +12,7 @@ from __future__ import absolute_import
 from __future__ import division
 # compatibility functions and utilities
 from .utils import _supports_unicode, _environ_cols_wrapper, _range, _unich, \
-    _term_move_up, _unicode, WeakSet, _basestring, _OrderedDict, \
+    _term_move_up, _unicode, WeakSet, _basestring, _OrderedDict, _text_width, \
     Comparable, RE_ANSI, _is_ascii, SimpleTextIOWrapper, FormatReplace
 from ._monitor import TMonitor
 # native libraries
@@ -474,7 +474,8 @@ class tqdm(Comparable):
             # Formatting progress bar space available for bar's display
             full_bar = Bar(
                 frac,
-                max(1, ncols - len(RE_ANSI.sub('', nobar))) if ncols else 10,
+                max(1, ncols - _text_width(RE_ANSI.sub('', nobar)))
+                if ncols else 10,
                 charset=Bar.ASCII if ascii is True else ascii or Bar.UTF)
             if not _is_ascii(full_bar.charset) and _is_ascii(bar_format):
                 bar_format = _unicode(bar_format)
@@ -490,7 +491,8 @@ class tqdm(Comparable):
                 return nobar
             full_bar = Bar(
                 0,
-                max(1, ncols - len(RE_ANSI.sub('', nobar))) if ncols else 10,
+                max(1, ncols - _text_width(RE_ANSI.sub('', nobar)))
+                if ncols else 10,
                 charset=Bar.BLANK)
             return bar_format.format(bar=full_bar, **format_dict)
         else:
@@ -516,7 +518,7 @@ class tqdm(Comparable):
                 except Exception as e:  # pragma: nocover
                     warn("tqdm:disabling monitor support"
                          " (monitor_interval = 0) due to:\n" + str(e),
-                         TqdmMonitorWarning)
+                         TqdmMonitorWarning, stacklevel=2)
                     cls.monitor_interval = 0
         # Return the instance
         return instance
@@ -645,7 +647,10 @@ class tqdm(Comparable):
         """
         from pandas.core.frame import DataFrame
         from pandas.core.series import Series
-        from pandas import Panel
+        try:
+            from pandas import Panel
+        except ImportError:  # TODO: pandas>0.25.2
+            Panel = None
         try:  # pandas>=0.18.0
             from pandas.core.window import _Rolling_and_Expanding
         except ImportError:  # pragma: no cover
@@ -752,7 +757,8 @@ class tqdm(Comparable):
         DataFrameGroupBy.progress_apply = inner_generator()
         DataFrame.progress_applymap = inner_generator('applymap')
 
-        Panel.progress_apply = inner_generator()
+        if Panel is not None:
+            Panel.progress_apply = inner_generator()
         if PanelGroupBy is not None:
             PanelGroupBy.progress_apply = inner_generator()
 
@@ -1033,7 +1039,7 @@ class tqdm(Comparable):
             # maybe eager thread cleanup upon external error
             if (exc_type, exc_value, traceback) == (None, None, None):
                 raise
-            warn("AttributeError ignored", TqdmWarning)
+            warn("AttributeError ignored", TqdmWarning, stacklevel=2)
 
     def __del__(self):
         self.close()
