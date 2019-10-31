@@ -1,24 +1,73 @@
 language: python
-matrix:
+env:
+  global:
+    - PIP_CACHE_DIR="$HOME/.cache/pip"  # unify pip cache location for all platforms
+# use cache for big builds like pandas (to minimise build time).
+# If issues, clear cache
+# https://docs.travis-ci.com/user/caching/#Clearing-Caches
+cache:
+  pip: true
+  directories:
+  - $HOME/.cache/pip
+before_cache:
+- rm -f $HOME/.cache/pip/log/debug.log
+notifications:
+  email: false
+# branches:  # remove travis double-check on pull requests in main repo
+#   only:
+#     - master
+#     - /^\d\.\d+$/
+stages:
+- check
+- test
+- deploy
+jobs:
   include:
-  - python: 2.6
+  - name: py2.6
+    python: 2.6
     env: TOXENV=py26
     dist: trusty
-  - python: 2.7
+  - name: py2.7
+    python: 2.7
     env: TOXENV=py27
-  - python: 3.4
+  - name: py3.4
+    python: 3.4
     env: TOXENV=py34
-  - python: 3.5
+  - name: py3.5
+    python: 3.5
     env: TOXENV=py35
-  - python: 3.6
+  - name: py3.6
+    python: 3.6
     env: TOXENV=py36
-  - python: 3.7
+  - name: py3.7
+    python: 3.7
     env: TOXENV=py37
+  - name: pypy2.7
+    python: pypy2.7-5.10.0
+    env: TOXENV=pypy
+  - name: pypy3.5
+    python: pypy3.5-5.10.0
+    env: TOXENV=pypy3
+  - name: style
+    stage: check
+    python: 3.6
+    env: TOXENV=flake8
+  - name: setup
+    stage: check
+    python: 3.6
+    env: TOXENV=setup.py
+  - name: perf
+    python: 3.6
+    env: TOXENV=perf
+  - name: deploy
+    stage: deploy
+    python: 3.7
     dist: xenial
     sudo: true  # required for py37, docker
     services:
     - docker
-    after_success:
+    install:
+    script:
     - echo "$DOCKER_PWD" | docker login -u $DOCKER_USR --password-stdin
     - echo "$GITHUB_TOKEN" | docker login docker.pkg.github.com -u $GITHUB_USR --password-stdin
     - make -B docker
@@ -72,31 +121,6 @@ matrix:
       script: 'docker push docker.pkg.github.com/tqdm/tqdm/tqdm:devel || :'
       on:
         branch: devel
-  - python: pypy2.7-5.10.0
-    env: TOXENV=pypy
-  - python: pypy3.5-5.10.0
-    env: TOXENV=pypy3
-  - python: 3.6
-    env: TOXENV=flake8
-  - python: 3.6
-    env: TOXENV=setup.py
-  - python: 3.6
-    env: TOXENV=perf
-# use cache for big builds like pandas (to minimise build time).
-# If issues, clear cache
-# https://docs.travis-ci.com/user/caching/#Clearing-Caches
-cache:
-  pip: true
-  directories:
-  - $HOME/.cache/pip
-before_cache:
-- rm -f $HOME/.cache/pip/log/debug.log
-notifications:
-  email: false
-# branches:  # remove travis double-check on pull requests in main repo
-#   only:
-#     - master
-#     - /^\d\.\d+$/
 before_install:
 # fix a crash with multiprocessing on Travis
 # - sudo rm -rf /dev/shm
