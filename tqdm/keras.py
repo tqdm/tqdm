@@ -19,7 +19,19 @@ class TqdmCallback(Callback):
     def __init__(self, epochs, data_size=None, batch_size=None, verbose=1,
                  tqdm_class=tqdm_auto):
         """
-        verbose  : 0=epoch, 1=temp batch, 2=batch
+        Parameters
+        ----------
+        epochs  : int
+        data_size  : int, optional
+            Number of training pairs.
+        batch_size  : int, optional
+            Number of training pairs per batch.
+        verbose  : int
+            0: epoch, 1: batch (transient), 2: batch. [default: 1].
+            Will be set to `0` unless both `data_size` and `batch_size`
+            are given.
+        tqdm_class : optional
+            `tqdm` class to use for bars [default: `tqdm.auto.tqdm`].
         """
         self.tqdm_class = tqdm_class
         self.te = tqdm_class(total=epochs, unit='epoch')
