@@ -1,5 +1,7 @@
 from __future__ import absolute_import
 from .auto import tqdm as tqdm_auto
+from .std import TqdmWarning
+from warnings import warn
 from copy import deepcopy
 from keras.callbacks import Callback
 
@@ -17,14 +19,8 @@ class TqdmCallback(Callback):
 
         return callback
 
-    def __init__(
-        self,
-        epochs,
-        data_size=None,
-        batch_size=None,
-        verbose=1,
-        tqdm_class=tqdm_auto,
-    ):
+    def __init__(self, epochs, data_size=None, batch_size=None, verbose=1,
+                 tqdm_class=tqdm_auto):
         """
         Parameters
         ----------
@@ -41,29 +37,28 @@ class TqdmCallback(Callback):
             `tqdm` class to use for bars [default: `tqdm.auto.tqdm`].
         """
         self.tqdm_class = tqdm_class
-        self.epoch_bar = tqdm_class(total=epochs, unit="epoch")
+        self.epoch_bar = tqdm_class(total=epochs, unit='epoch')
         self.on_epoch_end = self.bar2callback(self.epoch_bar)
         if data_size and batch_size:
             self.batches = batches = (data_size + batch_size - 1) // batch_size
         else:
             if verbose:
-                print("W:missing batch and data size")
+                warn("Setting verbose=0 (missing batch and data size)",
+                     TqdmWarning, stacklevel=2)
             verbose = 0
         self.verbose = verbose
         if verbose == 1:
-            self.batch_bar = tqdm_class(
-                total=batches, unit="batch", leave=False
-            )
-            self.on_batch_end = self.bar2callback(self.batch_bar, pop=["batch"])
+            self.batch_bar = tqdm_class(total=batches, unit='batch',
+                                        leave=False)
+            self.on_batch_end = self.bar2callback(self.batch_bar, pop=['batch'])
 
     def on_epoch_begin(self, *_, **__):
         if self.verbose == 2:
-            if hasattr(self, "batch_bar"):
+            if hasattr(self, 'batch_bar'):
                 self.batch_bar.close()
-            self.batch_bar = self.tqdm_class(
-                total=self.batches, unit="batch", leave=True
-            )
-            self.on_batch_end = self.bar2callback(self.batch_bar, pop=["batch"])
+            self.batch_bar = self.tqdm_class(total=self.batches, unit='batch',
+                                             leave=True)
+            self.on_batch_end = self.bar2callback(self.batch_bar, pop=['batch'])
         elif self.verbose == 1:
             self.batch_bar.reset()
 
