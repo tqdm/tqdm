@@ -85,9 +85,9 @@ class TqdmDefaultWriteLock(object):
         cls = type(self)
         self.locks = [lk for lk in [cls.mp_lock, cls.th_lock] if lk is not None]
 
-    def acquire(self):
+    def acquire(self, *a, **k):
         for lock in self.locks:
-            lock.acquire()
+            lock.acquire(*a, **k)
 
     def release(self):
         for lock in self.locks[::-1]:  # Release in inverse order of acquisition
