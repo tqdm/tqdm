@@ -1005,7 +1005,7 @@ class tqdm(Comparable):
         if not gui:
             # Initialize the screen printer
             self.sp = self.status_printer(self.fp)
-            self.refresh()
+            self.refresh(lock_args=(False,))
 
         # Init the time counter
         self.last_print_t = self._time()
@@ -1102,7 +1102,7 @@ class tqdm(Comparable):
                         self.avg_time = avg_time
 
                     self.n = n
-                    self.refresh()
+                    self.refresh(lock_args=(False,))
 
                     # If no `miniters` was specified, adjust automatically
                     # to the max iteration rate seen so far between 2 prints
@@ -1185,7 +1185,7 @@ class tqdm(Comparable):
                         " instead of `tqdm(..., gui=True)`\n",
                         fp_write=getattr(self.fp, 'write', sys.stderr.write))
 
-                self.refresh()
+                self.refresh(lock_args=(False,))
 
                 # If no `miniters` was specified, adjust automatically to the
                 # maximum iteration rate seen so far between two prints.
