@@ -923,11 +923,10 @@ class tqdm(Comparable):
             with self._lock:
                 self.pos = self._get_free_pos(self)
                 self._instances.remove(self)
-            from textwrap import dedent
-            raise (TqdmDeprecationWarning(dedent("""\
-                       `nested` is deprecated and automated.
-                       Use `position` instead for manual control.
-                       """), fp_write=getattr(file, 'write', sys.stderr.write))
+            raise (TqdmDeprecationWarning(
+                       "`nested` is deprecated and automated.\n"
+                       "Use `position` instead for manual control.\n",
+                       fp_write=getattr(file, 'write', sys.stderr.write))
                    if "nested" in kwargs else
                    TqdmKeyError("Unknown argument(s): " + str(kwargs)))
 
@@ -1083,10 +1082,10 @@ class tqdm(Comparable):
         time = self._time
 
         if not hasattr(self, 'sp'):
-            from textwrap import dedent
-            raise TqdmDeprecationWarning(dedent("""\
-            Please use `tqdm.gui.tqdm(...)` instead of `tqdm(..., gui=True)`
-            """), fp_write=getattr(self.fp, 'write', sys.stderr.write))
+            raise TqdmDeprecationWarning(
+                "Please use `tqdm.gui.tqdm(...)` instead of"
+                " `tqdm(..., gui=True)`\n",
+                fp_write=getattr(self.fp, 'write', sys.stderr.write))
 
         for obj in iterable:
             yield obj
