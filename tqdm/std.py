@@ -841,7 +841,7 @@ class tqdm(Comparable):
 
     def __init__(self, iterable=None, desc=None, total=None, leave=True, file=None,
                  ncols=None, mininterval=0.1, maxinterval=10.0, miniters=None,
-                 ascii=None, disable=False, unit='it', unit_scale=False,
+                 waituntil=0.0, ascii=None, disable=False, unit='it', unit_scale=False,
                  dynamic_ncols=False, smoothing=0.3, bar_format=None, initial=0,
                  position=None, postfix=None, unit_divisor=1000, write_bytes=None,
                  lock_args=None, nrows=None, colour=None, gui=False, **kwargs):
@@ -890,6 +890,9 @@ class tqdm(Comparable):
             Tweak this and `mininterval` to get very efficient loops.
             If your progress is erratic with both fast and slow iterations
             (network, skipping items, etc) you should set miniters=1.
+        waituntil  : float, optional
+            Don't display the progressbar until this number [default: 0] of
+            seconds has elapsed.
         ascii  : bool or str, optional
             If unspecified or False, use unicode (smooth blocks) to fill
             the meter. The fallback is to use ASCII characters " 123456789#".
@@ -1061,6 +1064,7 @@ class tqdm(Comparable):
         self.maxinterval = maxinterval
         self.miniters = miniters
         self.dynamic_miniters = dynamic_miniters
+        self.waituntil = waituntil
         self.ascii = ascii
         self.disable = disable
         self.unit = unit
@@ -1099,7 +1103,8 @@ class tqdm(Comparable):
         if not gui:
             # Initialize the screen printer
             self.sp = self.status_printer(self.fp)
-            self.refresh(lock_args=self.lock_args)
+            if waituntil <= 0:
+                self.refresh(lock_args=self.lock_args)
 
         # Init the time counter
         self.last_print_t = self._time()
@@ -1163,6 +1168,7 @@ class tqdm(Comparable):
         mininterval = self.mininterval
         last_print_t = self.last_print_t
         last_print_n = self.last_print_n
+        start_t = self.start_t
         n = self.n
         time = self._time
 
@@ -1174,8 +1180,9 @@ class tqdm(Comparable):
                 n += 1
 
                 if n - last_print_n >= self.miniters:
-                    dt = time() - last_print_t
-                    if dt >= mininterval:
+                    cur_t = time()
+                    dt = cur_t - last_print_t
+                    if dt >= mininterval and cur_t - start_t >= self.waituntil:
                         self.update(n - last_print_n)
                         last_print_n = self.last_print_n
                         last_print_t = self.last_print_t
@@ -1218,8 +1225,10 @@ class tqdm(Comparable):
 
         # check counter first to reduce calls to time()
         if self.n - self.last_print_n >= self.miniters:
-            dt = self._time() - self.last_print_t
-            if dt >= self.mininterval:
+            cur_t = self._time()
+            dt = cur_t - self.last_print_t
+            if (dt >= self.mininterval
+                and cur_t - self.start_t >= self.waituntil):
                 cur_t = self._time()
                 dn = self.n - self.last_print_n  # >= n
                 if self.smoothing and dt and dn:
@@ -1279,15 +1288,17 @@ class tqdm(Comparable):
         leave = pos == 0 if self.leave is None else self.leave
 
         with self._lock:
-            if leave:
-                # stats for overall rate (no weighted average)
-                self._ema_dt = lambda: None
-                self.display(pos=0)
-                fp_write('\n')
-            else:
-                # clear previous display
-                if self.display(msg='', pos=pos) and not pos:
-                    fp_write('\r')
+            # If the following doesn't hold, we haven't even printed anything.
+            if self.last_print_t - self.start_t >= self.waituntil:
+                if leave:
+                    # stats for overall rate (no weighted average)
+                    self._ema_dt = lambda: None
+                    self.display(pos=0)
+                    fp_write('\n')
+                else:
+                    # clear previous display
+                    if self.display(msg='', pos=pos) and not pos:
+                        fp_write('\r')
 
     def clear(self, nolock=False):
         """Clear current bar display."""
