@@ -774,7 +774,8 @@ class tqdm(Comparable):
                  miniters=None, ascii=None, disable=False, unit='it',
                  unit_scale=False, dynamic_ncols=False, smoothing=0.3,
                  bar_format=None, initial=0, position=None, postfix=None,
-                 unit_divisor=1000, write_bytes=None, gui=False, **kwargs):
+                 unit_divisor=1000, write_bytes=None, lock_args=None,
+                 gui=False, **kwargs):
         """
         Parameters
         ----------
@@ -871,6 +872,9 @@ class tqdm(Comparable):
             If (default: None) and `file` is unspecified,
             bytes will be written in Python 2. If `True` will also write
             bytes. In all other cases will default to unicode.
+        lock_args  : tuple, optional
+            Passed to `refresh` for intermediate output
+            (creating, iterating, and updating).
         gui  : bool, optional
             WARNING: internal parameter - do not use.
             Use tqdm.gui.tqdm(...) instead. If set, will attempt to use
@@ -977,6 +981,7 @@ class tqdm(Comparable):
         self.unit = unit
         self.unit_scale = unit_scale
         self.unit_divisor = unit_divisor
+        self.lock_args = lock_args
         self.gui = gui
         self.dynamic_ncols = dynamic_ncols
         self.smoothing = smoothing
@@ -1005,7 +1010,7 @@ class tqdm(Comparable):
         if not gui:
             # Initialize the screen printer
             self.sp = self.status_printer(self.fp)
-            self.refresh(lock_args=(False,))
+            self.refresh(lock_args=self.lock_args)
 
         # Init the time counter
         self.last_print_t = self._time()
@@ -1102,7 +1107,7 @@ class tqdm(Comparable):
                         self.avg_time = avg_time
 
                     self.n = n
-                    self.refresh(lock_args=(False,))
+                    self.refresh(lock_args=self.lock_args)
 
                     # If no `miniters` was specified, adjust automatically
                     # to the max iteration rate seen so far between 2 prints
@@ -1185,7 +1190,7 @@ class tqdm(Comparable):
                         " instead of `tqdm(..., gui=True)`\n",
                         fp_write=getattr(self.fp, 'write', sys.stderr.write))
 
-                self.refresh(lock_args=(False,))
+                self.refresh(lock_args=self.lock_args)
 
                 # If no `miniters` was specified, adjust automatically to the
                 # maximum iteration rate seen so far between two prints.
