@@ -1267,13 +1267,25 @@ class tqdm(Comparable):
         if not nolock:
             self._lock.release()
 
-    def refresh(self, nolock=False):
-        """Force refresh the display of this bar."""
+    def refresh(self, nolock=False, lock_args=None):
+        """
+        Force refresh the display of this bar.
+
+        Parameters
+        ----------
+        nolock  : bool, optional
+            If `True`, does not lock.
+            If [default: `False`]: calls `acquire()` on internal lock;
+            `display()`ing only if `acquire()` returns `True`.
+        lock_args  : tuple, optional
+            Passed to internal lock's `acquire()`.
+        """
         if self.disable:
             return
 
         if not nolock:
-            self._lock.acquire()
+            if not self._lock.acquire(*(lock_args or ())):
+                return
         self.display()
         if not nolock:
             self._lock.release()
