@@ -219,6 +219,40 @@ def test_manual_overhead():
     assert_performance(6, 'tqdm', time_tqdm(), 'range', time_bench())
 
 
+def worker(total, blocking=True):
+    def incr_bar(x):
+        with closing(StringIO()) as our_file:
+            with tqdm(total=x, lock_args=None if blocking else (False,),
+                      file=our_file) as t:
+                for i in range(total):
+                    t.update()
+        return x + 1
+    return incr_bar
+
+
+@with_setup(pretest, posttest)
+@retry_on_except()
+def test_lock_args():
+    """Test overhead of nonblocking threads"""
+    try:
+        from concurrent.futures import ThreadPoolExecutor
+        from threading import RLock
+    except ImportError:
+        raise SkipTest
+
+    total = 8
+    subtotal = int(1e4)
+
+    tqdm.set_lock(RLock())
+    with ThreadPoolExecutor(total) as pool:
+        with relative_timer() as time_tqdm:
+            res = list(pool.map(worker(subtotal, True), range(total)))
+        with relative_timer() as time_noblock:
+            res = list(pool.map(worker(subtotal, False), range(total)))
+
+    assert_performance(0.99, 'noblock', time_noblock(), 'tqdm', time_tqdm())
+
+
 @with_setup(pretest, posttest)
 @retry_on_except()
 def test_iter_overhead_hard():
