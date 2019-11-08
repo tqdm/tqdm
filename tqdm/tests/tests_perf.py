@@ -223,7 +223,7 @@ def worker(total, blocking=True):
     def incr_bar(x):
         with closing(StringIO()) as our_file:
             with tqdm(total=x, lock_args=None if blocking else (False,),
-                      file=our_file) as t:
+                      file=our_file, miniters=1, mininterval=0) as t:
                 for i in range(total):
                     t.update()
         return x + 1
@@ -239,18 +239,24 @@ def test_lock_args():
         from threading import RLock
     except ImportError:
         raise SkipTest
+    import sys
 
     total = 8
-    subtotal = int(1e4)
+    subtotal = 10
 
     tqdm.set_lock(RLock())
     with ThreadPoolExecutor(total) as pool:
+        sys.stderr.write('block ... ')
+        sys.stderr.flush()
         with relative_timer() as time_tqdm:
             res = list(pool.map(worker(subtotal, True), range(total)))
             assert sum(res) == sum(range(total)) + total
+        sys.stderr.write('noblock ... ')
+        sys.stderr.flush()
         with relative_timer() as time_noblock:
             res = list(pool.map(worker(subtotal, False), range(total)))
             assert sum(res) == sum(range(total)) + total
+        sys.stderr.write('done ... ')
 
     assert_performance(0.99, 'noblock', time_noblock(), 'tqdm', time_tqdm())
 

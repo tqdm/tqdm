@@ -1291,11 +1291,12 @@ class tqdm(Comparable):
         if not nolock:
             if lock_args:
                 if not self._lock.acquire(*lock_args):
-                    return
+                    return False
             self._lock.acquire()
         self.display()
         if not nolock:
             self._lock.release()
+        return True
 
     def unpause(self):
         """Restart tqdm timer from last print time."""
