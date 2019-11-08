@@ -41,6 +41,14 @@ def incr(x):
     return x + 1
 
 
+def incr_bar(x):
+    with closing(StringIO()) as our_file:
+        with tqdm(total=x, lock_args=(False,), file=our_file) as t:
+            for i in range(x):
+                t.update()
+    return incr(x)
+
+
 @with_setup(pretest, posttest)
 def test_monitor_thread():
     """Test dummy monitoring thread"""
@@ -179,3 +187,18 @@ def test_imap():
     pool = Pool()
     res = list(tqdm(pool.imap(incr, range(100)), disable=True))
     assert res[-1] == 100
+
+
+@with_setup(pretest, posttest)
+def test_threadpool():
+    """Test concurrent.futures.ThreadPoolExecutor"""
+    try:
+        from concurrent.futures import ThreadPoolExecutor
+        from threading import RLock
+    except ImportError:
+        raise SkipTest
+
+    tqdm.set_lock(RLock())
+    with ThreadPoolExecutor() as pool:
+        res = list(tqdm(pool.map(incr_bar, range(100)), disable=True))
+    assert sum(res) == sum(range(1, 101))

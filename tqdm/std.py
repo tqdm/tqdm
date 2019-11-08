@@ -874,7 +874,7 @@ class tqdm(Comparable):
             bytes. In all other cases will default to unicode.
         lock_args  : tuple, optional
             Passed to `refresh` for intermediate output
-            (creating, iterating, and updating).
+            (iterating/updating).
         gui  : bool, optional
             WARNING: internal parameter - do not use.
             Use tqdm.gui.tqdm(...) instead. If set, will attempt to use
@@ -1010,7 +1010,7 @@ class tqdm(Comparable):
         if not gui:
             # Initialize the screen printer
             self.sp = self.status_printer(self.fp)
-            self.refresh(lock_args=self.lock_args)
+            self.refresh()
 
         # Init the time counter
         self.last_print_t = self._time()
