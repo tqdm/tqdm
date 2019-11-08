@@ -164,7 +164,7 @@ def assert_performance(thresh, name_left, time_left, name_right, time_right):
     if time_left > thresh * time_right:
         raise ValueError(
             ('{name[0]}: {time[0]:f}, '
-             '{name[1]}: {time[0]:f}, '
+             '{name[1]}: {time[1]:f}, '
              'ratio {ratio:f} > {thresh:f}').format(
                 name=(name_left, name_right),
                 time=(time_left, time_right),

@@ -1280,17 +1280,19 @@ class tqdm(Comparable):
         ----------
         nolock  : bool, optional
             If `True`, does not lock.
-            If [default: `False`]: calls `acquire()` on internal lock;
-            `display()`ing only if `acquire()` returns `True`.
+            If [default: `False`]: calls `acquire()` on internal lock.
         lock_args  : tuple, optional
             Passed to internal lock's `acquire()`.
+            If specified, will only `display()` if `acquire()` returns `True`.
         """
         if self.disable:
             return
 
         if not nolock:
-            if not self._lock.acquire(*(lock_args or ())):
-                return
+            if lock_args:
+                if not self._lock.acquire(*lock_args):
+                    return
+            self._lock.acquire()
         self.display()
         if not nolock:
             self._lock.release()
