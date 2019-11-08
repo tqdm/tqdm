@@ -247,8 +247,10 @@ def test_lock_args():
     with ThreadPoolExecutor(total) as pool:
         with relative_timer() as time_tqdm:
             res = list(pool.map(worker(subtotal, True), range(total)))
+            assert sum(res) == sum(range(total)) + total
         with relative_timer() as time_noblock:
             res = list(pool.map(worker(subtotal, False), range(total)))
+            assert sum(res) == sum(range(total)) + total
 
     assert_performance(0.99, 'noblock', time_noblock(), 'tqdm', time_tqdm())
 
