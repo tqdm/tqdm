@@ -198,6 +198,6 @@ def test_threadpool():
         raise SkipTest
 
     tqdm.set_lock(RLock())
-    with ThreadPoolExecutor() as pool:
+    with ThreadPoolExecutor(8) as pool:
         res = list(tqdm(pool.map(incr_bar, range(100)), disable=True))
     assert sum(res) == sum(range(1, 101))
