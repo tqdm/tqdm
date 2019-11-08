@@ -1010,7 +1010,7 @@ class tqdm(Comparable):
         if not gui:
             # Initialize the screen printer
             self.sp = self.status_printer(self.fp)
-            self.refresh()
+            self.refresh(lock_args=self.lock_args)
 
         # Init the time counter
         self.last_print_t = self._time()
@@ -1292,7 +1292,8 @@ class tqdm(Comparable):
             if lock_args:
                 if not self._lock.acquire(*lock_args):
                     return False
-            self._lock.acquire()
+            else:
+                self._lock.acquire()
         self.display()
         if not nolock:
             self._lock.release()

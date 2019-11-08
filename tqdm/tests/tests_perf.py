@@ -222,8 +222,9 @@ def test_manual_overhead():
 def worker(total, blocking=True):
     def incr_bar(x):
         with closing(StringIO()) as our_file:
-            with tqdm(total=x, lock_args=None if blocking else (False,),
-                      file=our_file, miniters=1, mininterval=0) as t:
+            with tqdm(total=x, file=our_file,
+                      lock_args=None if blocking else (False,),
+                      miniters=1, mininterval=0, maxinterval=0) as t:
                 for i in range(total):
                     t.update()
         return x + 1
@@ -242,7 +243,7 @@ def test_lock_args():
     import sys
 
     total = 8
-    subtotal = 10
+    subtotal = 100
 
     tqdm.set_lock(RLock())
     with ThreadPoolExecutor(total) as pool:
@@ -256,9 +257,8 @@ def test_lock_args():
         with relative_timer() as time_noblock:
             res = list(pool.map(worker(subtotal, False), range(total)))
             assert sum(res) == sum(range(total)) + total
-        sys.stderr.write('done ... ')
 
-    assert_performance(0.99, 'noblock', time_noblock(), 'tqdm', time_tqdm())
+    assert_performance(0.2, 'noblock', time_noblock(), 'tqdm', time_tqdm())
 
 
 @with_setup(pretest, posttest)
