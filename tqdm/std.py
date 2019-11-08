@@ -874,7 +874,7 @@ class tqdm(Comparable):
             bytes. In all other cases will default to unicode.
         lock_args  : tuple, optional
             Passed to `refresh` for intermediate output
-            (iterating/updating).
+            (initialisation, iterating, and updating).
         gui  : bool, optional
             WARNING: internal parameter - do not use.
             Use tqdm.gui.tqdm(...) instead. If set, will attempt to use
