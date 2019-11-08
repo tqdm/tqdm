@@ -1,5 +1,5 @@
 from __future__ import division
-from tqdm import tqdm, TMonitor
+from tqdm import tqdm, trange, TMonitor
 from tests_tqdm import with_setup, pretest, posttest, SkipTest, \
     StringIO, closing
 from tests_tqdm import DiscreteTimer, cpu_timify
@@ -39,6 +39,13 @@ def make_create_fake_sleep_event(sleep):
 
 def incr(x):
     return x + 1
+
+
+def incr_bar(x):
+    with closing(StringIO()) as our_file:
+        for _ in trange(x, lock_args=(False,), file=our_file):
+            pass
+    return incr(x)
 
 
 @with_setup(pretest, posttest)
@@ -179,3 +186,18 @@ def test_imap():
     pool = Pool()
     res = list(tqdm(pool.imap(incr, range(100)), disable=True))
     assert res[-1] == 100
+
+
+@with_setup(pretest, posttest)
+def test_threadpool():
+    """Test concurrent.futures.ThreadPoolExecutor"""
+    try:
+        from concurrent.futures import ThreadPoolExecutor
+        from threading import RLock
+    except ImportError:
+        raise SkipTest
+
+    tqdm.set_lock(RLock())
+    with ThreadPoolExecutor(8) as pool:
+        res = list(tqdm(pool.map(incr_bar, range(100)), disable=True))
+    assert sum(res) == sum(range(1, 101))

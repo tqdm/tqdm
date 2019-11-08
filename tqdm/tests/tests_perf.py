@@ -164,7 +164,7 @@ def assert_performance(thresh, name_left, time_left, name_right, time_right):
     if time_left > thresh * time_right:
         raise ValueError(
             ('{name[0]}: {time[0]:f}, '
-             '{name[1]}: {time[0]:f}, '
+             '{name[1]}: {time[1]:f}, '
              'ratio {ratio:f} > {thresh:f}').format(
                 name=(name_left, name_right),
                 time=(time_left, time_right),
@@ -217,6 +217,48 @@ def test_manual_overhead():
                 our_file.write(a)
 
     assert_performance(6, 'tqdm', time_tqdm(), 'range', time_bench())
+
+
+def worker(total, blocking=True):
+    def incr_bar(x):
+        with closing(StringIO()) as our_file:
+            for _ in trange(
+                    total, file=our_file,
+                    lock_args=None if blocking else (False,),
+                    miniters=1, mininterval=0, maxinterval=0):
+                pass
+        return x + 1
+    return incr_bar
+
+
+@with_setup(pretest, posttest)
+@retry_on_except()
+def test_lock_args():
+    """Test overhead of nonblocking threads"""
+    try:
+        from concurrent.futures import ThreadPoolExecutor
+        from threading import RLock
+    except ImportError:
+        raise SkipTest
+    import sys
+
+    total = 8
+    subtotal = 1000
+
+    tqdm.set_lock(RLock())
+    with ThreadPoolExecutor(total) as pool:
+        sys.stderr.write('block ... ')
+        sys.stderr.flush()
+        with relative_timer() as time_tqdm:
+            res = list(pool.map(worker(subtotal, True), range(total)))
+            assert sum(res) == sum(range(total)) + total
+        sys.stderr.write('noblock ... ')
+        sys.stderr.flush()
+        with relative_timer() as time_noblock:
+            res = list(pool.map(worker(subtotal, False), range(total)))
+            assert sum(res) == sum(range(total)) + total
+
+    assert_performance(0.2, 'noblock', time_noblock(), 'tqdm', time_tqdm())
 
 
 @with_setup(pretest, posttest)
