@@ -1,5 +1,5 @@
 from __future__ import division
-from tqdm import tqdm, TMonitor
+from tqdm import tqdm, trange, TMonitor
 from tests_tqdm import with_setup, pretest, posttest, SkipTest, \
     StringIO, closing
 from tests_tqdm import DiscreteTimer, cpu_timify
@@ -43,9 +43,8 @@ def incr(x):
 
 def incr_bar(x):
     with closing(StringIO()) as our_file:
-        with tqdm(total=x, lock_args=(False,), file=our_file) as t:
-            for i in range(x):
-                t.update()
+        for _ in trange(x, lock_args=(False,), file=our_file):
+            pass
     return incr(x)
 
 
