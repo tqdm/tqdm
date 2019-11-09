@@ -78,14 +78,14 @@ jobs:
     deploy:
     - provider: script
       script: twine upload -s -i tqdm@caspersci.uk.to dist/tqdm-*
-      cleanup: false
+      skip_cleanup: true
       on:
         tags: true
     - provider: releases
       api_key: $GITHUB_TOKEN
       file_glob: true
       file: dist/tqdm-*.whl*
-      cleanup: false
+      skip_cleanup: true
       draft: true
       name: tqdm $TRAVIS_TAG stable
       edge: true
