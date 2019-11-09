@@ -1,4 +1,7 @@
 from __future__ import print_function
+from os import path
+import sys
+sys.path = [path.dirname(path.dirname(__file__))] + sys.path  # NOQA
 import tqdm
 import tqdm.cli
 from textwrap import dedent
@@ -29,7 +32,6 @@ def doc2rst(doc, arglist=True, raw=False):
     doc = doc.replace('`', '``')
     if raw:
         doc = doc.replace('\n ', '\n   ')
-        #doc = '\n'.join(i.rstrip() for i in doc.split('\n'))
     else:
         doc = dedent(doc)
         if arglist:

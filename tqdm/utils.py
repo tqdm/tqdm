@@ -31,11 +31,15 @@ if True:  # pragma: no cover
     try:
         if IS_WIN:
             import colorama
-            colorama.init()
         else:
-            colorama = None
+            raise ImportError
     except ImportError:
         colorama = None
+    else:
+        try:
+            colorama.init(strip=False)
+        except TypeError:
+            colorama.init()
 
     try:
         from weakref import WeakSet

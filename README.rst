@@ -406,6 +406,9 @@ Parameters
     If (default: None) and ``file`` is unspecified,
     bytes will be written in Python 2. If ``True`` will also write
     bytes. In all other cases will default to unicode.
+* lock_args  : tuple, optional  
+    Passed to ``refresh`` for intermediate output
+    (initialisation, iterating, and updating).
 
 Extra CLI Options
 ~~~~~~~~~~~~~~~~~
@@ -460,7 +463,18 @@ Returns
           """Clear current bar display."""
 
       def refresh(self):
-          """Force refresh the display of this bar."""
+          """
+          Force refresh the display of this bar.
+
+          Parameters
+          ----------
+          nolock  : bool, optional
+              If ``True``, does not lock.
+              If [default: ``False``]: calls ``acquire()`` on internal lock.
+          lock_args  : tuple, optional
+              Passed to internal lock's ``acquire()``.
+              If specified, will only ``display()`` if ``acquire()`` returns ``True``.
+          """
 
       def unpause(self):
           """Restart tqdm timer from last print time."""

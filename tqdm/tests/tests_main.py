@@ -48,7 +48,7 @@ def test_main():
         sys.argv = ['', '--desc', 'Test CLI --delim',
                     '--ascii', 'True', '--delim', r'\0', '--buf_size', '64']
         sys.stdin.write('\0'.join(map(str, _range(int(123)))))
-        #sys.stdin.write(b'\xff')  # TODO
+        # sys.stdin.write(b'\xff')  # TODO
         sys.stdin.seek(0)
         main()
     sys.stdin = IN_DATA_LIST
