@@ -64,7 +64,6 @@ jobs:
     stage: deploy
     python: 3.7
     dist: xenial
-    sudo: true  # required for py37
     install:
     script:
     - pip install .[dev]
@@ -97,7 +96,6 @@ jobs:
     stage: deploy
     python: 3.7
     dist: xenial
-    sudo: true  # required for py37, docker
     services:
     - docker
     install:
