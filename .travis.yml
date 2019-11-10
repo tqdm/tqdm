@@ -24,7 +24,8 @@ stages:
   if: repo = tqdm/tqdm
 jobs:
   include:
-  - name: py2.6
+  - stage: test
+    name: py2.6
     python: 2.6
     env: TOXENV=py26
     dist: trusty
@@ -49,19 +50,18 @@ jobs:
   - name: pypy3.5
     python: pypy3.5-5.10.0
     env: TOXENV=pypy3
-  - name: style
-    stage: check
+  - stage: check
+    name: style
     python: 3.6
     env: TOXENV=flake8
   - name: setup
-    stage: check
     python: 3.6
     env: TOXENV=setup.py
   - name: perf
     python: 3.6
     env: TOXENV=perf
-  - name: PyPI and GitHub
-    stage: deploy
+  - stage: deploy
+    name: PyPI and GitHub
     python: 3.7
     dist: xenial
     install:
@@ -93,7 +93,6 @@ jobs:
       on:
         tags: true
   - name: docker
-    stage: deploy
     python: 3.7
     dist: xenial
     services:
