@@ -32,11 +32,6 @@ jobs:
   - name: py2.7
     python: 2.7
     env: TOXENV=py27
-  - name: py2.7-win
-    os: windows
-    language: shell
-    python: 2.7
-    env: TOXENV=py27
   - name: py3.4
     python: 3.4
     env: TOXENV=py34
@@ -49,11 +44,28 @@ jobs:
   - name: py3.7
     python: 3.7
     env: TOXENV=py37
+  - name: py2.7-win
+    os: windows
+    language: shell
+    env: TOXENV=py27
+    before_install: &before_install_win
+    - |
+      if [[ "$TOXENV" == "py37" ]]; then
+        choco install python --version 3.7.4
+        export PATH="/c/Python37:/c/Users/travis/AppData/Roaming/Python/Scripts:/c/Python37/Scripts:$PATH"
+      else
+        choco install python2
+        export PATH="/c/Python27:/c/Users/travis/AppData/Roaming/Python/Scripts:/c/Python27/Scripts:$PATH"
+      fi
+    - pip install --user -U pip setuptools wheel
+    install: &install_win
+    - pip install --user tox
   - name: py3.7-win
     os: windows
     language: shell
-    python: 3.7
     env: TOXENV=py37
+    before_install: *before_install_win
+    install: *install_win
   - name: pypy2.7
     python: pypy2.7-5.10.0
     env: TOXENV=pypy
