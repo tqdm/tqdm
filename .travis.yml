@@ -78,6 +78,15 @@ jobs:
     before_install: *before_install_win
     install: *install_win
     script: *script_win
+  - name: py2.7-osx
+    os: osx
+    language: shell
+    env: TOXENV=py27
+  - name: py3.7-osx
+    os: osx
+    osx_image: xcode11.2  # py3.7
+    language: shell
+    env: TOXENV=py37
   - stage: check
     name: style
     python: 3.7
