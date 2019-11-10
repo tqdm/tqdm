@@ -25,6 +25,7 @@ stages:
 jobs:
   allow_failures:
   - os: windows
+  - os: osx
   include:
   - stage: test
     name: py2.6
