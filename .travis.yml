@@ -23,6 +23,8 @@ stages:
 - name: deploy
   if: repo = tqdm/tqdm
 jobs:
+  allow_failures:
+  - os: windows
   include:
   - stage: test
     name: py2.6
@@ -44,6 +46,12 @@ jobs:
   - name: py3.7
     python: 3.7
     env: TOXENV=py37
+  - name: pypy2.7
+    python: pypy2.7-5.10.0
+    env: TOXENV=pypy
+  - name: pypy3.5
+    python: pypy3.5-5.10.0
+    env: TOXENV=pypy3
   - name: py2.7-win
     os: windows
     language: shell
@@ -58,17 +66,18 @@ jobs:
         export PATH="/c/Python27:/c/Python27/Scripts:$PATH"
       fi
     - python -m pip install -U pip setuptools wheel
+    install: &install_win
+    - python -m pip install tox
+    - python -m pip install .
+    script: &script_win
+    - python -m tox
   - name: py3.7-win
     os: windows
     language: shell
     env: TOXENV=py37
     before_install: *before_install_win
-  - name: pypy2.7
-    python: pypy2.7-5.10.0
-    env: TOXENV=pypy
-  - name: pypy3.5
-    python: pypy3.5-5.10.0
-    env: TOXENV=pypy3
+    install: *install_win
+    script: *script_win
   - stage: check
     name: style
     python: 3.7
@@ -193,7 +202,7 @@ before_install:
 # - sudo ln -s /run/shm /dev/shm
 - git fetch --tags
 install:
-- python -m pip install tox
-- python -m pip install .
+- pip install tox
+- pip install .
 script:
-- python -m tox
+- tox
