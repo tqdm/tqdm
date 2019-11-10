@@ -52,20 +52,17 @@ jobs:
     - |
       if [[ "$TOXENV" == "py37" ]]; then
         choco install python --version 3.7.4
-        export PATH="/c/Python37:/c/Users/travis/AppData/Roaming/Python/Scripts:/c/Python37/Scripts:$PATH"
+        export PATH="/c/Python37:/c/Python37/Scripts:$PATH"
       else
         choco install python2
-        export PATH="/c/Python27:/c/Users/travis/AppData/Roaming/Python/Scripts:/c/Python27/Scripts:$PATH"
+        export PATH="/c/Python27:/c/Python27/Scripts:$PATH"
       fi
-    - pip install --user -U pip setuptools wheel
-    install: &install_win
-    - pip install --user tox
+    - python -m pip install -U pip setuptools wheel
   - name: py3.7-win
     os: windows
     language: shell
     env: TOXENV=py37
     before_install: *before_install_win
-    install: *install_win
   - name: pypy2.7
     python: pypy2.7-5.10.0
     env: TOXENV=pypy
@@ -196,7 +193,7 @@ before_install:
 # - sudo ln -s /run/shm /dev/shm
 - git fetch --tags
 install:
-- pip install tox
-- pip install .
+- python -m pip install tox
+- python -m pip install .
 script:
-- tox
+- python -m tox
