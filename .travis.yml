@@ -52,13 +52,13 @@ jobs:
     env: TOXENV=pypy3
   - stage: check
     name: style
-    python: 3.6
+    python: 3.7
     env: TOXENV=flake8
   - name: setup
-    python: 3.6
+    python: 3.7
     env: TOXENV=setup.py
   - name: perf
-    python: 3.6
+    python: 3.7
     env: TOXENV=perf
   - stage: deploy
     name: PyPI and GitHub
