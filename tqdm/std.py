@@ -727,6 +727,8 @@ class tqdm(Comparable):
                         " Use keyword arguments instead.",
                         fp_write=getattr(t.fp, 'write', sys.stderr.write))
 
+                func = df._is_builtin_func(func)
+
                 # Define bar updating wrapper
                 def wrapper(*args, **kwargs):
                     # update tbar correctly
