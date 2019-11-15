@@ -180,7 +180,7 @@ class Bar(object):
         if bar_length < N_BARS:
             return bar + frac_bar + \
                 charset[0] * (N_BARS - bar_length - 1)
-        return bar + charset[0] * (N_BARS - bar_length)
+        return bar
 
 
 class tqdm(Comparable):
