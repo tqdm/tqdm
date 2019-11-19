@@ -16,10 +16,11 @@ from .utils import _supports_unicode, _environ_cols_wrapper, _range, _unich, \
     Comparable, RE_ANSI, _is_ascii, SimpleTextIOWrapper, FormatReplace
 from ._monitor import TMonitor
 # native libraries
+from contextlib import contextmanager
+from functools import wraps
 import sys
 from numbers import Number
 from time import time
-from contextlib import contextmanager
 # For parallelism safety
 import threading as th
 from warnings import warn
@@ -1421,6 +1422,48 @@ class tqdm(Comparable):
         self.sp(self.__repr__() if msg is None else msg)
         if pos:
             self.moveto(-pos)
+
+    @contextmanager
+    def wrapattr(self, stream, method, close=True):
+        """
+        stream  : file-like object.
+        method  : str, "read" or "write". The result of `read()` and
+            the first argument of `write()` should have a `len()`.
+        close  : bool. optional. If [default: True], calls `self.close()`
+            on exit. Avoids having to use `with` on the `tqdm` object.
+            Does not affect the `stream`.
+            Consider combining `close=False` with `reset()`.
+
+        >>> pbar = tqdm(total=file_obj.size)
+        >>> with pbar.wrapattr(file_obj, "read") as fobj:
+        ...     while True:
+        ...         chunk = fobj.read(chunk_size)
+        ...         if not chunk:
+        ...             break
+        """
+        func = getattr(stream, method)
+        if method == "write":
+            @wraps(func)
+            def wrapped(data, *args, **kwargs):
+                res = func(data, *args, **kwargs)
+                self.update(len(data))
+                return res
+        elif method == "read":
+            @wraps(func)
+            def wrapped(*args, **kwargs):
+                res = func(*args, **kwargs)
+                self.update(len(res))
+                return res
+        else:
+            raise TqdmKeyError("Can only wrap read/write methods")
+
+        try:
+            setattr(stream, method, wrapped)
+            yield stream
+        finally:
+            setattr(stream, method, func)
+            if close:
+                self.close()
 
 
 def trange(*args, **kwargs):
