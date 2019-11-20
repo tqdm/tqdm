@@ -832,6 +832,16 @@ this warning.
 Custom Integration
 ~~~~~~~~~~~~~~~~~~
 
+To change the default arguments (such as making ``dynamic_ncols=True``),
+simply use built-in Python magic:
+
+.. code:: python
+
+    from functools import partial
+    from tqdm import tqdm as std_tqdm
+    tqdm = partial(std_tqdm, dynamic_ncols=True)
+
+For further customisation,
 ``tqdm`` may be inherited from to create custom callbacks (as with the
 ``TqdmUpTo`` example `above <#hooks-and-callbacks>`__) or for custom frontends
 (e.g. GUIs such as notebook or plotting packages). In the latter case:
