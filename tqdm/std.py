@@ -127,6 +127,38 @@ class TqdmDefaultWriteLock(object):
 TqdmDefaultWriteLock.create_th_lock()
 
 
+class CallbackIOWrapper(object):
+    def __getattr__(self, name):
+        return getattr(self._wrapped, name)
+
+    def __setattr__(self, name, value):
+        return setattr(self._wrapped, name, value)
+
+    def __init__(self, callback, stream, method="read"):
+        """
+        Wrap a given `file`-like object's `read()` or `write()` to report
+        lengths to the given `callback`
+        """
+        object.__setattr__(self, '_wrapped', stream)
+        func = getattr(stream, method)
+        if method == "write":
+            @wraps(stream.write)
+            def write(data, *args, **kwargs):
+                res = stream.write(data, *args, **kwargs)
+                callback(len(data))
+                return res
+            object.__setattr__(self, 'write', write)
+        elif method == "read":
+            @wraps(stream.read)
+            def read(*args, **kwargs):
+                data = stream.read(*args, **kwargs)
+                callback(len(data))
+                return data
+            object.__setattr__(self, 'read', read)
+        else:
+            raise TqdmKeyError("Can only wrap read/write methods")
+
+
 class Bar(object):
     """
     `str.format`-able bar with format specifiers: `[width][type]`
@@ -1442,27 +1474,10 @@ class tqdm(Comparable):
         ...         if not chunk:
         ...             break
         """
-        func = getattr(stream, method)
-        if method == "write":
-            @wraps(func)
-            def wrapped(data, *args, **kwargs):
-                res = func(data, *args, **kwargs)
-                self.update(len(data))
-                return res
-        elif method == "read":
-            @wraps(func)
-            def wrapped(*args, **kwargs):
-                res = func(*args, **kwargs)
-                self.update(len(res))
-                return res
-        else:
-            raise TqdmKeyError("Can only wrap read/write methods")
-
         try:
-            setattr(stream, method, wrapped)
-            yield stream
+            wrapped = CallbackIOWrapper(self.update, stream, method)
+            yield wrapped
         finally:
-            setattr(stream, method, func)
             if close:
                 self.close()
 

@@ -1800,3 +1800,18 @@ def test_auto():
     from tqdm import autonotebook, auto
     backendCheck(autonotebook)
     backendCheck(auto)
+
+
+@with_setup(pretest, posttest)
+def test_wrapattr():
+    """Test wrapping file-like objects"""
+    data = "a twenty-char string"
+
+    with closing(StringIO()) as our_file:
+        with closing(StringIO()) as writer:
+            with tqdm.wrapattr(writer, "write", file=our_file) as wrap:
+                wrap.write(data)
+            res = writer.getvalue()
+            assert data == res
+        res = our_file.getvalue()
+        assert str(len(data)) in res
