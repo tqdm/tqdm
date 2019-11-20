@@ -1455,32 +1455,6 @@ class tqdm(Comparable):
         if pos:
             self.moveto(-pos)
 
-    @contextmanager
-    def self_wrapattr(self, stream, method, close=True):
-        """
-        stream  : file-like object.
-        method  : str, "read" or "write". The result of `read()` and
-            the first argument of `write()` should have a `len()`.
-        close  : bool. optional. If [default: True], calls `self.close()`
-            on exit. Avoids having to use `with` on the `tqdm` object.
-            Does not affect the `stream`.
-            Consider combining `close=False` with `reset()`.
-            Otherwise, consider using `wrapattr()`.
-
-        >>> pbar = tqdm(total=file_obj.size)
-        >>> with pbar.self_wrapattr(file_obj, "read") as fobj:
-        ...     while True:
-        ...         chunk = fobj.read(chunk_size)
-        ...         if not chunk:
-        ...             break
-        """
-        try:
-            wrapped = CallbackIOWrapper(self.update, stream, method)
-            yield wrapped
-        finally:
-            if close:
-                self.close()
-
     @classmethod
     @contextmanager
     def wrapattr(tclass, stream, method, total=None, **tkwargs):
@@ -1496,8 +1470,7 @@ class tqdm(Comparable):
         ...             break
         """
         with tclass(total=total, **tkwargs) as t:
-            with t.self_wrapattr(stream, method, False) as wrapped:
-                yield wrapped
+            yield CallbackIOWrapper(t.update, stream, method)
 
 
 def trange(*args, **kwargs):
