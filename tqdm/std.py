@@ -925,12 +925,13 @@ class tqdm(Comparable):
             with self._lock:
                 self.pos = self._get_free_pos(self)
                 self._instances.remove(self)
-            raise (TqdmDeprecationWarning(
-                       "`nested` is deprecated and automated.\n"
-                       "Use `position` instead for manual control.\n",
-                       fp_write=getattr(file, 'write', sys.stderr.write))
-                   if "nested" in kwargs else
-                   TqdmKeyError("Unknown argument(s): " + str(kwargs)))
+            raise (
+                TqdmDeprecationWarning(
+                    "`nested` is deprecated and automated.\n"
+                    "Use `position` instead for manual control.\n",
+                    fp_write=getattr(file, 'write', sys.stderr.write))
+                if "nested" in kwargs else
+                TqdmKeyError("Unknown argument(s): " + str(kwargs)))
 
         # Preprocess the arguments
         if ((ncols is None) and (file in (sys.stderr, sys.stdout))) or \
