@@ -63,7 +63,6 @@ jobs:
   - stage: deploy
     name: PyPI and GitHub
     python: 3.7
-    dist: xenial
     install:
     script:
     - pip install .[dev]
@@ -94,7 +93,6 @@ jobs:
         tags: true
   - name: docker
     python: 3.7
-    dist: xenial
     services:
     - docker
     install:
@@ -128,6 +126,38 @@ jobs:
         branch: devel
     - provider: script
       script: 'docker push docker.pkg.github.com/tqdm/tqdm/tqdm:devel || :'
+      on:
+        branch: devel
+  - name: snap
+    python: 3.7
+    addons:
+     snaps:
+     - name: snapcraft
+       channel: stable
+       confinement: classic
+     - name: lxd
+       channel: stable
+    env:
+    - SNAPCRAFT_IMAGE_INFO: '{"build_url": "$TRAVIS_BUILD_URL"}'
+    before_install:
+    - sudo /snap/bin/lxd.migrate -yes
+    - sudo /snap/bin/lxd waitready
+    - sudo /snap/bin/lxd init --auto
+    install:
+    - make snapcraft.yaml
+    script:
+    - sudo snapcraft --use-lxd
+    after_failure:
+    - sudo journalctl -u snapd
+    deploy:
+    - provider: snap
+      snap: tqdm*.snap
+      channel: ${SOURCE_TAG:+stable}${SOURCE_TAG:-candidate}
+      skip_cleanup: true
+    - provider: snap
+      snap: tqdm*.snap
+      channel: edge
+      skip_cleanup: true
       on:
         branch: devel
 before_install:
