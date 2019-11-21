@@ -1457,7 +1457,7 @@ class tqdm(Comparable):
 
     @classmethod
     @contextmanager
-    def wrapattr(tclass, stream, method, total=None, **tkwargs):
+    def wrapattr(tclass, stream, method, total=None, bytes=True, **tkwargs):
         """
         stream  : file-like object.
         method  : str, "read" or "write". The result of `read()` and
@@ -1470,6 +1470,10 @@ class tqdm(Comparable):
         ...             break
         """
         with tclass(total=total, **tkwargs) as t:
+            if bytes:
+                t.unit = "B"
+                t.unit_scale = True
+                t.unit_divisor = 1024
             yield CallbackIOWrapper(t.update, stream, method)
 
 

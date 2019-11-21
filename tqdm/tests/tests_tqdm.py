@@ -1809,9 +1809,18 @@ def test_wrapattr():
 
     with closing(StringIO()) as our_file:
         with closing(StringIO()) as writer:
-            with tqdm.wrapattr(writer, "write", file=our_file) as wrap:
+            with tqdm.wrapattr(
+                    writer, "write", file=our_file, bytes=True) as wrap:
                 wrap.write(data)
             res = writer.getvalue()
             assert data == res
         res = our_file.getvalue()
-        assert str(len(data)) in res
+        assert ('%.1fB [' % len(data)) in res
+
+    with closing(StringIO()) as our_file:
+        with closing(StringIO()) as writer:
+            with tqdm.wrapattr(
+                    writer, "write", file=our_file, bytes=False) as wrap:
+                wrap.write(data)
+        res = our_file.getvalue()
+        assert ('%dit [' % len(data)) in res
