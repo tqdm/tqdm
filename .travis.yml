@@ -63,7 +63,6 @@ jobs:
   - stage: deploy
     name: PyPI and GitHub
     python: 3.7
-    dist: xenial
     install:
     script:
     - pip install .[dev]
@@ -94,7 +93,6 @@ jobs:
         tags: true
   - name: docker
     python: 3.7
-    dist: xenial
     services:
     - docker
     install:
@@ -131,34 +129,38 @@ jobs:
       on:
         branch: devel
   - name: snap
+    stage: check  # TODO: remove before merge
     python: 3.7
-    dist: xenial
     addons:
-      apt:
-        packages:
-        - snapd
+     snaps:
+     - name: snapcraft
+       channel: stable
+       confinement: classic
+     - name: lxd
+       channel: stable
+    env:
+    - SNAPCRAFT_IMAGE_INFO: '{"build_url": "$TRAVIS_BUILD_URL"}'
+    before_install:
+    - sudo /snap/bin/lxd.migrate -yes
+    - sudo /snap/bin/lxd waitready
+    - sudo /snap/bin/lxd init --auto
     install:
-    - sudo snap install snapcraft --classic --beta
-    - sudo snap install multipass --classic --beta
+    - make snapcraft.yaml
     script:
-    - make snap
+    - sudo snapcraft --use-lxd
+    after_failure:
+    - sudo journalctl -u snapd
     deploy:
     - provider: snap
       snap: tqdm*.snap
-      channel: stable
-      skip_cleanup: true
-      on:
-        tags: true
-    - provider: snap
-      snap: tqdm*.snap
-      channel: candidate
+      channel: latest/${SOURCE_TAG:+stable}${SOURCE_TAG:-candidate}
       skip_cleanup: true
     - provider: snap
       snap: tqdm*.snap
-      channel: edge
+      channel: latest/edge
       skip_cleanup: true
       on:
-        branch: snap
+        branch: snap  # TODO: devel before merge
 before_install:
 # fix a crash with multiprocessing on Travis
 # - sudo rm -rf /dev/shm
