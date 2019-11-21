@@ -153,11 +153,11 @@ jobs:
     deploy:
     - provider: snap
       snap: tqdm*.snap
-      channel: latest/${SOURCE_TAG:+stable}${SOURCE_TAG:-candidate}
+      channel: ${SOURCE_TAG:+stable}${SOURCE_TAG:-candidate}
       skip_cleanup: true
     - provider: snap
       snap: tqdm*.snap
-      channel: latest/edge
+      channel: edge
       skip_cleanup: true
       on:
         branch: snap  # TODO: devel before merge
