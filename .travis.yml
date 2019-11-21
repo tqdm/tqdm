@@ -129,7 +129,6 @@ jobs:
       on:
         branch: devel
   - name: snap
-    stage: check  # TODO: remove before merge
     python: 3.7
     addons:
      snaps:
@@ -160,7 +159,7 @@ jobs:
       channel: edge
       skip_cleanup: true
       on:
-        branch: snap  # TODO: devel before merge
+        branch: devel
 before_install:
 # fix a crash with multiprocessing on Travis
 # - sudo rm -rf /dev/shm
