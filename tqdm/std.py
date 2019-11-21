@@ -142,16 +142,16 @@ class CallbackIOWrapper(object):
         object.__setattr__(self, '_wrapped', stream)
         func = getattr(stream, method)
         if method == "write":
-            @wraps(stream.write)
+            @wraps(func)
             def write(data, *args, **kwargs):
-                res = stream.write(data, *args, **kwargs)
+                res = func(data, *args, **kwargs)
                 callback(len(data))
                 return res
             object.__setattr__(self, 'write', write)
         elif method == "read":
-            @wraps(stream.read)
+            @wraps(func)
             def read(*args, **kwargs):
-                data = stream.read(*args, **kwargs)
+                data = func(*args, **kwargs)
                 callback(len(data))
                 return data
             object.__setattr__(self, 'read', read)
