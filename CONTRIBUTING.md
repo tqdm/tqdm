@@ -334,7 +334,7 @@ For experienced devs, once happy with local master:
     a) `make -B docker`
     b) `docker push tqdm/tqdm:latest`
     c) `docker push tqdm/tqdm:$(docker run -i --rm tqdm/tqdm -v)`
-11. upload to snapcraft:
+11. **`[AUTO:TravisCI]`** upload to snapcraft:
     a) `make snap`, and
     b) `snapcraft push tqdm*.snap --release stable`
 12. Wait for travis to draft a new release on <https://github.com/tqdm/tqdm/releases>
