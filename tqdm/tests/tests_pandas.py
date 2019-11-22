@@ -130,7 +130,7 @@ def test_pandas_data_frame():
 def test_pandas_groupby_apply():
     """Test pandas.DataFrame.groupby(...).progress_apply"""
     try:
-        from numpy.random import randint
+        from numpy.random import randint, rand
         import pandas as pd
     except ImportError:
         raise SkipTest
@@ -143,6 +143,11 @@ def test_pandas_groupby_apply():
 
         dfs = pd.DataFrame(randint(0, 50, (500, 3)), columns=list('abc'))
         dfs.groupby(['a']).progress_apply(lambda x: None)
+
+        df2 = df = pd.DataFrame(dict(a=randint(1, 8, 10000), b=rand(10000)))
+        res1 = df2.groupby("a").apply(max)
+        res2 = df2.groupby("a").progress_apply(max)
+        assert res1.equals(res2)
 
         our_file.seek(0)
 

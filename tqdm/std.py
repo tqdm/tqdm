@@ -180,7 +180,7 @@ class Bar(object):
         if bar_length < N_BARS:
             return bar + frac_bar + \
                 charset[0] * (N_BARS - bar_length - 1)
-        return bar + charset[0] * (N_BARS - bar_length)
+        return bar
 
 
 class tqdm(Comparable):
@@ -727,6 +727,8 @@ class tqdm(Comparable):
                         " Use keyword arguments instead.",
                         fp_write=getattr(t.fp, 'write', sys.stderr.write))
 
+                func = df._is_builtin_func(func)
+
                 # Define bar updating wrapper
                 def wrapper(*args, **kwargs):
                     # update tbar correctly
@@ -923,13 +925,13 @@ class tqdm(Comparable):
             with self._lock:
                 self.pos = self._get_free_pos(self)
                 self._instances.remove(self)
-            from textwrap import dedent
-            raise (TqdmDeprecationWarning(dedent("""\
-                       `nested` is deprecated and automated.
-                       Use `position` instead for manual control.
-                       """), fp_write=getattr(file, 'write', sys.stderr.write))
-                   if "nested" in kwargs else
-                   TqdmKeyError("Unknown argument(s): " + str(kwargs)))
+            raise (
+                TqdmDeprecationWarning(
+                    "`nested` is deprecated and automated.\n"
+                    "Use `position` instead for manual control.\n",
+                    fp_write=getattr(file, 'write', sys.stderr.write))
+                if "nested" in kwargs else
+                TqdmKeyError("Unknown argument(s): " + str(kwargs)))
 
         # Preprocess the arguments
         if ((ncols is None) and (file in (sys.stderr, sys.stdout))) or \
@@ -1083,10 +1085,10 @@ class tqdm(Comparable):
         time = self._time
 
         if not hasattr(self, 'sp'):
-            from textwrap import dedent
-            raise TqdmDeprecationWarning(dedent("""\
-            Please use `tqdm.gui.tqdm(...)` instead of `tqdm(..., gui=True)`
-            """), fp_write=getattr(self.fp, 'write', sys.stderr.write))
+            raise TqdmDeprecationWarning(
+                "Please use `tqdm.gui.tqdm(...)` instead of"
+                " `tqdm(..., gui=True)`\n",
+                fp_write=getattr(self.fp, 'write', sys.stderr.write))
 
         for obj in iterable:
             yield obj

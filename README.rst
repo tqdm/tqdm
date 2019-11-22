@@ -3,7 +3,7 @@
 tqdm
 ====
 
-|PyPI-Versions| |PyPI-Status| |Conda-Forge-Status| |Docker| |Snapcraft|
+|Py-Versions| |Versions| |Conda-Forge-Status| |Docker| |Snapcraft|
 
 |Build-Status| |Coverage-Status| |Branch-Coverage-Status| |Codacy-Grade| |Libraries-Rank| |PyPI-Downloads|
 
@@ -71,7 +71,7 @@ Installation
 Latest PyPI stable release
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-|PyPI-Status| |PyPI-Downloads| |Libraries-Dependents|
+|Versions| |PyPI-Downloads| |Libraries-Dependents|
 
 .. code:: sh
 
@@ -292,7 +292,7 @@ If you come across any other difficulties, browse and file |GitHub-Issues|.
 Documentation
 -------------
 
-|PyPI-Versions| |README-Hits| (Since 19 May 2016)
+|Py-Versions| |README-Hits| (Since 19 May 2016)
 
 .. code:: python
 
@@ -832,6 +832,16 @@ this warning.
 Custom Integration
 ~~~~~~~~~~~~~~~~~~
 
+To change the default arguments (such as making ``dynamic_ncols=True``),
+simply use built-in Python magic:
+
+.. code:: python
+
+    from functools import partial
+    from tqdm import tqdm as std_tqdm
+    tqdm = partial(std_tqdm, dynamic_ncols=True)
+
+For further customisation,
 ``tqdm`` may be inherited from to create custom callbacks (as with the
 ``TqdmUpTo`` example `above <#hooks-and-callbacks>`__) or for custom frontends
 (e.g. GUIs such as notebook or plotting packages). In the latter case:
@@ -963,6 +973,9 @@ A reusable canonical example is given below:
 
         def flush(self):
             return getattr(self.file, "flush", lambda: None)()
+
+        def isatty(self):
+            return getattr(self.file, "isatty", lambda: False)()
 
     @contextlib.contextmanager
     def std_out_err_redirect_tqdm():
@@ -1106,11 +1119,11 @@ Citation information: |DOI| (publication), |DOI-code| (code)
    :target: https://github.com/tqdm/tqdm/pulse
 .. |Gift-Casper| image:: https://img.shields.io/badge/dynamic/json.svg?color=ff69b4&label=gifts%20received&prefix=%C2%A3&query=%24..sum&url=https%3A%2F%2Fcaspersci.uk.to%2Fgifts.json
    :target: https://caspersci.uk.to/donate
-.. |PyPI-Status| image:: https://img.shields.io/pypi/v/tqdm.svg?logo=PyPI&logoColor=white
+.. |Versions| image:: https://img.shields.io/pypi/v/tqdm.svg
+   :target: https://tqdm.github.io/releases
+.. |PyPI-Downloads| image:: https://img.shields.io/pypi/dm/tqdm.svg?label=pypi%20downloads&logo=PyPI&logoColor=white
    :target: https://pypi.org/project/tqdm
-.. |PyPI-Downloads| image:: https://img.shields.io/pypi/dm/tqdm.svg?label=pypi%20downloads&logo=python&logoColor=white
-   :target: https://pypi.org/project/tqdm
-.. |PyPI-Versions| image:: https://img.shields.io/pypi/pyversions/tqdm.svg?logo=python&logoColor=white
+.. |Py-Versions| image:: https://img.shields.io/pypi/pyversions/tqdm.svg?logo=python&logoColor=white
    :target: https://pypi.org/project/tqdm
 .. |Conda-Forge-Status| image:: https://img.shields.io/conda/v/conda-forge/tqdm.svg?label=conda-forge&logo=conda-forge
    :target: https://anaconda.org/conda-forge/tqdm
