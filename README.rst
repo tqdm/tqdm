@@ -322,14 +322,14 @@ Parameters
     Leave blank to manually manage the updates.
 * desc  : str, optional  
     Prefix for the progressbar.
-* total  : int, optional  
+* total  : int or float, optional  
     The number of expected iterations. If unspecified,
     len(iterable) is used if possible. If float("inf") or as a last
     resort, only basic progress statistics are displayed
     (no ETA, no progressbar).
     If ``gui`` is True and this parameter needs subsequent updating,
-    specify an initial arbitrary large positive integer,
-    e.g. int(9e9).
+    specify an initial arbitrary large positive number,
+    e.g. 9e9.
 * leave  : bool, optional  
     If [default: True], keeps all traces of the progressbar
     upon termination of iteration.
@@ -351,7 +351,7 @@ Parameters
     Automatically adjusts ``miniters`` to correspond to ``mininterval``
     after long display update lag. Only works if ``dynamic_miniters``
     or monitor thread is enabled.
-* miniters  : int, optional  
+* miniters  : int or float, optional  
     Minimum progress display update interval, in iterations.
     If 0 and ``dynamic_miniters``, will automatically adjust to equal
     ``mininterval`` (more CPU efficient, good for tight loops).
@@ -394,9 +394,10 @@ Parameters
     remaining, remaining_s.
     Note that a trailing ": " is automatically removed after {desc}
     if the latter is empty.
-* initial  : int, optional  
+* initial  : int or float, optional  
     The initial counter value. Useful when restarting a progress
-    bar [default: 0].
+    bar [default: 0]. If using float, consider specifying ``{n:.3f}``
+    or similar in ``bar_format``, or specifying ``unit_scale``.
 * position  : int, optional  
     Specify the line offset to print this bar (starting from 0)
     Automatic if unspecified.
@@ -455,9 +456,10 @@ Returns
 
           Parameters
           ----------
-          n  : int, optional
+          n  : int or float, optional
               Increment to add to the internal counter of iterations
-              [default: 1].
+              [default: 1]. If using float, consider specifying ``{n:.3f}``
+              or similar in ``bar_format``, or specifying ``unit_scale``.
           """
 
       def close(self):
@@ -491,7 +493,7 @@ Returns
 
           Parameters
           ----------
-          total  : int, optional. Total to use for the new bar.
+          total  : int or float, optional. Total to use for the new bar.
           """
 
       def set_description(self, desc=None, refresh=True):
