@@ -345,25 +345,23 @@ else:
             2 if east_asian_width(ch) in 'FW' else 1 for ch in _unicode(s))
 
 
-def ansilen(data):
+def disp_len(data):
     """
-    Returns the real on-screen length of a string that may contain ANSI control codes.
+    Returns the real on-screen length of a string which may contain
+    ANSI control codes and wide chars.
     """
-    return len(_text_width(RE_ANSI.sub('', data)))
+    return _text_width(RE_ANSI.sub('', data))
 
 
-def ansitrim(data, length):
+def disp_trim(data, length):
     """
-    Trim a string that may or may not contain ANSI control characters.
+    Trim a string which may contain ANSI control characters.
     """
-    real_len = ansilen(data)
-    has_ansi = len(data) != real_len
-    if not has_ansi:
-        return data[0:length]
+    if len(data) == disp_len(data):
+        return data[:length]
 
-    while real_len > length:
-        data = data[0:-1]
-        real_len = ansilen(data)
-    if data.endswith("\033[0m"):
-        return data
-    return data + "\033[0m"
+    while disp_len(data) > length:  # carefully delete one char at a time
+        data = data[:-1]
+    if RE_ANSI.search(data):  # assume ANSI reset is required
+        return data + "\033[0m"
+    return data
