@@ -485,8 +485,7 @@ class tqdm(Comparable):
             if not _is_ascii(full_bar.charset) and _is_ascii(bar_format):
                 bar_format = _unicode(bar_format)
             res = bar_format.format(bar=full_bar, **format_dict)
-            if ncols:
-                return disp_trim(res, ncols)
+            return disp_trim(res, ncols) if ncols else res
 
         elif bar_format:
             # user-specified bar_format but no total
@@ -502,8 +501,7 @@ class tqdm(Comparable):
                 if ncols else 10,
                 charset=Bar.BLANK)
             res = bar_format.format(bar=full_bar, **format_dict)
-            if ncols:
-                return disp_trim(res, ncols)
+            return disp_trim(res, ncols) if ncols else res
         else:
             # no total: no progressbar, ETA, just progress stats
             return ((prefix + ": ") if prefix else '') + \

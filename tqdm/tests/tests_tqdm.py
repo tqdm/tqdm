@@ -279,7 +279,7 @@ def test_format_meter():
         # l_bar gets chopped
         # no bar
         # no r_bar
-        format_meter(0, 1000, 13, ncols=10, bar_width=10, bar_format="************{bar}$$$$$$$$$$"),
+        format_meter(0, 1000, 13, ncols=10, bar_format="************{bar:10}$$$$$$$$$$"),
         "**********"  # 10/12 stars since ncols is 10
     )
     eq_(
@@ -287,7 +287,7 @@ def test_format_meter():
         # l_bar displays
         # bar gets chopped
         # no r_bar
-        format_meter(0, 1000, 13, ncols=20, bar_width=10, bar_format="************{bar}$$$$$$$$$$"),
+        format_meter(0, 1000, 13, ncols=20, bar_format="************{bar:10}$$$$$$$$$$"),
         "************        "  # all 12 stars and 8/10 bar parts
     )
     eq_(
@@ -295,22 +295,22 @@ def test_format_meter():
         # l_bar displays
         # bar displays
         # r_bar gets chopped
-        format_meter(0, 1000, 13, ncols=30, bar_width=10, bar_format="************{bar}$$$$$$$$$$"),
+        format_meter(0, 1000, 13, ncols=30, bar_format="************{bar:10}$$$$$$$$$$"),
         "************          $$$$$$$$"  # all 12 stars and 10 bar parts, but only 8/10 dollar signs
     )
     eq_(
         # left bar contains sone ANSI, make sure we trim it properly when escape is before trim zone
-        format_meter(0, 1000, 13, ncols=10, bar_width=10, bar_format="*****\033[22m****\033[0m***{bar}$$$$$$$$$$"),
+        format_meter(0, 1000, 13, ncols=10, bar_format="*****\033[22m****\033[0m***{bar:10}$$$$$$$$$$"),
         "*****\033[22m****\033[0m*\033[0m"  # we only know it has ANSI codes, so we append an END code anyway
     )
     eq_(
         # left bar contains sone ANSI, make sure we trim it properly when escape is at trim zone
-        format_meter(0, 1000, 13, ncols=10, bar_width=10, bar_format="*****\033[22m*****\033[0m**{bar}$$$$$$$$$$"),
+        format_meter(0, 1000, 13, ncols=10, bar_format="*****\033[22m*****\033[0m**{bar:10}$$$$$$$$$$"),
         "*****\033[22m*****\033[0m"
     )
     eq_(
         # left bar contains sone ANSI, make sure we trim it properly when escape is after trim zone
-        format_meter(0, 1000, 13, ncols=10, bar_width=10, bar_format="*****\033[22m******\033[0m*{bar}$$$$$$$$$$"),
+        format_meter(0, 1000, 13, ncols=10, bar_format="*****\033[22m******\033[0m*{bar:10}$$$$$$$$$$"),
         "*****\033[22m*****\033[0m"
     )
     # Check that bar_format correctly adapts {bar} size to the rest
