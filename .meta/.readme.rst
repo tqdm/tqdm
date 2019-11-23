@@ -102,9 +102,13 @@ Latest Snapcraft release
 
 |Snapcraft|
 
+There are 3 channels to choose from:
+
 .. code:: sh
 
-    snap install tqdm
+    snap install tqdm  # implies --stable, i.e. latest tagged release
+    snap install tqdm  --candidate  # master branch
+    snap install tqdm  --edge  # devel branch
 
 Latest Docker release
 ~~~~~~~~~~~~~~~~~~~~~
