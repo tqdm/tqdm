@@ -1314,6 +1314,11 @@ def test_set_description():
             assert t.desc == ''
         assert "World" not in our_file.getvalue()
 
+    # unicode
+    with closing(StringIO()) as our_file:
+        with tqdm(total=10, file=our_file) as t:
+            t.set_description(u"\xe1\xe9\xed\xf3\xfa")
+
 
 @with_setup(pretest, posttest)
 def test_deprecated_gui():
