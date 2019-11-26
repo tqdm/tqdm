@@ -464,10 +464,11 @@ class tqdm(Comparable):
                 bar_format = "{l_bar}{bar}{r_bar}"
 
             full_bar = FormatReplace()
-            if _is_ascii(bar_format) and any(
-                    not _is_ascii(i) for i in format_dict.values()):
+            try:
+                nobar = bar_format.format(bar=full_bar, **format_dict)
+            except UnicodeEncodeError:
                 bar_format = _unicode(bar_format)
-            nobar = bar_format.format(bar=full_bar, **format_dict)
+                nobar = bar_format.format(bar=full_bar, **format_dict)
             if not full_bar.format_called:
                 # no {bar}, we can just format and return
                 return nobar
