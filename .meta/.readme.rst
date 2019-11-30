@@ -604,13 +604,16 @@ methods, use ``CallbackIOWrapper``:
         t.reset()
         # ... continue to use `t` for something else
 
-Alternatively, use the even simpler ``wrapattr`` convenience function:
+Alternatively, use the even simpler ``wrapattr`` convenience function,
+which would condense both the ``urllib`` and ``CallbackIOWrapper`` examples
+down to:
 
 .. code:: python
 
-    with tqdm.wrapattr(file_obj, "write", total=data.size) as fobj:
-        for chunk in data:
-            fobj.write(chunk)
+    with tqdm.wrapattr(open(os.devnull, "wb"), "write",
+                       miniters=1, desc=eg_link.split('/')[-1]) as fout:
+        for chunk in urllib.urlopen(eg_link):
+            fout.write(chunk)
 
 Pandas Integration
 ~~~~~~~~~~~~~~~~~~
