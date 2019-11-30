@@ -15,7 +15,7 @@ from time import sleep
 import contextlib
 import sys
 from tqdm import tqdm
-from tqdm.utils import DummyTqdmFile
+from tqdm.contrib import DummyTqdmFile
 
 
 @contextlib.contextmanager

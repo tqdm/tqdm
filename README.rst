@@ -949,7 +949,7 @@ A reusable canonical example is given below:
     import contextlib
     import sys
     from tqdm import tqdm
-    from tqdm.utils import DummyTqdmFile  # write to tqdm
+    from tqdm.contrib import DummyTqdmFile
 
 
     @contextlib.contextmanager

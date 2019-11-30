@@ -15,7 +15,7 @@ from tqdm import tqdm
 from tqdm import trange
 from tqdm import TqdmDeprecationWarning
 from tqdm.std import Bar
-from tqdm.utils import DummyTqdmFile
+from tqdm.contrib import DummyTqdmFile
 
 try:
     from StringIO import StringIO

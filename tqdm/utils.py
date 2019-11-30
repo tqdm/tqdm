@@ -187,15 +187,6 @@ class ObjectWrapper(object):
         self.wrapper_setattr('_wrapped', wrapped)
 
 
-class DummyTqdmFile(ObjectWrapper):
-    """Dummy file-like that will write to tqdm"""
-    def write(self, x, nolock=False):
-        from tqdm import tqdm
-        # Avoid print() second call (useless \n)
-        if len(x.rstrip()) > 0:
-            tqdm.write(x, file=self._wrapped, nolock=nolock)
-
-
 class SimpleTextIOWrapper(ObjectWrapper):
     """
     Change only `.write()` of the wrapped object by encoding the passed
