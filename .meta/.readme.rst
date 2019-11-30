@@ -541,7 +541,7 @@ Hooks and callbacks
 ``tqdm`` can easily support callbacks/hooks and manual updates.
 Here's an example with ``urllib``:
 
-**urllib.urlretrieve documentation**
+**``urllib.urlretrieve`` documentation**
 
     | [...]
     | If present, the hook function will be called once
@@ -583,6 +583,34 @@ Functional alternative in
 It is recommend to use ``miniters=1`` whenever there is potentially
 large differences in iteration speed (e.g. downloading a file over
 a patchy connection).
+
+**Wrapping read/write methods**
+
+To measure throughput through a file-like object's ``read`` or ``write``
+methods, use ``CallbackIOWrapper``:
+
+.. code:: python
+
+    from tqdm import tqdm
+    from tqdm.utils import CallbackIOWrapper
+
+    with tqdm(total=file_obj.size,
+              unit='B', unit_scale=True, unit_divisor=1024) as t:
+        fobj = CallbackIOWrapper(t.update, file_obj, "read")
+        while True:
+            chunk = fobj.read(chunk_size)
+            if not chunk:
+                break
+        t.reset()
+        # ... continue to use `t` for something else
+
+Alternatively, use the even simpler ``wrapattr`` convenience function:
+
+.. code:: python
+
+    with tqdm.wrapattr(file_obj, "write", total=data.size) as fobj:
+        for chunk in data:
+            fobj.write(chunk)
 
 Pandas Integration
 ~~~~~~~~~~~~~~~~~~
