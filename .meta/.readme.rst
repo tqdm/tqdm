@@ -769,20 +769,8 @@ A reusable canonical example is given below:
     import contextlib
     import sys
     from tqdm import tqdm
+    from tqdm.utils import DummyTqdmFile  # write to tqdm
 
-    class DummyTqdmFile(object):
-        """Dummy file-like that will write to tqdm"""
-        file = None
-        def __init__(self, file):
-            self.file = file
-
-        def write(self, x):
-            # Avoid print() second call (useless \n)
-            if len(x.rstrip()) > 0:
-                tqdm.write(x, file=self.file)
-
-        def flush(self):
-            return getattr(self.file, "flush", lambda: None)()
 
     @contextlib.contextmanager
     def std_out_err_redirect_tqdm():
