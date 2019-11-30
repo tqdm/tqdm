@@ -790,6 +790,10 @@ down to:
 
 .. code:: python
 
+    import urllib, os
+    from tqdm import tqdm
+
+    eg_link = "https://caspersci.uk.to/matryoshka.zip"
     with tqdm.wrapattr(open(os.devnull, "wb"), "write",
                        miniters=1, desc=eg_link.split('/')[-1]) as fout:
         for chunk in urllib.urlopen(eg_link):
