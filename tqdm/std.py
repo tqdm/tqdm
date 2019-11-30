@@ -13,11 +13,11 @@ from __future__ import division
 # compatibility functions and utilities
 from .utils import _supports_unicode, _environ_cols_wrapper, _range, _unich, \
     _term_move_up, _unicode, WeakSet, _basestring, _OrderedDict, _text_width, \
-    Comparable, RE_ANSI, _is_ascii, SimpleTextIOWrapper, FormatReplace
+    Comparable, RE_ANSI, _is_ascii, FormatReplace, \
+    SimpleTextIOWrapper, CallbackIOWrapper
 from ._monitor import TMonitor
 # native libraries
 from contextlib import contextmanager
-from functools import wraps
 import sys
 from numbers import Number
 from time import time
@@ -125,38 +125,6 @@ class TqdmDefaultWriteLock(object):
 # Do not create the multiprocessing lock because it sets the multiprocessing
 # context and does not allow the user to use 'spawn' or 'forkserver' methods.
 TqdmDefaultWriteLock.create_th_lock()
-
-
-class CallbackIOWrapper(object):
-    def __getattr__(self, name):
-        return getattr(self._wrapped, name)
-
-    def __setattr__(self, name, value):
-        return setattr(self._wrapped, name, value)
-
-    def __init__(self, callback, stream, method="read"):
-        """
-        Wrap a given `file`-like object's `read()` or `write()` to report
-        lengths to the given `callback`
-        """
-        object.__setattr__(self, '_wrapped', stream)
-        func = getattr(stream, method)
-        if method == "write":
-            @wraps(func)
-            def write(data, *args, **kwargs):
-                res = func(data, *args, **kwargs)
-                callback(len(data))
-                return res
-            object.__setattr__(self, 'write', write)
-        elif method == "read":
-            @wraps(func)
-            def read(*args, **kwargs):
-                data = func(*args, **kwargs)
-                callback(len(data))
-                return data
-            object.__setattr__(self, 'read', read)
-        else:
-            raise TqdmKeyError("Can only wrap read/write methods")
 
 
 class Bar(object):

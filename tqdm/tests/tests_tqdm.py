@@ -15,6 +15,7 @@ from tqdm import tqdm
 from tqdm import trange
 from tqdm import TqdmDeprecationWarning
 from tqdm.std import Bar
+from tqdm.utils import DummyTqdmFile
 
 try:
     from StringIO import StringIO
@@ -1665,19 +1666,6 @@ def test_postfix_direct():
         assert "h  6.00" in res
         assert "h  8.00" in res
         assert "j  8.00" in res
-
-
-class DummyTqdmFile(object):
-    """Dummy file-like that will write to tqdm"""
-    file = None
-
-    def __init__(self, file):
-        self.file = file
-
-    def write(self, x):
-        # Avoid print() second call (useless \n)
-        if len(x.rstrip()) > 0:
-            tqdm.write(x, file=self.file, nolock=True)
 
 
 @contextmanager
