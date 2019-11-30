@@ -402,7 +402,7 @@ with the ``desc`` and ``postfix`` arguments:
 
 .. code:: python
 
-    from tqdm import trange
+    from tqdm import tqdm, trange
     from random import random, randint
     from time import sleep
 
