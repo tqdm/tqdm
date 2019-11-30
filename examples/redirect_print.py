@@ -15,22 +15,7 @@ from time import sleep
 import contextlib
 import sys
 from tqdm import tqdm
-
-
-class DummyTqdmFile(object):
-    """Dummy file-like that will write to tqdm"""
-    file = None
-
-    def __init__(self, file):
-        self.file = file
-
-    def write(self, x):
-        # Avoid print() second call (useless \n)
-        if len(x.rstrip()) > 0:
-            tqdm.write(x, file=self.file)
-
-    def flush(self):
-        return getattr(self.file, "flush", lambda: None)()
+from tqdm.contrib import DummyTqdmFile
 
     def isatty(self):
         return getattr(self.file, "isatty", lambda: False)()

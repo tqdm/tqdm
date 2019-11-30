@@ -545,7 +545,7 @@ Hooks and callbacks
 ``tqdm`` can easily support callbacks/hooks and manual updates.
 Here's an example with ``urllib``:
 
-**urllib.urlretrieve documentation**
+**``urllib.urlretrieve`` documentation**
 
     | [...]
     | If present, the hook function will be called once
@@ -587,6 +587,41 @@ Functional alternative in
 It is recommend to use ``miniters=1`` whenever there is potentially
 large differences in iteration speed (e.g. downloading a file over
 a patchy connection).
+
+**Wrapping read/write methods**
+
+To measure throughput through a file-like object's ``read`` or ``write``
+methods, use ``CallbackIOWrapper``:
+
+.. code:: python
+
+    from tqdm import tqdm
+    from tqdm.utils import CallbackIOWrapper
+
+    with tqdm(total=file_obj.size,
+              unit='B', unit_scale=True, unit_divisor=1024) as t:
+        fobj = CallbackIOWrapper(t.update, file_obj, "read")
+        while True:
+            chunk = fobj.read(chunk_size)
+            if not chunk:
+                break
+        t.reset()
+        # ... continue to use `t` for something else
+
+Alternatively, use the even simpler ``wrapattr`` convenience function,
+which would condense both the ``urllib`` and ``CallbackIOWrapper`` examples
+down to:
+
+.. code:: python
+
+    import urllib, os
+    from tqdm import tqdm
+
+    eg_link = "https://caspersci.uk.to/matryoshka.zip"
+    with tqdm.wrapattr(open(os.devnull, "wb"), "write",
+                       miniters=1, desc=eg_link.split('/')[-1]) as fout:
+        for chunk in urllib.urlopen(eg_link):
+            fout.write(chunk)
 
 Pandas Integration
 ~~~~~~~~~~~~~~~~~~
@@ -783,20 +818,8 @@ A reusable canonical example is given below:
     import contextlib
     import sys
     from tqdm import tqdm
+    from tqdm.contrib import DummyTqdmFile
 
-    class DummyTqdmFile(object):
-        """Dummy file-like that will write to tqdm"""
-        file = None
-        def __init__(self, file):
-            self.file = file
-
-        def write(self, x):
-            # Avoid print() second call (useless \n)
-            if len(x.rstrip()) > 0:
-                tqdm.write(x, file=self.file)
-
-        def flush(self):
-            return getattr(self.file, "flush", lambda: None)()
 
         def isatty(self):
             return getattr(self.file, "isatty", lambda: False)()

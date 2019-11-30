@@ -11,13 +11,14 @@ from __future__ import absolute_import, division
 # compatibility functions and utilities
 from .utils import _supports_unicode, _environ_cols_wrapper, _range, _unich, \
     _term_move_up, _unicode, WeakSet, _basestring, _OrderedDict, _text_width, \
-    Comparable, RE_ANSI, _is_ascii, SimpleTextIOWrapper, FormatReplace
+    Comparable, RE_ANSI, _is_ascii, FormatReplace, \
+    SimpleTextIOWrapper, CallbackIOWrapper
 from ._monitor import TMonitor
 # native libraries
+from contextlib import contextmanager
 import sys
 from numbers import Number
 from time import time
-from contextlib import contextmanager
 # For parallelism safety
 import threading as th
 from warnings import warn
@@ -1427,6 +1428,27 @@ class tqdm(Comparable):
         self.sp(self.__repr__() if msg is None else msg)
         if pos:
             self.moveto(-pos)
+
+    @classmethod
+    @contextmanager
+    def wrapattr(tclass, stream, method, total=None, bytes=True, **tkwargs):
+        """
+        stream  : file-like object.
+        method  : str, "read" or "write". The result of `read()` and
+            the first argument of `write()` should have a `len()`.
+
+        >>> with tqdm.wrapattr(file_obj, "read", total=file_obj.size) as fobj:
+        ...     while True:
+        ...         chunk = fobj.read(chunk_size)
+        ...         if not chunk:
+        ...             break
+        """
+        with tclass(total=total, **tkwargs) as t:
+            if bytes:
+                t.unit = "B"
+                t.unit_scale = True
+                t.unit_divisor = 1024
+            yield CallbackIOWrapper(t.update, stream, method)
 
 
 def trange(*args, **kwargs):
