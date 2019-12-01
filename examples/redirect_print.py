@@ -17,9 +17,6 @@ import sys
 from tqdm import tqdm
 from tqdm.contrib import DummyTqdmFile
 
-    def isatty(self):
-        return getattr(self.file, "isatty", lambda: False)()
-
 
 @contextlib.contextmanager
 def std_out_err_redirect_tqdm():
