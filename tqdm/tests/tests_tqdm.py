@@ -15,6 +15,7 @@ from tqdm import tqdm
 from tqdm import trange
 from tqdm import TqdmDeprecationWarning
 from tqdm.std import Bar
+from tqdm.contrib import DummyTqdmFile
 
 try:
     from StringIO import StringIO
@@ -1314,6 +1315,11 @@ def test_set_description():
             assert t.desc == ''
         assert "World" not in our_file.getvalue()
 
+    # unicode
+    with closing(StringIO()) as our_file:
+        with tqdm(total=10, file=our_file) as t:
+            t.set_description(u"\xe1\xe9\xed\xf3\xfa")
+
 
 @with_setup(pretest, posttest)
 def test_deprecated_gui():
@@ -1667,19 +1673,6 @@ def test_postfix_direct():
         assert "j  8.00" in res
 
 
-class DummyTqdmFile(object):
-    """Dummy file-like that will write to tqdm"""
-    file = None
-
-    def __init__(self, file):
-        self.file = file
-
-    def write(self, x):
-        # Avoid print() second call (useless \n)
-        if len(x.rstrip()) > 0:
-            tqdm.write(x, file=self.file, nolock=True)
-
-
 @contextmanager
 def std_out_err_redirect_tqdm(tqdm_file=sys.stderr):
     orig_out_err = sys.stdout, sys.stderr
@@ -1800,3 +1793,27 @@ def test_auto():
     from tqdm import autonotebook, auto
     backendCheck(autonotebook)
     backendCheck(auto)
+
+
+@with_setup(pretest, posttest)
+def test_wrapattr():
+    """Test wrapping file-like objects"""
+    data = "a twenty-char string"
+
+    with closing(StringIO()) as our_file:
+        with closing(StringIO()) as writer:
+            with tqdm.wrapattr(
+                    writer, "write", file=our_file, bytes=True) as wrap:
+                wrap.write(data)
+            res = writer.getvalue()
+            assert data == res
+        res = our_file.getvalue()
+        assert ('%.1fB [' % len(data)) in res
+
+    with closing(StringIO()) as our_file:
+        with closing(StringIO()) as writer:
+            with tqdm.wrapattr(
+                    writer, "write", file=our_file, bytes=False) as wrap:
+                wrap.write(data)
+        res = our_file.getvalue()
+        assert ('%dit [' % len(data)) in res

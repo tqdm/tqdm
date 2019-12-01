@@ -7,19 +7,18 @@ Usage:
   >>> for i in trange(10): #same as: for i in tqdm(xrange(10))
   ...     ...
 """
-from __future__ import absolute_import
-# integer division / : float, // : int
-from __future__ import division
+from __future__ import absolute_import, division
 # compatibility functions and utilities
 from .utils import _supports_unicode, _environ_cols_wrapper, _range, _unich, \
     _term_move_up, _unicode, WeakSet, _basestring, _OrderedDict, _text_width, \
-    Comparable, RE_ANSI, _is_ascii, SimpleTextIOWrapper, FormatReplace
+    Comparable, RE_ANSI, _is_ascii, FormatReplace, \
+    SimpleTextIOWrapper, CallbackIOWrapper
 from ._monitor import TMonitor
 # native libraries
+from contextlib import contextmanager
 import sys
 from numbers import Number
 from time import time
-from contextlib import contextmanager
 # For parallelism safety
 import threading as th
 from warnings import warn
@@ -315,11 +314,11 @@ class tqdm(Comparable):
 
         Parameters
         ----------
-        n  : int
+        n  : int or float
             Number of finished iterations.
-        total  : int
-            The expected total number of iterations. If meaningless (), only
-            basic progress statistics are displayed (no ETA).
+        total  : int or float
+            The expected total number of iterations. If meaningless (None),
+            only basic progress statistics are displayed (no ETA).
         elapsed  : float
             Number of seconds passed since start.
         ncols  : int, optional
@@ -372,7 +371,7 @@ class tqdm(Comparable):
         """
 
         # sanity check: total
-        if total and n > total:
+        if total and n >= (total + 0.5):  # allow float imprecision (#849)
             total = None
 
         # apply custom scale if necessary
@@ -466,7 +465,11 @@ class tqdm(Comparable):
                 bar_format = "{l_bar}{bar}{r_bar}"
 
             full_bar = FormatReplace()
-            nobar = bar_format.format(bar=full_bar, **format_dict)
+            try:
+                nobar = bar_format.format(bar=full_bar, **format_dict)
+            except UnicodeEncodeError:
+                bar_format = _unicode(bar_format)
+                nobar = bar_format.format(bar=full_bar, **format_dict)
             if not full_bar.format_called:
                 # no {bar}, we can just format and return
                 return nobar
@@ -786,14 +789,14 @@ class tqdm(Comparable):
             Leave blank to manually manage the updates.
         desc  : str, optional
             Prefix for the progressbar.
-        total  : int, optional
+        total  : int or float, optional
             The number of expected iterations. If unspecified,
             len(iterable) is used if possible. If float("inf") or as a last
             resort, only basic progress statistics are displayed
             (no ETA, no progressbar).
             If `gui` is True and this parameter needs subsequent updating,
-            specify an initial arbitrary large positive integer,
-            e.g. int(9e9).
+            specify an initial arbitrary large positive number,
+            e.g. 9e9.
         leave  : bool, optional
             If [default: True], keeps all traces of the progressbar
             upon termination of iteration.
@@ -815,7 +818,7 @@ class tqdm(Comparable):
             Automatically adjusts `miniters` to correspond to `mininterval`
             after long display update lag. Only works if `dynamic_miniters`
             or monitor thread is enabled.
-        miniters  : int, optional
+        miniters  : int or float, optional
             Minimum progress display update interval, in iterations.
             If 0 and `dynamic_miniters`, will automatically adjust to equal
             `mininterval` (more CPU efficient, good for tight loops).
@@ -858,9 +861,10 @@ class tqdm(Comparable):
               remaining, remaining_s.
             Note that a trailing ": " is automatically removed after {desc}
             if the latter is empty.
-        initial  : int, optional
+        initial  : int or float, optional
             The initial counter value. Useful when restarting a progress
-            bar [default: 0].
+            bar [default: 0]. If using float, consider specifying `{n:.3f}`
+            or similar in `bar_format`, or specifying `unit_scale`.
         position  : int, optional
             Specify the line offset to print this bar (starting from 0)
             Automatic if unspecified.
@@ -1161,9 +1165,10 @@ class tqdm(Comparable):
 
         Parameters
         ----------
-        n  : int, optional
+        n  : int or float, optional
             Increment to add to the internal counter of iterations
-            [default: 1].
+            [default: 1]. If using float, consider specifying `{n:.3f}`
+            or similar in `bar_format`, or specifying `unit_scale`.
         """
         # N.B.: see __iter__() for more comments.
         if self.disable:
@@ -1315,7 +1320,7 @@ class tqdm(Comparable):
 
         Parameters
         ----------
-        total  : int, optional. Total to use for the new bar.
+        total  : int or float, optional. Total to use for the new bar.
         """
         self.last_print_n = self.n = 0
         self.last_print_t = self.start_t = self._time()
@@ -1423,6 +1428,27 @@ class tqdm(Comparable):
         self.sp(self.__repr__() if msg is None else msg)
         if pos:
             self.moveto(-pos)
+
+    @classmethod
+    @contextmanager
+    def wrapattr(tclass, stream, method, total=None, bytes=True, **tkwargs):
+        """
+        stream  : file-like object.
+        method  : str, "read" or "write". The result of `read()` and
+            the first argument of `write()` should have a `len()`.
+
+        >>> with tqdm.wrapattr(file_obj, "read", total=file_obj.size) as fobj:
+        ...     while True:
+        ...         chunk = fobj.read(chunk_size)
+        ...         if not chunk:
+        ...             break
+        """
+        with tclass(total=total, **tkwargs) as t:
+            if bytes:
+                t.unit = "B"
+                t.unit_scale = True
+                t.unit_divisor = 1024
+            yield CallbackIOWrapper(t.update, stream, method)
 
 
 def trange(*args, **kwargs):

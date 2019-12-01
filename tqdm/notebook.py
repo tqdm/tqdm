@@ -32,32 +32,25 @@ if True:  # pragma: no cover
         IPY = 32
         import warnings
         with warnings.catch_warnings():
-            ipy_deprecation_msg = "The `IPython.html` package" \
-                                  " has been deprecated"
-            warnings.filterwarnings('error',
-                                    message=".*" + ipy_deprecation_msg + ".*")
+            warnings.filterwarnings(
+                'ignore',
+                message=".*The `IPython.html` package has been deprecated.*")
             try:
                 import IPython.html.widgets as ipywidgets
-            except Warning as e:
-                if ipy_deprecation_msg not in str(e):
-                    raise
-                warnings.simplefilter('ignore')
-                try:
-                    import IPython.html.widgets as ipywidgets  # NOQA
-                except ImportError:
-                    pass
             except ImportError:
                 pass
 
     try:  # IPython 4.x / 3.x
         if IPY == 32:
-            from IPython.html.widgets import IntProgress, HBox, HTML
+            from IPython.html.widgets import FloatProgress as IProgress
+            from IPython.html.widgets import HBox, HTML
             IPY = 3
         else:
-            from ipywidgets import IntProgress, HBox, HTML
+            from ipywidgets import FloatProgress as IProgress
+            from ipywidgets import HBox, HTML
     except ImportError:
         try:  # IPython 2.x
-            from IPython.html.widgets import IntProgressWidget as IntProgress
+            from IPython.html.widgets import FloatProgressWidget as IProgress
             from IPython.html.widgets import ContainerWidget as HBox
             from IPython.html.widgets import HTML
             IPY = 2
@@ -100,15 +93,15 @@ class tqdm_notebook(std_tqdm):
         # Prepare IPython progress bar
         try:
             if total:
-                pbar = IntProgress(min=0, max=total)
+                pbar = IProgress(min=0, max=total)
             else:  # No total? Show info style bar with no progress tqdm status
-                pbar = IntProgress(min=0, max=1)
+                pbar = IProgress(min=0, max=1)
                 pbar.value = 1
                 pbar.bar_style = 'info'
         except NameError:
             # #187 #451 #558
             raise ImportError(
-                "IntProgress not found. Please update jupyter and ipywidgets."
+                "FloatProgress not found. Please update jupyter and ipywidgets."
                 " See https://ipywidgets.readthedocs.io/en/stable"
                 "/user_install.html")
 

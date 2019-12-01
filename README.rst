@@ -102,9 +102,13 @@ Latest Snapcraft release
 
 |Snapcraft|
 
+There are 3 channels to choose from:
+
 .. code:: sh
 
-    snap install tqdm
+    snap install tqdm  # implies --stable, i.e. latest tagged release
+    snap install tqdm  --candidate  # master branch
+    snap install tqdm  --edge  # devel branch
 
 Latest Docker release
 ~~~~~~~~~~~~~~~~~~~~~
@@ -318,14 +322,14 @@ Parameters
     Leave blank to manually manage the updates.
 * desc  : str, optional  
     Prefix for the progressbar.
-* total  : int, optional  
+* total  : int or float, optional  
     The number of expected iterations. If unspecified,
     len(iterable) is used if possible. If float("inf") or as a last
     resort, only basic progress statistics are displayed
     (no ETA, no progressbar).
     If ``gui`` is True and this parameter needs subsequent updating,
-    specify an initial arbitrary large positive integer,
-    e.g. int(9e9).
+    specify an initial arbitrary large positive number,
+    e.g. 9e9.
 * leave  : bool, optional  
     If [default: True], keeps all traces of the progressbar
     upon termination of iteration.
@@ -347,7 +351,7 @@ Parameters
     Automatically adjusts ``miniters`` to correspond to ``mininterval``
     after long display update lag. Only works if ``dynamic_miniters``
     or monitor thread is enabled.
-* miniters  : int, optional  
+* miniters  : int or float, optional  
     Minimum progress display update interval, in iterations.
     If 0 and ``dynamic_miniters``, will automatically adjust to equal
     ``mininterval`` (more CPU efficient, good for tight loops).
@@ -390,9 +394,10 @@ Parameters
     remaining, remaining_s.
     Note that a trailing ": " is automatically removed after {desc}
     if the latter is empty.
-* initial  : int, optional  
+* initial  : int or float, optional  
     The initial counter value. Useful when restarting a progress
-    bar [default: 0].
+    bar [default: 0]. If using float, consider specifying ``{n:.3f}``
+    or similar in ``bar_format``, or specifying ``unit_scale``.
 * position  : int, optional  
     Specify the line offset to print this bar (starting from 0)
     Automatic if unspecified.
@@ -451,9 +456,10 @@ Returns
 
           Parameters
           ----------
-          n  : int, optional
+          n  : int or float, optional
               Increment to add to the internal counter of iterations
-              [default: 1].
+              [default: 1]. If using float, consider specifying ``{n:.3f}``
+              or similar in ``bar_format``, or specifying ``unit_scale``.
           """
 
       def close(self):
@@ -487,7 +493,7 @@ Returns
 
           Parameters
           ----------
-          total  : int, optional. Total to use for the new bar.
+          total  : int or float, optional. Total to use for the new bar.
           """
 
       def set_description(self, desc=None, refresh=True):
@@ -578,7 +584,7 @@ with the ``desc`` and ``postfix`` arguments:
 
 .. code:: python
 
-    from tqdm import trange
+    from tqdm import tqdm, trange
     from random import random, randint
     from time import sleep
 
@@ -721,7 +727,7 @@ Hooks and callbacks
 ``tqdm`` can easily support callbacks/hooks and manual updates.
 Here's an example with ``urllib``:
 
-**urllib.urlretrieve documentation**
+**``urllib.urlretrieve`` documentation**
 
     | [...]
     | If present, the hook function will be called once
@@ -763,6 +769,41 @@ Functional alternative in
 It is recommend to use ``miniters=1`` whenever there is potentially
 large differences in iteration speed (e.g. downloading a file over
 a patchy connection).
+
+**Wrapping read/write methods**
+
+To measure throughput through a file-like object's ``read`` or ``write``
+methods, use ``CallbackIOWrapper``:
+
+.. code:: python
+
+    from tqdm import tqdm
+    from tqdm.utils import CallbackIOWrapper
+
+    with tqdm(total=file_obj.size,
+              unit='B', unit_scale=True, unit_divisor=1024) as t:
+        fobj = CallbackIOWrapper(t.update, file_obj, "read")
+        while True:
+            chunk = fobj.read(chunk_size)
+            if not chunk:
+                break
+        t.reset()
+        # ... continue to use `t` for something else
+
+Alternatively, use the even simpler ``wrapattr`` convenience function,
+which would condense both the ``urllib`` and ``CallbackIOWrapper`` examples
+down to:
+
+.. code:: python
+
+    import urllib, os
+    from tqdm import tqdm
+
+    eg_link = "https://caspersci.uk.to/matryoshka.zip"
+    with tqdm.wrapattr(open(os.devnull, "wb"), "write",
+                       miniters=1, desc=eg_link.split('/')[-1]) as fout:
+        for chunk in urllib.urlopen(eg_link):
+            fout.write(chunk)
 
 Pandas Integration
 ~~~~~~~~~~~~~~~~~~
@@ -959,23 +1000,8 @@ A reusable canonical example is given below:
     import contextlib
     import sys
     from tqdm import tqdm
+    from tqdm.contrib import DummyTqdmFile
 
-    class DummyTqdmFile(object):
-        """Dummy file-like that will write to tqdm"""
-        file = None
-        def __init__(self, file):
-            self.file = file
-
-        def write(self, x):
-            # Avoid print() second call (useless \n)
-            if len(x.rstrip()) > 0:
-                tqdm.write(x, file=self.file)
-
-        def flush(self):
-            return getattr(self.file, "flush", lambda: None)()
-
-        def isatty(self):
-            return getattr(self.file, "isatty", lambda: False)()
 
     @contextlib.contextmanager
     def std_out_err_redirect_tqdm():

@@ -7,6 +7,9 @@ include logo.png
 include Makefile
 include tox.ini
 
+# Non-std submodules
+recursive-include tqdm/contrib *.py
+
 # Test suite
 recursive-include tqdm/tests *.py
 include requirements-dev.txt

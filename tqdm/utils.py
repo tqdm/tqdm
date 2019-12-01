@@ -1,7 +1,8 @@
+from functools import wraps
 import os
-import subprocess
 from platform import system as _curos
 import re
+import subprocess
 CUR_OS = _curos()
 IS_WIN = CUR_OS in ['Windows', 'cli']
 IS_NIX = (not IS_WIN) and any(
@@ -161,28 +162,72 @@ class Comparable(object):
         return not self < other
 
 
-class SimpleTextIOWrapper(object):
+class ObjectWrapper(object):
+    def __getattr__(self, name):
+        return getattr(self._wrapped, name)
+
+    def __setattr__(self, name, value):
+        return setattr(self._wrapped, name, value)
+
+    def wrapper_getattr(self, name):
+        """Actual `self.getattr` rather than self._wrapped.getattr"""
+        try:
+            return object.__getattr__(self, name)
+        except AttributeError:  # py2
+            return getattr(self, name)
+
+    def wrapper_setattr(self, name, value):
+        """Actual `self.setattr` rather than self._wrapped.setattr"""
+        return object.__setattr__(self, name, value)
+
+    def __init__(self, wrapped):
+        """
+        Thin wrapper around a given object
+        """
+        self.wrapper_setattr('_wrapped', wrapped)
+
+
+class SimpleTextIOWrapper(ObjectWrapper):
     """
     Change only `.write()` of the wrapped object by encoding the passed
     value and passing the result to the wrapped object's `.write()` method.
     """
     # pylint: disable=too-few-public-methods
     def __init__(self, wrapped, encoding):
-        object.__setattr__(self, '_wrapped', wrapped)
-        object.__setattr__(self, 'encoding', encoding)
+        super(SimpleTextIOWrapper, self).__init__(wrapped)
+        self.wrapper_setattr('encoding', encoding)
 
     def write(self, s):
         """
         Encode `s` and pass to the wrapped object's `.write()` method.
         """
-        return getattr(self, '_wrapped').write(s.encode(getattr(
-            self, 'encoding')))
+        return self._wrapped.write(s.encode(self.wrapper_getattr('encoding')))
 
-    def __getattr__(self, name):
-        return getattr(self._wrapped, name)
 
-    def __setattr__(self, name, value):  # pragma: no cover
-        return setattr(self._wrapped, name, value)
+class CallbackIOWrapper(ObjectWrapper):
+    def __init__(self, callback, stream, method="read"):
+        """
+        Wrap a given `file`-like object's `read()` or `write()` to report
+        lengths to the given `callback`
+        """
+        super(CallbackIOWrapper, self).__init__(stream)
+        func = getattr(stream, method)
+        if method == "write":
+            @wraps(func)
+            def write(data, *args, **kwargs):
+                res = func(data, *args, **kwargs)
+                callback(len(data))
+                return res
+            self.wrapper_setattr('write', write)
+        elif method == "read":
+            @wraps(func)
+            def read(*args, **kwargs):
+                data = func(*args, **kwargs)
+                callback(len(data))
+                return data
+            self.wrapper_setattr('read', read)
+        else:
+            raise KeyError("Can only wrap read/write methods")
 
 
 def _is_utf(encoding):
