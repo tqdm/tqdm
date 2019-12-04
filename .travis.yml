@@ -88,6 +88,8 @@ jobs:
       draft: true
       name: tqdm $TRAVIS_TAG stable
       edge: true
+      tag_name: $TRAVIS_TAG
+      target_commitish: $TRAVIS_COMMIT
       release_notes_file: CHANGES.md
       on:
         tags: true
