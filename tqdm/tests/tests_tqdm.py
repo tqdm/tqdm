@@ -10,6 +10,7 @@ from nose import with_setup
 from nose.plugins.skip import SkipTest
 from nose.tools import assert_raises
 from contextlib import contextmanager
+from warnings import catch_warnings, simplefilter
 
 from tqdm import tqdm
 from tqdm import trange
@@ -1817,3 +1818,17 @@ def test_wrapattr():
                 wrap.write(data)
         res = our_file.getvalue()
         assert ('%dit [' % len(data)) in res
+
+
+@with_setup(pretest, posttest)
+def test_float_progress():
+    """Test float totals"""
+    with closing(StringIO()) as our_file:
+        with trange(10, total=9.6, file=our_file) as t:
+            with catch_warnings(record=True) as w:
+                simplefilter("always")
+                for i in t:
+                    if i < 9:
+                        assert not w
+                assert w
+                assert "clamping frac" in str(w[-1].message)

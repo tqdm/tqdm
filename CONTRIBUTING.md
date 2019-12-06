@@ -44,6 +44,10 @@ However it would be helpful to bear in mind:
     + must have negligible impact on performance
     + should have 100% coverage by unit tests
     + should be appropriately commented
+    + should have well-formatted docstrings for functions
+        * under 76 chars (incl. initial spaces) to avoid linebreaks in terminal pagers
+        * use two spaces between variable name and colon
+        * use [default: ...] for default values of keyword arguments
     + will not break backward compatibility unless there is a very good reason
         * e.g. breaking py26 compatibility purely in favour of readability (such as converting `dict(a=1)` to `{'a': 1}`) is not a good enough reason
     + API changes should be discussed carefully
@@ -325,8 +329,8 @@ For experienced devs, once happy with local master:
 5. wait for tests to pass
     a) in case of failure, fix and go back to (2)
 6. `git tag vM.m.p && git push --tags`
-7. `[python setup.py] make distclean`
-8. `[python setup.py] make build`
+7. **`[AUTO:TravisCI]`** `[python setup.py] make distclean`
+8. **`[AUTO:TravisCI]`** `[python setup.py] make build`
 9. **`[AUTO:TravisCI]`** upload to PyPI. either:
     a) `[python setup.py] make pypi`, or
     b) `twine upload -s -i $(git config user.signingkey) dist/tqdm-*`
