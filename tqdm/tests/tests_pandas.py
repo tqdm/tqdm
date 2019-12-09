@@ -103,6 +103,11 @@ def test_pandas_data_frame():
         res2 = df.applymap(task_func)
         assert res1.equals(res2)
 
+        # apply unhashable
+        res1 = []
+        df.progress_apply(res1.extend)
+        assert len(res1) == df.size
+
         # apply
         for axis in [0, 1, 'index', 'columns']:
             res3 = df.progress_apply(task_func, axis=axis)
