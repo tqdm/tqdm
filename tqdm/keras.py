@@ -54,8 +54,8 @@ class TqdmCallback(Callback):
     def on_train_begin(self, *_, **__):
         params = self.params.get
         auto_total = params('epochs', params('nb_epoch', None))
-        if auto_total:
-            self.epoch_bar.total = auto_total
+        if auto_total is not None:
+            self.epoch_bar.reset(total=auto_total)
 
     def on_epoch_begin(self, *_, **__):
         if self.verbose:
