@@ -23,6 +23,9 @@ stages:
 - name: deploy
   if: repo = tqdm/tqdm
 jobs:
+  allow_failures:
+  - os: windows
+  - os: osx
   include:
   - stage: test
     name: py2.6
@@ -50,6 +53,41 @@ jobs:
   - name: pypy3.5
     python: pypy3.5-5.10.0
     env: TOXENV=pypy3
+  - name: py2.7-win
+    os: windows
+    language: shell
+    env: TOXENV=py27
+    before_install: &before_install_win
+    - |
+      if [[ "$TOXENV" == "py37" ]]; then
+        choco install python --version 3.7.4
+        export PATH="/c/Python37:/c/Python37/Scripts:$PATH"
+      else
+        choco install python2
+        export PATH="/c/Python27:/c/Python27/Scripts:$PATH"
+      fi
+    - python -m pip install -U pip setuptools wheel
+    install: &install_win
+    - python -m pip install tox
+    - python -m pip install .
+    script: &script_win
+    - python -m tox
+  - name: py3.7-win
+    os: windows
+    language: shell
+    env: TOXENV=py37
+    before_install: *before_install_win
+    install: *install_win
+    script: *script_win
+  - name: py2.7-osx
+    os: osx
+    language: shell
+    env: TOXENV=py27
+  - name: py3.7-osx
+    os: osx
+    osx_image: xcode11.2  # py3.7
+    language: shell
+    env: TOXENV=py37
   - stage: check
     name: style
     python: 3.7

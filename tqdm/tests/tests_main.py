@@ -4,9 +4,10 @@ from os import path
 from shutil import rmtree
 from tempfile import mkdtemp
 from tqdm.cli import main, TqdmKeyError, TqdmTypeError
+from tqdm.utils import IS_WIN
 
 from tests_tqdm import with_setup, pretest, posttest, _range, closing, \
-    UnicodeIO, StringIO
+    UnicodeIO, StringIO, SkipTest
 
 
 def _sh(*cmd, **kwargs):
@@ -82,6 +83,8 @@ def test_main():
 
 def test_manpath():
     """Test CLI --manpath"""
+    if IS_WIN:
+        raise SkipTest
     tmp = mkdtemp()
     man = path.join(tmp, "tqdm.1")
     assert not path.exists(man)
