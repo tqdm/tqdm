@@ -9,6 +9,7 @@ import os
 from nose import with_setup
 from nose.plugins.skip import SkipTest
 from nose.tools import assert_raises
+from nose.tools import eq_
 from contextlib import contextmanager
 from warnings import catch_warnings, simplefilter
 
@@ -273,6 +274,59 @@ def test_format_meter():
         "100kiB [00:13, 7.69kiB/s]"
     assert format_meter(100, 1000, 12, ncols=0, rate=7.33) == \
         " 10% 100/1000 [00:12<02:02,  7.33it/s]"
+    eq_(
+        # ncols is small, l_bar is too large
+        # l_bar gets chopped
+        # no bar
+        # no r_bar
+        format_meter(
+            0, 1000, 13, ncols=10,
+            bar_format="************{bar:10}$$$$$$$$$$"),
+        "**********"  # 10/12 stars since ncols is 10
+    )
+    eq_(
+        # n_cols allows for l_bar and some of bar
+        # l_bar displays
+        # bar gets chopped
+        # no r_bar
+        format_meter(
+            0, 1000, 13, ncols=20,
+            bar_format="************{bar:10}$$$$$$$$$$"),
+        "************        "  # all 12 stars and 8/10 bar parts
+    )
+    eq_(
+        # n_cols allows for l_bar, bar, and some of r_bar
+        # l_bar displays
+        # bar displays
+        # r_bar gets chopped
+        format_meter(
+            0, 1000, 13, ncols=30,
+            bar_format="************{bar:10}$$$$$$$$$$"),
+        "************          $$$$$$$$"
+        # all 12 stars and 10 bar parts, but only 8/10 dollar signs
+    )
+    eq_(
+        # trim left ANSI; escape is before trim zone
+        format_meter(
+            0, 1000, 13, ncols=10,
+            bar_format="*****\033[22m****\033[0m***{bar:10}$$$$$$$$$$"),
+        "*****\033[22m****\033[0m*\033[0m"
+        # we only know it has ANSI codes, so we append an END code anyway
+    )
+    eq_(
+        # trim left ANSI; escape is at trim zone
+        format_meter(
+            0, 1000, 13, ncols=10,
+            bar_format="*****\033[22m*****\033[0m**{bar:10}$$$$$$$$$$"),
+        "*****\033[22m*****\033[0m"
+    )
+    eq_(
+        # trim left ANSI; escape is after trim zone
+        format_meter(
+            0, 1000, 13, ncols=10,
+            bar_format="*****\033[22m******\033[0m*{bar:10}$$$$$$$$$$"),
+        "*****\033[22m*****\033[0m"
+    )
     # Check that bar_format correctly adapts {bar} size to the rest
     assert format_meter(20, 100, 12, ncols=13, rate=8.1,
                         bar_format=r'{l_bar}{bar}|{n_fmt}/{total_fmt}') == \
@@ -300,14 +354,18 @@ def test_format_meter():
 
 def test_ansi_escape_codes():
     """Test stripping of ANSI escape codes"""
-    format_meter = tqdm.format_meter
-    ansi = {'BOLD': '\033[1m',
-            'RED': '\033[91m',
-            'END': '\033[0m'}
-    desc = '{BOLD}{RED}Colored{END} description'.format(**ansi)
+    ansi = dict(BOLD='\033[1m', RED='\033[91m', END='\033[0m')
+    desc_raw = '{BOLD}{RED}Colored{END} description'
     ncols = 123
-    ansi_len = sum([len(code) for code in ansi.values()])
-    meter = format_meter(0, 100, 0, ncols=ncols, prefix=desc)
+
+    desc_stripped = desc_raw.format(BOLD='', RED='', END='')
+    meter = tqdm.format_meter(0, 100, 0, ncols=ncols, prefix=desc_stripped)
+    assert len(meter) == ncols
+
+    desc = desc_raw.format(**ansi)
+    meter = tqdm.format_meter(0, 100, 0, ncols=ncols, prefix=desc)
+    # `format_meter` inserts an extra END for safety
+    ansi_len = len(desc) - len(desc_stripped) + len(ansi['END'])
     assert len(meter) == ncols + ansi_len
 
 
@@ -901,7 +959,7 @@ def test_ascii():
     for ascii in [" .oO0", " #"]:
         with closing(StringIO()) as our_file:
             for _ in tqdm(_range(len(ascii) - 1), file=our_file, miniters=1,
-                          mininterval=0, ascii=ascii, ncols=1):
+                          mininterval=0, ascii=ascii, ncols=27):
                 pass
             res = our_file.getvalue().strip("\r").split("\r")
         for bar, line in zip(ascii, res):
