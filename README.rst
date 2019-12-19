@@ -857,6 +857,9 @@ light blue: no ETA); as demonstrated below.
 |Screenshot-Jupyter2|
 |Screenshot-Jupyter3|
 
+The ``notebook`` version supports percentage or pixels for overall width
+(e.g.: ``ncols='100%'`` or ``ncols='480px'``).
+
 It is also possible to let ``tqdm`` automatically choose between
 console or notebook versions by using the ``autonotebook`` submodule:
 
