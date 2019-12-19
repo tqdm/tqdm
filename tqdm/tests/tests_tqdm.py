@@ -354,14 +354,18 @@ def test_format_meter():
 
 def test_ansi_escape_codes():
     """Test stripping of ANSI escape codes"""
-    format_meter = tqdm.format_meter
-    ansi = {'BOLD': '\033[1m',
-            'RED': '\033[91m',
-            'END': '\033[0m'}
-    desc = '{BOLD}{RED}Colored{END} description'.format(**ansi)
+    ansi = dict(BOLD='\033[1m', RED='\033[91m', END='\033[0m')
+    desc_raw = '{BOLD}{RED}Colored{END} description'
     ncols = 123
-    ansi_len = sum([len(code) for code in ansi.values()])
-    meter = format_meter(0, 100, 0, ncols=ncols, prefix=desc)
+
+    desc_stripped = desc_raw.format(BOLD='', RED='', END='')
+    meter = tqdm.format_meter(0, 100, 0, ncols=ncols, prefix=desc_stripped)
+    assert len(meter) == ncols
+
+    desc = desc_raw.format(**ansi)
+    meter = tqdm.format_meter(0, 100, 0, ncols=ncols, prefix=desc)
+    # `format_meter` inserts an extra END for safety
+    ansi_len = len(desc) - len(desc_stripped) + len(ansi['END'])
     assert len(meter) == ncols + ansi_len
 
 
