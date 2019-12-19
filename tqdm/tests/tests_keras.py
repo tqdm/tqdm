@@ -1,5 +1,6 @@
 from tqdm import tqdm
-from tests_tqdm import with_setup, pretest, posttest, SkipTest, StringIO, closing
+from tests_tqdm import with_setup, pretest, posttest, SkipTest, StringIO, \
+    closing
 
 
 @with_setup(pretest, posttest)

@@ -5,6 +5,7 @@ from keras.callbacks import Callback
 
 
 class TqdmCallback(Callback):
+    """`keras` callback for epoch and batch progress"""
     @staticmethod
     def bar2callback(bar, pop=None, delta=(lambda logs: 1)):
         def callback(_, logs=None):
