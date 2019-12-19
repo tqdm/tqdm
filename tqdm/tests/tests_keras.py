@@ -1,5 +1,4 @@
 from tqdm import tqdm
-from tqdm.keras import TqdmCallback
 from tests_tqdm import with_setup, pretest, posttest, SkipTest, StringIO, closing
 
 
@@ -7,6 +6,7 @@ from tests_tqdm import with_setup, pretest, posttest, SkipTest, StringIO, closin
 def test_keras():
     """Test tqdm.keras.TqdmCallback"""
     try:
+        from tqdm.keras import TqdmCallback
         import numpy as np
         import keras as K
     except ImportError:
@@ -70,6 +70,21 @@ def test_keras():
                     tqdm_class=Tqdm,
                 )
             ],
+        )
+        res = our_file.getvalue()
+        assert res.count("100%") >= epochs + 1
+        assert "{epochs}/{epochs}".format(epochs=epochs) in res
+
+        # auto-detect epochs and batches
+        our_file.seek(0)
+        our_file.truncate()
+        model.fit(
+            x,
+            x,
+            epochs=epochs,
+            batch_size=batch_size,
+            verbose=False,
+            callbacks=[TqdmCallback(verbose=2, tqdm_class=Tqdm)],
         )
         res = our_file.getvalue()
         assert res.count("100%") >= epochs + 1
