@@ -60,19 +60,19 @@ class TqdmCallback(Callback):
     def on_epoch_begin(self, *_, **__):
         if self.verbose:
             params = self.params.get
-            auto_total = params(
-                'samples', params('nb_sample', params('steps', None)))
+            total = params('samples', params(
+                'nb_sample', params('steps', None))) or self.batches
             if self.verbose == 2:
                 if hasattr(self, 'batch_bar'):
                     self.batch_bar.close()
                 self.batch_bar = self.tqdm_class(
-                    total=auto_total or self.batches, unit='batch', leave=True)
+                    total=total, unit='batch', leave=True)
                 self.on_batch_end = self.bar2callback(
                     self.batch_bar,
                     pop=['batch'],
                     delta=lambda logs: logs.get('size', 1))
             elif self.verbose == 1:
-                self.batch_bar.reset(total=auto_total or self.batches)
+                self.batch_bar.reset(total=total)
             else:
                 raise KeyError('Unknown verbosity')
 
