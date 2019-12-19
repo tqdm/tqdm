@@ -847,7 +847,7 @@ A ``keras`` callback is also available:
 
     ...
 
-    model.fit(..., callbacks=[TqdmCallback()])
+    model.fit(..., verbose=0, callbacks=[TqdmCallback()])
 
 IPython/Jupyter Integration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
