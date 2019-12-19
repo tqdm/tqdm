@@ -560,6 +560,8 @@ Returns
     def tqdm.notebook.trange(*args, **kwargs):
         """Experimental IPython/Jupyter Notebook widget version of trange"""
 
+    class tqdm.keras.TqdmCallback(keras.callbacks.Callback):
+        """`keras` callback for epoch and batch progress"""
 
 Examples and Advanced Usage
 ---------------------------
@@ -833,6 +835,19 @@ In case you're interested in how this works (and how to modify it for your
 own callbacks), see the
 `examples <https://github.com/tqdm/tqdm/tree/master/examples>`__
 folder or import the module and run ``help()``.
+
+Keras Integration
+~~~~~~~~~~~~~~~~~
+
+A ``keras`` callback is also available:
+
+.. code:: python
+
+    from tqdm.keras import TqdmCallback
+
+    ...
+
+    model.fit(..., callbacks=[TqdmCallback()])
 
 IPython/Jupyter Integration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
