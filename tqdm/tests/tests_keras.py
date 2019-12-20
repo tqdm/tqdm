@@ -21,6 +21,7 @@ def test_keras():
     model.compile("adam", "mse")
     x = np.random.rand(100, 1, 1).astype(dtype)
     batch_size = 10
+    batches = (len(x) + batch_size - 1) // batch_size
     epochs = 5
 
     with closing(StringIO()) as our_file:
@@ -50,8 +51,8 @@ def test_keras():
             ],
         )
         res = our_file.getvalue()
-        assert res.count("100%") == 1
         assert "{epochs}/{epochs}".format(epochs=epochs) in res
+        assert "{batches}/{batches}".format(batches=batches) not in res
 
         # full (epoch and batch) progress
         our_file.seek(0)
@@ -73,8 +74,8 @@ def test_keras():
             ],
         )
         res = our_file.getvalue()
-        assert res.count("100%") >= epochs + 1
         assert "{epochs}/{epochs}".format(epochs=epochs) in res
+        assert "{batches}/{batches}".format(batches=batches) in res
 
         # auto-detect epochs and batches
         our_file.seek(0)
@@ -88,5 +89,5 @@ def test_keras():
             callbacks=[TqdmCallback(verbose=2, tqdm_class=Tqdm)],
         )
         res = our_file.getvalue()
-        assert res.count("100%") >= epochs + 1
         assert "{epochs}/{epochs}".format(epochs=epochs) in res
+        assert "{batches}/{batches}".format(batches=batches) in res
