@@ -343,3 +343,27 @@ else:
     def _text_width(s):
         return sum(
             2 if east_asian_width(ch) in 'FW' else 1 for ch in _unicode(s))
+
+
+def disp_len(data):
+    """
+    Returns the real on-screen length of a string which may contain
+    ANSI control codes and wide chars.
+    """
+    return _text_width(RE_ANSI.sub('', data))
+
+
+def disp_trim(data, length):
+    """
+    Trim a string which may contain ANSI control characters.
+    """
+    if len(data) == disp_len(data):
+        return data[:length]
+
+    ansi_present = bool(RE_ANSI.search(data))
+    while disp_len(data) > length:  # carefully delete one char at a time
+        data = data[:-1]
+    if ansi_present and bool(RE_ANSI.search(data)):
+        # assume ANSI reset is required
+        return data if data.endswith("\033[0m") else data + "\033[0m"
+    return data

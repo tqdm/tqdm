@@ -247,6 +247,21 @@ class tqdm_notebook(std_tqdm):
         # void -> avoid extraneous `\n` in IPython output cell
         return
 
+    def reset(self, total=None):
+        """
+        Resets to 0 iterations for repeated use.
+
+        Consider combining with `leave=True`.
+
+        Parameters
+        ----------
+        total  : int or float, optional. Total to use for the new bar.
+        """
+        if total is not None:
+            pbar, _ = self.container.children
+            pbar.max = total
+        return super(tqdm_notebook, self).reset(total=total)
+
 
 def tnrange(*args, **kwargs):
     """

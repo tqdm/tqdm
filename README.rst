@@ -560,6 +560,8 @@ Returns
     def tqdm.notebook.trange(*args, **kwargs):
         """Experimental IPython/Jupyter Notebook widget version of trange"""
 
+    class tqdm.keras.TqdmCallback(keras.callbacks.Callback):
+        """`keras` callback for epoch and batch progress"""
 
 Examples and Advanced Usage
 ---------------------------
@@ -834,6 +836,19 @@ own callbacks), see the
 `examples <https://github.com/tqdm/tqdm/tree/master/examples>`__
 folder or import the module and run ``help()``.
 
+Keras Integration
+~~~~~~~~~~~~~~~~~
+
+A ``keras`` callback is also available:
+
+.. code:: python
+
+    from tqdm.keras import TqdmCallback
+
+    ...
+
+    model.fit(..., verbose=0, callbacks=[TqdmCallback()])
+
 IPython/Jupyter Integration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -856,6 +871,9 @@ light blue: no ETA); as demonstrated below.
 |Screenshot-Jupyter1|
 |Screenshot-Jupyter2|
 |Screenshot-Jupyter3|
+
+The ``notebook`` version supports percentage or pixels for overall width
+(e.g.: ``ncols='100%'`` or ``ncols='480px'``).
 
 It is also possible to let ``tqdm`` automatically choose between
 console or notebook versions by using the ``autonotebook`` submodule:
