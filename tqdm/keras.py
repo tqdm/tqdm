@@ -9,12 +9,13 @@ class TqdmCallback(Callback):
     @staticmethod
     def bar2callback(bar, pop=None, delta=(lambda logs: 1)):
         def callback(_, logs=None):
+            n = delta(logs)
             if logs:
                 if pop:
                     logs = deepcopy(logs)
-                    [logs.pop(i) for i in pop]
+                    [logs.pop(i, 0) for i in pop]
                 bar.set_postfix(logs, refresh=False)
-            bar.update(delta(logs))
+            bar.update(n)
 
         return callback
 
@@ -66,12 +67,14 @@ class TqdmCallback(Callback):
                 if hasattr(self, 'batch_bar'):
                     self.batch_bar.close()
                 self.batch_bar = self.tqdm_class(
-                    total=total, unit='batch', leave=True)
+                    total=total, unit='batch', leave=True,
+                    unit_scale=1.0 / params('batch_size', 1))
                 self.on_batch_end = self.bar2callback(
                     self.batch_bar,
-                    pop=['batch'],
+                    pop=['batch', 'size'],
                     delta=lambda logs: logs.get('size', 1))
             elif self.verbose == 1:
+                self.batch_bar.unit_scale = 1.0 / params('batch_size', 1)
                 self.batch_bar.reset(total=total)
             else:
                 raise KeyError('Unknown verbosity')

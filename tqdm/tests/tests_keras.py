@@ -1,3 +1,4 @@
+from __future__ import division
 from tqdm import tqdm
 from tests_tqdm import with_setup, pretest, posttest, SkipTest, StringIO, \
     closing
@@ -21,7 +22,7 @@ def test_keras():
     model.compile("adam", "mse")
     x = np.random.rand(100, 1, 1).astype(dtype)
     batch_size = 10
-    batches = (len(x) + batch_size - 1) // batch_size
+    batches = len(x) / batch_size
     epochs = 5
 
     with closing(StringIO()) as our_file:
