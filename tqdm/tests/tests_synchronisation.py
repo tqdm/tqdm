@@ -203,5 +203,11 @@ def test_threadpool():
 
     tqdm.set_lock(RLock())
     with ThreadPoolExecutor(8) as pool:
-        res = list(tqdm(pool.map(incr_bar, range(100)), disable=True))
+        try:
+            res = list(tqdm(pool.map(incr_bar, range(100)), disable=True))
+        except AttributeError:
+            if sys.version_info < (3,):
+                raise SkipTest
+            else:
+                raise
     assert sum(res) == sum(range(1, 101))
