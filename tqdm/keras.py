@@ -49,7 +49,7 @@ class TqdmCallback(Callback):
                                         leave=False)
             self.on_batch_end = self.bar2callback(
                 self.batch_bar,
-                pop=['batch'],
+                pop=['batch', 'size'],
                 delta=lambda logs: logs.get('size', 1))
 
     def on_train_begin(self, *_, **__):
