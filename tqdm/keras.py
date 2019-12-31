@@ -1,7 +1,7 @@
 from __future__ import absolute_import, division
+from .auto import tqdm as tqdm_auto
 from copy import deepcopy
 from keras.callbacks import Callback
-from .auto import tqdm as tqdm_auto
 
 
 class TqdmCallback(Callback):
@@ -68,13 +68,13 @@ class TqdmCallback(Callback):
                     self.batch_bar.close()
                 self.batch_bar = self.tqdm_class(
                     total=total, unit='batch', leave=True,
-                    unit_scale=1 / params('batch_size', 1))
+                    unit_scale=1 / (params('batch_size', 1) or 1))
                 self.on_batch_end = self.bar2callback(
                     self.batch_bar,
                     pop=['batch', 'size'],
                     delta=lambda logs: logs.get('size', 1))
             elif self.verbose == 1:
-                self.batch_bar.unit_scale = 1 / params('batch_size', 1)
+                self.batch_bar.unit_scale = 1 / (params('batch_size', 1) or 1)
                 self.batch_bar.reset(total=total)
             else:
                 raise KeyError('Unknown verbosity')
