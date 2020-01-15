@@ -193,7 +193,7 @@ class tqdm_notebook(std_tqdm):
         kwargs.setdefault('bar_format', '{l_bar}{bar}{r_bar}')
         kwargs['bar_format'] = kwargs['bar_format'].replace('{bar}', '<bar/>')
         super(tqdm_notebook, self).__init__(*args, **kwargs)
-        if self.disable or not kwargs['gui']:
+        if self.disable is not False or not kwargs['gui']:
             return
 
         # Get bar width
@@ -207,7 +207,7 @@ class tqdm_notebook(std_tqdm):
         self.sp = self.display
 
         # Print initial bar state
-        if not self.disable:
+        if self.disable is not False:
             self.display()
 
     def __iter__(self, *args, **kwargs):
