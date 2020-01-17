@@ -7,7 +7,22 @@ import functools
 import sys
 
 __author__ = {"github.com/": ["casperdcl"]}
-__all__ = ['tzip', 'tmap', 'thread_map', 'process_map']
+__all__ = ['tenumerate', 'tzip', 'tmap', 'thread_map', 'process_map']
+
+
+def tenumerate(iterable, start=0, **tqdm_kwargs):
+    """
+    Equivalent of `numpy.ndenumerate` or builtin `enumerate`.
+    """
+    _enumerate = enumerate
+    try:
+        import numpy as np
+    except ImportError:
+        pass
+    else:
+        if isinstance(iterable, np.ndarray):
+            _enumerate = np.ndenumerate
+    return _enumerate(tqdm(iterable, **tqdm_kwargs))
 
 
 def _tzip(iter1, *iter2plus, **tqdm_kwargs):
