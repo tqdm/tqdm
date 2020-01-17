@@ -7,13 +7,18 @@ from copy import deepcopy
 __author__ = {"github.com/": ["casperdcl"]}
 __all__ = ['tmap', 'thread_map', 'process_map']
 
+def tzip(iter1, *iter2plus, **tqdm_kwargs):
+    """
+    Equivalent of builtin `zip`.
+    """
+    for i in zip(tqdm(iter1, **tqdm_kwargs), *iter2plus):
+        yield i
+
 def tmap(function, *sequences, **tqdm_kwargs):
     """
     Equivalent of builtin `map`.
     """
-    kwargs = deepcopy(tqdm_kwargs)
-    kwargs.setdefault("total", len(sequences[0]))
-    return [function(*i) for i in tqdm(zip(*sequences), **kwargs)]
+    return [function(*i) for i in tzip(*sequences, **tqdm_kwargs)]
 
 
 def _executor_map(PoolExecutor, fn, *iterables, **tqdm_kwargs):
