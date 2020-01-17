@@ -3,9 +3,13 @@ Thin wrappers around common functions.
 """
 from tqdm.auto import tqdm
 from copy import deepcopy
+import sys
 
 __author__ = {"github.com/": ["casperdcl"]}
 __all__ = ['tmap', 'thread_map', 'process_map']
+
+PY2 = sys.version_info[:1] == (2,)
+
 
 def tzip(iter1, *iter2plus, **tqdm_kwargs):
     """
@@ -18,7 +22,11 @@ def tmap(function, *sequences, **tqdm_kwargs):
     """
     Equivalent of builtin `map`.
     """
-    return [function(*i) for i in tzip(*sequences, **tqdm_kwargs)]
+    if PY2:
+        return [function(*i) for i in tzip(*sequences, **tqdm_kwargs)]
+    else:
+        for i in tzip(*sequences, **tqdm_kwargs):
+            yield function(*i)
 
 
 def _executor_map(PoolExecutor, fn, *iterables, **tqdm_kwargs):
