@@ -1,3 +1,6 @@
+"""
+Tests for `tqdm.contrib`
+"""
 from __future__ import division
 import sys
 from tqdm.contrib.wraps import tenumerate, tzip, tmap, thread_map, process_map

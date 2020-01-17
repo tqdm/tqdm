@@ -27,7 +27,7 @@ def tenumerate(iterable, start=0, total=None, tqdm_class=tqdm_auto,
         if isinstance(iterable, np.ndarray):
             return tqdm_class(np.ndenumerate(iterable),
                               total=total or len(iterable), **tqdm_kwargs)
-    return enumerate(tqdm_class(iterable, **tqdm_kwargs))
+    return enumerate(tqdm_class(iterable, start, **tqdm_kwargs))
 
 
 def _tzip(iter1, *iter2plus, **tqdm_kwargs):
