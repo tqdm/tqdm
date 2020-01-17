@@ -3,6 +3,9 @@ from .auto import tqdm as tqdm_auto
 from copy import deepcopy
 from keras.callbacks import Callback
 
+__author__ = {"github.com/": ["casperdcl"]}
+__all__ = ['TqdmCallback']
+
 
 class TqdmCallback(Callback):
     """`keras` callback for epoch and batch progress"""
