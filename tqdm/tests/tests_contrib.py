@@ -66,7 +66,10 @@ def test_thread_map():
     with closing(StringIO()) as our_file:
         a = range(9)
         b = [i + 1 for i in a]
-        assert thread_map(lambda x: x + 1, a, file=our_file) == b
+        try:
+            assert thread_map(lambda x: x + 1, a, file=our_file) == b
+        except ImportError:
+            raise SkipTest
         assert thread_map(incr, a, file=our_file) == b
 
 
@@ -76,4 +79,7 @@ def test_process_map():
     with closing(StringIO()) as our_file:
         a = range(9)
         b = [i + 1 for i in a]
-        assert process_map(incr, a, file=our_file) == b
+        try:
+            assert process_map(incr, a, file=our_file) == b
+        except ImportError:
+            raise SkipTest
