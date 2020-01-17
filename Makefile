@@ -118,10 +118,12 @@ prebuildclean:
 coverclean:
 	@+python -c "import os; os.remove('.coverage') if os.path.exists('.coverage') else None"
 	@+python -c "import shutil; shutil.rmtree('tqdm/__pycache__', True)"
+	@+python -c "import shutil; shutil.rmtree('tqdm/contrib/__pycache__', True)"
 	@+python -c "import shutil; shutil.rmtree('tqdm/tests/__pycache__', True)"
 clean:
 	@+python -c "import os, glob; [os.remove(i) for i in glob.glob('*.py[co]')]"
 	@+python -c "import os, glob; [os.remove(i) for i in glob.glob('tqdm/*.py[co]')]"
+	@+python -c "import os, glob; [os.remove(i) for i in glob.glob('tqdm/contrib/*.py[co]')]"
 	@+python -c "import os, glob; [os.remove(i) for i in glob.glob('tqdm/tests/*.py[co]')]"
 	@+python -c "import os, glob; [os.remove(i) for i in glob.glob('tqdm/examples/*.py[co]')]"
 toxclean:
