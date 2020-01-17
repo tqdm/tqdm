@@ -3,30 +3,27 @@ Thin wrappers around common functions.
 """
 from tqdm.auto import tqdm
 from copy import deepcopy
+import functools
 import sys
 
 __author__ = {"github.com/": ["casperdcl"]}
-__all__ = ['tmap', 'thread_map', 'process_map']
-
-PY2 = sys.version_info[:1] == (2,)
+__all__ = ['tzip', 'tmap', 'thread_map', 'process_map']
 
 
-def tzip(iter1, *iter2plus, **tqdm_kwargs):
+def _tzip(iter1, *iter2plus, **tqdm_kwargs):
     """
     Equivalent of builtin `zip`.
     """
     for i in zip(tqdm(iter1, **tqdm_kwargs), *iter2plus):
         yield i
 
-def tmap(function, *sequences, **tqdm_kwargs):
+
+def _tmap(function, *sequences, **tqdm_kwargs):
     """
     Equivalent of builtin `map`.
     """
-    if PY2:
-        return [function(*i) for i in tzip(*sequences, **tqdm_kwargs)]
-    else:
-        for i in tzip(*sequences, **tqdm_kwargs):
-            yield function(*i)
+    for i in _tzip(*sequences, **tqdm_kwargs):
+        yield function(*i)
 
 
 def _executor_map(PoolExecutor, fn, *iterables, **tqdm_kwargs):
@@ -55,3 +52,16 @@ def process_map(fn, *iterables, **tqdm_kwargs):
     """
     from concurrent.futures import ProcessPoolExecutor
     return _executor_map(ProcessPoolExecutor, fn, *iterables, **tqdm_kwargs)
+
+
+if sys.version_info[:1] < (3,):
+    @functools.wraps(_tzip)
+    def tzip(*args, **kwargs):
+        return list(_tzip(*args, **kwargs))
+
+    @functools.wraps(_tmap)
+    def tmap(*args, **kwargs):
+        return list(_tmap(*args, **kwargs))
+else:
+    tzip = _tzip
+    tmap = _tmap
