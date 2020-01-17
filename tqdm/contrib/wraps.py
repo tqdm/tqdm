@@ -4,7 +4,14 @@ Thin wrappers around common functions.
 from tqdm.auto import tqdm as tqdm_auto
 from copy import deepcopy
 import functools
-import os
+try:
+    from os import cpu_count
+except ImportError:
+    try:
+        from multiprocessing import cpu_count
+    except ImportError:
+        def cpu_count():
+            return 4
 import sys
 
 __author__ = {"github.com/": ["casperdcl"]}
@@ -68,7 +75,7 @@ def _executor_map(PoolExecutor, fn, *iterables, **tqdm_kwargs):
     kwargs = deepcopy(tqdm_kwargs)
     kwargs.setdefault("total", len(iterables[0]))
     tqdm_class = kwargs.pop("tqdm_class", tqdm_auto)
-    max_workers = kwargs.pop("max_workers", min(32, os.cpu_count() + 4))
+    max_workers = kwargs.pop("max_workers", min(32, cpu_count() + 4))
     with PoolExecutor(max_workers=max_workers) as ex:
         return list(tqdm_class(ex.map(fn, *iterables), **kwargs))
 
