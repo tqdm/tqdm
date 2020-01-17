@@ -10,7 +10,7 @@ __author__ = {"github.com/": ["casperdcl"]}
 __all__ = ['tenumerate', 'tzip', 'tmap', 'thread_map', 'process_map']
 
 
-def tenumerate(iterable, start=0, **tqdm_kwargs):
+def tenumerate(iterable, start=0, total=None, **tqdm_kwargs):
     """
     Equivalent of `numpy.ndenumerate` or builtin `enumerate`.
     """
@@ -22,7 +22,8 @@ def tenumerate(iterable, start=0, **tqdm_kwargs):
     else:
         if isinstance(iterable, np.ndarray):
             _enumerate = np.ndenumerate
-    return _enumerate(tqdm(iterable, **tqdm_kwargs))
+    return tqdm(
+        _enumerate(iterable), total=total or len(iterable), **tqdm_kwargs)
 
 
 def _tzip(iter1, *iter2plus, **tqdm_kwargs):
