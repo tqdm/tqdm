@@ -18,6 +18,7 @@ def test_enumerate():
     with closing(StringIO()) as our_file:
         a = range(9)
         assert list(tenumerate(a, file=our_file)) == list(enumerate(a))
+        assert list(tenumerate(a, 42, file=our_file)) == list(enumerate(a, 42))
 
 
 @with_setup(pretest, posttest)
