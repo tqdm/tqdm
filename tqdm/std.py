@@ -1381,7 +1381,7 @@ class tqdm(Comparable):
                 postfix[key] = str(postfix[key])
             # Else if it's a string, don't need to preprocess anything
         # Stitch together to get the final postfix
-        self.postfix = ', '.join(key + '=' + postfix[key].strip()
+        self.postfix = ', '.join(key + '=' + postfix[key]
                                  for key in postfix.keys())
         if refresh:
             self.refresh()
