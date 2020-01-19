@@ -1,7 +1,6 @@
 """
 Tests for `tqdm.contrib`
 """
-import sys
 from tqdm.contrib.concurrent import thread_map, process_map
 from tests_tqdm import with_setup, pretest, posttest, SkipTest, StringIO, \
     closing
@@ -10,6 +9,7 @@ from tests_tqdm import with_setup, pretest, posttest, SkipTest, StringIO, \
 def incr(x):
     """Dummy function"""
     return x + 1
+
 
 @with_setup(pretest, posttest)
 def test_thread_map():

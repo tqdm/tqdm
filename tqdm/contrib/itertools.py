@@ -1,3 +1,6 @@
+"""
+Thin wrappers around `itertools`.
+"""
 from __future__ import absolute_import
 from tqdm.auto import tqdm as tqdm_auto
 from copy import deepcopy
