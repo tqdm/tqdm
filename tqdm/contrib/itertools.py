@@ -19,9 +19,7 @@ def product(*iterables, **tqdm_kwargs):
     tqdm_class = kwargs.pop("tqdm_class", tqdm_auto)
     try:
         lens = list(map(len, iterables))
-    except AttributeError:  # missing py2 len
-        total = None
-    except TypeError:  # missing py3 len
+    except TypeError:
         total = None
     else:
         total = 1
