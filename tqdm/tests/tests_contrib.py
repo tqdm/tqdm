@@ -1,20 +1,20 @@
 """
 Tests for `tqdm.contrib`
 """
-from __future__ import division
 import sys
-from tqdm.contrib.wraps import tenumerate, tzip, tmap, thread_map, process_map
+from tqdm.contrib import tenumerate, tzip, tmap
 from tests_tqdm import with_setup, pretest, posttest, SkipTest, StringIO, \
     closing
 
 
 def incr(x):
+    """Dummy function"""
     return x + 1
 
 
 @with_setup(pretest, posttest)
 def test_enumerate():
-    """Test contrib.wraps.tenumerate"""
+    """Test contrib.tenumerate"""
     with closing(StringIO()) as our_file:
         a = range(9)
         assert list(tenumerate(a, file=our_file)) == list(enumerate(a))
@@ -22,7 +22,7 @@ def test_enumerate():
 
 @with_setup(pretest, posttest)
 def test_enumerate_numpy():
-    """Test contrib.wraps.tenumerate(numpy.ndarray)"""
+    """Test contrib.tenumerate(numpy.ndarray)"""
     try:
         import numpy as np
     except ImportError:
@@ -34,7 +34,7 @@ def test_enumerate_numpy():
 
 @with_setup(pretest, posttest)
 def test_zip():
-    """Test contrib.wraps.tzip"""
+    """Test contrib.tzip"""
     with closing(StringIO()) as our_file:
         a = range(9)
         b = [i + 1 for i in a]
@@ -48,7 +48,7 @@ def test_zip():
 
 @with_setup(pretest, posttest)
 def test_map():
-    """Test contrib.wraps.tmap"""
+    """Test contrib.tmap"""
     with closing(StringIO()) as our_file:
         a = range(9)
         b = [i + 1 for i in a]
@@ -58,28 +58,3 @@ def test_map():
             gen = tmap(lambda x: x + 1, a, file=our_file)
             assert gen != b
             assert list(gen) == b
-
-
-@with_setup(pretest, posttest)
-def test_thread_map():
-    """Test contrib.wraps.thread_map"""
-    with closing(StringIO()) as our_file:
-        a = range(9)
-        b = [i + 1 for i in a]
-        try:
-            assert thread_map(lambda x: x + 1, a, file=our_file) == b
-        except ImportError:
-            raise SkipTest
-        assert thread_map(incr, a, file=our_file) == b
-
-
-@with_setup(pretest, posttest)
-def test_process_map():
-    """Test contrib.wraps.process_map"""
-    with closing(StringIO()) as our_file:
-        a = range(9)
-        b = [i + 1 for i in a]
-        try:
-            assert process_map(incr, a, file=our_file) == b
-        except ImportError:
-            raise SkipTest
