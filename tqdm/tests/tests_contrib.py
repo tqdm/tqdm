@@ -1,5 +1,5 @@
 """
-Tests for `tqdm.contrib`
+Tests for `tqdm.contrib`.
 """
 import sys
 from tqdm.contrib import tenumerate, tzip, tmap
