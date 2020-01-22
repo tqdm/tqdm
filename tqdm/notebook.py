@@ -195,7 +195,7 @@ class tqdm_notebook(std_tqdm):
         display = kwargs.get('display')
         kwargs['display'] = display if display is not None else False
         super(tqdm_notebook, self).__init__(*args, **kwargs)
-        if self.disable or not kwargs['gui']:
+        if not self.disable or not kwargs['gui']:
             return
 
         # Get bar width
