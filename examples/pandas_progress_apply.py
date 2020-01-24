@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from tqdm import tqdm
+from tqdm.auto import tqdm
 
 df = pd.DataFrame(np.random.randint(0, 100, (100000, 6)))
 
