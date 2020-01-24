@@ -22,11 +22,11 @@ stages:
 - test
 - name: deploy
   if: repo = tqdm/tqdm
-- failing
+- name: development
+  if: false
 jobs:
   allow_failures:
-  - os: windows
-  - os: osx
+  - stage: development
   include:
   - stage: test
     name: py2.6
@@ -57,7 +57,7 @@ jobs:
   - name: pypy3.5
     python: pypy3.5-5.10.0
     env: TOXENV=pypy3
-  - stage: failing
+  - stage: development
     name: py2.7-win
     os: windows
     language: shell
@@ -84,11 +84,13 @@ jobs:
     before_install: *before_install_win
     install: *install_win
     script: *script_win
-  - name: py2.7-osx
+  - stage: test
+    name: py2.7-osx
     os: osx
     language: shell
     env: TOXENV=py27
-  - name: py3.7-osx
+  - stage: development
+    name: py3.7-osx
     os: osx
     osx_image: xcode11.2  # py3.7
     language: shell
