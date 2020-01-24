@@ -29,7 +29,7 @@ def test_enumerate_numpy():
     except ImportError:
         raise SkipTest
     with closing(StringIO()) as our_file:
-        a = np.arange(9)
+        a = np.random.random((42, 1337))
         assert list(tenumerate(a, file=our_file)) == list(np.ndenumerate(a))
 
 
