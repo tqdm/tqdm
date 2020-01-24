@@ -84,7 +84,7 @@ viewasv:
 	asv publish
 	asv preview
 
-tqdm/tqdm.1: .meta/.tqdm.1.md tqdm/_main.py tqdm/_tqdm.py
+tqdm/tqdm.1: .meta/.tqdm.1.md tqdm/cli.py tqdm/std.py
 	# TODO: add to mkdocs.py
 	python -m tqdm --help | tail -n+5 |\
     sed -r -e 's/\\/\\\\/g' \
@@ -93,7 +93,7 @@ tqdm/tqdm.1: .meta/.tqdm.1.md tqdm/_main.py tqdm/_tqdm.py
     cat "$<" - |\
     pandoc -o "$@" -s -t man
 
-README.rst: .meta/.readme.rst tqdm/_tqdm.py tqdm/_main.py
+README.rst: .meta/.readme.rst tqdm/std.py tqdm/cli.py
 	@python .meta/mkdocs.py
 
 snapcraft.yaml: .meta/.snapcraft.yml
