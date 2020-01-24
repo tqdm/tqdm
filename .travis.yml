@@ -22,6 +22,7 @@ stages:
 - test
 - name: deploy
   if: repo = tqdm/tqdm
+- failing
 jobs:
   allow_failures:
   - os: windows
@@ -56,7 +57,8 @@ jobs:
   - name: pypy3.5
     python: pypy3.5-5.10.0
     env: TOXENV=pypy3
-  - name: py2.7-win
+  - stage: failing
+    name: py2.7-win
     os: windows
     language: shell
     env: TOXENV=py27
