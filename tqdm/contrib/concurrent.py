@@ -12,6 +12,7 @@ except ImportError:
     except ImportError:
         def cpu_count():
             return 4
+import sys
 __author__ = {"github.com/": ["casperdcl"]}
 __all__ = ['thread_map', 'process_map']
 
@@ -28,7 +29,12 @@ def _executor_map(PoolExecutor, fn, *iterables, **tqdm_kwargs):
     kwargs.setdefault("total", len(iterables[0]))
     tqdm_class = kwargs.pop("tqdm_class", tqdm_auto)
     max_workers = kwargs.pop("max_workers", min(32, cpu_count() + 4))
-    with PoolExecutor(max_workers=max_workers) as ex:
+    pool_kwargs = dict(max_workers=max_workers)
+    if sys.version_info[:2] >= (3, 7):
+        # share lock in case workers are already using `tqdm`
+        pool_kwargs.update(
+            initializer=tqdm_class.set_lock, initargs=(tqdm_class.get_lock(),))
+    with PoolExecutor(**pool_kwargs) as ex:
         return list(tqdm_class(ex.map(fn, *iterables), **kwargs))
 
 
