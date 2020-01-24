@@ -47,6 +47,9 @@ jobs:
   - name: py3.7
     python: 3.7
     env: TOXENV=py37
+  - name: tf-no-keras
+    python: 3.7
+    env: TOXENV=tf-no-keras
   - name: pypy2.7
     python: pypy2.7-5.10.0
     env: TOXENV=pypy
