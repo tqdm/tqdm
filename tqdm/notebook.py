@@ -192,6 +192,8 @@ class tqdm_notebook(std_tqdm):
         kwargs['gui'] = True
         kwargs.setdefault('bar_format', '{l_bar}{bar}{r_bar}')
         kwargs['bar_format'] = kwargs['bar_format'].replace('{bar}', '<bar/>')
+        # convert disable = None to False
+        kwargs['disable'] = bool(kwargs.get('disable', False))
         super(tqdm_notebook, self).__init__(*args, **kwargs)
         if self.disable or not kwargs['gui']:
             return

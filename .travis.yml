@@ -22,10 +22,11 @@ stages:
 - test
 - name: deploy
   if: repo = tqdm/tqdm
+- name: development
+  if: false
 jobs:
   allow_failures:
-  - os: windows
-  - os: osx
+  - stage: development
   include:
   - stage: test
     name: py2.6
@@ -47,13 +48,17 @@ jobs:
   - name: py3.7
     python: 3.7
     env: TOXENV=py37
+  - name: tf-no-keras
+    python: 3.7
+    env: TOXENV=tf-no-keras
   - name: pypy2.7
     python: pypy2.7-5.10.0
     env: TOXENV=pypy
   - name: pypy3.5
     python: pypy3.5-5.10.0
     env: TOXENV=pypy3
-  - name: py2.7-win
+  - stage: development
+    name: py2.7-win
     os: windows
     language: shell
     env: TOXENV=py27

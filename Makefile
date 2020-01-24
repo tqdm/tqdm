@@ -84,7 +84,7 @@ viewasv:
 	asv publish
 	asv preview
 
-tqdm/tqdm.1: .meta/.tqdm.1.md tqdm/_main.py tqdm/_tqdm.py
+tqdm/tqdm.1: .meta/.tqdm.1.md tqdm/cli.py tqdm/std.py
 	# TODO: add to mkdocs.py
 	python -m tqdm --help | tail -n+5 |\
     sed -r -e 's/\\/\\\\/g' \
@@ -93,7 +93,7 @@ tqdm/tqdm.1: .meta/.tqdm.1.md tqdm/_main.py tqdm/_tqdm.py
     cat "$<" - |\
     pandoc -o "$@" -s -t man
 
-README.rst: .meta/.readme.rst tqdm/_tqdm.py tqdm/_main.py
+README.rst: .meta/.readme.rst tqdm/std.py tqdm/cli.py
 	@python .meta/mkdocs.py
 
 snapcraft.yaml: .meta/.snapcraft.yml
@@ -118,10 +118,12 @@ prebuildclean:
 coverclean:
 	@+python -c "import os; os.remove('.coverage') if os.path.exists('.coverage') else None"
 	@+python -c "import shutil; shutil.rmtree('tqdm/__pycache__', True)"
+	@+python -c "import shutil; shutil.rmtree('tqdm/contrib/__pycache__', True)"
 	@+python -c "import shutil; shutil.rmtree('tqdm/tests/__pycache__', True)"
 clean:
 	@+python -c "import os, glob; [os.remove(i) for i in glob.glob('*.py[co]')]"
 	@+python -c "import os, glob; [os.remove(i) for i in glob.glob('tqdm/*.py[co]')]"
+	@+python -c "import os, glob; [os.remove(i) for i in glob.glob('tqdm/contrib/*.py[co]')]"
 	@+python -c "import os, glob; [os.remove(i) for i in glob.glob('tqdm/tests/*.py[co]')]"
 	@+python -c "import os, glob; [os.remove(i) for i in glob.glob('tqdm/examples/*.py[co]')]"
 toxclean:

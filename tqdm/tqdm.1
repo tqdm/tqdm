@@ -52,14 +52,14 @@ Prefix for the progressbar.
 .RE
 .TP
 .B \-\-total=\f[I]total\f[]
-int, optional.
+int or float, optional.
 The number of expected iterations.
 If unspecified, len(iterable) is used if possible.
 If float("inf") or as a last resort, only basic progress statistics are
 displayed (no ETA, no progressbar).
 If \f[C]gui\f[] is True and this parameter needs subsequent updating,
-specify an initial arbitrary large positive integer, e.g.
-int(9e9).
+specify an initial arbitrary large positive number, e.g.
+9e9.
 .RS
 .RE
 .TP
@@ -99,7 +99,7 @@ Only works if \f[C]dynamic_miniters\f[] or monitor thread is enabled.
 .RE
 .TP
 .B \-\-miniters=\f[I]miniters\f[]
-int, optional.
+int or float, optional.
 Minimum progress display update interval, in iterations.
 If 0 and \f[C]dynamic_miniters\f[], will automatically adjust to equal
 \f[C]mininterval\f[] (more CPU efficient, good for tight loops).
@@ -173,9 +173,11 @@ latter is empty.
 .RE
 .TP
 .B \-\-initial=\f[I]initial\f[]
-int, optional.
+int or float, optional.
 The initial counter value.
 Useful when restarting a progress bar [default: 0].
+If using float, consider specifying \f[C]{n:.3f}\f[] or similar in
+\f[C]bar_format\f[], or specifying \f[C]unit_scale\f[].
 .RS
 .RE
 .TP

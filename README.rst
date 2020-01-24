@@ -280,13 +280,18 @@ of a neat one-line progress bar.
     either normal-width unicode characters being incorrectly displayed as
     "wide", or some unicode characters not rendering.
 
-- Wrapping enumerated iterables: use ``enumerate(tqdm(...))`` instead of
-  ``tqdm(enumerate(...))``. The same applies to ``numpy.ndenumerate``.
-  This is because enumerate functions tend to hide the length of iterables.
-  ``tqdm`` does not.
-- Wrapping zipped iterables has similar issues due to internal optimisations.
-  ``tqdm(zip(a, b))`` should be replaced with ``zip(tqdm(a), b)`` or even
-  ``zip(tqdm(a), tqdm(b))``.
+- Wrapping generators:
+
+  * Generator wrapper functions tend to hide the length of iterables.
+    ``tqdm`` does not.
+  * Replace ``tqdm(enumerate(...))`` with ``enumerate(tqdm(...))`` or
+    ``tqdm(enumerate(x), total=len(x), ...)``.
+    The same applies to ``numpy.ndenumerate``.
+  * Replace ``tqdm(zip(a, b))`` with ``zip(tqdm(a), b)`` or even
+    ``zip(tqdm(a), tqdm(b))``.
+  * The same applies to ``itertools``.
+  * Some useful convenience functions can be found under ``tqdm.contrib``.
+
 - `Hanging pipes in python2 <https://github.com/tqdm/tqdm/issues/359>`__:
   when using ``tqdm`` on the CLI, you may need to use Python 3.5+ for correct
   buffering.
@@ -562,6 +567,21 @@ Returns
 
     class tqdm.keras.TqdmCallback(keras.callbacks.Callback):
         """`keras` callback for epoch and batch progress"""
+
+    def tqdm.contrib.tenumerate(iterable, start=0, total=None,
+                                tqdm_class=tqdm.auto.tqdm, **kwargs):
+        """Equivalent of `numpy.ndenumerate` or builtin `enumerate`."""
+
+    def tqdm.contrib.tzip(iter1, *iter2plus, **tqdm_kwargs):
+        """Equivalent of builtin `zip`."""
+
+    def tqdm.contrib.tmap(function, *sequences, **tqdm_kwargs):
+        """Equivalent of builtin `map`."""
+
+The ``tqdm.contrib`` package also contains experimental modules:
+
+- ``tqdm.contrib.itertools``: Thin wrappers around ``itertools``
+- ``tqdm.contrib.concurrent``: Thin wrappers around ``concurrent.futures``
 
 Examples and Advanced Usage
 ---------------------------

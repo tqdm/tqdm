@@ -1,10 +1,18 @@
 from __future__ import absolute_import, division
 from .auto import tqdm as tqdm_auto
 from copy import deepcopy
-from keras.callbacks import Callback
+try:
+    import keras
+except ImportError as e:
+    try:
+        from tensorflow import keras
+    except ImportError:
+        raise e
+__author__ = {"github.com/": ["casperdcl"]}
+__all__ = ['TqdmCallback']
 
 
-class TqdmCallback(Callback):
+class TqdmCallback(keras.callbacks.Callback):
     """`keras` callback for epoch and batch progress"""
     @staticmethod
     def bar2callback(bar, pop=None, delta=(lambda logs: 1)):

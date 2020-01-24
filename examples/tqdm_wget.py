@@ -21,7 +21,7 @@ Options:
 
 import urllib
 from os import devnull
-from tqdm import tqdm
+from tqdm.auto import tqdm
 from docopt import docopt
 
 
