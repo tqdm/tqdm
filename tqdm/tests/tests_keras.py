@@ -10,7 +10,10 @@ def test_keras():
     try:
         from tqdm.keras import TqdmCallback
         import numpy as np
-        import keras as K
+        try:
+            import keras as K
+        except ImportError:
+            from tensorflow import keras as K
     except ImportError:
         raise SkipTest
 

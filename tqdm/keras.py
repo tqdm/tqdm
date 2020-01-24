@@ -1,7 +1,13 @@
 from __future__ import absolute_import, division
 from .auto import tqdm as tqdm_auto
 from copy import deepcopy
-from keras.callbacks import Callback
+try:
+    from keras.callbacks import Callback
+except ImportError as e:
+    try:
+        from tensorflow.keras.callbacks import Callback
+    except ImportError:
+        raise e
 
 __author__ = {"github.com/": ["casperdcl"]}
 __all__ = ['TqdmCallback']
