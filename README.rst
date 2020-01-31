@@ -1118,18 +1118,19 @@ Developers who have made significant contributions, ranked by *LoC*
 `git fame <https://github.com/casperdcl/git-fame>`__ ``-wMC``),
 are:
 
-==================== ================================================== ==== ================================
-Name                 ID                                                 LoC  Notes
-==================== ================================================== ==== ================================
-Casper da Costa-Luis `casperdcl <https://github.com/casperdcl>`__       ~3/4 primary maintainer |Gift-Casper|
-Stephen Larroque     `lrq3000 <https://github.com/lrq3000>`__           ~10% team member
-Kyle Altendorf       `altendky <https://github.com/altendky>`__         ~2%
-Guangshuo Chen       `chengs <https://github.com/chengs>`__             ~1%
-Matthew Stevens      `mjstevens777 <https://github.com/mjstevens777>`__ ~1%
-Noam Yorav-Raphael   `noamraph <https://github.com/noamraph>`__         ~1%  original author
-Hadrien Mary         `hadim <https://github.com/hadim>`__               ~1%  team member
-Mikhail Korobov      `kmike <https://github.com/kmike>`__               ~1%  team member
-==================== ================================================== ==== ================================
+==================== ======================================================== ==== ================================
+Name                 ID                                                       LoC  Notes
+==================== ======================================================== ==== ================================
+Casper da Costa-Luis `casperdcl <https://github.com/casperdcl>`__             ~79% primary maintainer |Gift-Casper|
+Stephen Larroque     `lrq3000 <https://github.com/lrq3000>`__                 ~12% team member
+Matthew Stevens      `mjstevens777 <https://github.com/mjstevens777>`__       ~1%
+Noam Yorav-Raphael   `noamraph <https://github.com/noamraph>`__               ~1%  original author
+Guangshuo Chen       `chengs <https://github.com/chengs>`__                   ~1%
+Hadrien Mary         `hadim <https://github.com/hadim>`__                     ~1%  team member
+Mikhail Korobov      `kmike <https://github.com/kmike>`__                     ~1%  team member
+Daniel Panteleit     `danielpanteleit <https://github.com/danielpanteleit>`__ ~1%
+Kyle Altendorf       `altendky <https://github.com/altendky>`__               ~1%
+==================== ======================================================== ==== ================================
 
 |sourcerer-0| |sourcerer-1| |sourcerer-2| |sourcerer-3| |sourcerer-4| |sourcerer-5| |sourcerer-7|
 
