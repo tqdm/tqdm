@@ -21,7 +21,7 @@ from numbers import Number
 from time import time
 # For parallelism safety
 import threading as th
-from warnings import warn
+from warnings import warn, catch_warnings, simplefilter
 
 __author__ = {"github.com/": ["noamraph", "obiwanus", "kmike", "hadim",
                               "casperdcl", "lrq3000"]}
@@ -655,8 +655,10 @@ class tqdm(Comparable):
         from pandas.core.frame import DataFrame
         from pandas.core.series import Series
         try:
-            from pandas import Panel
-        except ImportError:  # TODO: pandas>0.25.2
+            with catch_warnings():
+                simplefilter("ignore", category=FutureWarning)
+                from pandas import Panel
+        except ImportError:  # TODO: pandas>1.0.0
             Panel = None
         try:  # pandas>=1.0.0
             from pandas.core.window.rolling import _Rolling_and_Expanding
