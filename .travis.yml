@@ -106,6 +106,10 @@ jobs:
   - stage: deploy
     name: PyPI and GitHub
     python: 3.7
+    addons:
+      apt:
+        packages:
+        - pandoc
     install:
     script:
     - pip install .[dev]
