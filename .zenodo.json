@@ -5,5 +5,7 @@
     "console", "terminal", "time", "progress", "bar", "gui", "python",
     "parallel", "cli", "utilities", "shell", "batch"],
   "related_identifiers": [
-    {"identifier": "10.21105/joss.01277", "relation": "cites"}]
+    {"identifier": "10.21105/joss.01277", "relation": "cites"}],
+  "contributors": [
+    {"name": "tqdm developers", "type": "Other", "affiliation": "tqdm"}]
 }
