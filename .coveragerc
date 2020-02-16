@@ -2,7 +2,9 @@
 branch = True
 omit =
     tqdm/tests/*
-    tqdm/_tqdm_gui.py
     tqdm/_tqdm_notebook.py
+    tqdm/_tqdm_gui.py
+    tqdm/notebook.py
+    tqdm/gui.py
 [report]
 show_missing = True
