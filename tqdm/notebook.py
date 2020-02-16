@@ -196,6 +196,7 @@ class tqdm_notebook(std_tqdm):
         kwargs['disable'] = bool(kwargs.get('disable', False))
         super(tqdm_notebook, self).__init__(*args, **kwargs)
         if self.disable or not kwargs['gui']:
+            self.sp = lambda *_, **__: None
             return
 
         # Get bar width
@@ -233,17 +234,15 @@ class tqdm_notebook(std_tqdm):
 
     def close(self, *args, **kwargs):
         super(tqdm_notebook, self).close(*args, **kwargs)
-        # If it was not run in a notebook, sp is not assigned, check for it
-        if hasattr(self, 'sp'):
-            # Try to detect if there was an error or KeyboardInterrupt
-            # in manual mode: if n < total, things probably got wrong
-            if self.total and self.n < self.total:
-                self.sp(bar_style='danger')
+        # Try to detect if there was an error or KeyboardInterrupt
+        # in manual mode: if n < total, things probably got wrong
+        if self.total and self.n < self.total:
+            self.sp(bar_style='danger')
+        else:
+            if self.leave:
+                self.sp(bar_style='success')
             else:
-                if self.leave:
-                    self.sp(bar_style='success')
-                else:
-                    self.sp(close=True)
+                self.sp(close=True)
 
     def moveto(self, *args, **kwargs):
         # void -> avoid extraneous `\n` in IPython output cell
