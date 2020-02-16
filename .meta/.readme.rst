@@ -9,7 +9,7 @@ tqdm
 
 |DOI| |LICENCE| |OpenHub-Status| |binder-demo| |notebook-demo| |awesome-python|
 
-``tqdm`` means "progress" in Arabic (*taqadum*, تقدّم)
+``tqdm`` derives from the Arabic word *taqaddum* (تقدّم) which can mean "progress,"
 and is an abbreviation for "I love you so much" in Spanish (*te quiero demasiado*).
 
 Instantly make your loops show a smart progress meter - just wrap any
