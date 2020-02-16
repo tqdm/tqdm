@@ -26,7 +26,8 @@ def _executor_map(PoolExecutor, fn, *iterables, **tqdm_kwargs):
     tqdm_class  : [default: tqdm.auto.tqdm].
     """
     kwargs = deepcopy(tqdm_kwargs)
-    kwargs.setdefault("total", len(iterables[0]))
+    if "total" not in kwargs:
+        kwargs["total"] = len(iterables[0])
     tqdm_class = kwargs.pop("tqdm_class", tqdm_auto)
     max_workers = kwargs.pop("max_workers", min(32, cpu_count() + 4))
     pool_kwargs = dict(max_workers=max_workers)
