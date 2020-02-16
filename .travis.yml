@@ -21,7 +21,7 @@ stages:
 - check
 - test
 - name: deploy
-  if: repo = tqdm/tqdm
+  if: repo = tqdm/tqdm AND NOT type = pull_request
 - name: development
   if: false
 jobs:
