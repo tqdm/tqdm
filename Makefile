@@ -104,7 +104,7 @@ snapcraft.yaml: .meta/.snapcraft.yml
 
 .dockerignore: .gitignore
 	cat $^ > "$@"
-	echo -e ".git" > "$@"
+	echo ".git" > "$@"
 	git clean -xdn | sed -nr 's/^Would remove (.*)$$/\1/p' >> "$@"
 
 distclean:

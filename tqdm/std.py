@@ -932,6 +932,7 @@ class tqdm(Comparable):
                 self._instances.remove(self)
             self.n = initial
             self.total = total
+            self.leave = leave
             return
 
         if kwargs:
