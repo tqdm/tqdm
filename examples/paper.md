@@ -23,9 +23,154 @@ authors:
  - name: Casper O da Costa-Luis
    orcid: 0000-0002-7211-1557
    affiliation: 1
+ - name: Stephen Larroque
+   orcid: 0000-0002-6248-0957
+   affiliation: 1
+ - name: Martin Zugnoni
+   affiliation: 2
+ - name: Guangshuo Chen
+   affiliation: 2
+ - name: Hadrien Mary
+   orcid: 0000-0001-8199-5932
+   affiliation: 1
+ - name: Noam Yorav-Raphael
+   affiliation: 2
+ - name: Kyle Altendorf
+   affiliation: 2
+ - name: Ivan Ivanov
+   affiliation: 2
+ - name: James E. King III
+   affiliation: 2
+ - name: Mikhail Korobov
+   affiliation: 1
+ - name: Daniel Panteleit
+   affiliation: 2
+ - name: Marcel Bargull
+   affiliation: 2
+ - name: Matthew D. Pagel
+   affiliation: 2
+ - name: James Lu
+   affiliation: 2
+ - name: Hugo
+   affiliation: 2
+ - name: Igor Ljubuncic
+   affiliation: 3
+ - name: Adnan Umer
+   affiliation: 2
+ - name: Johannes Hansen
+   affiliation: 2
+ - name: Charles Newey
+   affiliation: 2
+ - name: Veith Röthlingshöfer
+   affiliation: 2
+ - name: Mike Kutzma
+   affiliation: 2
+ - name: Julien Chaumont
+   affiliation: 2
+ - name: Yaroslav Halchenko
+   affiliation: 2
+ - name: Antony Lee
+   affiliation: 2
+ - name: FichteFoll
+   affiliation: 2
+ - name: Mikhail Dektyarev
+   affiliation: 2
+ - name: Chung-Kai Hung
+   affiliation: 2
+ - name: Greg Gandenberger
+   affiliation: 2
+ - name: Min ho Kim
+   affiliation: 2
+ - name: Thomas A Caswell
+   affiliation: 2
+ - name: Orivej Desh
+   affiliation: 2
+ - name: Alexander Plavin
+   orcid: 0000-0003-2914-8554
+   affiliation: 2
+ - name: Max Nordlund
+   affiliation: 2
+ - name: Kuang-che Wu
+   affiliation: 2
+ - name: zz
+   affiliation: 2
+ - name: William Turner
+   affiliation: 2
+ - name: Sepehr Sameni
+   affiliation: 2
+ - name: David W.H. Swenson
+   affiliation: 2
+ - name: Jesus Cea
+   affiliation: 2
+ - name: ReadmeCritic
+   affiliation: 2
+ - name: stonebig
+   affiliation: 2
+ - name: Cheng Chen
+   affiliation: 2
+ - name: Staffan Malmgren
+   affiliation: 2
+ - name: Darin
+   affiliation: 2
+ - name: Robert Krzyzanowski
+   affiliation: 2
+ - name: Sergei Izmailov
+   affiliation: 2
+ - name: Anurag Pandey
+   affiliation: 2
+ - name: Peter VandeHaar
+   affiliation: 2
+ - name: Alex Rothberg
+   affiliation: 2
+ - name: Carlin MacKenzie
+   affiliation: 2
+ - name: Jan Schlüter
+   affiliation: 2
+ - name: Edward Betts
+   affiliation: 2
+ - name: Socialery
+   affiliation: 2
+ - name: Daniel King
+   affiliation: 2
+ - name: Lev Velykoivanenko
+   affiliation: 2
+ - name: JoshKarpel
+   affiliation: 2
+ - name: Dyno Fu
+   affiliation: 2
+ - name: Jack McCracken
+   affiliation: 2
+ - name: Jose Tiago Macara Coutinho
+   affiliation: 2
+ - name: Arun Persaud
+   affiliation: 2
+ - name: Ford Hurley
+   affiliation: 2
+ - name: Tomas Ostasevicius
+   affiliation: 2
+ - name: Andrey Portnoy
+   affiliation: 2
+ - name: Riccardo Coccioli
+   affiliation: 2
+ - name: David Bau
+   affiliation: 2
+ - name: Rafael Lukas Maers
+   affiliation: 2
+ - name: Albert Kottke
+   affiliation: 2
+ - name: Fabian Dill
+   affiliation: 2
+ - name: Shirish Pokharel
+   affiliation: 2
+ - name: Javi Merino
+   affiliation: 2
 affiliations:
- - name: "Independent (Non-affiliated)"
+ - name: tqdm developers
    index: 1
+ - name: Independent (Non-affiliated)
+   index: 2
+ - name: Snap Advocacy
+   index: 3
 date: 16 February 2019
 bibliography: paper.bib
 ---
