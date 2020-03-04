@@ -23,7 +23,7 @@ authors:
  - name: Casper O da Costa-Luis
    orcid: 0000-0002-7211-1557
    affiliation: 1
- - name: Stephen Larroque
+ - name: Stephen Karl Larroque
    orcid: 0000-0002-6248-0957
    affiliation: 1
  - name: Martin Zugnoni
@@ -48,7 +48,7 @@ authors:
  - name: Marcel Bargull
    affiliation: 2
  - name: Matthew D. Pagel
-   affiliation: 2
+   affiliation: 4
  - name: James Lu
    affiliation: 2
  - name: Hugo
@@ -110,8 +110,6 @@ authors:
    affiliation: 2
  - name: Staffan Malmgren
    affiliation: 2
- - name: Darin
-   affiliation: 2
  - name: Robert Krzyzanowski
    affiliation: 2
  - name: Sergei Izmailov
@@ -148,8 +146,6 @@ authors:
    affiliation: 2
  - name: Tomas Ostasevicius
    affiliation: 2
- - name: Andrey Portnoy
-   affiliation: 2
  - name: Riccardo Coccioli
    affiliation: 2
  - name: David Bau
@@ -171,6 +167,8 @@ affiliations:
    index: 2
  - name: Snap Advocacy
    index: 3
+ - name: University of California, Davis
+   index: 4
 date: 16 February 2019
 bibliography: paper.bib
 ---
