@@ -45,13 +45,12 @@ authors:
    affiliation: 1
  - name: Daniel Panteleit
    affiliation: 2
- - name: Marcel Bargull
-   affiliation: 2
  - name: Matthew D. Pagel
    affiliation: 4
  - name: James Lu
    affiliation: 2
- - name: Hugo
+ - name: Hugo van Kemenade
+   orcid: 0000-0001-5715-8632
    affiliation: 2
  - name: Igor Ljubuncic
    affiliation: 3
@@ -64,10 +63,6 @@ authors:
  - name: Veith Röthlingshöfer
    affiliation: 2
  - name: Mike Kutzma
-   affiliation: 2
- - name: Julien Chaumont
-   affiliation: 2
- - name: Yaroslav Halchenko
    affiliation: 2
  - name: Antony Lee
    affiliation: 2
@@ -131,8 +126,6 @@ authors:
  - name: Daniel King
    affiliation: 2
  - name: Lev Velykoivanenko
-   affiliation: 2
- - name: JoshKarpel
    affiliation: 2
  - name: Dyno Fu
    affiliation: 2
