@@ -20,7 +20,7 @@ tags:
  - shell
  - batch
 authors:
- - name: Casper O da Costa-Luis
+ - name: Casper O. da Costa-Luis
    orcid: 0000-0002-7211-1557
    affiliation: 1
  - name: Stephen Karl Larroque
@@ -39,7 +39,7 @@ authors:
    affiliation: 2
  - name: Ivan Ivanov
    affiliation: 2
- - name: James E. King III
+ - name: James E. King
    affiliation: 2
  - name: Mikhail Korobov
    affiliation: 1
@@ -62,10 +62,6 @@ authors:
    affiliation: 2
  - name: Veith Röthlingshöfer
    affiliation: 2
- - name: Mike Kutzma
-   affiliation: 2
- - name: Antony Lee
-   affiliation: 2
  - name: FichteFoll
    affiliation: 2
  - name: Mikhail Dektyarev
@@ -76,24 +72,20 @@ authors:
    affiliation: 2
  - name: Min ho Kim
    affiliation: 2
- - name: Thomas A Caswell
+ - name: Thomas A. Caswell
    affiliation: 2
  - name: Orivej Desh
    affiliation: 2
  - name: Alexander Plavin
    orcid: 0000-0003-2914-8554
    affiliation: 2
- - name: Max Nordlund
-   affiliation: 2
  - name: Kuang-che Wu
-   affiliation: 2
+   affiliation: 5
  - name: zz
-   affiliation: 2
- - name: William Turner
    affiliation: 2
  - name: Sepehr Sameni
    affiliation: 2
- - name: David W.H. Swenson
+ - name: David W. H. Swenson
    affiliation: 2
  - name: Jesus Cea
    affiliation: 2
@@ -105,8 +97,6 @@ authors:
    affiliation: 2
  - name: Staffan Malmgren
    affiliation: 2
- - name: Robert Krzyzanowski
-   affiliation: 2
  - name: Sergei Izmailov
    affiliation: 2
  - name: Anurag Pandey
@@ -116,6 +106,7 @@ authors:
  - name: Alex Rothberg
    affiliation: 2
  - name: Carlin MacKenzie
+   orcid: 0000-0002-9300-0741
    affiliation: 2
  - name: Jan Schlüter
    affiliation: 2
@@ -133,13 +124,7 @@ authors:
    affiliation: 2
  - name: Jose Tiago Macara Coutinho
    affiliation: 2
- - name: Arun Persaud
-   affiliation: 2
  - name: Ford Hurley
-   affiliation: 2
- - name: Tomas Ostasevicius
-   affiliation: 2
- - name: Riccardo Coccioli
    affiliation: 2
  - name: David Bau
    affiliation: 2
@@ -151,8 +136,6 @@ authors:
    affiliation: 2
  - name: Shirish Pokharel
    affiliation: 2
- - name: Javi Merino
-   affiliation: 2
 affiliations:
  - name: tqdm developers
    index: 1
@@ -162,6 +145,8 @@ affiliations:
    index: 3
  - name: University of California, Davis
    index: 4
+ - name: Google Inc.
+   index: 5
 date: 16 February 2019
 bibliography: paper.bib
 ---
