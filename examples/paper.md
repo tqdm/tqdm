@@ -217,11 +217,11 @@ Supported features include:
   terminals
 - Support for custom rendering frontends, including:
     * Command-line interface
-    * *Jupyter* HTML notebooks
-    * `matplotlib`
+    * Jupyter HTML notebooks
+    * Matplotlib
 - Support for custom hooks/callbacks, including:
-    * `pandas`
-    * `keras` [@keras]
+    * pandas
+    * Keras [@keras]
 
 ## Command-line Interface (CLI)
 
