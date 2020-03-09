@@ -154,7 +154,7 @@ bibliography: paper.bib
 
 **`tqdm`** is a progress bar library designed to be fast and extensible. It is
 written in Python, though ports in other languages are available. `tqdm` means
-**progress** in Arabic (*taqadum* [@tqdm-ar]) and is an abbreviation for
+**progress** in Arabic (*taqaddum* [@tqdm-ar]) and is an abbreviation for
 **I love you so much** in Spanish (*te quiero demasiado* [@tqdm-es]).
 
 It is a common programming problem to have iterative operations where progress
