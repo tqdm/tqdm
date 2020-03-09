@@ -257,9 +257,9 @@ regression [@asv].
 
 # Impact
 
-As of March 2020, `tqdm` has accumulated over 20 million downloads
+As of March 2020, `tqdm` has accumulated over 100 million downloads
 [@pypi-downloads], and 595 thousand code inclusions [@tqdm-results]. Dependants
-of `tqdm` include 64 thousand repositories [@tqdm-dependents] and 7 thousand
+of `tqdm` include 64 thousand repositories [@tqdm-dependents] and 13 thousand
 libraries [@lib-io]. `tqdm` has a SourceRank of 24 [@sourcerank], placing it in
 the world's top 25 Python packages as of early 2020 [@sourcerank-descending].
 
