@@ -750,7 +750,7 @@ class tqdm(Comparable):
                     # on the first column/row to decide whether it can
                     # take a fast or slow code path; so stop when t.total==t.n
                     t.update(n=1 if not t.total or t.n < t.total else 0)
-                    if type(func) != dict and type(func) != list:
+                    if not isinstance(func,dict) and not isinstance(func,list):
                         return func(*args, **kwargs)
                     else : 
                         return func
@@ -759,7 +759,7 @@ class tqdm(Comparable):
                 # on the df using our wrapper (which provides bar updating)
                 if isBuiltinFunction :
                     result = getattr(df, df_function)(wrapper, **kwargs)
-                else : 
+                else:
                     result = getattr(df, df_function)(wrapper, **kwargs)
                     result = getattr(df, df_function)(func)
 
