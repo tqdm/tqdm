@@ -757,7 +757,7 @@ class tqdm(Comparable):
 
                 # Apply the provided function (in **kwargs)
                 # on the df using our wrapper (which provides bar updating)
-                if isBuiltinFunction:
+                if isBuiltinFunction or df_function != "aggregate":
                     result = getattr(df, df_function)(wrapper, **kwargs)
                 else:
                     result = getattr(df, df_function)(wrapper, **kwargs)
