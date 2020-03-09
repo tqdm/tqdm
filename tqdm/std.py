@@ -702,7 +702,6 @@ class tqdm(Comparable):
                 **kwargs  : optional
                     Transmitted to `df.apply()`.
                 """
-
                 # Precompute total iterations
                 total = tkwargs.pop("total", getattr(df, 'ngroups', None))
                 if total is None:  # not grouped
@@ -739,7 +738,9 @@ class tqdm(Comparable):
 
                 try:
                     func = df._is_builtin_func(func)
+                    isBuiltinFunction = True
                 except TypeError:
+                    isBuiltinFunction = False
                     pass
 
                 # Define bar updating wrapper
@@ -749,11 +750,18 @@ class tqdm(Comparable):
                     # on the first column/row to decide whether it can
                     # take a fast or slow code path; so stop when t.total==t.n
                     t.update(n=1 if not t.total or t.n < t.total else 0)
-                    return func(*args, **kwargs)
+                    if type(func) != dict and type(func) != list:
+                        return func(*args, **kwargs)
+                    else : 
+                        return func
 
                 # Apply the provided function (in **kwargs)
                 # on the df using our wrapper (which provides bar updating)
-                result = getattr(df, df_function)(wrapper, **kwargs)
+                if isBuiltinFunction :
+                    result = getattr(df, df_function)(wrapper, **kwargs)
+                else : 
+                    result = getattr(df, df_function)(wrapper, **kwargs)
+                    result = getattr(df, df_function)(func)
 
                 # Close bar and return pandas calculation result
                 t.close()
