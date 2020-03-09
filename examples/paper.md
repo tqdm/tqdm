@@ -144,7 +144,7 @@ affiliations:
    index: 4
  - name: Google Inc.
    index: 5
- - name: Université de Lyon
+ - name: École Normale Supérieure de Lyon
    index: 6
 date: 16 February 2019
 bibliography: paper.bib
