@@ -61,6 +61,7 @@ authors:
  - name: Charles Newey
    affiliation: 2
  - name: Veith Röthlingshöfer
+   orcid: 0000-0002-1824-3153
    affiliation: 2
  - name: FichteFoll
    affiliation: 2
@@ -86,7 +87,7 @@ authors:
  - name: Sepehr Sameni
    affiliation: 2
  - name: David W. H. Swenson
-   affiliation: 2
+   affiliation: 6
  - name: Jesus Cea
    affiliation: 2
  - name: ReadmeCritic
@@ -114,8 +115,6 @@ authors:
    affiliation: 2
  - name: Socialery
    affiliation: 2
- - name: Daniel King
-   affiliation: 2
  - name: Lev Velykoivanenko
    affiliation: 2
  - name: Dyno Fu
@@ -127,8 +126,6 @@ authors:
  - name: Ford Hurley
    affiliation: 2
  - name: David Bau
-   affiliation: 2
- - name: Rafael Lukas Maers
    affiliation: 2
  - name: Albert Kottke
    affiliation: 2
@@ -147,6 +144,8 @@ affiliations:
    index: 4
  - name: Google Inc.
    index: 5
+ - name: Université de Lyon
+   index: 6
 date: 16 February 2019
 bibliography: paper.bib
 ---
