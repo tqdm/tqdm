@@ -84,7 +84,7 @@ def test_pandas_series():
 
 @with_setup(pretest, posttest)
 def test_pandas_data_frame():
-    """Test pandas.DataFrame.progress_apply, .progress_aggregate 
+    """Test pandas.DataFrame.progress_apply, .progress_aggregate
     and .progress_applymap"""
     try:
         from numpy.random import randint
