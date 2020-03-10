@@ -46,14 +46,14 @@ authors:
  - name: Daniel Panteleit
    affiliation: 2
  - name: Matthew D. Pagel
-   affiliation: 4
+   affiliation: 3
  - name: James Lu
    affiliation: 2
  - name: Hugo van Kemenade
    orcid: 0000-0001-5715-8632
    affiliation: 2
  - name: Igor Ljubuncic
-   affiliation: 3
+   affiliation: 4
  - name: Adnan Umer
    affiliation: 2
  - name: Johannes Hansen
@@ -138,9 +138,9 @@ affiliations:
    index: 1
  - name: Independent (Non-affiliated)
    index: 2
- - name: Snap Advocacy
-   index: 3
  - name: University of California, Davis
+   index: 3
+ - name: Snap Advocacy
    index: 4
  - name: Google Inc.
    index: 5
