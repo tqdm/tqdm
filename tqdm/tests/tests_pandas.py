@@ -161,7 +161,7 @@ def test_pandas_groupby_apply():
         res4 = df.groupby("a").aggregate([min, max, sum])
         assert res3.equals(res4)
 
-        # aggregate on list
+        # aggregate on dict
         res5 = df.groupby("a").progress_aggregate({'b': sum})
         res6 = df.groupby("a").aggregate({'b': sum})
         assert res5.equals(res6)
