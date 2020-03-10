@@ -26,6 +26,7 @@ def test_pandas_rolling_expanding():
     try:
         from numpy.random import randint
         import pandas as pd
+        tqdm.pandas()
     except ImportError:
         raise SkipTest
 
