@@ -88,7 +88,6 @@ def test_pandas_data_frame():
     and .progress_applymap"""
     try:
         from numpy.random import randint
-        from numpy import arange
         import pandas as pd
     except ImportError:
         raise SkipTest
