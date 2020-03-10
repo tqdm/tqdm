@@ -84,7 +84,8 @@ def test_pandas_series():
 
 @with_setup(pretest, posttest)
 def test_pandas_data_frame():
-    """Test pandas.DataFrame.progress_apply, .progress_aggregate and .progress_applymap"""
+    """Test pandas.DataFrame.progress_apply, .progress_aggregate 
+    and .progress_applymap"""
     try:
         from numpy.random import randint
         from numpy import arange
@@ -114,23 +115,23 @@ def test_pandas_data_frame():
             res3 = df.progress_apply(task_func, axis=axis)
             res4 = df.apply(task_func, axis=axis)
             assert res3.equals(res4)
-        
-        #aggregate
-        for axis in [0, 1, 'index', 'columns']: 
+
+        # aggregate
+        for axis in [0, 1, 'index', 'columns']:
             res5 = df.progress_aggregate(task_func, axis=axis)
             res6 = df.aggregate(task_func, axis=axis)
             assert res5.equals(res6)
-        
-        #aggregate on list
+
+        # aggregate on list
         res7 = df.progress_aggregate([task_func, sum])
-        res8 = df.aggregate([task_func,sum])
+        res8 = df.aggregate([task_func, sum])
         assert res7.equals(res8)
 
-        #aggregate on dict
+        # aggregate on dict
         df_for_dict = pd.DataFrame({'a': arange(1_000_000) // 1000,
                                     'b': arange(1_000_000)})
-        res9 = df_for_dict.groupby('a').progress_aggregate({'b':sum})
-        res10 = df_for_dict.groupby('a').aggregate({'b':sum})
+        res9 = df_for_dict.groupby('a').progress_aggregate({'b': sum})
+        res10 = df_for_dict.groupby('a').aggregate({'b': sum})
         assert res9.equals(res10)
 
         our_file.seek(0)
