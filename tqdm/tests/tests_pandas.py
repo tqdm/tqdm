@@ -116,15 +116,9 @@ def test_pandas_data_frame():
             res4 = df.apply(task_func, axis=axis)
             assert res3.equals(res4)
 
-        # aggregate
-        for axis in [0, 1, 'index', 'columns']:
-            res5 = df.progress_aggregate(task_func, axis=axis)
-            res6 = df.aggregate(task_func, axis=axis)
-            assert res5.equals(res6)
-
         # aggregate on list
-        res7 = df.progress_aggregate([task_func, sum])
-        res8 = df.aggregate([task_func, sum])
+        res7 = df.groupby(0).progress_aggregate([min, max, sum])
+        res8 = df.groupby(0).aggregate([min, max, sum])
         assert res7.equals(res8)
 
         # aggregate on dict
