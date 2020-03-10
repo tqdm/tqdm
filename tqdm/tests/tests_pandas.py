@@ -128,10 +128,8 @@ def test_pandas_data_frame():
         assert res7.equals(res8)
 
         # aggregate on dict
-        df_for_dict = pd.DataFrame({'a': arange(1_000_000) // 1000,
-                                    'b': arange(1_000_000)})
-        res9 = df_for_dict.groupby('a').progress_aggregate({'b': sum})
-        res10 = df_for_dict.groupby('a').aggregate({'b': sum})
+        res9 = df.groupby(0).progress_aggregate({1: sum})
+        res10 = df.groupby(0).aggregate({1: sum})
         assert res9.equals(res10)
 
         our_file.seek(0)
