@@ -85,8 +85,7 @@ def test_pandas_series():
 
 @with_setup(pretest, posttest)
 def test_pandas_data_frame():
-    """Test pandas.DataFrame.progress_apply, .progress_aggregate
-    and .progress_applymap"""
+    """Test pandas.DataFrame.progress_apply and .progress_applymap"""
     try:
         from numpy.random import randint
         import pandas as pd
@@ -116,16 +115,6 @@ def test_pandas_data_frame():
             res4 = df.apply(task_func, axis=axis)
             assert res3.equals(res4)
 
-        # aggregate on list
-        res7 = df.groupby(0).progress_aggregate([min, max, sum])
-        res8 = df.groupby(0).aggregate([min, max, sum])
-        assert res7.equals(res8)
-
-        # aggregate on dict
-        res9 = df.groupby(0).progress_aggregate({1: sum})
-        res10 = df.groupby(0).aggregate({1: sum})
-        assert res9.equals(res10)
-
         our_file.seek(0)
         if our_file.read().count('100%') < 3:
             our_file.seek(0)
@@ -145,7 +134,8 @@ def test_pandas_data_frame():
 
 @with_setup(pretest, posttest)
 def test_pandas_groupby_apply():
-    """Test pandas.DataFrame.groupby(...).progress_apply"""
+    """Test pandas.DataFrame.groupby(...).progress_apply,
+    .progress_aggregate"""
     try:
         from numpy.random import randint, rand
         import pandas as pd
@@ -165,6 +155,11 @@ def test_pandas_groupby_apply():
         res1 = df2.groupby("a").apply(max)
         res2 = df2.groupby("a").progress_apply(max)
         assert res1.equals(res2)
+
+        # aggregate on list
+        res3 = df.groupby("a").progress_aggregate([min, max, sum])
+        res4 = df.groupby("a").aggregate([min, max, sum])
+        assert res3.equals(res4)
 
         our_file.seek(0)
 
