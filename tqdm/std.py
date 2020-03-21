@@ -11,11 +11,12 @@ from __future__ import absolute_import, division
 from collections import OrderedDict
 from contextlib import contextmanager
 from datetime import datetime, timedelta
+import os
+import sys
 from numbers import Number
 from time import time
 from warnings import warn
 from weakref import WeakSet
-import sys
 
 from .utils import _supports_unicode, _screen_shape_wrapper, _range, _unich, \
     _term_move_up, _unicode, _basestring, \
@@ -828,7 +829,7 @@ class tqdm(Comparable):
     def __init__(self, iterable=None, desc=None, total=None, leave=True,
                  file=None, ncols=None, mininterval=0.1, maxinterval=10.0,
                  miniters=None, ascii=None, disable=False, unit='it',
-                 unit_scale=False, dynamic_ncols=False, smoothing=0.3,
+                 unit_scale=False, dynamic_ncols=None, smoothing=0.3,
                  bar_format=None, initial=0, position=None, postfix=None,
                  unit_divisor=1000, write_bytes=None, lock_args=None,
                  nrows=None, colour=None,
@@ -894,8 +895,10 @@ class tqdm(Comparable):
             (kilo, mega, etc.) [default: False]. If any other non-zero
             number, will scale `total` and `n`.
         dynamic_ncols  : bool, optional
-            If set, constantly alters `ncols` and `nrows` to the
-            environment (allowing for window resizes) [default: False].
+            If set to True, constantly alters `ncols` to the environment
+            (allowing for window resizes). If set to False, keep `ncols`
+            constant. If not set, use the environment variable
+            TQDM_DYNAMIC_NCOLS [default: None].
         smoothing  : float, optional
             Exponential moving average smoothing factor for speed estimates
             (ignored in GUI mode). Ranges from 0 (average speed) to 1
@@ -999,6 +1002,8 @@ class tqdm(Comparable):
                 TqdmKeyError("Unknown argument(s): " + str(kwargs)))
 
         # Preprocess the arguments
+        if dynamic_ncols is None:
+            dynamic_ncols = os.environ.get("TQDM_DYNAMIC_NCOLS") == "1"
         if ((ncols is None or nrows is None) and
             (file in (sys.stderr, sys.stdout))) or \
                 dynamic_ncols:  # pragma: no cover
