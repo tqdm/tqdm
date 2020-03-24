@@ -42,7 +42,7 @@ authors:
  - name: James E. King
    affiliation: 2
  - name: Mikhail Korobov
-   affiliation: 1
+   affiliation: 7
  - name: Daniel Panteleit
    affiliation: 2
  - name: Matthew D. Pagel
@@ -88,8 +88,6 @@ authors:
    affiliation: 2
  - name: David W. H. Swenson
    affiliation: 6
- - name: Jesus Cea
-   affiliation: 2
  - name: ReadmeCritic
    affiliation: 2
  - name: stonebig
@@ -108,8 +106,6 @@ authors:
    affiliation: 2
  - name: Carlin MacKenzie
    orcid: 0000-0002-9300-0741
-   affiliation: 2
- - name: Jan Schlüter
    affiliation: 2
  - name: Edward Betts
    affiliation: 2
@@ -146,6 +142,8 @@ affiliations:
    index: 5
  - name: École Normale Supérieure de Lyon
    index: 6
+ - name: Scrapinghub Inc.
+   index: 7
 date: 16 February 2019
 bibliography: paper.bib
 ---
