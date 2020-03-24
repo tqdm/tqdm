@@ -203,6 +203,9 @@ class SimpleTextIOWrapper(ObjectWrapper):
         """
         return self._wrapped.write(s.encode(self.wrapper_getattr('encoding')))
 
+    def __eq__(self, other):
+        return self._wrapped == getattr(other, '_wrapped', other)
+
 
 class CallbackIOWrapper(ObjectWrapper):
     def __init__(self, callback, stream, method="read"):
