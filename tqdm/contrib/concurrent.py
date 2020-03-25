@@ -2,16 +2,9 @@
 Thin wrappers around `concurrent.futures`.
 """
 from __future__ import absolute_import
+from tqdm import TqdmWarning
 from tqdm.auto import tqdm as tqdm_auto
 from copy import deepcopy
-try:
-    from os import cpu_count
-except ImportError:
-    try:
-        from multiprocessing import cpu_count
-    except ImportError:
-        def cpu_count():
-            return 4
 try:
     from operator import length_hint
 except ImportError:
@@ -20,6 +13,14 @@ except ImportError:
             return len(it)
         except TypeError:
             return default
+try:
+    from os import cpu_count
+except ImportError:
+    try:
+        from multiprocessing import cpu_count
+    except ImportError:
+        def cpu_count():
+            return 4
 import sys
 __author__ = {"github.com/": ["casperdcl"]}
 __all__ = ['thread_map', 'process_map']
@@ -28,6 +29,12 @@ __all__ = ['thread_map', 'process_map']
 def _executor_map(PoolExecutor, fn, *iterables, **tqdm_kwargs):
     """
     Implementation of `thread_map` and `process_map`.
+
+    Parameters
+    ----------
+    tqdm_class  : [default: tqdm.auto.tqdm].
+    max_workers  : [default: max(32, cpu_count() + 4)].
+    chunksize  : [default: 1].
     """
     kwargs = deepcopy(tqdm_kwargs)
     if "total" not in kwargs:
@@ -41,7 +48,8 @@ def _executor_map(PoolExecutor, fn, *iterables, **tqdm_kwargs):
         pool_kwargs.update(
             initializer=tqdm_class.set_lock, initargs=(tqdm_class.get_lock(),))
     with PoolExecutor(**pool_kwargs) as ex:
-        return list(tqdm_class(ex.map(fn, *iterables, chunksize=chunksize), **kwargs))
+        return list(tqdm_class(
+            ex.map(fn, *iterables, chunksize=chunksize), **kwargs))
 
 
 def thread_map(fn, *iterables, **tqdm_kwargs):
@@ -52,7 +60,7 @@ def thread_map(fn, *iterables, **tqdm_kwargs):
     Parameters
     ----------
     tqdm_class : optional
-        `tqdm` class to use for bars [default: `tqdm.auto.tqdm`].
+        `tqdm` class to use for bars [default: tqdm.auto.tqdm].
     max_workers : int, optional
         Maximum number of workers to spawn; passed to
         `concurrent.futures.ThreadPoolExecutor.__init__`.
@@ -70,26 +78,24 @@ def process_map(fn, *iterables, **tqdm_kwargs):
     Parameters
     ----------
     tqdm_class  : optional
-        `tqdm` class to use for bars [default: `tqdm.auto.tqdm`].
+        `tqdm` class to use for bars [default: tqdm.auto.tqdm].
     max_workers : int, optional
         Maximum number of workers to spawn; passed to
         `concurrent.futures.ProcessPoolExecutor.__init__`.
         [default: max(32, cpu_count() + 4)].
     chunksize : int, optional
         Size of chunks sent to worker processes; passed to
-        `concurrent.futures.ProcessPoolExecutor.map`.  [default: 1].
+        `concurrent.futures.ProcessPoolExecutor.map`. [default: 1].
     """
     from concurrent.futures import ProcessPoolExecutor
     if iterables and "chunksize" not in tqdm_kwargs:
-        # For large iterables, default chunksize has very bad performance
-        # because most time is spent sending items to workers.
+        # default `chunksize=1` has poor performance for large iterables
+        # (most time spent dispatching items to workers).
         longest_iterable_len = max(map(length_hint, iterables))
-        if longest_iterable_len >= 1000:
+        if longest_iterable_len > 1000:
             from warnings import warn
-            warn(
-                "Received iterable of length {} but 'chunksize' parameter is "
-                "not set. This may seriously degrade multiprocess performance. "
-                "To silence this warning, set 'chunksize' to a value >= 1.".format(longest_iterable_len),
-                RuntimeWarning, stacklevel=2,
-            )
+            warn("Iterable length %d > 1000 but `chunksize` is not set."
+                 " This may seriously degrade multiprocess performance."
+                 " Set `chunksize=1` or more." % longest_iterable_len,
+                 TqdmWarning, stacklevel=2)
     return _executor_map(ProcessPoolExecutor, fn, *iterables, **tqdm_kwargs)

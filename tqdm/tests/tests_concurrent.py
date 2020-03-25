@@ -1,7 +1,7 @@
 """
 Tests for `tqdm.contrib.concurrent`.
 """
-import sys
+from warnings import catch_warnings
 from tqdm.contrib.concurrent import thread_map, process_map
 from tests_tqdm import with_setup, pretest, posttest, SkipTest, StringIO, \
     closing
@@ -38,19 +38,18 @@ def test_process_map():
 
 
 def test_chunksize_warning():
-    if sys.version_info < (3, 3):
-        raise SkipTest("Need unittest.mock")
-
-    from unittest.mock import patch
-    from warnings import catch_warnings
+    try:
+        from unittest.mock import patch
+    except ImportError:
+        raise SkipTest
 
     for iterables, should_warn in [
         ([], False),
         (['x'], False),
         ([()], False),
         (['x', ()], False),
-        (['x' * 1000], True),
-        (['x' * 100, ('x',) * 1000], True),
+        (['x' * 1001], True),
+        (['x' * 100, ('x',) * 1001], True),
     ]:
         with patch('tqdm.contrib.concurrent._executor_map'):
             with catch_warnings(record=True) as w:
