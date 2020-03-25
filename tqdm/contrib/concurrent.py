@@ -9,6 +9,7 @@ try:
     from operator import length_hint
 except ImportError:
     def length_hint(it, default=0):
+        """Returns `len(it)`, falling back to `default`"""
         try:
             return len(it)
         except TypeError:

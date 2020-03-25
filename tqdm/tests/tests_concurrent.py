@@ -38,6 +38,7 @@ def test_process_map():
 
 
 def test_chunksize_warning():
+    """Test contrib.concurrent.process_map chunksize warnings"""
     try:
         from unittest.mock import patch
     except ImportError:
