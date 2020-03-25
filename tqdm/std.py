@@ -702,6 +702,7 @@ class tqdm(Comparable):
                 **kwargs  : optional
                     Transmitted to `df.apply()`.
                 """
+
                 # Precompute total iterations
                 total = tkwargs.pop("total", getattr(df, 'ngroups', None))
                 if total is None:  # not grouped
