@@ -1260,7 +1260,7 @@ class tqdm(Comparable):
         self._decr_instances(self)
 
         # GUI mode or overflow
-        if not hasattr(self, "sp") or pos > self.nrows:
+        if not hasattr(self, "sp") or pos > (self.nrows or 20):
             # never printed so nothing to do
             return
 
@@ -1447,13 +1447,15 @@ class tqdm(Comparable):
         """
         if pos is None:
             pos = abs(self.pos)
-        if pos > self.nrows:
+
+        nrows = self.nrows or 20
+        if pos > nrows:
             return
 
         if pos:
             self.moveto(pos)
         self.sp(self.__repr__() if msg is None else
-                " ... (more hidden) ..." if pos == self.nrows else msg)
+                " ... (more hidden) ..." if pos == nrows else msg)
         if pos:
             self.moveto(-pos)
 
