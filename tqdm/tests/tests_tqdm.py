@@ -194,8 +194,7 @@ def squash_ctrlchars(s):
     lines = ['']  # state of our fake terminal
 
     # Split input string by control codes
-    RE_ctrl = re.compile("(%s)" % ("|".join(CTRLCHR)), flags=re.DOTALL)
-    s_split = RE_ctrl.split(s)
+    s_split = RE_ctrlchr.split(s)
     s_split = filter(None, s_split)  # filter out empty splits
 
     # For each control character or message
@@ -1890,3 +1889,74 @@ def test_float_progress():
                         assert not w
                 assert w
                 assert "clamping frac" in str(w[-1].message)
+
+
+@with_setup(pretest, posttest)
+def test_screen_shape():
+    """Test screen shape"""
+    # ncols
+    with closing(StringIO()) as our_file:
+        with trange(10, file=our_file, ncols=50) as t:
+            list(t)
+
+        res = our_file.getvalue()
+        assert all(len(i.strip('\n')) in (0, 50) for i in res.split('\r'))
+
+    # no second bar, leave=False
+    with closing(StringIO()) as our_file:
+        kwargs = dict(file=our_file, ncols=50, nrows=2, miniters=0,
+                      mininterval=0, leave=False)
+        with trange(10, desc="one", **kwargs) as t1:
+            with trange(10, desc="two", **kwargs) as t2:
+                list(t2)
+            list(t1)
+
+        res = our_file.getvalue()
+        assert "one" in res
+        assert "two" not in res
+        assert "\n\n" not in res
+        assert "more hidden" in res
+        # double-check ncols
+        assert all(len(i) in (0, 50) for i in squash_ctrlchars(res)
+                   if "more hidden" not in i)
+
+    # no third bar, leave=True
+    with closing(StringIO()) as our_file:
+        kwargs = dict(file=our_file, ncols=50, nrows=2, miniters=0,
+                      mininterval=0)
+        with trange(10, desc="one", **kwargs) as t1:
+            with trange(10, desc="two", **kwargs) as t2:
+                assert "two" not in our_file.getvalue()
+                with trange(10, desc="three", **kwargs) as t3:
+                    list(t3)
+                list(t2)
+            list(t1)
+
+        res = our_file.getvalue()
+        assert "one" in res
+        assert "two" in res
+        assert "three" not in res
+        assert "\n\n" not in res
+        assert "more hidden" in res
+        # double-check ncols
+        assert all(len(i) in (0, 50) for i in squash_ctrlchars(res)
+                   if "more hidden" not in i)
+
+    # second bar becomes first, leave=False
+    with closing(StringIO()) as our_file:
+        kwargs = dict(file=our_file, ncols=50, nrows=2, miniters=0,
+                      mininterval=0, leave=False)
+        t1 = tqdm(total=10, desc="one", **kwargs)
+        t2 = tqdm(total=10, desc="two", **kwargs)
+        t1.update()
+        t2.update()
+        t1.close()
+        res = our_file.getvalue()
+        assert "one" in res
+        assert "two" not in res
+        assert "more hidden" in res
+        t2.update()
+        t2.close()
+
+        res = our_file.getvalue()
+        assert "two" in res

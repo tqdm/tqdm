@@ -3,6 +3,8 @@ import os
 from platform import system as _curos
 import re
 import subprocess
+from warnings import warn
+
 CUR_OS = _curos()
 IS_WIN = CUR_OS in ['Windows', 'cli']
 IS_NIX = (not IS_WIN) and any(
@@ -203,6 +205,9 @@ class SimpleTextIOWrapper(ObjectWrapper):
         """
         return self._wrapped.write(s.encode(self.wrapper_getattr('encoding')))
 
+    def __eq__(self, other):
+        return self._wrapped == getattr(other, '_wrapped', other)
+
 
 class CallbackIOWrapper(ObjectWrapper):
     def __init__(self, callback, stream, method="read"):
@@ -260,22 +265,22 @@ def _is_ascii(s):
     return _supports_unicode(s)
 
 
-def _environ_cols_wrapper():  # pragma: no cover
+def _screen_shape_wrapper():  # pragma: no cover
     """
-    Return a function which gets width and height of console
-    (linux,osx,windows,cygwin).
+    Return a function which returns console dimensions (width, height).
+    Supported: linux, osx, windows, cygwin.
     """
-    _environ_cols = None
+    _screen_shape = None
     if IS_WIN:
-        _environ_cols = _environ_cols_windows
-        if _environ_cols is None:
-            _environ_cols = _environ_cols_tput
+        _screen_shape = _screen_shape_windows
+        if _screen_shape is None:
+            _screen_shape = _screen_shape_tput
     if IS_NIX:
-        _environ_cols = _environ_cols_linux
-    return _environ_cols
+        _screen_shape = _screen_shape_linux
+    return _screen_shape
 
 
-def _environ_cols_windows(fp):  # pragma: no cover
+def _screen_shape_windows(fp):  # pragma: no cover
     try:
         from ctypes import windll, create_string_buffer
         import struct
@@ -291,28 +296,26 @@ def _environ_cols_windows(fp):  # pragma: no cover
         csbi = create_string_buffer(22)
         res = windll.kernel32.GetConsoleScreenBufferInfo(h, csbi)
         if res:
-            (_bufx, _bufy, _curx, _cury, _wattr, left, _top, right, _bottom,
+            (_bufx, _bufy, _curx, _cury, _wattr, left, top, right, bottom,
              _maxx, _maxy) = struct.unpack("hhhhHhhhhhh", csbi.raw)
-            # nlines = bottom - top + 1
-            return right - left  # +1
+            return right - left, bottom - top  # +1
     except:
         pass
-    return None
+    return None, None
 
 
-def _environ_cols_tput(*_):  # pragma: no cover
+def _screen_shape_tput(*_):  # pragma: no cover
     """cygwin xterm (windows)"""
     try:
         import shlex
-        cols = int(subprocess.check_call(shlex.split('tput cols')))
-        # rows = int(subprocess.check_call(shlex.split('tput lines')))
-        return cols
+        return [int(subprocess.check_call(shlex.split('tput ' + i))) - 1
+                for i in ('cols', 'lines')]
     except:
         pass
-    return None
+    return None, None
 
 
-def _environ_cols_linux(fp):  # pragma: no cover
+def _screen_shape_linux(fp):  # pragma: no cover
 
     try:
         from termios import TIOCGWINSZ
@@ -322,12 +325,31 @@ def _environ_cols_linux(fp):  # pragma: no cover
         return None
     else:
         try:
-            return array('h', ioctl(fp, TIOCGWINSZ, '\0' * 8))[1]
+            rows, cols = array('h', ioctl(fp, TIOCGWINSZ, '\0' * 8))[:2]
+            return cols, rows
         except:
             try:
-                return int(os.environ["COLUMNS"]) - 1
+                return [int(os.environ[i]) - 1 for i in ("COLUMNS", "LINES")]
             except KeyError:
-                return None
+                return None, None
+
+
+def _environ_cols_wrapper():  # pragma: no cover
+    """
+    Return a function which returns console width.
+    Supported: linux, osx, windows, cygwin.
+    """
+    warn("Use `_screen_shape_wrapper()(file)[0]` instead of"
+         " `_environ_cols_wrapper()(file)`", DeprecationWarning, stacklevel=2)
+    shape = _screen_shape_wrapper()
+    if not shape:
+        return None
+
+    @wraps(shape)
+    def inner(fp):
+        return shape(fp)[0]
+
+    return inner
 
 
 def _term_move_up():  # pragma: no cover

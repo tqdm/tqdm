@@ -9,7 +9,7 @@ Usage:
 """
 from __future__ import absolute_import, division
 # compatibility functions and utilities
-from .utils import _supports_unicode, _environ_cols_wrapper, _range, _unich, \
+from .utils import _supports_unicode, _screen_shape_wrapper, _range, _unich, \
     _term_move_up, _unicode, WeakSet, _basestring, _OrderedDict, \
     Comparable, _is_ascii, FormatReplace, disp_len, disp_trim, \
     SimpleTextIOWrapper, CallbackIOWrapper
@@ -352,7 +352,7 @@ class tqdm(Comparable):
             r_bar='| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, '
               '{rate_fmt}{postfix}]'
             Possible vars: l_bar, bar, r_bar, n, n_fmt, total, total_fmt,
-              percentage, elapsed, elapsed_s, ncols, desc, unit,
+              percentage, elapsed, elapsed_s, ncols, nrows, desc, unit,
               rate, rate_fmt, rate_noinv, rate_noinv_fmt,
               rate_inv, rate_inv_fmt, postfix, unit_divisor,
               remaining, remaining_s.
@@ -790,6 +790,7 @@ class tqdm(Comparable):
                  unit_scale=False, dynamic_ncols=False, smoothing=0.3,
                  bar_format=None, initial=0, position=None, postfix=None,
                  unit_divisor=1000, write_bytes=None, lock_args=None,
+                 nrows=None,
                  gui=False, **kwargs):
         """
         Parameters
@@ -852,8 +853,8 @@ class tqdm(Comparable):
             (kilo, mega, etc.) [default: False]. If any other non-zero
             number, will scale `total` and `n`.
         dynamic_ncols  : bool, optional
-            If set, constantly alters `ncols` to the environment (allowing
-            for window resizes) [default: False].
+            If set, constantly alters `ncols` and `nrows` to the
+            environment (allowing for window resizes) [default: False].
         smoothing  : float, optional
             Exponential moving average smoothing factor for speed estimates
             (ignored in GUI mode). Ranges from 0 (average speed) to 1
@@ -865,7 +866,7 @@ class tqdm(Comparable):
             r_bar='| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, '
               '{rate_fmt}{postfix}]'
             Possible vars: l_bar, bar, r_bar, n, n_fmt, total, total_fmt,
-              percentage, elapsed, elapsed_s, ncols, desc, unit,
+              percentage, elapsed, elapsed_s, ncols, nrows, desc, unit,
               rate, rate_fmt, rate_noinv, rate_noinv_fmt,
               rate_inv, rate_inv_fmt, postfix, unit_divisor,
               remaining, remaining_s.
@@ -891,6 +892,10 @@ class tqdm(Comparable):
         lock_args  : tuple, optional
             Passed to `refresh` for intermediate output
             (initialisation, iterating, and updating).
+        nrows  : int, optional
+            The screen height. If specified, hides nested bars outside this
+            bound. If unspecified, attempts to use environment height.
+            The fallback is 20.
         gui  : bool, optional
             WARNING: internal parameter - do not use.
             Use tqdm.gui.tqdm(...) instead. If set, will attempt to use
@@ -949,16 +954,21 @@ class tqdm(Comparable):
                 TqdmKeyError("Unknown argument(s): " + str(kwargs)))
 
         # Preprocess the arguments
-        if ((ncols is None) and (file in (sys.stderr, sys.stdout))) or \
+        if ((ncols is None or nrows is None) and
+            (file in (sys.stderr, sys.stdout))) or \
                 dynamic_ncols:  # pragma: no cover
             if dynamic_ncols:
-                dynamic_ncols = _environ_cols_wrapper()
+                dynamic_ncols = _screen_shape_wrapper()
                 if dynamic_ncols:
-                    ncols = dynamic_ncols(file)
+                    ncols, nrows = dynamic_ncols(file)
             else:
-                _dynamic_ncols = _environ_cols_wrapper()
+                _dynamic_ncols = _screen_shape_wrapper()
                 if _dynamic_ncols:
-                    ncols = _dynamic_ncols(file)
+                    _ncols, _nrows = _dynamic_ncols(file)
+                    if ncols is None:
+                        ncols = _ncols
+                    if nrows is None:
+                        nrows = _nrows
 
         if miniters is None:
             miniters = 0
@@ -989,6 +999,7 @@ class tqdm(Comparable):
         self.leave = leave
         self.fp = file
         self.ncols = ncols
+        self.nrows = nrows
         self.mininterval = mininterval
         self.maxinterval = maxinterval
         self.miniters = miniters
@@ -1248,8 +1259,9 @@ class tqdm(Comparable):
         pos = abs(self.pos)
         self._decr_instances(self)
 
-        # GUI mode
-        if not hasattr(self, "sp"):
+        # GUI mode or overflow
+        if not hasattr(self, "sp") or pos >= (self.nrows or 20):
+            # never printed so nothing to do
             return
 
         # annoyingly, _supports_unicode isn't good enough
@@ -1283,10 +1295,12 @@ class tqdm(Comparable):
 
         if not nolock:
             self._lock.acquire()
-        self.moveto(abs(self.pos))
-        self.sp('')
-        self.fp.write('\r')  # place cursor back at the beginning of line
-        self.moveto(-abs(self.pos))
+        pos = abs(self.pos)
+        if pos < (self.nrows or 20):
+            self.moveto(pos)
+            self.sp('')
+            self.fp.write('\r')  # place cursor back at the beginning of line
+            self.moveto(-pos)
         if not nolock:
             self._lock.release()
 
@@ -1406,12 +1420,14 @@ class tqdm(Comparable):
     @property
     def format_dict(self):
         """Public API for read-only member access."""
+        if self.dynamic_ncols:
+            self.ncols, self.nrows = self.dynamic_ncols(self.fp)
+        ncols, nrows = self.ncols, self.nrows
         return dict(
             n=self.n, total=self.total,
             elapsed=self._time() - self.start_t
             if hasattr(self, 'start_t') else 0,
-            ncols=self.dynamic_ncols(self.fp)
-            if self.dynamic_ncols else self.ncols,
+            ncols=ncols, nrows=nrows,
             prefix=self.desc, ascii=self.ascii, unit=self.unit,
             unit_scale=self.unit_scale,
             rate=1 / self.avg_time if self.avg_time else None,
@@ -1433,6 +1449,12 @@ class tqdm(Comparable):
         """
         if pos is None:
             pos = abs(self.pos)
+
+        nrows = self.nrows or 20
+        if pos >= nrows - 1:
+            if pos >= nrows:
+                return
+            msg = " ... (more hidden) ..."
 
         if pos:
             self.moveto(pos)
