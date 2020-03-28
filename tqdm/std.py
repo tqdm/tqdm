@@ -1454,8 +1454,8 @@ class tqdm(Comparable):
 
         if pos:
             self.moveto(pos)
-        self.sp(self.__repr__() if msg is None else
-                " ... (more hidden) ..." if pos == nrows else msg)
+        self.sp(" ... (more hidden) ..." if pos == nrows else
+                self.__repr__() if msg is None else msg)
         if pos:
             self.moveto(-pos)
 

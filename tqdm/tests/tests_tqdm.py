@@ -1890,3 +1890,30 @@ def test_float_progress():
                         assert not w
                 assert w
                 assert "clamping frac" in str(w[-1].message)
+
+
+@with_setup(pretest, posttest)
+def test_screen_shape():
+    """Test screen shape"""
+    with closing(StringIO()) as our_file:
+        with trange(10, file=our_file, ncols=50) as t:
+            list(t)
+
+        res = our_file.getvalue()
+        assert all(len(i.strip('\n')) in (0, 50) for i in res.split('\r'))
+
+    with closing(StringIO()) as our_file:
+        with trange(10, file=our_file, ncols=50, nrows=1, desc="one") as t1:
+            with trange(10, file=our_file, ncols=50, nrows=1, desc="two") as t2:
+                with trange(10, file=our_file, ncols=50, nrows=1, desc="three") as t3:
+                    list(t3)
+                list(t2)
+            list(t1)
+
+        res = our_file.getvalue()
+        assert "one" in res
+        assert "two" in res
+        assert "three" not in res
+        assert "more hidden" in res
+        assert all(len(i.strip('\n')) in (0, 50) for i in res.split('\r')
+                   if "more hidden" not in i)
