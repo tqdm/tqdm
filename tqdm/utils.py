@@ -3,6 +3,8 @@ import os
 from platform import system as _curos
 import re
 import subprocess
+from warnings import warn
+
 CUR_OS = _curos()
 IS_WIN = CUR_OS in ['Windows', 'cli']
 IS_NIX = (not IS_WIN) and any(
@@ -330,6 +332,23 @@ def _screen_shape_linux(fp):  # pragma: no cover
                 return [int(os.environ[i]) - 1 for i in ("COLUMNS", "LINES")]
             except KeyError:
                 return None, None
+
+
+def _environ_cols_wrapper():  # pragma: no cover
+    """
+    Return a function which returns console width.
+    Supported: linux, osx, windows, cygwin.
+    """
+    warn("Use `_screen_shape_wrapper()(file)[0]` instead of"
+         " `_environ_cols_wrapper()(file)`", DeprecationWarning, stacklevel=2)
+    shape = _screen_shape_wrapper()
+    if not shape:
+        return None
+
+    def inner(fp):
+        return shape(fp)[0]
+
+    return inner
 
 
 def _term_move_up():  # pragma: no cover
