@@ -1259,8 +1259,9 @@ class tqdm(Comparable):
         pos = abs(self.pos)
         self._decr_instances(self)
 
-        # GUI mode
-        if not hasattr(self, "sp"):
+        # GUI mode or overflow
+        if not hasattr(self, "sp") or pos > self.nrows:
+            # never printed so nothing to do
             return
 
         # annoyingly, _supports_unicode isn't good enough
@@ -1447,10 +1448,13 @@ class tqdm(Comparable):
         """
         if pos is None:
             pos = abs(self.pos)
+        if pos > self.nrows:
+            return
 
         if pos:
             self.moveto(pos)
-        self.sp(self.__repr__() if msg is None else msg)
+        self.sp(self.__repr__() if msg is None else
+                " ... (more hidden) ..." if pos == self.nrows else msg)
         if pos:
             self.moveto(-pos)
 
