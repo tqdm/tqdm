@@ -1894,6 +1894,7 @@ def test_float_progress():
 @with_setup(pretest, posttest)
 def test_screen_shape():
     """Test screen shape"""
+    # ncols
     with closing(StringIO()) as our_file:
         with trange(10, file=our_file, ncols=50) as t:
             list(t)
@@ -1901,11 +1902,30 @@ def test_screen_shape():
         res = our_file.getvalue()
         assert all(len(i.strip('\n')) in (0, 50) for i in res.split('\r'))
 
-    # no third bar
+    # no second bar, leave=False
     with closing(StringIO()) as our_file:
-        with trange(10, file=our_file, ncols=50, nrows=2, desc="one") as t1:
-            with trange(10, file=our_file, ncols=50, nrows=2, desc="two") as t2:
-                with trange(10, file=our_file, ncols=50, nrows=2, desc="three") as t3:
+        kwargs = dict(file=our_file, ncols=50, nrows=2, miniters=0, mininterval=0, leave=False)
+        with trange(10, desc="one", **kwargs) as t1:
+            with trange(10, desc="two", **kwargs) as t2:
+                list(t2)
+            list(t1)
+
+        res = our_file.getvalue()
+        assert "one" in res
+        assert "two" not in res
+        assert "\n\n" not in res
+        assert "more hidden" in res
+        # double-check ncols
+        assert all(len(i) in (0, 50) for i in squash_ctrlchars(res)
+                   if "more hidden" not in i)
+
+    # no third bar, leave=True
+    with closing(StringIO()) as our_file:
+        kwargs = dict(file=our_file, ncols=50, nrows=2, miniters=0, mininterval=0)
+        with trange(10, desc="one", **kwargs) as t1:
+            with trange(10, desc="two", **kwargs) as t2:
+                assert "two" not in our_file.getvalue()
+                with trange(10, desc="three", **kwargs) as t3:
                     list(t3)
                 list(t2)
             list(t1)
@@ -1914,29 +1934,26 @@ def test_screen_shape():
         assert "one" in res
         assert "two" in res
         assert "three" not in res
-        assert "\n\n\n" not in res
+        assert "\n\n" not in res
         assert "more hidden" in res
         # double-check ncols
         assert all(len(i) in (0, 50) for i in squash_ctrlchars(res)
                    if "more hidden" not in i)
 
-    # third bar becomes second
+    # second bar becomes first, leave=False
     with closing(StringIO()) as our_file:
-        t1 = trange(10, file=our_file, ncols=50, nrows=2, desc="one")
-        t2 = trange(10, file=our_file, ncols=50, nrows=2, desc="two")
-        t3 = trange(10, file=our_file, ncols=50, nrows=2, desc="three")
-        list(t2)
-        t2.close()
-        list(t3)
-        t3.close()
-        list(t1)
+        kwargs = dict(file=our_file, ncols=50, nrows=2, miniters=0, mininterval=0, leave=False)
+        t1 = tqdm(total=10, desc="one", **kwargs)
+        t2 = tqdm(total=10, desc="two", **kwargs)
+        t1.update()
+        t2.update()
         t1.close()
-
         res = our_file.getvalue()
         assert "one" in res
-        assert "two" in res
-        assert "three" in res
-        assert "\n\n\n" not in res
+        assert "two" not in res
         assert "more hidden" in res
-        assert all(len(i) in (0, 50) for i in squash_ctrlchars(res)
-                   if "more hidden" not in i)
+        t2.update()
+        t2.close()
+
+        res = our_file.getvalue()
+        assert "two" in res
