@@ -1419,9 +1419,8 @@ class tqdm(Comparable):
     def format_dict(self):
         """Public API for read-only member access."""
         if self.dynamic_ncols:
-            ncols, nrows = self.dynamic_ncols(self.fp)
-        else:
-            ncols, nrows = self.ncols, self.nrows
+            self.ncols, self.nrows = self.dynamic_ncols(self.fp)
+        ncols, nrows = self.ncols, self.nrows
         return dict(
             n=self.n, total=self.total,
             elapsed=self._time() - self.start_t
