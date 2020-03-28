@@ -652,6 +652,7 @@ class tqdm(Comparable):
         https://stackoverflow.com/questions/18603270/
         progress-indicator-during-pandas-operations-python
         """
+        from functools import wraps
         from pandas.core.frame import DataFrame
         from pandas.core.series import Series
         try:
@@ -763,26 +764,34 @@ class tqdm(Comparable):
 
         # Monkeypatch pandas to provide easy methods
         # Enable custom tqdm progress in pandas!
-        Series.progress_apply = inner_generator()
-        SeriesGroupBy.progress_apply = inner_generator()
-        Series.progress_map = inner_generator('map')
-        SeriesGroupBy.progress_map = inner_generator('map')
+        Series.progress_apply = wraps(Series.apply)(inner_generator())
+        SeriesGroupBy.progress_apply = wraps(SeriesGroupBy.apply)(
+            inner_generator())
+        Series.progress_map = wraps(Series.map)(inner_generator('map'))
+        SeriesGroupBy.progress_map = wraps(SeriesGroupBy.map)(
+            inner_generator('map'))
 
-        DataFrame.progress_apply = inner_generator()
-        DataFrameGroupBy.progress_apply = inner_generator()
-        DataFrame.progress_applymap = inner_generator('applymap')
+        DataFrame.progress_apply = wraps(DataFrame.apply)(inner_generator())
+        DataFrameGroupBy.progress_apply = wraps(DataFrameGroupBy.apply)(
+            inner_generator())
+        DataFrame.progress_applymap = wraps(DataFrame.applymap)(
+            inner_generator('applymap'))
 
         if Panel is not None:
-            Panel.progress_apply = inner_generator()
+            Panel.progress_apply = wraps(Panel.apply)(inner_generator())
         if PanelGroupBy is not None:
-            PanelGroupBy.progress_apply = inner_generator()
+            PanelGroupBy.progress_apply = wraps(PanelGroupBy.apply)(
+                inner_generator())
 
-        GroupBy.progress_apply = inner_generator()
-        GroupBy.progress_aggregate = inner_generator('aggregate')
-        GroupBy.progress_transform = inner_generator('transform')
+        GroupBy.progress_apply = wraps(GroupBy.apply)(inner_generator())
+        GroupBy.progress_aggregate = wraps(GroupBy.aggregate)(
+            inner_generator('aggregate'))
+        GroupBy.progress_transform = wraps(GroupBy.transform)(
+            inner_generator('transform'))
 
         if _Rolling_and_Expanding is not None:  # pragma: no cover
-            _Rolling_and_Expanding.progress_apply = inner_generator()
+            _Rolling_and_Expanding.progress_apply = wraps(
+                _Rolling_and_Expanding.apply)(inner_generator())
 
     def __init__(self, iterable=None, desc=None, total=None, leave=True,
                  file=None, ncols=None, mininterval=0.1, maxinterval=10.0,
