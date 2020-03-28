@@ -345,6 +345,7 @@ def _environ_cols_wrapper():  # pragma: no cover
     if not shape:
         return None
 
+    @wraps(shape)
     def inner(fp):
         return shape(fp)[0]
 
