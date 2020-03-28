@@ -1260,7 +1260,7 @@ class tqdm(Comparable):
         self._decr_instances(self)
 
         # GUI mode or overflow
-        if not hasattr(self, "sp") or pos > (self.nrows or 20):
+        if not hasattr(self, "sp") or pos >= (self.nrows or 20):
             # never printed so nothing to do
             return
 
@@ -1295,10 +1295,12 @@ class tqdm(Comparable):
 
         if not nolock:
             self._lock.acquire()
-        self.moveto(abs(self.pos))
-        self.sp('')
-        self.fp.write('\r')  # place cursor back at the beginning of line
-        self.moveto(-abs(self.pos))
+        pos = abs(self.pos)
+        if pos < (self.nrows or 20):
+            self.moveto(pos)
+            self.sp('')
+            self.fp.write('\r')  # place cursor back at the beginning of line
+            self.moveto(-pos)
         if not nolock:
             self._lock.release()
 
@@ -1449,13 +1451,14 @@ class tqdm(Comparable):
             pos = abs(self.pos)
 
         nrows = self.nrows or 20
-        if pos > nrows:
-            return
+        if pos >= nrows - 1:
+            if pos >= nrows:
+                return
+            msg = " ... (more hidden) ..."
 
         if pos:
             self.moveto(pos)
-        self.sp(" ... (more hidden) ..." if pos == nrows else
-                self.__repr__() if msg is None else msg)
+        self.sp(self.__repr__() if msg is None else msg)
         if pos:
             self.moveto(-pos)
 
