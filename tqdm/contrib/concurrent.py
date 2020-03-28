@@ -44,13 +44,17 @@ def _executor_map(PoolExecutor, fn, *iterables, **tqdm_kwargs):
     max_workers = kwargs.pop("max_workers", min(32, cpu_count() + 4))
     chunksize = kwargs.pop("chunksize", 1)
     pool_kwargs = dict(max_workers=max_workers)
-    if sys.version_info[:2] >= (3, 7):
+    sys_version = sys.version_info[:2]
+    if sys_version >= (3, 7):
         # share lock in case workers are already using `tqdm`
         pool_kwargs.update(
             initializer=tqdm_class.set_lock, initargs=(tqdm_class.get_lock(),))
+    map_args = {}
+    if not (3, 0) < sys_version < (3, 5):
+        map_args.update(chunksize=chunksize)
     with PoolExecutor(**pool_kwargs) as ex:
         return list(tqdm_class(
-            ex.map(fn, *iterables, chunksize=chunksize), **kwargs))
+            ex.map(fn, *iterables, **map_args), **kwargs))
 
 
 def thread_map(fn, *iterables, **tqdm_kwargs):
