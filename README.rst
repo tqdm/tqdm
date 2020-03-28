@@ -380,8 +380,8 @@ Parameters
     (kilo, mega, etc.) [default: False]. If any other non-zero
     number, will scale ``total`` and ``n``.
 * dynamic_ncols  : bool, optional  
-    If set, constantly alters ``ncols`` to the environment (allowing
-    for window resizes) [default: False].
+    If set, constantly alters ``ncols`` and ``nrows`` to the
+    environment (allowing for window resizes) [default: False].
 * smoothing  : float, optional  
     Exponential moving average smoothing factor for speed estimates
     (ignored in GUI mode). Ranges from 0 (average speed) to 1
@@ -393,7 +393,7 @@ Parameters
     r_bar='| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, '
     '{rate_fmt}{postfix}]'
     Possible vars: l_bar, bar, r_bar, n, n_fmt, total, total_fmt,
-    percentage, elapsed, elapsed_s, ncols, desc, unit,
+    percentage, elapsed, elapsed_s, ncols, nrows, desc, unit,
     rate, rate_fmt, rate_noinv, rate_noinv_fmt,
     rate_inv, rate_inv_fmt, postfix, unit_divisor,
     remaining, remaining_s.
@@ -419,6 +419,10 @@ Parameters
 * lock_args  : tuple, optional  
     Passed to ``refresh`` for intermediate output
     (initialisation, iterating, and updating).
+* nrows  : int, optional  
+    The screen height. If specified, hides nested bars outside this
+    bound. If unspecified, attempts to use environment height.
+    The fallback is 20.
 
 Extra CLI Options
 ~~~~~~~~~~~~~~~~~

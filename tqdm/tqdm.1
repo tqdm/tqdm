@@ -142,8 +142,8 @@ If any other non\-zero number, will scale \f[C]total\f[] and \f[C]n\f[].
 .TP
 .B \-\-dynamic_ncols=\f[I]dynamic_ncols\f[]
 bool, optional.
-If set, constantly alters \f[C]ncols\f[] to the environment (allowing
-for window resizes) [default: False].
+If set, constantly alters \f[C]ncols\f[] and \f[C]nrows\f[] to the
+environment (allowing for window resizes) [default: False].
 .RS
 .RE
 .TP
@@ -164,9 +164,9 @@ May impact performance.
 {percentage:3.0f}%|\[aq] and r_bar=\[aq]| {n_fmt}/{total_fmt}
 [{elapsed}<{remaining}, \[aq] \[aq]{rate_fmt}{postfix}]\[aq] Possible
 vars: l_bar, bar, r_bar, n, n_fmt, total, total_fmt, percentage,
-elapsed, elapsed_s, ncols, desc, unit, rate, rate_fmt, rate_noinv,
-rate_noinv_fmt, rate_inv, rate_inv_fmt, postfix, unit_divisor,
-remaining, remaining_s.
+elapsed, elapsed_s, ncols, nrows, desc, unit, rate, rate_fmt,
+rate_noinv, rate_noinv_fmt, rate_inv, rate_inv_fmt, postfix,
+unit_divisor, remaining, remaining_s.
 Note that a trailing ": " is automatically removed after {desc} if the
 latter is empty.
 .RS
@@ -215,6 +215,15 @@ In all other cases will default to unicode.
 tuple, optional.
 Passed to \f[C]refresh\f[] for intermediate output (initialisation,
 iterating, and updating).
+.RS
+.RE
+.TP
+.B \-\-nrows=\f[I]nrows\f[]
+int, optional.
+The screen height.
+If specified, hides nested bars outside this bound.
+If unspecified, attempts to use environment height.
+The fallback is 20.
 .RS
 .RE
 .TP
