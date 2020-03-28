@@ -1903,9 +1903,9 @@ def test_screen_shape():
 
     # no third bar
     with closing(StringIO()) as our_file:
-        with trange(10, file=our_file, ncols=50, nrows=1, desc="one") as t1:
-            with trange(10, file=our_file, ncols=50, nrows=1, desc="two") as t2:
-                with trange(10, file=our_file, ncols=50, nrows=1, desc="three") as t3:
+        with trange(10, file=our_file, ncols=50, nrows=2, desc="one") as t1:
+            with trange(10, file=our_file, ncols=50, nrows=2, desc="two") as t2:
+                with trange(10, file=our_file, ncols=50, nrows=2, desc="three") as t3:
                     list(t3)
                 list(t2)
             list(t1)
@@ -1922,9 +1922,9 @@ def test_screen_shape():
 
     # third bar becomes second
     with closing(StringIO()) as our_file:
-        t1 = trange(10, file=our_file, ncols=50, nrows=1, desc="one")
-        t2 = trange(10, file=our_file, ncols=50, nrows=1, desc="two")
-        t3 = trange(10, file=our_file, ncols=50, nrows=1, desc="three")
+        t1 = trange(10, file=our_file, ncols=50, nrows=2, desc="one")
+        t2 = trange(10, file=our_file, ncols=50, nrows=2, desc="two")
+        t3 = trange(10, file=our_file, ncols=50, nrows=2, desc="three")
         list(t2)
         t2.close()
         list(t3)
