@@ -194,8 +194,7 @@ def squash_ctrlchars(s):
     lines = ['']  # state of our fake terminal
 
     # Split input string by control codes
-    RE_ctrl = re.compile("(%s)" % ("|".join(CTRLCHR)), flags=re.DOTALL)
-    s_split = RE_ctrl.split(s)
+    s_split = RE_ctrlchr.split(s)
     s_split = filter(None, s_split)  # filter out empty splits
 
     # For each control character or message
@@ -1902,6 +1901,7 @@ def test_screen_shape():
         res = our_file.getvalue()
         assert all(len(i.strip('\n')) in (0, 50) for i in res.split('\r'))
 
+    # no third bar
     with closing(StringIO()) as our_file:
         with trange(10, file=our_file, ncols=50, nrows=1, desc="one") as t1:
             with trange(10, file=our_file, ncols=50, nrows=1, desc="two") as t2:
@@ -1914,6 +1914,29 @@ def test_screen_shape():
         assert "one" in res
         assert "two" in res
         assert "three" not in res
+        assert "\n\n\n" not in res
         assert "more hidden" in res
-        assert all(len(i.strip('\n')) in (0, 50) for i in res.split('\r')
+        # double-check ncols
+        assert all(len(i) in (0, 50) for i in squash_ctrlchars(res)
+                   if "more hidden" not in i)
+
+    # third bar becomes second
+    with closing(StringIO()) as our_file:
+        t1 = trange(10, file=our_file, ncols=50, nrows=1, desc="one")
+        t2 = trange(10, file=our_file, ncols=50, nrows=1, desc="two")
+        t3 = trange(10, file=our_file, ncols=50, nrows=1, desc="three")
+        list(t2)
+        t2.close()
+        list(t3)
+        t3.close()
+        list(t1)
+        t1.close()
+
+        res = our_file.getvalue()
+        assert "one" in res
+        assert "two" in res
+        assert "three" in res
+        assert "\n\n\n" not in res
+        assert "more hidden" in res
+        assert all(len(i) in (0, 50) for i in squash_ctrlchars(res)
                    if "more hidden" not in i)
