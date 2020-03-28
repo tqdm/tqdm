@@ -1904,7 +1904,8 @@ def test_screen_shape():
 
     # no second bar, leave=False
     with closing(StringIO()) as our_file:
-        kwargs = dict(file=our_file, ncols=50, nrows=2, miniters=0, mininterval=0, leave=False)
+        kwargs = dict(file=our_file, ncols=50, nrows=2, miniters=0,
+                      mininterval=0, leave=False)
         with trange(10, desc="one", **kwargs) as t1:
             with trange(10, desc="two", **kwargs) as t2:
                 list(t2)
@@ -1921,7 +1922,8 @@ def test_screen_shape():
 
     # no third bar, leave=True
     with closing(StringIO()) as our_file:
-        kwargs = dict(file=our_file, ncols=50, nrows=2, miniters=0, mininterval=0)
+        kwargs = dict(file=our_file, ncols=50, nrows=2, miniters=0,
+                      mininterval=0)
         with trange(10, desc="one", **kwargs) as t1:
             with trange(10, desc="two", **kwargs) as t2:
                 assert "two" not in our_file.getvalue()
@@ -1942,7 +1944,8 @@ def test_screen_shape():
 
     # second bar becomes first, leave=False
     with closing(StringIO()) as our_file:
-        kwargs = dict(file=our_file, ncols=50, nrows=2, miniters=0, mininterval=0, leave=False)
+        kwargs = dict(file=our_file, ncols=50, nrows=2, miniters=0,
+                      mininterval=0, leave=False)
         t1 = tqdm(total=10, desc="one", **kwargs)
         t2 = tqdm(total=10, desc="two", **kwargs)
         t1.update()
