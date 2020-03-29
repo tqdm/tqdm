@@ -753,11 +753,10 @@ class tqdm(Comparable):
 
                 # Apply the provided function (in **kwargs)
                 # on the df using our wrapper (which provides bar updating)
-                result = getattr(df, df_function)(wrapper, **kwargs)
-
-                # Close bar and return pandas calculation result
-                t.close()
-                return result
+                try:
+                    return getattr(df, df_function)(wrapper, **kwargs)
+                finally:
+                    t.close()
 
             return inner
 
@@ -1116,60 +1115,61 @@ class tqdm(Comparable):
                 " `tqdm(..., gui=True)`\n",
                 fp_write=getattr(self.fp, 'write', sys.stderr.write))
 
-        for obj in iterable:
-            yield obj
-            # Update and possibly print the progressbar.
-            # Note: does not call self.update(1) for speed optimisation.
-            n += 1
-            # check counter first to avoid calls to time()
-            if n - last_print_n >= self.miniters:
-                miniters = self.miniters  # watch monitoring thread changes
-                delta_t = time() - last_print_t
-                if delta_t >= mininterval:
-                    cur_t = time()
-                    delta_it = n - last_print_n
-                    # EMA (not just overall average)
-                    if smoothing and delta_t and delta_it:
-                        rate = delta_t / delta_it
-                        avg_time = self.ema(rate, avg_time, smoothing)
-                        self.avg_time = avg_time
+        try:
+            for obj in iterable:
+                yield obj
+                # Update and possibly print the progressbar.
+                # Note: does not call self.update(1) for speed optimisation.
+                n += 1
+                # check counter first to avoid calls to time()
+                if n - last_print_n >= self.miniters:
+                    miniters = self.miniters  # watch monitoring thread changes
+                    delta_t = time() - last_print_t
+                    if delta_t >= mininterval:
+                        cur_t = time()
+                        delta_it = n - last_print_n
+                        # EMA (not just overall average)
+                        if smoothing and delta_t and delta_it:
+                            rate = delta_t / delta_it
+                            avg_time = self.ema(rate, avg_time, smoothing)
+                            self.avg_time = avg_time
 
-                    self.n = n
-                    self.refresh(lock_args=self.lock_args)
+                        self.n = n
+                        self.refresh(lock_args=self.lock_args)
 
-                    # If no `miniters` was specified, adjust automatically
-                    # to the max iteration rate seen so far between 2 prints
-                    if dynamic_miniters:
-                        if maxinterval and delta_t >= maxinterval:
-                            # Adjust miniters to time interval by rule of 3
-                            if mininterval:
-                                # Set miniters to correspond to mininterval
-                                miniters = delta_it * mininterval / delta_t
+                        # If no `miniters` was specified, adjust automatically
+                        # to the max iteration rate seen so far between 2 prints
+                        if dynamic_miniters:
+                            if maxinterval and delta_t >= maxinterval:
+                                # Adjust miniters to time interval by rule of 3
+                                if mininterval:
+                                    # Set miniters to correspond to mininterval
+                                    miniters = delta_it * mininterval / delta_t
+                                else:
+                                    # Set miniters to correspond to maxinterval
+                                    miniters = delta_it * maxinterval / delta_t
+                            elif smoothing:
+                                # EMA-weight miniters to converge
+                                # towards the timeframe of mininterval
+                                rate = delta_it
+                                if mininterval and delta_t:
+                                    rate *= mininterval / delta_t
+                                miniters = self.ema(rate, miniters, smoothing)
                             else:
-                                # Set miniters to correspond to maxinterval
-                                miniters = delta_it * maxinterval / delta_t
-                        elif smoothing:
-                            # EMA-weight miniters to converge
-                            # towards the timeframe of mininterval
-                            rate = delta_it
-                            if mininterval and delta_t:
-                                rate *= mininterval / delta_t
-                            miniters = self.ema(rate, miniters, smoothing)
-                        else:
-                            # Maximum nb of iterations between 2 prints
-                            miniters = max(miniters, delta_it)
+                                # Maximum nb of iterations between 2 prints
+                                miniters = max(miniters, delta_it)
 
-                    # Store old values for next call
-                    self.n = self.last_print_n = last_print_n = n
-                    self.last_print_t = last_print_t = cur_t
-                    self.miniters = miniters
-
-        # Closing the progress bar.
-        # Update some internal variables for close().
-        self.last_print_n = last_print_n
-        self.n = n
-        self.miniters = miniters
-        self.close()
+                        # Store old values for next call
+                        self.n = self.last_print_n = last_print_n = n
+                        self.last_print_t = last_print_t = cur_t
+                        self.miniters = miniters
+        finally:
+            # Closing the progress bar.
+            # Update some internal variables for close().
+            self.last_print_n = last_print_n
+            self.n = n
+            self.miniters = miniters
+            self.close()
 
     def update(self, n=1):
         """

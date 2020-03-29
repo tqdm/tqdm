@@ -222,15 +222,20 @@ class tqdm_notebook(std_tqdm):
         except:  # NOQA
             self.sp(bar_style='danger')
             raise
+        # NB: don't `finally: close()`
+        # since this could be a shared bar which the user will `reset()`
 
     def update(self, *args, **kwargs):
         try:
             super(tqdm_notebook, self).update(*args, **kwargs)
-        except Exception as exc:
+        # NB: except ... [ as ...] breaks IPython async KeyboardInterrupt
+        except:  # NOQA
             # cannot catch KeyboardInterrupt when using manual tqdm
             # as the interrupt will most likely happen on another statement
             self.sp(bar_style='danger')
-            raise exc
+            raise
+        # NB: don't `finally: close()`
+        # since this could be a shared bar which the user will `reset()`
 
     def close(self, *args, **kwargs):
         super(tqdm_notebook, self).close(*args, **kwargs)
