@@ -726,6 +726,30 @@ since it is not meant to be possible to distinguish between ``jupyter notebook``
 and ``jupyter console``. Use ``auto`` instead of ``autonotebook`` to suppress
 this warning.
 
+Note that notebooks will display the bar in the cell where it was created.
+This may be a different cell from the one where it is used.
+If this is not desired, the creation of the bar must be delayed/moved to the
+cell where it is desired to be displayed.
+
+Another possibility is to have a single bar (near the top of the notebook)
+which is constantly re-used (using ``reset()`` rather than ``close()``).
+For this reason, the notebook version (unlike the CLI version) does not
+automatically call ``close()`` upon ``Exception``.
+
+.. code:: python
+
+    from tqdm.notebook import tqdm
+    pbar = tqdm()
+
+.. code:: python
+
+    # different cell
+    iterable = range(100)
+    pbar.reset(total=len(iterable))  # initialise with new `total`
+    for i in iterable:
+        pbar.update()
+    pbar.refresh()  # force print final status but don't `close()`
+
 Custom Integration
 ~~~~~~~~~~~~~~~~~~
 
