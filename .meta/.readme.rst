@@ -21,7 +21,7 @@ iterable with ``tqdm(iterable)``, and you're done!
     for i in tqdm(range(10000)):
         ...
 
-``76%|████████████████████████████         | 7568/10000 [00:33<00:10, 229.00it/s]``
+``76%|████████████████████████        | 7568/10000 [00:33<00:10, 229.00it/s]``
 
 ``trange(N)`` can be also used as a convenient shortcut for
 ``tqdm(xrange(N))``.
@@ -36,9 +36,10 @@ It can also be executed as a module with pipes:
     $ seq 9999999 | tqdm --bytes | wc -l
     75.2MB [00:00, 217MB/s]
     9999999
-    $ 7z a -bd -r backup.7z docs/ | grep Compressing | \
-        tqdm --total $(find docs/ -type f | wc -l) --unit files >> backup.log
-    100%|███████████████████████████████▉| 8014/8014 [01:37<00:00, 82.29files/s]
+
+    $ tar -zcf - docs/ | tqdm --bytes --total `du -sb docs/ | cut -f1` \
+        > backup.tgz
+     32%|██████████▍                      | 8.89G/27.9G [00:42<01:31, 223MB/s]
 
 Overhead is low -- about 60ns per iteration (80ns with ``tqdm.gui``), and is
 unit tested against performance regression.
@@ -154,19 +155,21 @@ Wrap ``tqdm()`` around any iterable:
 .. code:: python
 
     from tqdm import tqdm
-    import time
+    from time import sleep
 
     text = ""
     for char in tqdm(["a", "b", "c", "d"]):
-        time.sleep(0.25)
+        sleep(0.25)
         text = text + char
 
 ``trange(i)`` is a special optimised instance of ``tqdm(range(i))``:
 
 .. code:: python
 
+    from tqdm import trange
+
     for i in trange(100):
-        time.sleep(0.01)
+        sleep(0.01)
 
 Instantiation outside of the loop allows for manual control over ``tqdm()``:
 
@@ -174,19 +177,19 @@ Instantiation outside of the loop allows for manual control over ``tqdm()``:
 
     pbar = tqdm(["a", "b", "c", "d"])
     for char in pbar:
-        time.sleep(0.25)
+        sleep(0.25)
         pbar.set_description("Processing %s" % char)
 
 Manual
 ~~~~~~
 
-Manual control on ``tqdm()`` updates by using a ``with`` statement:
+Manual control of ``tqdm()`` updates using a ``with`` statement:
 
 .. code:: python
 
     with tqdm(total=100) as pbar:
         for i in range(10):
-            time.sleep(0.1)
+            sleep(0.1)
             pbar.update(10)
 
 If the optional variable ``total`` (or an iterable with ``len()``) is
@@ -199,7 +202,7 @@ but in this case don't forget to ``del`` or ``close()`` at the end:
 
     pbar = tqdm(total=100)
     for i in range(10):
-        time.sleep(0.1)
+        sleep(0.1)
         pbar.update(10)
     pbar.close()
 
@@ -236,16 +239,36 @@ Note that the usual arguments for ``tqdm`` can also be specified.
 
     $ find . -name '*.py' -type f -exec cat \{} \; |
         tqdm --unit loc --unit_scale --total 857366 >> /dev/null
-    100%|███████████████████████████████████| 857K/857K [00:04<00:00, 246Kloc/s]
+    100%|█████████████████████████████████| 857K/857K [00:04<00:00, 246Kloc/s]
 
 Backing up a large directory?
 
 .. code:: sh
 
-    $ 7z a -bd -r backup.7z docs/ | grep Compressing |
-        tqdm --total $(find docs/ -type f | wc -l) --unit files >> backup.log
-    100%|███████████████████████████████▉| 8014/8014 [01:37<00:00, 82.29files/s]
+    tar -zcf - docs/ | tqdm --bytes --total `du -sb docs/ | cut -f1` \
+      > backup.tgz
+     44%|██████████████▊                   | 153M/352M [00:14<00:18, 11.0MB/s]
 
+This can be beautified further:
+
+.. code:: sh
+
+    BYTES="$(du -sb docs/ | cut -f1)"
+    tar -cf - docs/ \
+      | tqdm --bytes --total "$BYTES" --desc Processing | gzip \
+      | tqdm --bytes --total "$BYTES" --desc Compressed --position 1 \
+      > ~/backup.tgz
+    Processing: 100%|██████████████████████| 352M/352M [00:14<00:00, 30.2MB/s]
+    Compressed:  42%|█████████▎            | 148M/352M [00:14<00:19, 10.9MB/s]
+
+Or done on a file level using 7-zip:
+
+.. code:: sh
+
+    7z a -bd -r backup.7z docs/ | grep Compressing \
+      | tqdm --total $(find docs/ -type f | wc -l) --unit files \
+      | grep -v Compressing
+    100%|██████████████████████████▉| 15327/15327 [01:00<00:00, 712.96files/s]
 
 FAQ and Known Issues
 --------------------
@@ -413,8 +436,8 @@ Examples and Advanced Usage
     `excellent article <https://github.com/tqdm/tqdm/wiki/How-to-make-a-great-Progress-Bar>`__
     on how to make a **great** progressbar;
 
-- run the |notebook-demo| or |binder-demo|, or
-- check out the `slides from PyData London <https://tqdm.github.io/PyData2019/slides.html>`__.
+- check out the `slides from PyData London <https://tqdm.github.io/PyData2019/slides.html>`__, or
+- run the |notebook-demo| or |binder-demo|.
 
 Description and additional stats
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -469,13 +492,14 @@ Additional ``bar_format`` parameters may also be defined by overriding
             return d
 
     for i in TqdmExtraFormat(
-          range(10), ascii=" .oO0",
+          range(9), ascii=" .oO0",
           bar_format="{total_time}: {percentage:.0f}%|{bar}{r_bar}"):
-        pass
+        if i == 4:
+            break
 
 .. code::
 
-    00:01 in total: 40%|000o     | 4/10 [00:00<00:00,  9.96it/s]
+    00:00 in total: 44%|0000.     | 4/9 [00:00<00:00, 962.93it/s]
 
 Note that ``{bar}`` also supports a format specifier ``[width][type]``.
 
@@ -501,7 +525,7 @@ Nested progress bars
 
 .. code:: python
 
-    from tqdm import trange
+    from tqdm.auto import trange
     from time import sleep
 
     for i in trange(4, desc='1st loop'):
@@ -514,8 +538,8 @@ available to keep nested bars on their respective lines.
 
 For manual control over positioning (e.g. for multi-processing use),
 you may specify ``position=n`` where ``n=0`` for the outermost bar,
-``n=1`` for the next, and so on. However, it's best to check if `tqdm` can work
-without manual `position` first.
+``n=1`` for the next, and so on.
+However, it's best to check if `tqdm` can work without manual `position` first.
 
 .. code:: python
 
@@ -601,6 +625,7 @@ Here's an example with ``urllib``:
                   desc=eg_link.split('/')[-1]) as t:  # all optional kwargs
         urllib.urlretrieve(eg_link, filename=os.devnull,
                            reporthook=t.update_to, data=None)
+        t.total = t.n
 
 Inspired by `twine#242 <https://github.com/pypa/twine/pull/242>`__.
 Functional alternative in
@@ -617,7 +642,7 @@ methods, use ``CallbackIOWrapper``:
 
 .. code:: python
 
-    from tqdm import tqdm
+    from tqdm.auto import tqdm
     from tqdm.utils import CallbackIOWrapper
 
     with tqdm(total=file_obj.size,
@@ -846,7 +871,7 @@ display, a ``.write()`` method is provided:
 
 .. code:: python
 
-    from tqdm import tqdm, trange
+    from tqdm.auto import tqdm, trange
     from time import sleep
 
     bar = trange(10)
