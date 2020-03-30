@@ -553,11 +553,14 @@ class tqdm(Comparable):
             # else:
             if not instance.gui:
                 pos = abs(instance.pos)
+                nrows = int(instance.nrows or 20)
+                clear = pos < nrows
                 instances = filter(lambda i: hasattr(i, "pos"), cls._instances)
                 for inst in sorted(instances, reverse=True, key=lambda i: i.pos):
                     # negative `pos` means fixed
                     if pos < inst.pos:
-                        inst.clear(nolock=True)
+                        if clear:
+                            inst.clear(nolock=True)
                         inst.pos -= 1
                         # TODO: check this doesn't overwrite another fixed bar
             # Kill monitor if no instances are left
