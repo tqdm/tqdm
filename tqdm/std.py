@@ -556,14 +556,15 @@ class tqdm(Comparable):
                 pass  # py2: maybe magically removed already
             # else:
             if not instance.gui:
-                nrows = int(instance.nrows or 20)
-                # find unfixed (`pos >= 0`) overflow (`pos >= nrows`) instances
+                last = (instance.nrows or 20) - 1
+                # find unfixed (`pos >= 0`) overflow (`pos >= nrows - 1`)
                 instances = list(filter(
-                    lambda i: hasattr(i, "pos") and nrows <= i.pos,
+                    lambda i: hasattr(i, "pos") and last <= i.pos,
                     cls._instances))
                 # set first found to current `pos`
                 if instances:
                     inst = min(instances, key=lambda i: i.pos)
+                    inst.clear(nolock=True)
                     inst.pos = abs(instance.pos)
             # Kill monitor if no instances are left
             if not cls._instances and cls.monitor:
