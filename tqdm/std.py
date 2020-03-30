@@ -540,8 +540,12 @@ class tqdm(Comparable):
     @classmethod
     def _decr_instances(cls, instance):
         """
-        Remove from list and reposition other bars
-        so that newer bars won't overlap previous bars
+        Remove from list and reposition another unfixed bar
+        to fill the new gap.
+
+        This means that by default (where all nested bars are unfixed),
+        order is not maintained but screen flicker/blank space is minimised.
+        (tqdm<=4.44.1 moved ALL subsequent unfixed bars up.)
         """
         with cls._lock:
             try:
@@ -552,18 +556,15 @@ class tqdm(Comparable):
                 pass  # py2: maybe magically removed already
             # else:
             if not instance.gui:
-                pos = abs(instance.pos)
                 nrows = int(instance.nrows or 20)
-                clear = pos < nrows
-                instances = filter(lambda i: hasattr(i, "pos"), cls._instances)
-                for inst in sorted(
-                        instances, reverse=True, key=lambda i: i.pos):
-                    # negative `pos` means fixed
-                    if pos < inst.pos:
-                        if clear:
-                            inst.clear(nolock=True)
-                        inst.pos -= 1
-                        # TODO: check this doesn't overwrite another fixed bar
+                # find unfixed (`pos >= 0`) overflow (`pos >= nrows`) instances
+                instances = list(filter(
+                    lambda i: hasattr(i, "pos") and nrows <= i.pos,
+                    cls._instances))
+                # set first found to current `pos`
+                if instances:
+                    inst = min(instances, key=lambda i: i.pos)
+                    inst.pos = abs(instance.pos)
             # Kill monitor if no instances are left
             if not cls._instances and cls.monitor:
                 try:
