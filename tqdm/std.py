@@ -556,7 +556,8 @@ class tqdm(Comparable):
                 nrows = int(instance.nrows or 20)
                 clear = pos < nrows
                 instances = filter(lambda i: hasattr(i, "pos"), cls._instances)
-                for inst in sorted(instances, reverse=True, key=lambda i: i.pos):
+                for inst in sorted(
+                        instances, reverse=True, key=lambda i: i.pos):
                     # negative `pos` means fixed
                     if pos < inst.pos:
                         if clear:
