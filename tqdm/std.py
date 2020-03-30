@@ -552,9 +552,11 @@ class tqdm(Comparable):
                 pass  # py2: maybe magically removed already
             # else:
             if not instance.gui:
-                for inst in cls._instances:
+                pos = abs(instance.pos)
+                instances = filter(lambda i: hasattr(i, "pos"), cls._instances)
+                for inst in sorted(instances, reverse=True, key=lambda i: i.pos):
                     # negative `pos` means fixed
-                    if hasattr(inst, "pos") and inst.pos > abs(instance.pos):
+                    if pos < inst.pos:
                         inst.clear(nolock=True)
                         inst.pos -= 1
                         # TODO: check this doesn't overwrite another fixed bar
