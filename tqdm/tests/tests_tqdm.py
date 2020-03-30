@@ -1902,31 +1902,12 @@ def test_screen_shape():
         res = our_file.getvalue()
         assert all(len(i) == 50 for i in get_bar(res))
 
-    # no second bar, leave=False
+    # no second/third bar, leave=False
     with closing(StringIO()) as our_file:
         kwargs = dict(file=our_file, ncols=50, nrows=2, miniters=0,
                       mininterval=0, leave=False)
         with trange(10, desc="one", **kwargs) as t1:
             with trange(10, desc="two", **kwargs) as t2:
-                list(t2)
-            list(t1)
-
-        res = our_file.getvalue()
-        assert "one" in res
-        assert "two" not in res
-        assert "\n\n" not in res
-        assert "more hidden" in res
-        # double-check ncols
-        assert all(len(i) == 50 for i in get_bar(res)
-                   if i.strip() and "more hidden" not in i)
-
-    # no third bar, leave=True
-    with closing(StringIO()) as our_file:
-        kwargs = dict(file=our_file, ncols=50, nrows=2, miniters=0,
-                      mininterval=0)
-        with trange(10, desc="one", **kwargs) as t1:
-            with trange(10, desc="two", **kwargs) as t2:
-                assert "two" not in our_file.getvalue()
                 with trange(10, desc="three", **kwargs) as t3:
                     list(t3)
                 list(t2)
@@ -1934,8 +1915,31 @@ def test_screen_shape():
 
         res = our_file.getvalue()
         assert "one" in res
-        assert "two" in res
+        assert "two" not in res
         assert "three" not in res
+        assert "\n\n" not in res
+        assert "more hidden" in res
+        # double-check ncols
+        assert all(len(i) == 50 for i in get_bar(res)
+                   if i.strip() and "more hidden" not in i)
+
+    # all bars, leave=True
+    with closing(StringIO()) as our_file:
+        kwargs = dict(file=our_file, ncols=50, nrows=2, miniters=0,
+                      mininterval=0)
+        with trange(10, desc="one", **kwargs) as t1:
+            with trange(10, desc="two", **kwargs) as t2:
+                assert "two" not in our_file.getvalue()
+                with trange(10, desc="three", **kwargs) as t3:
+                    assert "three" not in our_file.getvalue()
+                    list(t3)
+                list(t2)
+            list(t1)
+
+        res = our_file.getvalue()
+        assert "one" in res
+        assert "two" in res
+        assert "three" in res
         assert "\n\n" not in res
         assert "more hidden" in res
         # double-check ncols
@@ -1947,16 +1951,15 @@ def test_screen_shape():
         kwargs = dict(file=our_file, ncols=50, nrows=2, miniters=0,
                       mininterval=0, leave=False)
         t1 = tqdm(total=10, desc="one", **kwargs)
-        t2 = tqdm(total=10, desc="two", **kwargs)
-        t1.update()
-        t2.update()
-        t1.close()
-        res = our_file.getvalue()
-        assert "one" in res
-        assert "two" not in res
-        assert "more hidden" in res
-        t2.update()
-        t2.close()
+        with tqdm(total=10, desc="two", **kwargs) as t2:
+            t1.update()
+            t2.update()
+            t1.close()
+            res = our_file.getvalue()
+            assert "one" in res
+            assert "two" not in res
+            assert "more hidden" in res
+            t2.update()
 
         res = our_file.getvalue()
         assert "two" in res
