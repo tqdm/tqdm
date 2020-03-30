@@ -1454,7 +1454,8 @@ class tqdm(Comparable):
         if pos >= nrows - 1:
             if pos >= nrows:
                 return
-            msg = " ... (more hidden) ..."
+            if msg:  # override at `nrows - 1`
+                msg = " ... (more hidden) ..."
 
         if pos:
             self.moveto(pos)
