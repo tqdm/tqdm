@@ -1454,7 +1454,7 @@ class tqdm(Comparable):
         if pos >= nrows - 1:
             if pos >= nrows:
                 return
-            if msg:  # override at `nrows - 1`
+            if msg or msg is None:  # override at `nrows - 1`
                 msg = " ... (more hidden) ..."
 
         if pos:
