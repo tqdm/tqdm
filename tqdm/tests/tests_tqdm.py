@@ -175,12 +175,12 @@ class UnicodeIO(IOBase):
         return self.text
 
 
-def get_bar(all_bars, i):
+def get_bar(all_bars, i=None):
     """Get a specific update from a whole bar traceback"""
     # Split according to any used control characters
     bars_split = RE_ctrlchr_excl.split(all_bars)
     bars_split = list(filter(None, bars_split))  # filter out empty splits
-    return bars_split[i]
+    return bars_split if i is None else bars_split[i]
 
 
 def progressbar_rate(bar_str):
@@ -1900,7 +1900,7 @@ def test_screen_shape():
             list(t)
 
         res = our_file.getvalue()
-        assert all(len(i.strip('\n')) in (0, 50) for i in res.split('\r'))
+        assert all(len(i) == 50 for i in get_bar(res))
 
     # no second bar, leave=False
     with closing(StringIO()) as our_file:
@@ -1917,8 +1917,8 @@ def test_screen_shape():
         assert "\n\n" not in res
         assert "more hidden" in res
         # double-check ncols
-        assert all(len(i) in (0, 50) for i in squash_ctrlchars(res)
-                   if "more hidden" not in i)
+        assert all(len(i) == 50 for i in get_bar(res)
+                   if i.strip() and "more hidden" not in i)
 
     # no third bar, leave=True
     with closing(StringIO()) as our_file:
@@ -1939,8 +1939,8 @@ def test_screen_shape():
         assert "\n\n" not in res
         assert "more hidden" in res
         # double-check ncols
-        assert all(len(i) in (0, 50) for i in squash_ctrlchars(res)
-                   if "more hidden" not in i)
+        assert all(len(i) == 50 for i in get_bar(res)
+                   if i.strip() and "more hidden" not in i)
 
     # second bar becomes first, leave=False
     with closing(StringIO()) as our_file:
