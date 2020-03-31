@@ -1267,9 +1267,8 @@ class tqdm(Comparable):
         pos = abs(self.pos)
         self._decr_instances(self)
 
-        # GUI mode or overflow
-        if not hasattr(self, "sp") or pos >= (self.nrows or 20):
-            # never printed so nothing to do
+        # GUI mode
+        if not hasattr(self, "sp"):
             return
 
         # annoyingly, _supports_unicode isn't good enough
@@ -1291,7 +1290,8 @@ class tqdm(Comparable):
                 self.avg_time = None
                 self.display(pos=0)
                 fp_write('\n')
-            else:
+            elif pos < (self.nrows or 20):
+                # clear previous display
                 self.display(msg='', pos=pos)
                 if not pos:
                     fp_write('\r')
