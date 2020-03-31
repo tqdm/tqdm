@@ -1318,31 +1318,29 @@ def test_position():
     # Test auto repositioning of bars when a bar is prematurely closed
     # tqdm._instances.clear()  # reset number of instances
     with closing(StringIO()) as our_file:
-        t1 = tqdm(total=10, file=our_file, desc='pos0 bar', mininterval=0)
-        t2 = tqdm(total=10, file=our_file, desc='pos1 bar', mininterval=0)
-        t3 = tqdm(total=10, file=our_file, desc='pos2 bar', mininterval=0)
+        t1 = tqdm(total=10, file=our_file, desc='1.pos0 bar', mininterval=0)
+        t2 = tqdm(total=10, file=our_file, desc='2.pos1 bar', mininterval=0)
+        t3 = tqdm(total=10, file=our_file, desc='3.pos2 bar', mininterval=0)
         res = [m[0] for m in RE_pos.findall(our_file.getvalue())]
-        exres = ['\rpos0 bar:   0%',
-                 '\n\rpos1 bar:   0%',
-                 '\n\n\rpos2 bar:   0%']
+        exres = ['\r1.pos0 bar:   0%',
+                 '\n\r2.pos1 bar:   0%',
+                 '\n\n\r3.pos2 bar:   0%']
         pos_line_diff(res, exres)
 
         t2.close()
-        t4 = tqdm(total=10, file=our_file, desc='pos3 bar', mininterval=0)
+        t4 = tqdm(total=10, file=our_file, desc='4.pos2 bar', mininterval=0)
         t1.update(1)
         t3.update(1)
         t4.update(1)
         res = [m[0] for m in RE_pos.findall(our_file.getvalue())]
-        exres = ['\rpos0 bar:   0%',
-                 '\n\rpos1 bar:   0%',
-                 '\n\n\rpos2 bar:   0%',
-                 '\n\n\r      ',
-                 '\r\x1b[A\x1b[A',
-                 '\rpos1 bar:   0%',
-                 '\n\n\n\rpos3 bar:   0%',
-                 '\rpos0 bar:  10%',
-                 '\n\rpos2 bar:  10%',
-                 '\n\n\rpos3 bar:  10%']
+        exres = ['\r1.pos0 bar:   0%',
+                 '\n\r2.pos1 bar:   0%',
+                 '\n\n\r3.pos2 bar:   0%',
+                 '\r2.pos1 bar:   0%',
+                 '\n\n\r4.pos2 bar:   0%',
+                 '\r1.pos0 bar:  10%',
+                 '\n\n\r3.pos2 bar:  10%',
+                 '\n\r4.pos2 bar:  10%']
         pos_line_diff(res, exres)
         t4.close()
         t3.close()

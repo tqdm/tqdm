@@ -1290,10 +1290,9 @@ class tqdm(Comparable):
                 self.avg_time = None
                 self.display(pos=0)
                 fp_write('\n')
-            elif pos < (self.nrows or 20):
+            else:
                 # clear previous display
-                self.display(msg='', pos=pos)
-                if not pos:
+                if self.display(msg='', pos=pos) and not pos:
                     fp_write('\r')
 
     def clear(self, nolock=False):
@@ -1461,7 +1460,7 @@ class tqdm(Comparable):
         nrows = self.nrows or 20
         if pos >= nrows - 1:
             if pos >= nrows:
-                return
+                return False
             if msg or msg is None:  # override at `nrows - 1`
                 msg = " ... (more hidden) ..."
 
@@ -1470,6 +1469,7 @@ class tqdm(Comparable):
         self.sp(self.__repr__() if msg is None else msg)
         if pos:
             self.moveto(-pos)
+        return True
 
     @classmethod
     @contextmanager
