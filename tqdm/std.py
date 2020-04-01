@@ -540,8 +540,12 @@ class tqdm(Comparable):
     @classmethod
     def _decr_instances(cls, instance):
         """
-        Remove from list and reposition other bars
-        so that newer bars won't overlap previous bars
+        Remove from list and reposition another unfixed bar
+        to fill the new gap.
+
+        This means that by default (where all nested bars are unfixed),
+        order is not maintained but screen flicker/blank space is minimised.
+        (tqdm<=4.44.1 moved ALL subsequent unfixed bars up.)
         """
         with cls._lock:
             try:
@@ -552,12 +556,16 @@ class tqdm(Comparable):
                 pass  # py2: maybe magically removed already
             # else:
             if not instance.gui:
-                for inst in cls._instances:
-                    # negative `pos` means fixed
-                    if hasattr(inst, "pos") and inst.pos > abs(instance.pos):
-                        inst.clear(nolock=True)
-                        inst.pos -= 1
-                        # TODO: check this doesn't overwrite another fixed bar
+                last = (instance.nrows or 20) - 1
+                # find unfixed (`pos >= 0`) overflow (`pos >= nrows - 1`)
+                instances = list(filter(
+                    lambda i: hasattr(i, "pos") and last <= i.pos,
+                    cls._instances))
+                # set first found to current `pos`
+                if instances:
+                    inst = min(instances, key=lambda i: i.pos)
+                    inst.clear(nolock=True)
+                    inst.pos = abs(instance.pos)
             # Kill monitor if no instances are left
             if not cls._instances and cls.monitor:
                 try:
@@ -1259,9 +1267,8 @@ class tqdm(Comparable):
         pos = abs(self.pos)
         self._decr_instances(self)
 
-        # GUI mode or overflow
-        if not hasattr(self, "sp") or pos >= (self.nrows or 20):
-            # never printed so nothing to do
+        # GUI mode
+        if not hasattr(self, "sp"):
             return
 
         # annoyingly, _supports_unicode isn't good enough
@@ -1284,8 +1291,8 @@ class tqdm(Comparable):
                 self.display(pos=0)
                 fp_write('\n')
             else:
-                self.display(msg='', pos=pos)
-                if not pos:
+                # clear previous display
+                if self.display(msg='', pos=pos) and not pos:
                     fp_write('\r')
 
     def clear(self, nolock=False):
@@ -1453,7 +1460,7 @@ class tqdm(Comparable):
         nrows = self.nrows or 20
         if pos >= nrows - 1:
             if pos >= nrows:
-                return
+                return False
             if msg or msg is None:  # override at `nrows - 1`
                 msg = " ... (more hidden) ..."
 
@@ -1462,6 +1469,7 @@ class tqdm(Comparable):
         self.sp(self.__repr__() if msg is None else msg)
         if pos:
             self.moveto(-pos)
+        return True
 
     @classmethod
     @contextmanager
