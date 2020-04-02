@@ -540,8 +540,12 @@ class tqdm(Comparable):
     @classmethod
     def _decr_instances(cls, instance):
         """
-        Remove from list and reposition other bars
-        so that newer bars won't overlap previous bars
+        Remove from list and reposition another unfixed bar
+        to fill the new gap.
+
+        This means that by default (where all nested bars are unfixed),
+        order is not maintained but screen flicker/blank space is minimised.
+        (tqdm<=4.44.1 moved ALL subsequent unfixed bars up.)
         """
         with cls._lock:
             try:
@@ -552,12 +556,16 @@ class tqdm(Comparable):
                 pass  # py2: maybe magically removed already
             # else:
             if not instance.gui:
-                for inst in cls._instances:
-                    # negative `pos` means fixed
-                    if hasattr(inst, "pos") and inst.pos > abs(instance.pos):
-                        inst.clear(nolock=True)
-                        inst.pos -= 1
-                        # TODO: check this doesn't overwrite another fixed bar
+                last = (instance.nrows or 20) - 1
+                # find unfixed (`pos >= 0`) overflow (`pos >= nrows - 1`)
+                instances = list(filter(
+                    lambda i: hasattr(i, "pos") and last <= i.pos,
+                    cls._instances))
+                # set first found to current `pos`
+                if instances:
+                    inst = min(instances, key=lambda i: i.pos)
+                    inst.clear(nolock=True)
+                    inst.pos = abs(instance.pos)
             # Kill monitor if no instances are left
             if not cls._instances and cls.monitor:
                 try:
@@ -753,11 +761,10 @@ class tqdm(Comparable):
 
                 # Apply the provided function (in **kwargs)
                 # on the df using our wrapper (which provides bar updating)
-                result = getattr(df, df_function)(wrapper, **kwargs)
-
-                # Close bar and return pandas calculation result
-                t.close()
-                return result
+                try:
+                    return getattr(df, df_function)(wrapper, **kwargs)
+                finally:
+                    t.close()
 
             return inner
 
@@ -1116,60 +1123,61 @@ class tqdm(Comparable):
                 " `tqdm(..., gui=True)`\n",
                 fp_write=getattr(self.fp, 'write', sys.stderr.write))
 
-        for obj in iterable:
-            yield obj
-            # Update and possibly print the progressbar.
-            # Note: does not call self.update(1) for speed optimisation.
-            n += 1
-            # check counter first to avoid calls to time()
-            if n - last_print_n >= self.miniters:
-                miniters = self.miniters  # watch monitoring thread changes
-                delta_t = time() - last_print_t
-                if delta_t >= mininterval:
-                    cur_t = time()
-                    delta_it = n - last_print_n
-                    # EMA (not just overall average)
-                    if smoothing and delta_t and delta_it:
-                        rate = delta_t / delta_it
-                        avg_time = self.ema(rate, avg_time, smoothing)
-                        self.avg_time = avg_time
+        try:
+            for obj in iterable:
+                yield obj
+                # Update and possibly print the progressbar.
+                # Note: does not call self.update(1) for speed optimisation.
+                n += 1
+                # check counter first to avoid calls to time()
+                if n - last_print_n >= self.miniters:
+                    miniters = self.miniters  # watch monitoring thread changes
+                    delta_t = time() - last_print_t
+                    if delta_t >= mininterval:
+                        cur_t = time()
+                        delta_it = n - last_print_n
+                        # EMA (not just overall average)
+                        if smoothing and delta_t and delta_it:
+                            rate = delta_t / delta_it
+                            avg_time = self.ema(rate, avg_time, smoothing)
+                            self.avg_time = avg_time
 
-                    self.n = n
-                    self.refresh(lock_args=self.lock_args)
+                        self.n = n
+                        self.refresh(lock_args=self.lock_args)
 
-                    # If no `miniters` was specified, adjust automatically
-                    # to the max iteration rate seen so far between 2 prints
-                    if dynamic_miniters:
-                        if maxinterval and delta_t >= maxinterval:
-                            # Adjust miniters to time interval by rule of 3
-                            if mininterval:
-                                # Set miniters to correspond to mininterval
-                                miniters = delta_it * mininterval / delta_t
+                        # If no `miniters` was specified, adjust automatically
+                        # to the max iteration rate seen so far between 2 prints
+                        if dynamic_miniters:
+                            if maxinterval and delta_t >= maxinterval:
+                                # Adjust miniters to time interval by rule of 3
+                                if mininterval:
+                                    # Set miniters to correspond to mininterval
+                                    miniters = delta_it * mininterval / delta_t
+                                else:
+                                    # Set miniters to correspond to maxinterval
+                                    miniters = delta_it * maxinterval / delta_t
+                            elif smoothing:
+                                # EMA-weight miniters to converge
+                                # towards the timeframe of mininterval
+                                rate = delta_it
+                                if mininterval and delta_t:
+                                    rate *= mininterval / delta_t
+                                miniters = self.ema(rate, miniters, smoothing)
                             else:
-                                # Set miniters to correspond to maxinterval
-                                miniters = delta_it * maxinterval / delta_t
-                        elif smoothing:
-                            # EMA-weight miniters to converge
-                            # towards the timeframe of mininterval
-                            rate = delta_it
-                            if mininterval and delta_t:
-                                rate *= mininterval / delta_t
-                            miniters = self.ema(rate, miniters, smoothing)
-                        else:
-                            # Maximum nb of iterations between 2 prints
-                            miniters = max(miniters, delta_it)
+                                # Maximum nb of iterations between 2 prints
+                                miniters = max(miniters, delta_it)
 
-                    # Store old values for next call
-                    self.n = self.last_print_n = last_print_n = n
-                    self.last_print_t = last_print_t = cur_t
-                    self.miniters = miniters
-
-        # Closing the progress bar.
-        # Update some internal variables for close().
-        self.last_print_n = last_print_n
-        self.n = n
-        self.miniters = miniters
-        self.close()
+                        # Store old values for next call
+                        self.n = self.last_print_n = last_print_n = n
+                        self.last_print_t = last_print_t = cur_t
+                        self.miniters = miniters
+        finally:
+            # Closing the progress bar.
+            # Update some internal variables for close().
+            self.last_print_n = last_print_n
+            self.n = n
+            self.miniters = miniters
+            self.close()
 
     def update(self, n=1):
         """
@@ -1259,9 +1267,8 @@ class tqdm(Comparable):
         pos = abs(self.pos)
         self._decr_instances(self)
 
-        # GUI mode or overflow
-        if not hasattr(self, "sp") or pos >= (self.nrows or 20):
-            # never printed so nothing to do
+        # GUI mode
+        if not hasattr(self, "sp"):
             return
 
         # annoyingly, _supports_unicode isn't good enough
@@ -1284,8 +1291,8 @@ class tqdm(Comparable):
                 self.display(pos=0)
                 fp_write('\n')
             else:
-                self.display(msg='', pos=pos)
-                if not pos:
+                # clear previous display
+                if self.display(msg='', pos=pos) and not pos:
                     fp_write('\r')
 
     def clear(self, nolock=False):
@@ -1453,14 +1460,16 @@ class tqdm(Comparable):
         nrows = self.nrows or 20
         if pos >= nrows - 1:
             if pos >= nrows:
-                return
-            msg = " ... (more hidden) ..."
+                return False
+            if msg or msg is None:  # override at `nrows - 1`
+                msg = " ... (more hidden) ..."
 
         if pos:
             self.moveto(pos)
         self.sp(self.__repr__() if msg is None else msg)
         if pos:
             self.moveto(-pos)
+        return True
 
     @classmethod
     @contextmanager

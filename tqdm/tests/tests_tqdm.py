@@ -175,12 +175,12 @@ class UnicodeIO(IOBase):
         return self.text
 
 
-def get_bar(all_bars, i):
+def get_bar(all_bars, i=None):
     """Get a specific update from a whole bar traceback"""
     # Split according to any used control characters
     bars_split = RE_ctrlchr_excl.split(all_bars)
     bars_split = list(filter(None, bars_split))  # filter out empty splits
-    return bars_split[i]
+    return bars_split if i is None else bars_split[i]
 
 
 def progressbar_rate(bar_str):
@@ -1318,31 +1318,29 @@ def test_position():
     # Test auto repositioning of bars when a bar is prematurely closed
     # tqdm._instances.clear()  # reset number of instances
     with closing(StringIO()) as our_file:
-        t1 = tqdm(total=10, file=our_file, desc='pos0 bar', mininterval=0)
-        t2 = tqdm(total=10, file=our_file, desc='pos1 bar', mininterval=0)
-        t3 = tqdm(total=10, file=our_file, desc='pos2 bar', mininterval=0)
+        t1 = tqdm(total=10, file=our_file, desc='1.pos0 bar', mininterval=0)
+        t2 = tqdm(total=10, file=our_file, desc='2.pos1 bar', mininterval=0)
+        t3 = tqdm(total=10, file=our_file, desc='3.pos2 bar', mininterval=0)
         res = [m[0] for m in RE_pos.findall(our_file.getvalue())]
-        exres = ['\rpos0 bar:   0%',
-                 '\n\rpos1 bar:   0%',
-                 '\n\n\rpos2 bar:   0%']
+        exres = ['\r1.pos0 bar:   0%',
+                 '\n\r2.pos1 bar:   0%',
+                 '\n\n\r3.pos2 bar:   0%']
         pos_line_diff(res, exres)
 
         t2.close()
-        t4 = tqdm(total=10, file=our_file, desc='pos3 bar', mininterval=0)
+        t4 = tqdm(total=10, file=our_file, desc='4.pos2 bar', mininterval=0)
         t1.update(1)
         t3.update(1)
         t4.update(1)
         res = [m[0] for m in RE_pos.findall(our_file.getvalue())]
-        exres = ['\rpos0 bar:   0%',
-                 '\n\rpos1 bar:   0%',
-                 '\n\n\rpos2 bar:   0%',
-                 '\n\n\r      ',
-                 '\r\x1b[A\x1b[A',
-                 '\rpos1 bar:   0%',
-                 '\n\n\n\rpos3 bar:   0%',
-                 '\rpos0 bar:  10%',
-                 '\n\rpos2 bar:  10%',
-                 '\n\n\rpos3 bar:  10%']
+        exres = ['\r1.pos0 bar:   0%',
+                 '\n\r2.pos1 bar:   0%',
+                 '\n\n\r3.pos2 bar:   0%',
+                 '\r2.pos1 bar:   0%',
+                 '\n\n\r4.pos2 bar:   0%',
+                 '\r1.pos0 bar:  10%',
+                 '\n\n\r3.pos2 bar:  10%',
+                 '\n\r4.pos2 bar:  10%']
         pos_line_diff(res, exres)
         t4.close()
         t3.close()
@@ -1900,33 +1898,14 @@ def test_screen_shape():
             list(t)
 
         res = our_file.getvalue()
-        assert all(len(i.strip('\n')) in (0, 50) for i in res.split('\r'))
+        assert all(len(i) == 50 for i in get_bar(res))
 
-    # no second bar, leave=False
+    # no second/third bar, leave=False
     with closing(StringIO()) as our_file:
         kwargs = dict(file=our_file, ncols=50, nrows=2, miniters=0,
                       mininterval=0, leave=False)
         with trange(10, desc="one", **kwargs) as t1:
             with trange(10, desc="two", **kwargs) as t2:
-                list(t2)
-            list(t1)
-
-        res = our_file.getvalue()
-        assert "one" in res
-        assert "two" not in res
-        assert "\n\n" not in res
-        assert "more hidden" in res
-        # double-check ncols
-        assert all(len(i) in (0, 50) for i in squash_ctrlchars(res)
-                   if "more hidden" not in i)
-
-    # no third bar, leave=True
-    with closing(StringIO()) as our_file:
-        kwargs = dict(file=our_file, ncols=50, nrows=2, miniters=0,
-                      mininterval=0)
-        with trange(10, desc="one", **kwargs) as t1:
-            with trange(10, desc="two", **kwargs) as t2:
-                assert "two" not in our_file.getvalue()
                 with trange(10, desc="three", **kwargs) as t3:
                     list(t3)
                 list(t2)
@@ -1934,29 +1913,51 @@ def test_screen_shape():
 
         res = our_file.getvalue()
         assert "one" in res
-        assert "two" in res
+        assert "two" not in res
         assert "three" not in res
         assert "\n\n" not in res
         assert "more hidden" in res
         # double-check ncols
-        assert all(len(i) in (0, 50) for i in squash_ctrlchars(res)
-                   if "more hidden" not in i)
+        assert all(len(i) == 50 for i in get_bar(res)
+                   if i.strip() and "more hidden" not in i)
+
+    # all bars, leave=True
+    with closing(StringIO()) as our_file:
+        kwargs = dict(file=our_file, ncols=50, nrows=2, miniters=0,
+                      mininterval=0)
+        with trange(10, desc="one", **kwargs) as t1:
+            with trange(10, desc="two", **kwargs) as t2:
+                assert "two" not in our_file.getvalue()
+                with trange(10, desc="three", **kwargs) as t3:
+                    assert "three" not in our_file.getvalue()
+                    list(t3)
+                list(t2)
+            list(t1)
+
+        res = our_file.getvalue()
+        assert "one" in res
+        assert "two" in res
+        assert "three" in res
+        assert "\n\n" not in res
+        assert "more hidden" in res
+        # double-check ncols
+        assert all(len(i) == 50 for i in get_bar(res)
+                   if i.strip() and "more hidden" not in i)
 
     # second bar becomes first, leave=False
     with closing(StringIO()) as our_file:
         kwargs = dict(file=our_file, ncols=50, nrows=2, miniters=0,
                       mininterval=0, leave=False)
         t1 = tqdm(total=10, desc="one", **kwargs)
-        t2 = tqdm(total=10, desc="two", **kwargs)
-        t1.update()
-        t2.update()
-        t1.close()
-        res = our_file.getvalue()
-        assert "one" in res
-        assert "two" not in res
-        assert "more hidden" in res
-        t2.update()
-        t2.close()
+        with tqdm(total=10, desc="two", **kwargs) as t2:
+            t1.update()
+            t2.update()
+            t1.close()
+            res = our_file.getvalue()
+            assert "one" in res
+            assert "two" not in res
+            assert "more hidden" in res
+            t2.update()
 
         res = our_file.getvalue()
         assert "two" in res
