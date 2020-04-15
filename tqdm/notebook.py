@@ -77,15 +77,23 @@ if True:  # pragma: no cover
     except ImportError:
         pass
     else:
-        class TqdmContainer(TqdmHBox):
-            def __init__(self, pbar, output=None, **kwargs):
-                super(TqdmContainer, self).__init__(pbar, **kwargs)
-                self.output = output or Output()
+        class TqdmContainerOut(Output):
+            def __init__(self, pbar, **kwargs):
+                super(TqdmContainerOut, self).__init__()
+                self.hbox = TqdmHBox(pbar, **kwargs)
+
+            @property
+            def children(self):
+                return self.hbox.children
+
+            def __repr__(self):
+                return repr(self.hbox)
 
             def display(self):
-                with self.output:
+                # Only way to force display is to create an output context
+                with self:
                     clear_output(wait=True)
-                    display(self)
+                    display(self.hbox)
 
     # HTML encoding
     try:  # Py3
@@ -133,12 +141,10 @@ class tqdm_notebook(std_tqdm):
             pbar.description = desc
             if IPYW >= 7:
                 pbar.style.description_width = 'initial'
-        # Only way to force refresh is to create an output context
-        out = Output()
         # Prepare status text
         ptext = HTML()
         # Only way to place text to the right of the bar is to use a container
-        container = TqdmContainer(self, output=out, children=[pbar, ptext])
+        container = TqdmContainerOut(self, children=[pbar, ptext])
         # Prepare layout
         if ncols is not None:  # use default style of ipywidgets
             # ncols could be 100, "100px", "100%"
@@ -149,10 +155,10 @@ class tqdm_notebook(std_tqdm):
             except ValueError:
                 pass
             pbar.layout.flex = '2'
-            container.layout.width = ncols
-            container.layout.display = 'inline-flex'
-            container.layout.flex_flow = 'row wrap'
-        display(out)
+            container.hbox.layout.width = ncols
+            container.hbox.layout.display = 'inline-flex'
+            container.hbox.layout.flex_flow = 'row wrap'
+        display(container)
 
         return container
 
