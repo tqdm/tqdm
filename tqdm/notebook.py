@@ -57,6 +57,22 @@ if True:  # pragma: no cover
         except ImportError:
             IPY = 0
 
+    if IPY:
+        class TqdmHBox(HBox):
+            def __init__(self, pbar, **kwargs):
+                """Notebook bar with ascii-export to plain text"""
+                super(TqdmHBox, self).__init__(**kwargs)
+                self.pbar = pbar
+
+            def __repr__(self):
+                pbar = self.pbar
+                format_dict = pbar.format_dict
+                return pbar.format_meter(**dict(
+                    format_dict,
+                    bar_format=format_dict['bar_format'].replace(
+                        "<bar/>", "{bar}"),
+                    ascii=True))
+
     try:
         from IPython.display import display  # , clear_output
     except ImportError:
@@ -78,8 +94,7 @@ class tqdm_notebook(std_tqdm):
     Experimental IPython/Jupyter Notebook widget using tqdm!
     """
 
-    @staticmethod
-    def status_printer(_, total=None, desc=None, ncols=None):
+    def status_printer(self, total=None, desc=None, ncols=None):
         """
         Manage the printing of an IPython/Jupyter Notebook progress bar widget.
         """
@@ -112,7 +127,7 @@ class tqdm_notebook(std_tqdm):
         # Prepare status text
         ptext = HTML()
         # Only way to place text to the right of the bar is to use a container
-        container = HBox(children=[pbar, ptext])
+        container = TqdmHBox(self, children=[pbar, ptext])
         # Prepare layout
         if ncols is not None:  # use default style of ipywidgets
             # ncols could be 100, "100px", "100%"
@@ -205,8 +220,7 @@ class tqdm_notebook(std_tqdm):
         # Replace with IPython progress bar display (with correct total)
         unit_scale = 1 if self.unit_scale is True else self.unit_scale or 1
         total = self.total * unit_scale if self.total else self.total
-        self.container = self.status_printer(
-            self.fp, total, self.desc, self.ncols)
+        self.container = self.status_printer(total, self.desc, self.ncols)
         self.sp = self.display
 
         # Print initial bar state
