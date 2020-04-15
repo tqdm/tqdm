@@ -38,26 +38,25 @@ if True:  # pragma: no cover
             try:
                 import IPython.html.widgets as ipywidgets
             except ImportError:
-                pass
-
-    try:  # IPython 4.x / 3.x
-        if IPY == 32:
-            from IPython.html.widgets import FloatProgress as IProgress
-            from IPython.html.widgets import HBox, HTML
-            IPY = 3
-        else:
-            from ipywidgets import FloatProgress as IProgress
-            from ipywidgets import HBox, HTML
-    except ImportError:
-        try:  # IPython 2.x
-            from IPython.html.widgets import FloatProgressWidget as IProgress
-            from IPython.html.widgets import ContainerWidget as HBox
-            from IPython.html.widgets import HTML
-            IPY = 2
-        except ImportError:
-            IPY = 0
+                IPY = 0
 
     if IPY:
+        try:  # IPython 4.x / 3.x
+            IProgress = ipywidgets.FloatProgress
+            HBox = ipywidgets.HBox
+            HTML = ipywidgets.HTML
+            Output = ipywidgets.Output
+        except AttributeError:  # IPython 2.x
+            IPY = 2
+            IProgress = ipywidgets.FloatProgressWidget
+            HBox = ipywidgets.ContainerWidget
+            HTML = ipywidgets.HTML
+            from contextlib import contextmanager
+
+            @contextmanager
+            def Output():
+                yield None
+
         class TqdmHBox(HBox):
             def __init__(self, pbar, **kwargs):
                 """Notebook bar with ascii-export to plain text"""
@@ -74,9 +73,19 @@ if True:  # pragma: no cover
                     ascii=True))
 
     try:
-        from IPython.display import display  # , clear_output
+        from IPython.display import display, clear_output
     except ImportError:
         pass
+    else:
+        class TqdmContainer(TqdmHBox):
+            def __init__(self, pbar, output=None, **kwargs):
+                super(TqdmContainer, self).__init__(pbar, **kwargs)
+                self.output = output or Output()
+
+            def display(self):
+                with self.output:
+                    clear_output(wait=True)
+                    display(self)
 
     # HTML encoding
     try:  # Py3
@@ -124,10 +133,12 @@ class tqdm_notebook(std_tqdm):
             pbar.description = desc
             if IPYW >= 7:
                 pbar.style.description_width = 'initial'
+        # Only way to force refresh is to create an output context
+        out = Output()
         # Prepare status text
         ptext = HTML()
         # Only way to place text to the right of the bar is to use a container
-        container = TqdmHBox(self, children=[pbar, ptext])
+        container = TqdmContainer(self, output=out, children=[pbar, ptext])
         # Prepare layout
         if ncols is not None:  # use default style of ipywidgets
             # ncols could be 100, "100px", "100%"
@@ -141,7 +152,7 @@ class tqdm_notebook(std_tqdm):
             container.layout.width = ncols
             container.layout.display = 'inline-flex'
             container.layout.flex_flow = 'row wrap'
-        display(container)
+        display(out)
 
         return container
 
@@ -196,6 +207,8 @@ class tqdm_notebook(std_tqdm):
                 self.container.close()
             except AttributeError:
                 self.container.visible = False
+        else:
+            self.container.display()
 
     def __init__(self, *args, **kwargs):
         # Setup default output
