@@ -310,7 +310,7 @@ class tqdm(Comparable):
     @staticmethod
     def format_meter(n, total, elapsed, ncols=None, prefix='', ascii=False,
                      unit='it', unit_scale=False, rate=None, bar_format=None,
-                     postfix=None, unit_divisor=1000, **extra_kwargs):
+                     postfix=None, unit_divisor=1000, prefix_short='', **extra_kwargs):
         """
         Return a string-based progress bar given some parameters
 
@@ -1457,7 +1457,7 @@ class tqdm(Comparable):
             unit_scale=self.unit_scale,
             rate=1 / self.avg_time if self.avg_time else None,
             bar_format=self.bar_format, postfix=self.postfix,
-            unit_divisor=self.unit_divisor)
+            unit_divisor=self.unit_divisor, prefix_short=self.desc_short)
 
     def display(self, msg=None, pos=None):
         """
