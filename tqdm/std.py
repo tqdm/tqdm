@@ -472,6 +472,18 @@ class tqdm(Comparable):
             except UnicodeEncodeError:
                 bar_format = _unicode(bar_format)
                 nobar = bar_format.format(bar=full_bar, **format_dict)
+
+            available_space = (ncols - disp_len(nobar)) if ncols else 10
+            if available_space <= 0:  # not enough space, use prefix_short
+                format_dict.update(l_bar=prefix_short)
+                full_bar = FormatReplace()
+                try:
+                    nobar = bar_format.format(bar=full_bar, **format_dict)
+                except UnicodeEncodeError:
+                    bar_format = _unicode(bar_format)
+                    nobar = bar_format.format(bar=full_bar, **format_dict)
+                available_space = max(1, (ncols - disp_len(nobar)))
+
             if not full_bar.format_called:
                 # no {bar}, we can just format and return
                 return nobar
@@ -797,7 +809,7 @@ class tqdm(Comparable):
                  unit_scale=False, dynamic_ncols=False, smoothing=0.3,
                  bar_format=None, initial=0, position=None, postfix=None,
                  unit_divisor=1000, write_bytes=None, lock_args=None,
-                 nrows=None,
+                 nrows=None, desc_short=None,
                  gui=False, **kwargs):
         """
         Parameters
@@ -903,6 +915,9 @@ class tqdm(Comparable):
             The screen height. If specified, hides nested bars outside this
             bound. If unspecified, attempts to use environment height.
             The fallback is 20.
+        desc_short  : str, optional
+            Shorted prefix for the progressbar, to used when desc is too long given
+            available space
         gui  : bool, optional
             WARNING: internal parameter - do not use.
             Use tqdm.gui.tqdm(...) instead. If set, will attempt to use
@@ -1002,6 +1017,7 @@ class tqdm(Comparable):
         # Store the arguments
         self.iterable = iterable
         self.desc = desc or ''
+        self.desc_short = desc_short or self.desc
         self.total = total
         self.leave = leave
         self.fp = file
@@ -1360,7 +1376,7 @@ class tqdm(Comparable):
             self.total = total
         self.refresh()
 
-    def set_description(self, desc=None, refresh=True):
+    def set_description(self, desc=None, refresh=True, desc_short=None):
         """
         Set/modify description of the progress bar.
 
@@ -1371,12 +1387,14 @@ class tqdm(Comparable):
             Forces refresh [default: True].
         """
         self.desc = desc + ': ' if desc else ''
+        self.desc_short = desc_short + ": " if desc_short else self.desc
         if refresh:
             self.refresh()
 
-    def set_description_str(self, desc=None, refresh=True):
+    def set_description_str(self, desc=None, refresh=True, desc_short=None):
         """Set/modify description without ': ' appended."""
         self.desc = desc or ''
+        self.desc_short = desc_short if desc_short else self.desc
         if refresh:
             self.refresh()
 
