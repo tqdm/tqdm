@@ -461,6 +461,8 @@ Extra CLI Options
     ``unit_scale`` to True, ``unit_divisor`` to 1024, and ``unit`` to 'B'.
 * manpath  : str, optional  
     Directory in which to install tqdm man pages.
+* comppath  : str, optional  
+    Directory in which to place tqdm completion.
 * log  : str, optional  
     CRITICAL|FATAL|ERROR|WARN(ING)|[default: 'INFO']|DEBUG|NOTSET.
 
