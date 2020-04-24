@@ -111,6 +111,8 @@ CLI_EXTRA_DOC = r"""
             `unit_scale` to True, `unit_divisor` to 1024, and `unit` to 'B'.
         manpath  : str, optional
             Directory in which to install tqdm man pages.
+        comppath  : str, optional
+            Directory in which to place tqdm completion.
         log  : str, optional
             CRITICAL|FATAL|ERROR|WARN(ING)|[default: 'INFO']|DEBUG|NOTSET.
 """
@@ -200,16 +202,26 @@ Options:
         delim = tqdm_args.pop('delim', '\n')
         delim_per_char = tqdm_args.pop('bytes', False)
         manpath = tqdm_args.pop('manpath', None)
+        comppath = tqdm_args.pop('comppath', None)
         stdin = getattr(sys.stdin, 'buffer', sys.stdin)
         stdout = getattr(sys.stdout, 'buffer', sys.stdout)
-        if manpath is not None:
+        if manpath or comppath:
             from os import path
             from shutil import copyfile
             from pkg_resources import resource_filename, Requirement
-            fi = resource_filename(Requirement.parse('tqdm'), 'tqdm/tqdm.1')
-            fo = path.join(manpath, 'tqdm.1')
-            copyfile(fi, fo)
-            log.info("written:" + fo)
+
+            def cp(fi, fo):
+                copyfile(fi, fo)
+                log.info("written:" + fo)
+            if manpath is not None:
+                fi = resource_filename(Requirement.parse('tqdm'), 'tqdm/tqdm.1')
+                fo = path.join(manpath, 'tqdm.1')
+                cp(fi, fo)
+            if comppath is not None:
+                fi = resource_filename(
+                    Requirement.parse('tqdm'), 'tqdm/completion.sh')
+                fo = path.join(comppath, 'tqdm_completion.sh')
+                cp(fi, fo)
             sys.exit(0)
         if delim_per_char:
             tqdm_args.setdefault('unit', 'B')
