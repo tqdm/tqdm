@@ -214,14 +214,12 @@ Options:
                 copyfile(fi, fo)
                 log.info("written:" + fo)
             if manpath is not None:
-                fi = resource_filename(Requirement.parse('tqdm'), 'tqdm/tqdm.1')
-                fo = path.join(manpath, 'tqdm.1')
-                cp(fi, fo)
+                cp(resource_filename(Requirement.parse('tqdm'), 'tqdm/tqdm.1'),
+                   path.join(manpath, 'tqdm.1'))
             if comppath is not None:
-                fi = resource_filename(
-                    Requirement.parse('tqdm'), 'tqdm/completion.sh')
-                fo = path.join(comppath, 'tqdm_completion.sh')
-                cp(fi, fo)
+                cp(resource_filename(Requirement.parse('tqdm'),
+                                     'tqdm/completion.sh'),
+                   path.join(comppath, 'tqdm_completion.sh'))
             sys.exit(0)
         if delim_per_char:
             tqdm_args.setdefault('unit', 'B')
