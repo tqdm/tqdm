@@ -1,7 +1,7 @@
 from __future__ import print_function
 from os import path
 import sys
-sys.path = [path.dirname(path.dirname(__file__))] + sys.path  # NOQA
+sys.path.insert(0, path.dirname(path.dirname(__file__)))  # NOQA
 import tqdm
 import tqdm.cli
 from textwrap import dedent
