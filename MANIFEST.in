@@ -18,4 +18,5 @@ include requirements-dev.txt
 recursive-include examples *.py
 include README.rst
 include tqdm/tqdm.1
+include tqdm/completion.sh
 include DEMO.ipynb
