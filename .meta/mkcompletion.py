@@ -8,23 +8,21 @@ from io import open as io_open
 from os import path
 import re
 
+RE_OPT = re.compile(r'(\w+)  :', flags=re.M)
+
+
 def doc2opt(doc):
     """
     doc  : str, document to parse
     """
-    options = ['--' + i.strip('  :') for i in re.findall(r'\w+  :', doc)]
-    return options
+    return {'--' + i for i in RE_OPT.findall(doc)}
+
 
 # CLI options
-options = ['-h', '--help', '-v', '--version']
-options += doc2opt(tqdm.tqdm.__init__.__doc__)
-options += doc2opt(tqdm.cli.CLI_EXTRA_DOC)
-
-# Remove options without CLI support
-no_support = ['--' + i for i in tqdm.cli.UNSUPPORTED_OPTS]
-# TODO: Check and remove option `name`
-no_support += ['--name']
-options = list(set(options) - set(no_support))
+options = {'-h', '--help', '-v', '--version'}
+options ^= doc2opt(tqdm.tqdm.__init__.__doc__)
+options ^= doc2opt(tqdm.cli.CLI_EXTRA_DOC)
+options -= {'--name'} ^ {'--' + i for i in tqdm.cli.UNSUPPORTED_OPTS}
 
 src_dir = path.abspath(path.dirname(__file__))
 completion = u"""\
