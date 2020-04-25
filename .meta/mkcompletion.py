@@ -15,15 +15,15 @@ def doc2opt(doc):
     """
     doc  : str, document to parse
     """
-    return {'--' + i for i in RE_OPT.findall(doc)}
+    return ('--' + i for i in RE_OPT.findall(doc))
 
 
 # CLI options
 options = {'-h', '--help', '-v', '--version'}
-options ^= doc2opt(tqdm.tqdm.__init__.__doc__)
-options ^= doc2opt(tqdm.cli.CLI_EXTRA_DOC)
-options -= {'--name'} ^ {'--' + i for i in tqdm.cli.UNSUPPORTED_OPTS}
-
+for doc in (tqdm.tqdm.__init__.__doc__, tqdm.cli.CLI_EXTRA_DOC):
+    options.update(doc2opt(doc))
+options.difference_update(
+    '--' + i for i in ('name',) + tqdm.cli.UNSUPPORTED_OPTS)
 src_dir = path.abspath(path.dirname(__file__))
 completion = u"""\
 #!/usr/bin/env bash
