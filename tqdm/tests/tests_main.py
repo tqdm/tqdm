@@ -5,6 +5,7 @@ from shutil import rmtree
 from tempfile import mkdtemp
 from tqdm.cli import main, TqdmKeyError, TqdmTypeError
 from tqdm.utils import IS_WIN
+from io import open as io_open
 
 from tests_tqdm import with_setup, pretest, posttest, _range, closing, \
     UnicodeIO, StringIO, SkipTest
@@ -112,6 +113,31 @@ def test_comppath():
     else:
         raise SystemExit("Expected system exit")
     assert path.exists(man)
+    rmtree(tmp, True)
+
+
+def test_autocomplete():
+    """Test CLI auto completion arguments"""
+    if IS_WIN:
+        raise SkipTest
+    tmp = mkdtemp()
+    man = path.join(tmp, "tqdm_completion.sh")
+    print(man)
+    assert not path.exists(man)
+    try:
+        main(argv=['--comppath', tmp], fp=NULL)
+    except SystemExit:
+        pass
+    else:
+        raise SystemExit("Expected system exit")
+    assert path.exists(man)
+    with io_open(man, mode='r', encoding='utf-8') as fd:
+        script = fd.read()
+    opts = {
+        '--help', '--desc', '--total', '--leave', '--ncols', '--ascii', '--dynamic_ncols',
+        '--position', '--bytes', '--nrows', '--delim', '--manpath', '--comppath'
+        }
+    assert all(args in script for args in opts)
     rmtree(tmp, True)
 
 
