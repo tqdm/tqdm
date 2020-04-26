@@ -56,6 +56,7 @@ testnose:
 testsetup:
 	@make README.rst
 	@make tqdm/tqdm.1
+	@make tqdm/completion.sh
 	python setup.py check --metadata --restructuredtext --strict
 	python setup.py make none
 

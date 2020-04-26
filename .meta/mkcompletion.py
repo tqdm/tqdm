@@ -54,7 +54,9 @@ _tqdm(){{
   esac
 }}
 complete -F _tqdm tqdm
-""".format(opts=' '.join(options), opts_manual='|'.join(options_input))
+""".format(
+    opts=' '.join(sorted(options)),
+    opts_manual='|'.join(sorted(options_input)))
 
 if __name__ == "__main__":
     fncompletion = path.join(path.dirname(src_dir), 'tqdm', 'completion.sh')
