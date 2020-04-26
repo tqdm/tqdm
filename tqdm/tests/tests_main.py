@@ -114,6 +114,7 @@ def test_comppath():
         raise SystemExit("Expected system exit")
     assert path.exists(man)
 
+    # check most important options appear
     with io_open(man, mode='r', encoding='utf-8') as fd:
         script = fd.read()
     opts = {

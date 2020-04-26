@@ -46,7 +46,7 @@ However it would be helpful to bear in mind:
     + should be appropriately commented
     + should have well-formatted docstrings for functions
         * under 76 chars (incl. initial spaces) to avoid linebreaks in terminal pagers
-        * use two spaces between variable name and colon
+        * use two spaces between variable name and colon, specify a type, and most likely state that it's optional: `VAR<space><space>:<space>TYPE[, optional]`
         * use [default: ...] for default values of keyword arguments
     + will not break backward compatibility unless there is a very good reason
         * e.g. breaking py26 compatibility purely in favour of readability (such as converting `dict(a=1)` to `{'a': 1}`) is not a good enough reason
@@ -56,25 +56,16 @@ However it would be helpful to bear in mind:
     + submodules are likely single python files under the main [tqdm/](tqdm/) directory
         * large submodules requiring a sub-folder should be included in [`MANIFEST.in`](MANIFEST.in)
     + submodules extending `tqdm.std.tqdm` or any other module (e.g. [`tqdm.notebook.tqdm`](tqdm/notebook.py), [`tqdm.gui.tqdm`](tqdm/gui.py))
+    + CLI wrapper `tqdm.cli`
+        * if a newly added `tqdm.std.tqdm` option is not supported by the CLI, append to `tqdm.cli.UNSUPPORTED_OPTS`
     + can implement anything from experimental new features to support for third-party libraries such as `pandas`, `numpy`, etc.
     + submodule maturity
         * alpha: experimental; missing unit tests, comments, and/or feedback; raises `tqdm.TqdmExperimentalWarning`
         * beta: well-used; commented, perhaps still missing tests
         * stable: >10 users; commented, 80% coverage
+- `.meta/`
+    + A "hidden" folder containing helper utilities not strictly part of `tqdm` distribution itself
 
-#### Integrating new arguments with Bash autocomplete for CLI
-
-Creating new argument
-- Supported by tqdm CLI
-    + Update docstring under `tqdm.tqdm.__init__.__doc__` or if *extra cli option* add to `tqdm.cli.CLI_EXTRA_DOC`
-    + Follow docstring formatting `argument<space><space>:<space>string`
-- Not supported by tqdm CLI
-    + Update docstrings under `tqdm.tqdm.__init__.__doc__`
-    + Add unsupported argument to `tqdm.cli.UNSUPPORTED_OPTS`
-
-**Note:** Options for CLI arguments added to script `.meta/mkcompletion.py`
-
-**Warning:** An additional `name` argument is ignored.
 
 ## TESTING
 
@@ -129,6 +120,12 @@ how to build and upload a new release. Once again,
 `[python setup.py] make [<alias>]` will help.
 Also consider `pip install`ing development utilities:
 `-r requirements-dev.txt` or `tqdm[dev]`.
+
+
+## Pre-commit Hook
+
+It's probably a good idea to add `[python setup.py] make pre-commit` to
+`.git/hooks/pre-commit` for convenient local sanity-checking.
 
 
 ## Semantic Versioning
