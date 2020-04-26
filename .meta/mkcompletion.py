@@ -1,3 +1,6 @@
+"""
+Auto-generate tqdm/completion.sh from docstrings.
+"""
 from __future__ import print_function
 from io import open as io_open
 from os import path

@@ -1,3 +1,6 @@
+"""
+Auto-generate README.rst from .meta/.readme.rst and docstrings.
+"""
 from __future__ import print_function
 from io import open as io_open
 from os import path
