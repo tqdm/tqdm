@@ -95,7 +95,7 @@ tqdm/tqdm.1: .meta/.tqdm.1.md tqdm/cli.py tqdm/std.py
     cat "$<" - |\
     pandoc -o "$@" -s -t man
 
-tqdm/completion.sh: tqdm/std.py tqdm/cli.py
+tqdm/completion.sh: .meta/mkcompletion.py tqdm/std.py tqdm/cli.py
 	@python .meta/mkcompletion.py
 
 README.rst: .meta/.readme.rst tqdm/std.py tqdm/cli.py

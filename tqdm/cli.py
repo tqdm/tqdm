@@ -210,9 +210,10 @@ Options:
             from shutil import copyfile
             from pkg_resources import resource_filename, Requirement
 
-            def cp(fi, fo):
-                copyfile(fi, fo)
-                log.info("written:" + fo)
+            def cp(src, dst):
+                """copies from src path to dst"""
+                copyfile(src, dst)
+                log.info("written:" + dst)
             if manpath is not None:
                 cp(resource_filename(Requirement.parse('tqdm'), 'tqdm/tqdm.1'),
                    path.join(manpath, 'tqdm.1'))

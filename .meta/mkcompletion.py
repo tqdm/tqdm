@@ -1,24 +1,25 @@
 from __future__ import print_function
-from os import path
-import sys
-sys.path.insert(0, path.dirname(path.dirname(__file__)))  # NOQA
-import tqdm
-import tqdm.cli
 from io import open as io_open
 from os import path
 import re
+import sys
+
+sys.path.insert(0, path.dirname(path.dirname(__file__)))  # NOQA
+import tqdm
+import tqdm.cli
 
 RE_OPT = re.compile(r'(\w+)  :', flags=re.M)
 RE_OPT_INPUT = re.compile(
     r'(\w+)  : (?:str|int|float|chr|dict|tuple)', flags=re.M)
 
 
-def doc2opt(doc, all=False):
+def doc2opt(doc, user_input=True):
     """
     doc  : str, document to parse
-    all  : bool, [default: False] for only options requiring user input
+    user_input  : bool, optional.
+      [default: True] for only options requiring user input
     """
-    RE = RE_OPT if all else RE_OPT_INPUT
+    RE = RE_OPT_INPUT if user_input else RE_OPT
     return ('--' + i for i in RE.findall(doc))
 
 
@@ -26,8 +27,8 @@ def doc2opt(doc, all=False):
 options = {'-h', '--help', '-v', '--version'}
 options_input = set()
 for doc in (tqdm.tqdm.__init__.__doc__, tqdm.cli.CLI_EXTRA_DOC):
-    options.update(doc2opt(doc, all=True))
-    options_input.update(doc2opt(doc, all=False))
+    options.update(doc2opt(doc, user_input=False))
+    options_input.update(doc2opt(doc, user_input=True))
 options.difference_update(
     '--' + i for i in ('name',) + tqdm.cli.UNSUPPORTED_OPTS)
 options_input &= options
