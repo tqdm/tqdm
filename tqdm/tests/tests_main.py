@@ -98,6 +98,23 @@ def test_manpath():
     rmtree(tmp, True)
 
 
+def test_comppath():
+    """Test CLI --comppath"""
+    if IS_WIN:
+        raise SkipTest
+    tmp = mkdtemp()
+    man = path.join(tmp, "tqdm_completion.sh")
+    assert not path.exists(man)
+    try:
+        main(argv=['--comppath', tmp], fp=NULL)
+    except SystemExit:
+        pass
+    else:
+        raise SystemExit("Expected system exit")
+    assert path.exists(man)
+    rmtree(tmp, True)
+
+
 def test_exceptions():
     """Test CLI Exceptions"""
     _SYS = sys.stdin, sys.argv
