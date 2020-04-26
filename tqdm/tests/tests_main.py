@@ -117,11 +117,11 @@ def test_comppath():
     # check most important options appear
     with io_open(man, mode='r', encoding='utf-8') as fd:
         script = fd.read()
-    opts = {
+    opts = set([
         '--help', '--desc', '--total', '--leave', '--ncols', '--ascii',
         '--dynamic_ncols', '--position', '--bytes', '--nrows', '--delim',
         '--manpath', '--comppath'
-    }
+    ])
     assert all(args in script for args in opts)
     rmtree(tmp, True)
 
