@@ -16,6 +16,7 @@ from .utils import _supports_unicode, _screen_shape_wrapper, _range, _unich, \
 from ._monitor import TMonitor
 # native libraries
 from contextlib import contextmanager
+import os
 import sys
 from numbers import Number
 from time import time
@@ -793,7 +794,7 @@ class tqdm(Comparable):
 
     def __init__(self, iterable=None, desc=None, total=None, leave=True,
                  file=None, ncols=None, mininterval=0.1, maxinterval=10.0,
-                 miniters=None, ascii=None, disable=False, unit='it',
+                 miniters=None, ascii=None, disable='default', unit='it',
                  unit_scale=False, dynamic_ncols=False, smoothing=0.3,
                  bar_format=None, initial=0, position=None, postfix=None,
                  unit_divisor=1000, write_bytes=None, lock_args=None,
@@ -849,7 +850,7 @@ class tqdm(Comparable):
             the meter. The fallback is to use ASCII characters " 123456789#".
         disable  : bool, optional
             Whether to disable the entire progressbar wrapper
-            [default: False]. If set to None, disable on non-TTY.
+            [default: os.environ.get('TQDM_DISABLE', False)]. If set to None, disable on non-TTY.
         unit  : str, optional
             String that will be used to define the unit of each iteration
             [default: it].
@@ -923,6 +924,9 @@ class tqdm(Comparable):
             # should have bytes written to them.
             file = SimpleTextIOWrapper(
                 file, encoding=getattr(file, 'encoding', None) or 'utf-8')
+
+        if disable == 'default':
+            disable = os.environ.get('TQDM_DISABLE', False)
 
         if disable is None and hasattr(file, "isatty") and not file.isatty():
             disable = True
