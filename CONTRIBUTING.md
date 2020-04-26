@@ -62,6 +62,19 @@ However it would be helpful to bear in mind:
         * beta: well-used; commented, perhaps still missing tests
         * stable: >10 users; commented, 80% coverage
 
+#### Integrating new arguments with Bash autocomplete for CLI
+
+Creating new argument
+- Supported by tqdm CLI
+    + Update docstring under `tqdm.tqdm.__init__.__doc__` or if *extra cli option* add to `tqdm.cli.CLI_EXTRA_DOC`
+    + Follow docstring formatting `argument<space><space>:<space>string`
+- Not supported by tqdm CLI
+    + Update docstrings under `tqdm.tqdm.__init__.__doc__`
+    + Add unsupported argument to `tqdm.cli.UNSUPPORTED_OPTS`
+
+**Note:** Options for CLI arguments added to script `.meta/mkcompletion.py`
+
+**Warning:** An additional `name` argument is ignored.
 
 ## TESTING
 
