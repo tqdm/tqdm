@@ -14,20 +14,22 @@ from telepot import Bot
 from tqdm.auto import tqdm as tqdm_auto
 from tqdm.utils import _range
 __author__ = {"github.com/": ["casperdcl"]}
-__all__ = ['TelegramIO', 'tqdm_telegram', 'tqdm']
+__all__ = ['TelegramIO', 'tqdm_telegram', 'ttgrange', 'tqdm', 'trange']
 
 
 class TelegramIO():
     def __init__(self, token, chat_id):
         self.bot = Bot(token)
         self.chat_id = chat_id
-        self.message_id = self.bot.sendMessage(
-            chat_id, self.__class__.__name__)['message_id']
+        self.text = self.__class__.__name__
+        self.message_id = self.bot.sendMessage(chat_id, self.text)['message_id']
 
     def write(self, s):
         if s:
-            self.bot.editMessageText(
-                (self.chat_id, self.message_id), s.strip().replace('\r', ''))
+            s = s.strip().replace('\r', '')
+            if s != self.text:  # avoid duplicate message Bot error
+                self.text = s
+                self.bot.editMessageText((self.chat_id, self.message_id), s)
 
 
 class tqdm_telegram(tqdm_auto):
@@ -49,7 +51,6 @@ class tqdm_telegram(tqdm_auto):
         fmt = self.format_dict
         if 'bar_format' in fmt and fmt['bar_format']:
             fmt['bar_format'] = fmt['bar_format'].replace('<bar/>', '{bar}')
-        fmt['ncols'] = 50
         self.tgio.write(self.format_meter(**fmt))
 
 
