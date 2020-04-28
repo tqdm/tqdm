@@ -8,7 +8,6 @@ Usage:
         ...
 """
 from __future__ import absolute_import
-from html import escape
 
 from requests import Session
 
@@ -29,8 +28,8 @@ class TelegramIO():
         try:
             res = session.post(
                 self.API + '%s/sendMessage' % self.token,
-                data=dict(text=escape(self.text), chat_id=self.chat_id,
-                          parse_mode='HTML'))
+                data=dict(text='`' + self.text + '`', chat_id=self.chat_id,
+                          parse_mode='MarkdownV2'))
         except Exception as e:
             print(e)
         else:
@@ -46,8 +45,8 @@ class TelegramIO():
         try:
             return self.session.post(
                 self.API + '%s/editMessageText' % self.token,
-                data=dict(text=escape(s), chat_id=self.chat_id,
-                          message_id=self.message_id, parse_mode='HTML'))
+                data=dict(text='`' + s + '`', chat_id=self.chat_id,
+                          message_id=self.message_id, parse_mode='MarkdownV2'))
         except Exception as e:
             print(e)
 
@@ -60,7 +59,6 @@ class tqdm_telegram(tqdm_auto):
         token  : str, required. Telegram token.
         chat_id  : str, required. Telegram chat ID.
 
-
         See `tqdm.auto.tqdm.__init__` for other parameters.
         """
         self.tgio = TelegramIO(kwargs.pop('token'), kwargs.pop('chat_id'))
@@ -71,6 +69,9 @@ class tqdm_telegram(tqdm_auto):
         fmt = self.format_dict
         if 'bar_format' in fmt and fmt['bar_format']:
             fmt['bar_format'] = fmt['bar_format'].replace('<bar/>', '{bar}')
+        else:
+            fmt['bar_format'] = '{l_bar}{bar}{r_bar}'
+        fmt['bar_format'] = fmt['bar_format'].replace('{bar}', '{bar:10u}')
         self.tgio.write(self.format_meter(**fmt))
 
 
