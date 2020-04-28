@@ -8,8 +8,9 @@ Usage:
         ...
 """
 from __future__ import absolute_import
+from html import escape
 
-from telepot import Bot
+from requests import Session
 
 from tqdm.auto import tqdm as tqdm_auto
 from tqdm.utils import _range
@@ -18,18 +19,37 @@ __all__ = ['TelegramIO', 'tqdm_telegram', 'ttgrange', 'tqdm', 'trange']
 
 
 class TelegramIO():
+    API = 'https://api.telegram.org/bot'
+
     def __init__(self, token, chat_id):
-        self.bot = Bot(token)
+        self.token = token
         self.chat_id = chat_id
+        self.session = session = Session()
         self.text = self.__class__.__name__
-        self.message_id = self.bot.sendMessage(chat_id, self.text)['message_id']
+        try:
+            res = session.post(
+                self.API + '%s/sendMessage' % self.token,
+                data=dict(text=escape(self.text), chat_id=self.chat_id,
+                          parse_mode='HTML'))
+        except Exception as e:
+            print(e)
+        else:
+            self.message_id = res.json()['result']['message_id']
 
     def write(self, s):
-        if s:
-            s = s.strip().replace('\r', '')
-            if s != self.text:  # avoid duplicate message Bot error
-                self.text = s
-                self.bot.editMessageText((self.chat_id, self.message_id), s)
+        if not s:
+            return
+        s = s.strip().replace('\r', '')
+        if s == self.text:
+            return  # avoid duplicate message Bot error
+        self.text = s
+        try:
+            return self.session.post(
+                self.API + '%s/editMessageText' % self.token,
+                data=dict(text=escape(s), chat_id=self.chat_id,
+                          message_id=self.message_id, parse_mode='HTML'))
+        except Exception as e:
+            print(e)
 
 
 class tqdm_telegram(tqdm_auto):
