@@ -217,7 +217,7 @@ Supported features include:
   terminals
 - Support for custom rendering frontends, including:
     * Command-line interface
-    * Jupyter HTML notebooks
+    * Jupyter Notebook
     * Matplotlib
 - Support for custom hooks/callbacks, including:
     * pandas
