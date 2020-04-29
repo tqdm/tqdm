@@ -34,7 +34,7 @@ class TelegramIO():
                 data=dict(text='`' + self.text + '`', chat_id=self.chat_id,
                           parse_mode='MarkdownV2'))
         except Exception as e:
-            print(e)
+            tqdm_auto.write(str(e))
         else:
             self.message_id = res.json()['result']['message_id']
 
@@ -52,7 +52,7 @@ class TelegramIO():
                 data=dict(text='`' + s + '`', chat_id=self.chat_id,
                           message_id=self.message_id, parse_mode='MarkdownV2'))
         except Exception as e:
-            print(e)
+            tqdm_auto.write(str(e))
 
 
 class tqdm_telegram(tqdm_auto):
