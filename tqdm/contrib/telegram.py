@@ -72,6 +72,7 @@ class TelegramIO():
 class tqdm_telegram(tqdm_auto):
     """
     Standard `tqdm.auto.tqdm` but also sends updates to a Telegram bot.
+    May take a few seconds to create (`__init__`) and clear (`__del__`).
 
     >>> from tqdm.contrib.telegram import tqdm, trange
     >>> for i in tqdm(
@@ -113,6 +114,11 @@ class tqdm_telegram(tqdm_auto):
                 pass
         instance = super(tqdm_telegram, cls).__new__(cls, *args, **kwargs)
         with cls.get_lock():
+            try:
+                # `tqdm_auto` may have been changed so update
+                cls._instances.update(tqdm_auto._instances)
+            except AttributeError:
+                pass
             tqdm_auto._instances = cls._instances
         return instance
 
