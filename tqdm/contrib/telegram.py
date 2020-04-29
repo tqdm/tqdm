@@ -9,6 +9,7 @@ Usage:
 """
 from __future__ import absolute_import
 
+from concurrent.futures import ThreadPoolExecutor
 from requests import Session
 
 from tqdm.auto import tqdm as tqdm_auto
@@ -25,6 +26,8 @@ class TelegramIO():
         self.chat_id = chat_id
         self.session = session = Session()
         self.text = self.__class__.__name__
+        self.pool = pool = ThreadPoolExecutor()
+        self.submit = pool.__enter__().submit
         try:
             res = session.post(
                 self.API + '%s/sendMessage' % self.token,
@@ -43,7 +46,8 @@ class TelegramIO():
             return  # avoid duplicate message Bot error
         self.text = s
         try:
-            return self.session.post(
+            return self.submit(
+                self.session.post,
                 self.API + '%s/editMessageText' % self.token,
                 data=dict(text='`' + s + '`', chat_id=self.chat_id,
                           message_id=self.message_id, parse_mode='MarkdownV2'))
