@@ -106,12 +106,14 @@ class tqdm_telegram(tqdm_auto):
         Workaround for mixed-class same-stream nested progressbars.
         See [#509](https://github.com/tqdm/tqdm/issues/509)
         """
-        try:
-            cls._instances = tqdm_auto._instances
-        except AttributeError:
-            pass
+        with cls.get_lock():
+            try:
+                cls._instances = tqdm_auto._instances
+            except AttributeError:
+                pass
         instance = super(tqdm_telegram, cls).__new__(cls, *args, **kwargs)
-        tqdm_auto._instances = cls._instances
+        with cls.get_lock():
+            tqdm_auto._instances = cls._instances
         return instance
 
 
