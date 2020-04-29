@@ -66,10 +66,10 @@ class tqdm_telegram(tqdm_auto):
         See `tqdm.auto.tqdm.__init__` for other parameters.
         """
         self.tgio = TelegramIO(kwargs.pop('token'), kwargs.pop('chat_id'))
-        super().__init__(*args, **kwargs)
+        super(tqdm_telegram, self).__init__(*args, **kwargs)
 
     def display(self, msg=None, **kwargs):
-        super().display(msg=msg, **kwargs)
+        super(tqdm_telegram, self).display(msg=msg, **kwargs)
         fmt = self.format_dict
         if 'bar_format' in fmt and fmt['bar_format']:
             fmt['bar_format'] = fmt['bar_format'].replace('<bar/>', '{bar}')
