@@ -78,6 +78,19 @@ class tqdm_telegram(tqdm_auto):
         fmt['bar_format'] = fmt['bar_format'].replace('{bar}', '{bar:10u}')
         self.tgio.write(self.format_meter(**fmt))
 
+    def __new__(cls, *args, **kwargs):
+        """
+        Workaround for mixed-class same-stream nested progressbars.
+        See [#509](https://github.com/tqdm/tqdm/issues/509)
+        """
+        try:
+            cls._instances = tqdm_auto._instances
+        except AttributeError:
+            pass
+        instance = super(tqdm_telegram, cls).__new__(cls, *args, **kwargs)
+        tqdm_auto._instances = cls._instances
+        return instance
+
 
 def ttgrange(*args, **kwargs):
     """
