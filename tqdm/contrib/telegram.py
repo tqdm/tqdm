@@ -1,11 +1,5 @@
 """
-Send updates to a Telegram bot.
-
-Usage:
-    from tqdm.contrib.telegram import tqdm, trange
-    for i in trange(10, token='1234567890:THIS1SSOMETOKEN0BTAINeDfrOmTELEGrAM',
-                    chat_id='0246813579'):
-        ...
+Sends updates to a Telegram bot.
 """
 from __future__ import absolute_import
 
@@ -19,15 +13,17 @@ __all__ = ['TelegramIO', 'tqdm_telegram', 'ttgrange', 'tqdm', 'trange']
 
 
 class TelegramIO():
+    """Non-blocking file-like IO to a Telegram Bot."""
     API = 'https://api.telegram.org/bot'
 
     def __init__(self, token, chat_id):
+        """Creates a new message in the given `chat_id`."""
         self.token = token
         self.chat_id = chat_id
         self.session = session = Session()
         self.text = self.__class__.__name__
-        self.pool = pool = ThreadPoolExecutor()
-        self.submit = pool.__enter__().submit
+        self.pool = ThreadPoolExecutor()
+        self.futures = []
         try:
             res = session.post(
                 self.API + '%s/sendMessage' % self.token,
@@ -39,6 +35,7 @@ class TelegramIO():
             self.message_id = res.json()['result']['message_id']
 
     def write(self, s):
+        """Replaces internal `message_id`'s text with `s`."""
         if not s:
             return
         s = s.strip().replace('\r', '')
@@ -46,16 +43,42 @@ class TelegramIO():
             return  # avoid duplicate message Bot error
         self.text = s
         try:
-            return self.submit(
+            f = self.pool.submit(
                 self.session.post,
                 self.API + '%s/editMessageText' % self.token,
-                data=dict(text='`' + s + '`', chat_id=self.chat_id,
-                          message_id=self.message_id, parse_mode='MarkdownV2'))
+                data=dict(
+                    text='`' + s + '`', chat_id=self.chat_id,
+                    message_id=self.message_id, parse_mode='MarkdownV2'))
         except Exception as e:
             tqdm_auto.write(str(e))
+        else:
+            self.futures.append(f)
+            return f
+
+    def flush(self):
+        """Ensure the last `write` has been processed."""
+        [f.cancel() for f in self.futures[-2::-1]]
+        try:
+            return self.futures[-1].result()
+        except IndexError:
+            pass
+        finally:
+            self.futures = []
+
+    def __del__(self):
+        self.flush()
 
 
 class tqdm_telegram(tqdm_auto):
+    """
+    Standard `tqdm.auto.tqdm` but also sends updates to a Telegram bot.
+
+    >>> from tqdm.contrib.telegram import tqdm, trange
+    >>> for i in tqdm(
+    ...     iterable,
+    ...     token='1234567890:THIS1SSOMETOKEN0BTAINeDfrOmTELEGrAM',
+    ...     chat_id='0246813579'):
+    """
     def __init__(self, *args, **kwargs):
         """
         Parameters
@@ -68,8 +91,8 @@ class tqdm_telegram(tqdm_auto):
         self.tgio = TelegramIO(kwargs.pop('token'), kwargs.pop('chat_id'))
         super(tqdm_telegram, self).__init__(*args, **kwargs)
 
-    def display(self, msg=None, **kwargs):
-        super(tqdm_telegram, self).display(msg=msg, **kwargs)
+    def display(self, **kwargs):
+        super(tqdm_telegram, self).display(**kwargs)
         fmt = self.format_dict
         if 'bar_format' in fmt and fmt['bar_format']:
             fmt['bar_format'] = fmt['bar_format'].replace('<bar/>', '{bar}')
