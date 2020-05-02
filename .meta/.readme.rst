@@ -111,6 +111,9 @@ There are 3 channels to choose from:
     snap install tqdm  --candidate  # master branch
     snap install tqdm  --edge  # devel branch
 
+Note than ``snap`` binaries are purely for CLI use (not ``import``-able), and
+automatically set up ``bash`` tab-completion.
+
 Latest Docker release
 ~~~~~~~~~~~~~~~~~~~~~
 
