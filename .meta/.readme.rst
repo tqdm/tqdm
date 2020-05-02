@@ -419,10 +419,14 @@ Returns
     def tqdm.contrib.tmap(function, *sequences, **tqdm_kwargs):
         """Equivalent of builtin `map`."""
 
+``contrib``
+-----------
+
 The ``tqdm.contrib`` package also contains experimental modules:
 
 - ``tqdm.contrib.itertools``: Thin wrappers around ``itertools``
 - ``tqdm.contrib.concurrent``: Thin wrappers around ``concurrent.futures``
+- ``tqdm.contrib.telegram``: Posts to `Telegram <https://telegram.org/>`__ bots
 
 Examples and Advanced Usage
 ---------------------------
