@@ -1,6 +1,7 @@
-"""An example of wrapping manual tqdm updates for urllib reporthook.
+"""An example of wrapping manual tqdm updates for `urllib` reporthook.
+See also: tqdm_requests.py.
 
-# urllib.urlretrieve documentation
+# `urllib.urlretrieve` documentation
 > If present, the hook function will be called once
 > on establishment of the network connection and once after each block read
 > thereafter. The hook will be passed three arguments; a count of blocks
@@ -19,10 +20,11 @@ Options:
     The local file path in which to save the url [default: /dev/null].
 """
 
-import urllib
 from os import devnull
-from tqdm.auto import tqdm
+
 from docopt import docopt
+import urllib
+from tqdm.auto import tqdm
 
 
 def my_hook(t):
@@ -95,6 +97,7 @@ with TqdmUpTo(unit='B', unit_scale=True, unit_divisor=1024, miniters=1,
               desc=eg_file) as t:  # all optional kwargs
     urllib.urlretrieve(eg_link, filename=eg_out, reporthook=t.update_to,
                        data=None)
+    t.total = t.n
 
 # Even simpler progress by wrapping the output file's `write()`
 with tqdm.wrapattr(open(eg_out, "wb"), "write",

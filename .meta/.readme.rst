@@ -628,7 +628,7 @@ Here's an example with ``urllib``:
             self.update(b * bsize - self.n)  # will also set self.n = b * bsize
 
     eg_link = "https://caspersci.uk.to/matryoshka.zip"
-    with TqdmUpTo(unit='B', unit_scale=True, miniters=1,
+    with TqdmUpTo(unit='B', unit_scale=True, unit_divisor=1024, miniters=1,
                   desc=eg_link.split('/')[-1]) as t:  # all optional kwargs
         urllib.urlretrieve(eg_link, filename=os.devnull,
                            reporthook=t.update_to, data=None)
@@ -675,6 +675,21 @@ down to:
     with tqdm.wrapattr(open(os.devnull, "wb"), "write",
                        miniters=1, desc=eg_link.split('/')[-1]) as fout:
         for chunk in urllib.urlopen(eg_link):
+            fout.write(chunk)
+
+The ``requests`` equivalent is nearly identical, albeit with a ``total``:
+
+.. code:: python
+
+    import requests, os
+    from tqdm import tqdm
+
+    eg_link = "https://caspersci.uk.to/matryoshka.zip"
+    response = requests.get(eg_link, stream=True)
+    with tqdm.wrapattr(open(os.devnull, "wb"), "write",
+                       miniters=1, desc=eg_link.split('/')[-1],
+                       total=response.headers.get('content-length')) as fout:
+        for chunk in response.iter_content(chunk_size=4096):
             fout.write(chunk)
 
 Pandas Integration
