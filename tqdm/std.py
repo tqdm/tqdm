@@ -594,24 +594,26 @@ class tqdm(Comparable):
         """
         fp = file if file is not None else sys.stdout
 
-        if not nolock:
-            cls.get_lock().acquire()
-        # Clear all bars
-        inst_cleared = []
-        for inst in getattr(cls, '_instances', []):
-            # Clear instance if in the target output file
-            # or if write output + tqdm output are both either
-            # sys.stdout or sys.stderr (because both are mixed in terminal)
-            if hasattr(inst, "start_t") and (inst.fp == fp or all(
-                    f in (sys.stdout, sys.stderr) for f in (fp, inst.fp))):
-                inst.clear(nolock=True)
-                inst_cleared.append(inst)
-        yield
-        # Force refresh display of bars we cleared
-        for inst in inst_cleared:
-            inst.refresh(nolock=True)
-        if not nolock:
-            cls._lock.release()
+        try:
+            if not nolock:
+                cls.get_lock().acquire()
+            # Clear all bars
+            inst_cleared = []
+            for inst in getattr(cls, '_instances', []):
+                # Clear instance if in the target output file
+                # or if write output + tqdm output are both either
+                # sys.stdout or sys.stderr (because both are mixed in terminal)
+                if hasattr(inst, "start_t") and (inst.fp == fp or all(
+                        f in (sys.stdout, sys.stderr) for f in (fp, inst.fp))):
+                    inst.clear(nolock=True)
+                    inst_cleared.append(inst)
+            yield
+            # Force refresh display of bars we cleared
+            for inst in inst_cleared:
+                inst.refresh(nolock=True)
+        finally:
+            if not nolock:
+                cls._lock.release()
 
     @classmethod
     def set_lock(cls, lock):
