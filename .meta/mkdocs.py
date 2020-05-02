@@ -1,12 +1,16 @@
+"""
+Auto-generate README.rst from .meta/.readme.rst and docstrings.
+"""
 from __future__ import print_function
-from os import path
-import sys
-sys.path = [path.dirname(path.dirname(__file__))] + sys.path  # NOQA
-import tqdm
-import tqdm.cli
-from textwrap import dedent
 from io import open as io_open
 from os import path
+import sys
+from textwrap import dedent
+
+sys.path.insert(0, path.dirname(path.dirname(__file__)))  # NOQA
+import tqdm
+import tqdm.cli
+
 
 HEAD_ARGS = """
 Parameters

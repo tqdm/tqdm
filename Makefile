@@ -56,6 +56,7 @@ testnose:
 testsetup:
 	@make README.rst
 	@make tqdm/tqdm.1
+	@make tqdm/completion.sh
 	python setup.py check --metadata --restructuredtext --strict
 	python setup.py make none
 
@@ -93,6 +94,9 @@ tqdm/tqdm.1: .meta/.tqdm.1.md tqdm/cli.py tqdm/std.py
       -e 's/  (-.*, )(--.*)  /\n\1\\\2\n: /' |\
     cat "$<" - |\
     pandoc -o "$@" -s -t man
+
+tqdm/completion.sh: .meta/mkcompletion.py tqdm/std.py tqdm/cli.py
+	@python .meta/mkcompletion.py
 
 README.rst: .meta/.readme.rst tqdm/std.py tqdm/cli.py
 	@python .meta/mkdocs.py

@@ -44,6 +44,10 @@ parts:
     source: {source}
     source-commit: '{commit}'
     parse-info: [setup.py]
+    override-build: |
+        snapcraftctl build
+        cp $SNAPCRAFT_PART_BUILD/tqdm/completion.sh $SNAPCRAFT_PART_INSTALL/
 apps:
   tqdm:
     command: bin/tqdm
+    completer: completion.sh

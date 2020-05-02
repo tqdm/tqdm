@@ -55,7 +55,7 @@ setup(
     extras_require=extras_require,
     entry_points={'console_scripts': ['tqdm=tqdm.cli:main'], },
     package_data={'tqdm': ['CONTRIBUTING.md', 'LICENCE', 'examples/*.py',
-                           'tqdm.1', 'requirements-dev.txt']},
+                           'tqdm.1', 'completion.sh', 'requirements-dev.txt']},
     python_requires='>=2.6, !=3.0.*, !=3.1.*',
     classifiers=[
         # Trove classifiers
