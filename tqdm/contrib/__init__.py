@@ -16,10 +16,19 @@ __all__ = ['tenumerate', 'tzip', 'tmap']
 
 class DummyTqdmFile(ObjectWrapper):
     """Dummy file-like that will write to tqdm"""
+    def __init__(self, wrapped):
+        super(DummyTqdmFile, self).__init__(wrapped)
+        self._buf = []
+
     def write(self, x, nolock=False):
-        # Avoid print() second call (useless \n)
-        if len(x.rstrip()) > 0:
-            tqdm.write(x, file=self._wrapped, nolock=nolock)
+        nl = "\n" if isinstance(x, str) else b"\n"
+        pre, sep, post = x.rpartition(nl)
+        if sep:
+            tqdm.write(type(nl)().join(self._buf) + pre,
+                       file=self._wrapped, nolock=nolock)
+            self._buf = [post]
+        else:
+            self._buf.append(x)
 
 
 def builtin_iterable(func):
