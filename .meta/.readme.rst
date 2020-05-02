@@ -111,6 +111,9 @@ There are 3 channels to choose from:
     snap install tqdm  --candidate  # master branch
     snap install tqdm  --edge  # devel branch
 
+Note than ``snap`` binaries are purely for CLI use (not ``import``-able), and
+automatically set up ``bash`` tab-completion.
+
 Latest Docker release
 ~~~~~~~~~~~~~~~~~~~~~
 
@@ -419,10 +422,14 @@ Returns
     def tqdm.contrib.tmap(function, *sequences, **tqdm_kwargs):
         """Equivalent of builtin `map`."""
 
+``contrib``
+-----------
+
 The ``tqdm.contrib`` package also contains experimental modules:
 
 - ``tqdm.contrib.itertools``: Thin wrappers around ``itertools``
 - ``tqdm.contrib.concurrent``: Thin wrappers around ``concurrent.futures``
+- ``tqdm.contrib.telegram``: Posts to `Telegram <https://telegram.org/>`__ bots
 
 Examples and Advanced Usage
 ---------------------------
@@ -621,7 +628,7 @@ Here's an example with ``urllib``:
             self.update(b * bsize - self.n)  # will also set self.n = b * bsize
 
     eg_link = "https://caspersci.uk.to/matryoshka.zip"
-    with TqdmUpTo(unit='B', unit_scale=True, miniters=1,
+    with TqdmUpTo(unit='B', unit_scale=True, unit_divisor=1024, miniters=1,
                   desc=eg_link.split('/')[-1]) as t:  # all optional kwargs
         urllib.urlretrieve(eg_link, filename=os.devnull,
                            reporthook=t.update_to, data=None)
@@ -668,6 +675,21 @@ down to:
     with tqdm.wrapattr(open(os.devnull, "wb"), "write",
                        miniters=1, desc=eg_link.split('/')[-1]) as fout:
         for chunk in urllib.urlopen(eg_link):
+            fout.write(chunk)
+
+The ``requests`` equivalent is nearly identical, albeit with a ``total``:
+
+.. code:: python
+
+    import requests, os
+    from tqdm import tqdm
+
+    eg_link = "https://caspersci.uk.to/matryoshka.zip"
+    response = requests.get(eg_link, stream=True)
+    with tqdm.wrapattr(open(os.devnull, "wb"), "write",
+                       miniters=1, desc=eg_link.split('/')[-1],
+                       total=response.headers.get('content-length')) as fout:
+        for chunk in response.iter_content(chunk_size=4096):
             fout.write(chunk)
 
 Pandas Integration
