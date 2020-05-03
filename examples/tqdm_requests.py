@@ -32,7 +32,7 @@ with open(eg_out, "wb") as fout:
     with tqdm(
         # all optional kwargs
         unit='B', unit_scale=True, unit_divisor=1024, miniters=1,
-        desc=eg_file, total=response.headers.get('content-length')
+        desc=eg_file, total=int(response.headers.get('content-length', 0))
     ) as pbar:
         for chunk in response.iter_content(chunk_size=4096):
             fout.write(chunk)
@@ -43,7 +43,7 @@ response = requests.get(eg_link, stream=True)
 with tqdm.wrapattr(
     open(eg_out, "wb"), "write",
     unit='B', unit_scale=True, unit_divisor=1024, miniters=1,
-    desc=eg_file, total=response.headers.get('content-length')
+    desc=eg_file, total=int(response.headers.get('content-length', 0))
 ) as fout:
     for chunk in response.iter_content(chunk_size=4096):
         fout.write(chunk)
