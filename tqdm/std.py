@@ -689,7 +689,6 @@ class tqdm(Comparable):
             from pandas.core.groupby.groupby import GroupBy
         except ImportError:
             from pandas.core.groupby import GroupBy
-
         try:  # pandas>=0.23.0
             from pandas.core.groupby.groupby import PanelGroupBy
         except ImportError:
@@ -697,6 +696,10 @@ class tqdm(Comparable):
                 from pandas.core.groupby import PanelGroupBy
             except ImportError:  # pandas>=0.25.0
                 PanelGroupBy = None
+        try:
+            from xarray.core.groupby import DataArrayGroupBy, DatasetGroupBy
+        except ImportError:
+            DataArrayGroupBy = DatasetGroupBy = None
 
         deprecated_t = [tkwargs.pop('deprecated_t', None)]
 
@@ -718,7 +721,8 @@ class tqdm(Comparable):
                 if total is None:  # not grouped
                     if df_function == 'applymap':
                         total = df.size
-                    elif isinstance(df, Series):
+                    elif isinstance(df, tuple(filter(None, (
+                            Series, DataArrayGroupBy, DatasetGroupBy)))):
                         total = len(df)
                     elif _Rolling_and_Expanding is None or \
                             not isinstance(df, _Rolling_and_Expanding):
@@ -749,7 +753,7 @@ class tqdm(Comparable):
 
                 try:
                     func = df._is_builtin_func(func)
-                except TypeError:
+                except (TypeError, AttributeError):
                     pass
 
                 # Define bar updating wrapper
@@ -792,6 +796,9 @@ class tqdm(Comparable):
 
         if _Rolling_and_Expanding is not None:  # pragma: no cover
             _Rolling_and_Expanding.progress_apply = inner_generator()
+
+        for Array in filter(None, (DataArrayGroupBy, DatasetGroupBy)):
+            Array.progress_apply = inner_generator()
 
     def __init__(self, iterable=None, desc=None, total=None, leave=True,
                  file=None, ncols=None, mininterval=0.1, maxinterval=10.0,
