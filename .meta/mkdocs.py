@@ -7,9 +7,9 @@ from os import path
 import sys
 from textwrap import dedent
 
-sys.path.insert(0, path.dirname(path.dirname(__file__)))  # NOQA
-import tqdm
-import tqdm.cli
+sys.path.insert(0, path.dirname(path.dirname(__file__)))
+import tqdm  # NOQA
+import tqdm.cli  # NOQA
 
 
 HEAD_ARGS = """

@@ -7,9 +7,9 @@ from os import path
 import re
 import sys
 
-sys.path.insert(0, path.dirname(path.dirname(__file__)))  # NOQA
-import tqdm
-import tqdm.cli
+sys.path.insert(0, path.dirname(path.dirname(__file__)))
+import tqdm  # NOQA
+import tqdm.cli  # NOQA
 
 RE_OPT = re.compile(r'(\w+)  :', flags=re.M)
 RE_OPT_INPUT = re.compile(

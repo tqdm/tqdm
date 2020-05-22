@@ -876,7 +876,7 @@ The ``requests`` equivalent is nearly identical, albeit with a ``total``:
     response = requests.get(eg_link, stream=True)
     with tqdm.wrapattr(open(os.devnull, "wb"), "write",
                        miniters=1, desc=eg_link.split('/')[-1],
-                       total=response.headers.get('content-length')) as fout:
+                       total=int(response.headers.get('content-length', 0))) as fout:
         for chunk in response.iter_content(chunk_size=4096):
             fout.write(chunk)
 
