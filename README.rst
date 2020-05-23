@@ -616,6 +616,7 @@ The ``tqdm.contrib`` package also contains experimental modules:
 
 - ``tqdm.contrib.itertools``: Thin wrappers around ``itertools``
 - ``tqdm.contrib.concurrent``: Thin wrappers around ``concurrent.futures``
+- ``tqdm.contrib.discord``: Posts to `Discord <https://discord.com/>`__ bots
 - ``tqdm.contrib.telegram``: Posts to `Telegram <https://telegram.org/>`__ bots
 
 Examples and Advanced Usage
