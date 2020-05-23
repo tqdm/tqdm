@@ -3,7 +3,6 @@ Sends updates to a Discord bot.
 """
 from __future__ import absolute_import
 
-from concurrent.futures import ThreadPoolExecutor
 try:
     from disco.client import Client, ClientConfig
 except ImportError:
@@ -11,20 +10,20 @@ except ImportError:
 
 from tqdm.auto import tqdm as tqdm_auto
 from tqdm.utils import _range
+from .utils_worker import MonoWorker
 __author__ = {"github.com/": ["casperdcl"]}
 __all__ = ['DiscordIO', 'tqdm_discord', 'tdrange', 'tqdm', 'trange']
 
 
-class DiscordIO():
+class DiscordIO(MonoWorker):
     """Non-blocking file-like IO to using a Discord Bot."""
     def __init__(self, token, channel_id):
         """Creates a new message in the given `channel_id`."""
+        super(DiscordIO, self).__init__()
         config = ClientConfig()
         config.token = token
         client = Client(config)
         self.text = self.__class__.__name__
-        self.pool = ThreadPoolExecutor()
-        self.futures = []
         try:
             self.msg = client.api.channels_messages_create(
                 channel_id, self.text)
@@ -40,25 +39,11 @@ class DiscordIO():
             return  # avoid duplicate message Bot error
         self.text = s
         try:
-            f = self.pool.submit(self.msg.edit, '`' + s + '`')
+            f = self.submit(self.msg.edit, '`' + s + '`')
         except Exception as e:
             tqdm_auto.write(str(e))
         else:
-            self.futures.append(f)
             return f
-
-    def flush(self):
-        """Ensure the last `write` has been processed."""
-        [f.cancel() for f in self.futures[-2::-1]]
-        try:
-            return self.futures[-1].result()
-        except IndexError:
-            pass
-        finally:
-            self.futures = []
-
-    def __del__(self):
-        self.flush()
 
 
 class tqdm_discord(tqdm_auto):

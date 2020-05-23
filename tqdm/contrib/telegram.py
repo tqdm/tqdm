@@ -3,27 +3,26 @@ Sends updates to a Telegram bot.
 """
 from __future__ import absolute_import
 
-from concurrent.futures import ThreadPoolExecutor
 from requests import Session
 
 from tqdm.auto import tqdm as tqdm_auto
 from tqdm.utils import _range
+from .utils_worker import MonoWorker
 __author__ = {"github.com/": ["casperdcl"]}
 __all__ = ['TelegramIO', 'tqdm_telegram', 'ttgrange', 'tqdm', 'trange']
 
 
-class TelegramIO():
+class TelegramIO(MonoWorker):
     """Non-blocking file-like IO to a Telegram Bot."""
     API = 'https://api.telegram.org/bot'
 
     def __init__(self, token, chat_id):
         """Creates a new message in the given `chat_id`."""
+        super(TelegramIO, self).__init__()
         self.token = token
         self.chat_id = chat_id
         self.session = session = Session()
         self.text = self.__class__.__name__
-        self.pool = ThreadPoolExecutor()
-        self.futures = []
         try:
             res = session.post(
                 self.API + '%s/sendMessage' % self.token,
@@ -43,7 +42,7 @@ class TelegramIO():
             return  # avoid duplicate message Bot error
         self.text = s
         try:
-            f = self.pool.submit(
+            f = self.submit(
                 self.session.post,
                 self.API + '%s/editMessageText' % self.token,
                 data=dict(
@@ -52,21 +51,7 @@ class TelegramIO():
         except Exception as e:
             tqdm_auto.write(str(e))
         else:
-            self.futures.append(f)
             return f
-
-    def flush(self):
-        """Ensure the last `write` has been processed."""
-        [f.cancel() for f in self.futures[-2::-1]]
-        try:
-            return self.futures[-1].result()
-        except IndexError:
-            pass
-        finally:
-            self.futures = []
-
-    def __del__(self):
-        self.flush()
 
 
 class tqdm_telegram(tqdm_auto):
