@@ -57,7 +57,7 @@ class TelegramIO(MonoWorker):
 class tqdm_telegram(tqdm_auto):
     """
     Standard `tqdm.auto.tqdm` but also sends updates to a Telegram bot.
-    May take a few seconds to create (`__init__`) and clear (`__del__`).
+    May take a few seconds to create (`__init__`).
 
     >>> from tqdm.contrib.telegram import tqdm, trange
     >>> for i in tqdm(

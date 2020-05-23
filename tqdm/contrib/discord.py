@@ -49,7 +49,7 @@ class DiscordIO(MonoWorker):
 class tqdm_discord(tqdm_auto):
     """
     Standard `tqdm.auto.tqdm` but also sends updates to a Discord bot.
-    May take a few seconds to create (`__init__`) and clear (`__del__`).
+    May take a few seconds to create (`__init__`).
 
     >>> from tqdm.contrib.discord import tqdm, trange
     >>> for i in tqdm(
