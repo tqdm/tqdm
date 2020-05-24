@@ -1,3 +1,6 @@
+"""
+IO/concurrency helpers for `tqdm.contrib`.
+"""
 from __future__ import absolute_import
 
 from concurrent.futures import ThreadPoolExecutor
@@ -18,6 +21,7 @@ class MonoWorker(object):
         self.futures = deque([], 2)
 
     def submit(self, func, *args, **kwargs):
+        """`func(*args, **kwargs)` may replace currently waiting task."""
         futures = self.futures
         if len(futures) == futures.maxlen:
             running = futures.popleft()
