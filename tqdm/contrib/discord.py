@@ -16,7 +16,7 @@ __all__ = ['DiscordIO', 'tqdm_discord', 'tdrange', 'tqdm', 'trange']
 
 
 class DiscordIO(MonoWorker):
-    """Non-blocking file-like IO to using a Discord Bot."""
+    """Non-blocking file-like IO using a Discord Bot."""
     def __init__(self, token, channel_id):
         """Creates a new message in the given `channel_id`."""
         super(DiscordIO, self).__init__()
@@ -25,30 +25,30 @@ class DiscordIO(MonoWorker):
         client = Client(config)
         self.text = self.__class__.__name__
         try:
-            self.msg = client.api.channels_messages_create(
+            self.message = client.api.channels_messages_create(
                 channel_id, self.text)
         except Exception as e:
             tqdm_auto.write(str(e))
 
     def write(self, s):
-        """Replaces internal `message_id`'s text with `s`."""
+        """Replaces internal `message`'s text with `s`."""
         if not s:
             return
         s = s.strip().replace('\r', '')
         if s == self.text:
-            return  # avoid duplicate message Bot error
+            return  # skip duplicate message
         self.text = s
         try:
-            f = self.submit(self.msg.edit, '`' + s + '`')
+            future = self.submit(self.message.edit, '`' + s + '`')
         except Exception as e:
             tqdm_auto.write(str(e))
         else:
-            return f
+            return future
 
 
 class tqdm_discord(tqdm_auto):
     """
-    Standard `tqdm.auto.tqdm` but also sends updates to a Discord bot.
+    Standard `tqdm.auto.tqdm` but also sends updates to a Discord Bot.
     May take a few seconds to create (`__init__`).
 
     >>> from tqdm.contrib.discord import tqdm, trange
@@ -61,8 +61,8 @@ class tqdm_discord(tqdm_auto):
         """
         Parameters
         ----------
-        token  : str, required. Telegram token.
-        chat_id  : str, required. Telegram chat ID.
+        token  : str, required. Discord token
+        channel_id  : int, required. Discord channel ID
         mininterval  : float, optional.
           Minimum of [default: 1.5] to avoid rate limit.
 

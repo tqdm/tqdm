@@ -13,7 +13,7 @@ __all__ = ['TelegramIO', 'tqdm_telegram', 'ttgrange', 'tqdm', 'trange']
 
 
 class TelegramIO(MonoWorker):
-    """Non-blocking file-like IO to a Telegram Bot."""
+    """Non-blocking file-like IO using a Telegram Bot."""
     API = 'https://api.telegram.org/bot'
 
     def __init__(self, token, chat_id):
@@ -42,7 +42,7 @@ class TelegramIO(MonoWorker):
             return  # avoid duplicate message Bot error
         self.text = s
         try:
-            f = self.submit(
+            future = self.submit(
                 self.session.post,
                 self.API + '%s/editMessageText' % self.token,
                 data=dict(
@@ -51,12 +51,12 @@ class TelegramIO(MonoWorker):
         except Exception as e:
             tqdm_auto.write(str(e))
         else:
-            return f
+            return future
 
 
 class tqdm_telegram(tqdm_auto):
     """
-    Standard `tqdm.auto.tqdm` but also sends updates to a Telegram bot.
+    Standard `tqdm.auto.tqdm` but also sends updates to a Telegram Bot.
     May take a few seconds to create (`__init__`).
 
     >>> from tqdm.contrib.telegram import tqdm, trange
