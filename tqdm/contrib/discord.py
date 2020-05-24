@@ -2,6 +2,8 @@
 Sends updates to a Discord bot.
 """
 from __future__ import absolute_import
+from copy import deepcopy
+from os import getenv
 
 try:
     from disco.client import Client, ClientConfig
@@ -34,7 +36,7 @@ class DiscordIO(MonoWorker):
         """Replaces internal `message`'s text with `s`."""
         if not s:
             return
-        s = s.strip().replace('\r', '')
+        s = s.replace('\r', '').strip()
         if s == self.text:
             return  # skip duplicate message
         self.text = s
@@ -62,13 +64,19 @@ class tqdm_discord(tqdm_auto):
         Parameters
         ----------
         token  : str, required. Discord token
+            [default: ${TQDM_DISCORD_TOKEN}].
         channel_id  : int, required. Discord channel ID
+            [default: ${TQDM_DISCORD_CHANNEL_ID}].
         mininterval  : float, optional.
           Minimum of [default: 1.5] to avoid rate limit.
 
         See `tqdm.auto.tqdm.__init__` for other parameters.
         """
-        self.dio = DiscordIO(kwargs.pop('token'), kwargs.pop('channel_id'))
+        kwargs = deepcopy(kwargs)
+        self.dio = DiscordIO(
+            kwargs.pop('token', getenv("TQDM_DISCORD_TOKEN")),
+            kwargs.pop('channel_id', getenv("TQDM_DISCORD_CHANNEL_ID")))
+
         kwargs['mininterval'] = max(1.5, kwargs.get('mininterval', 1.5))
         super(tqdm_discord, self).__init__(*args, **kwargs)
 

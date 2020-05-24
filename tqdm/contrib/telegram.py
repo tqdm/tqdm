@@ -2,6 +2,8 @@
 Sends updates to a Telegram bot.
 """
 from __future__ import absolute_import
+from copy import deepcopy
+from os import getenv
 
 from requests import Session
 
@@ -37,7 +39,7 @@ class TelegramIO(MonoWorker):
         """Replaces internal `message_id`'s text with `s`."""
         if not s:
             return
-        s = s.strip().replace('\r', '')
+        s = s.replace('\r', '').strip()
         if s == self.text:
             return  # avoid duplicate message Bot error
         self.text = s
@@ -69,12 +71,17 @@ class tqdm_telegram(tqdm_auto):
         """
         Parameters
         ----------
-        token  : str, required. Telegram token.
-        chat_id  : str, required. Telegram chat ID.
+        token  : str, required. Telegram token
+            [default: ${TQDM_TELEGRAM_TOKEN}].
+        chat_id  : str, required. Telegram chat ID
+            [default: ${TQDM_TELEGRAM_CHAT_ID}].
 
         See `tqdm.auto.tqdm.__init__` for other parameters.
         """
-        self.tgio = TelegramIO(kwargs.pop('token'), kwargs.pop('chat_id'))
+        kwargs = deepcopy(kwargs)
+        self.tgio = TelegramIO(
+            kwargs.pop('token', getenv('TQDM_TELEGRAM_TOKEN')),
+            kwargs.pop('chat_id', getenv('TQDM_TELEGRAM_CHAT_ID')))
         super(tqdm_telegram, self).__init__(*args, **kwargs)
 
     def display(self, **kwargs):
