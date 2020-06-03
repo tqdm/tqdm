@@ -34,7 +34,7 @@ def _executor_map(PoolExecutor, fn, *iterables, **tqdm_kwargs):
     Parameters
     ----------
     tqdm_class  : [default: tqdm.auto.tqdm].
-    max_workers  : [default: max(32, cpu_count() + 4)].
+    max_workers  : [default: min(32, cpu_count() + 4)].
     chunksize  : [default: 1].
     """
     kwargs = deepcopy(tqdm_kwargs)
@@ -87,7 +87,7 @@ def process_map(fn, *iterables, **tqdm_kwargs):
     max_workers : int, optional
         Maximum number of workers to spawn; passed to
         `concurrent.futures.ProcessPoolExecutor.__init__`.
-        [default: max(32, cpu_count() + 4)].
+        [default: min(32, cpu_count() + 4)].
     chunksize : int, optional
         Size of chunks sent to worker processes; passed to
         `concurrent.futures.ProcessPoolExecutor.map`. [default: 1].

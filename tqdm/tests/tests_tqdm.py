@@ -123,7 +123,10 @@ def cpu_timify(t, timer=None):
 
 def pretest():
     # setcheckinterval is deprecated
-    getattr(sys, 'setswitchinterval', getattr(sys, 'setcheckinterval'))(100)
+    try:
+        sys.setswitchinterval(1)
+    except AttributeError:
+        sys.setcheckinterval(100)
 
     if getattr(tqdm, "_instances", False):
         n = len(tqdm._instances)
