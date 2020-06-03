@@ -92,11 +92,14 @@ class TqdmCallback(keras.callbacks.Callback):
             self.batch_bar.close()
         self.epoch_bar.close()
 
-    def _implements_train_batch_hooks(self):
+    @staticmethod
+    def _implements_train_batch_hooks():
         return True
 
-    def _implements_test_batch_hooks(self):
+    @staticmethod
+    def _implements_test_batch_hooks():
         return True
 
-    def _implements_predict_batch_hooks(self):
+    @staticmethod
+    def _implements_predict_batch_hooks():
         return True
