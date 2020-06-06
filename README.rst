@@ -139,9 +139,8 @@ Changelog
 
 The list of all changes is available either on GitHub's Releases:
 |GitHub-Status|, on the
-`wiki <https://github.com/tqdm/tqdm/wiki/Releases>`__, on the
-`website <https://tqdm.github.io/releases/>`__, or on crawlers such as
-`allmychanges.com <https://allmychanges.com/p/python/tqdm/>`_.
+`wiki <https://github.com/tqdm/tqdm/wiki/Releases>`__, or on the
+`website <https://tqdm.github.io/releases/>`__.
 
 
 Usage
