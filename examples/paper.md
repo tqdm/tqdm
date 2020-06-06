@@ -129,8 +129,10 @@ authors:
    affiliation: 2
  - name: Shirish Pokharel
    affiliation: 2
-affiliations:
  - name: tqdm developers
+   affiliation: 2
+affiliations:
+ - name: tqdm maintainers
    index: 1
  - name: Independent (Non-affiliated)
    index: 2
