@@ -257,20 +257,20 @@ regression [@asv].
 
 # Impact
 
-As of January 2019, `tqdm` has accumulated over 20 million downloads
-[@pypi-downloads], and 315 thousand code inclusions [@tqdm-results]. Dependants
-of `tqdm` include 23 thousand repositories [@tqdm-dependents] and 7 thousand
-libraries [@lib-io]. `tqdm` has a SourceRank of 22 [@sourcerank], placing it in
-the world's top 20 Python packages as of early 2019 [@sourcerank-descending].
+As of June 2020, `tqdm` has accumulated over 130 million downloads
+[@pypi-downloads], and 962 thousand code inclusions [@tqdm-results]. Dependants
+of `tqdm` include 83 thousand repositories [@tqdm-dependents] and 13 thousand
+libraries [@lib-io]. `tqdm` has a SourceRank of 24 [@sourcerank], placing it in
+the world's top 25 Python packages as of mid 2020 [@sourcerank-descending].
 
-The source code of `tqdm` is hosted on GitHub, where it has received over 9
+The source code of `tqdm` is hosted on GitHub, where it has received over 14
 thousand stars [@stars;@stars-hist], and was top trending repository during a
-period in December 2015 [@trend-hist]. The documentation has received over 500
+period in December 2015 [@trend-hist]. The documentation has received over 960
 thousand hits [@hits], with highest rates during weekdays. Historical reading
 rates have also trended upwards at the end of holiday periods. This implies
 widespread use in commercial and academic settings.
 [OpenHub](https://www.openhub.net/p/tqdm) valuates the work according to the
-constructive cost model (COCOMO) as being worth approximately $50,000.
+constructive cost model (COCOMO) as being worth approximately $57,000.
 
 The library has also been used in several textbooks [@miller;@boxel;@nandy] and
 peer-reviewed scientific publications
