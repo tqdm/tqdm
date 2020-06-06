@@ -33,8 +33,6 @@ authors:
  - name: Hadrien Mary
    orcid: 0000-0001-8199-5932
    affiliation: 1
- - name: Noam Yorav-Raphael
-   affiliation: 2
  - name: Kyle Altendorf
    affiliation: 2
  - name: Ivan Ivanov
@@ -44,6 +42,8 @@ authors:
  - name: Mikhail Korobov
    affiliation: 7
  - name: Daniel Panteleit
+   affiliation: 2
+ - name: Noam Yorav-Raphael
    affiliation: 2
  - name: Matthew D. Pagel
    affiliation: 3
@@ -77,11 +77,11 @@ authors:
    affiliation: 2
  - name: Orivej Desh
    affiliation: 2
+ - name: Kuang-che Wu
+   affiliation: 5
  - name: Alexander Plavin
    orcid: 0000-0003-2914-8554
    affiliation: 2
- - name: Kuang-che Wu
-   affiliation: 5
  - name: zz
    affiliation: 2
  - name: Sepehr Sameni
@@ -111,23 +111,23 @@ authors:
    affiliation: 2
  - name: Socialery
    affiliation: 2
- - name: Lev Velykoivanenko
-   affiliation: 2
  - name: Dyno Fu
    affiliation: 2
  - name: Jack McCracken
    affiliation: 2
  - name: Jose Tiago Macara Coutinho
    affiliation: 2
- - name: Ford Hurley
-   affiliation: 2
- - name: David Bau
+ - name: Lev Velykoivanenko
    affiliation: 2
  - name: Albert Kottke
    affiliation: 2
  - name: Fabian Dill
    affiliation: 2
+ - name: Ford Hurley
+   affiliation: 2
  - name: Shirish Pokharel
+   affiliation: 2
+ - name: David Bau
    affiliation: 2
  - name: tqdm developers
    affiliation: 2
