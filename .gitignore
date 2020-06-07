@@ -39,3 +39,6 @@ benchmarks/*.py[co]
 /wiki/
 /docs/
 /feedstock/
+
+# MacOS
+*.DS_Store
