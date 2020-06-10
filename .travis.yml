@@ -187,18 +187,24 @@ jobs:
      - name: snapcraft
        channel: stable
        confinement: classic
+     - name: review-tools
+       channel: stable
      - name: lxd
        channel: stable
     env:
-    - SNAPCRAFT_IMAGE_INFO: '{"build_url": "$TRAVIS_BUILD_URL"}'
+    - SNAPCRAFT_IMAGE_INFO: |
+        '{"build_url": "$TRAVIS_JOB_WEB_URL"}'
+    - SNAPCRAFT_BUILD_ENVIRONMENT: lxd
+    - SNAPCRAFT_BUILD_INFO: 1  # https://snapcraft.io/blog/introducing-developer-notifications-for-snap-security-updates
     before_install:
+    - sudo usermod --append --groups lxd $USER
     - sudo /snap/bin/lxd.migrate -yes
     - sudo /snap/bin/lxd waitready
     - sudo /snap/bin/lxd init --auto
     install:
     - make snapcraft.yaml
     script:
-    - sudo snapcraft --use-lxd
+    - sg lxd -c snapcraft
     after_failure:
     - sudo journalctl -u snapd
     deploy:
