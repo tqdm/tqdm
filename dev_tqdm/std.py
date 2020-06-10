@@ -23,6 +23,9 @@ from time import time
 import threading as th
 from warnings import warn
 
+# For sklearn
+from .sklearn import sklearn
+
 __author__ = {"github.com/": ["noamraph", "obiwanus", "kmike", "hadim",
                               "casperdcl", "lrq3000"]}
 __all__ = ['tqdm', 'trange',
@@ -1493,7 +1496,8 @@ class tqdm(Comparable):
                 t.unit_scale = True
                 t.unit_divisor = 1024
             yield CallbackIOWrapper(t.update, stream, method)
-
+# sklearn
+tqdm.sklearn = sklearn
 
 def trange(*args, **kwargs):
     """
