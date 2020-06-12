@@ -9,8 +9,10 @@ def sklearn(tclass, *targs, **tkwargs):
         option, validate = ('score', True) if option == 'validate' else (option, False)
 
         total = tkwargs['total'] if 'total' in tkwargs else cv
+        # `_save_me` is outside of try catch so in case something goes wrong, whatever function/method (aka predict or score) we changed will go back to way it was no matter what
         _save_me = getattr(estimator.__class__, option)
         try:
+            # This "Option 1" of roadmap; This tracks folds/cvs in several of the model_selection methods/functions
             with tclass(*targs, total=total, **tkwargs) as t:
                 def update(self, func, *margs, **mkwargs):
                     assert callable(func), "func must a be function or method"
@@ -21,6 +23,7 @@ def sklearn(tclass, *targs, **tkwargs):
         finally:
             setattr(estimator.__class__, option, _save_me)
 
+    # aliases for each tqdm version of the function
     cross_val_predict_alias = ['progress_cross_val_predict', 'pcvp', 'pcross_val_predict']
     cross_val_score_alias = ['progress_cross_val_score', 'pcvs', 'pcross_val_score']
     cross_validate_alias = ['progress_cross_validate', 'pcv', 'pcross_validate']
