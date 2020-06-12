@@ -25,10 +25,10 @@ def sklearn(tclass, *targs, **tkwargs):
         else:
             total = parsed_cv
 
-        # `_save_me` is outside of try catch so in case something goes wrong, whatever function/method (aka predict or score) we changed will go back to way it was no matter what
+        # `_save_me` is outside of try catch so in case something goes wrong in the try catch, whatever function/method (aka predict or score) we changed will go back to way it was no matter what
         _save_me = getattr(estimator.__class__, option)
         try:
-            # This "Option 1" of roadmap; This tracks folds/cvs in several of the model_selection methods/functions
+            # This "Option 1" of the roadmap; This tracks folds/cvs in several of the model_selection methods/functions
             with tclass(*targs, total=total, **tkwargs) as t:
                 def update(self, func, *margs, **mkwargs):
                     assert callable(func), "func must a be function or method"
