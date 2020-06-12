@@ -7,8 +7,8 @@ def sklearn(tclass, *targs, **tkwargs):
     def progress_cross_val(option, estimator, X, *args, cv=5, **kwargs):
         if 'verbose' in kwargs and kwargs['verbose'] >= 1:
             warnings.warn('Using verbose with tqdm can cause display issues with tqdm and/or the verbose messages', category=SyntaxWarning)
-        valid_options = ['predict', 'score', 'validate']
-        assert option in valid_options, f"progress_cross_val() [Internal] {option} not in valid options"
+        valid_options = ['predict', 'score', 'validate', 'learning_curve']
+        assert option in valid_options, f"[tqdm: Internal] progress_cross_val() {option} not in valid options"
         option, validate = ('score', True) if option == 'validate' else (option, False)
 
         total = tkwargs['total'] if 'total' in tkwargs else cv
