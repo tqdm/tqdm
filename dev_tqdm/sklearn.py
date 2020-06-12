@@ -12,14 +12,18 @@ def sklearn(tclass, *targs, **tkwargs):
         option, validate = ('score', True) if option == 'validate' else (option, False)
         option, learning_curve = ('score', True) if option == 'learning_curve' else (option, False)
 
-        # TODO: Currently only supports cv as input if it's an int, need to support the other input types (CV splitter and iterable)
+        if hasattr(cv, 'n_splits'):
+            parsed_cv = cv.n_splits
+        elif isinstance(cv, Iterable):
+            parsed_cv = len(list(cv))
+
         if 'total' in kwargs:
             # Maybe remove this? IDK
             total = twargs['total']
         elif learning_curve:
-            total = 2 * len(kwargs['train_sizes']) * cv if 'train_sizes' in kwargs else cv * 5 * 2 # For some reason there is a mysterious two that needs to be multiplied; five is the default length of `train_sizes`
+            total = 2 * len(kwargs['train_sizes']) * parsed_cv if 'train_sizes' in kwargs else parsed_cv * 5 * 2 # The extra two is required because the `learning_curve` function trains on both training set and testing sets
         else:
-            total = cv
+            total = parsed_cv
 
         # `_save_me` is outside of try catch so in case something goes wrong, whatever function/method (aka predict or score) we changed will go back to way it was no matter what
         _save_me = getattr(estimator.__class__, option)
