@@ -1,9 +1,12 @@
 @classmethod
 def sklearn(tclass, *targs, **tkwargs):
     import functools
-    # Maintainers do not forget to look at the default value of cv it may change over time and has changed in the past
+    import warnings
     from sklearn import model_selection
+    # Maintainers do not forget to look at the default value of cv it may change over time and has changed in the past
     def progress_cross_val(option, estimator, X, *args, cv=5, **kwargs):
+        if 'verbose' in kwargs and kwargs['verbose'] >= 1:
+            warnings.warn('Using verbose with tqdm can cause display issues with tqdm and/or the verbose messages', category=SyntaxWarning)
         valid_options = ['predict', 'score', 'validate']
         assert option in valid_options, f"progress_cross_val() [Internal] {option} not in valid options"
         option, validate = ('score', True) if option == 'validate' else (option, False)
