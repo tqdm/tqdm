@@ -1,25 +1,17 @@
 @classmethod
 def sklearn(tclass, *targs, **tkwargs):
-    import collections.abc, types
+    import types
     import functools
     import warnings
-    from sklearn import model_selection
+    import sklearn, sklearn.model_selection as model_selection
 
-    def tqdm_SearchCV_fit(self, fit, X, **searchkwargs):
-        # TODO: Need to edit the line below to work with RandomizedSearchCV as well!
-        passing = {'!len(param_grid)': len(self.param_grid)}
-        if 'verbose' in searchkwargs:
-            passing['verbose'] = searchkwargs['verbose']
-        if 'cv' in searchkwargs:
-            passing['cv'] = searchkwargs['cv']
-
-        progress_cross_val('SearchCV', self.estimator, X, **passing)
-        return self.fit(fit, X, **searchkwargs)
+    earliest_supported_version = (0, 22, 1)
+    if tuple(map(int, sklearn.__version__.split('.'))) < earliest_supported_version:
+        warnings.warn("tqdm.sklearn() has not been tested on versions of sklearn older than {}".format(".".join(map(str, earliest_supported_version))), category=RuntimeWarning, stacklevel=2)
 
     # Maintainers do not forget to look at the default value of cv it may change over time and has changed in the past
-    def progress_cross_val(option, estimator, X, *args, cv=5, **kwargs):
-        if 'verbose' in kwargs and kwargs['verbose'] >= 1:
-            warnings.warn('Using verbose with tqdm can cause display issues with tqdm and/or the verbose messages', category=SyntaxWarning)
+    def progress_cross_val(option, estimator, X, *args, **kwargs):
+        cv = kwargs['cv'] if 'cv' in kwargs else 5
         valid_options = ['predict', 'score', 'validate',
                         'learning_curve', 'permutation_test_score',
                         'validation_curve', 'SearchCV']
@@ -28,8 +20,10 @@ def sklearn(tclass, *targs, **tkwargs):
             self = option
             estimator = self.estimator
             option = 'SearchCV'
+        if ('verbose' in kwargs and kwargs['verbose'] >= 1) or ('self' in locals() and self.verbose >= 1):
+            warnings.warn('Using verbose with tqdm can cause display issues with tqdm and/or the verbose messages', category=RuntimeWarning, stacklevel=2)
 
-        assert option in valid_options, f"[tqdm: Internal] progress_cross_val() {option} not in valid options"
+        assert option in valid_options, "[tqdm: Internal] progress_cross_val() {} not in valid options".format(option)
 
         option, validate = ('score', True) if option == 'validate' else (option, False)
         option, learning_curve = ('score', True) if option == 'learning_curve' else (option, False)
@@ -37,12 +31,14 @@ def sklearn(tclass, *targs, **tkwargs):
         option, validation_curve = ('score', True) if option == 'validation_curve' else (option, False)
         option, SearchCV = ('score', True) if option == 'SearchCV' else (option, False)
 
+        # TODO: parsing cv has NOT been tested! Need to test!
+        cv = self.cv
         if hasattr(cv, 'n_splits'):
             parsed_cv = cv.n_splits
-        elif isinstance(cv, collections.abc.Iterable) or isinstance(cv, types.GeneratorType):
+        elif hasattr(cv, '__iter__') or isinstance(cv, types.GeneratorType):
             parsed_cv = len(list(cv))
         else:
-            parsed_cv = cv
+            parsed_cv = cv if not SearchCV else 5
 
         if 'total' in kwargs:
             # Maybe remove this? IDK
@@ -57,14 +53,18 @@ def sklearn(tclass, *targs, **tkwargs):
             total = parsed_cv * len(args[2]) * 2
         elif SearchCV:
             # TODO: Need to make this work with RandomizedSearchCV as well
-            total = len(model_selection.ParameterGrid(self.param_grid)) * (parsed_cv if self.cv is None else self.cv)
+            if isinstance(self, model_selection.GridSearchCV):
+                total = len(model_selection.ParameterGrid(self.param_grid))
+            elif isinstance(self, model_selection.RandomizedSearchCV):
+                total = self.n_iter
+            total *= parsed_cv if self.cv is None else self.cv
         else:
             total = parsed_cv
 
         # `_save_me` is outside of try catch so in case something goes wrong in the try catch, whatever function/method (aka predict or score) we changed will go back to way it was no matter what
         _save_me = getattr(estimator.__class__, option)
         try:
-            # This "Option 1" of the roadmap; This tracks folds/cvs in several of the model_selection methods/functions
+            # This is "Option 1" of the roadmap; This tracks folds/cvs in several of the model_selection methods/functions
             with tclass(*targs, total=total, **tkwargs) as t:
                 def update(self, func, *margs, **mkwargs):
                     assert callable(func), "func must a be function or method"
@@ -79,7 +79,7 @@ def sklearn(tclass, *targs, **tkwargs):
                 elif validation_curve:
                     final_func = 'validation_curve'
                 else:
-                    final_func = f"cross_{'validate' if validate else f'val_{option}'}"
+                    final_func = "cross_{}".format('validate' if validate else 'val_{}'.format(option))
 
                 if SearchCV:
                     return self.fit(X, *args, **kwargs)
@@ -121,7 +121,7 @@ def sklearn(tclass, *targs, **tkwargs):
         elif name in SearchCV_alias:
             option = 'SearchCV'
             setattr(model_selection.GridSearchCV, name, functools.partialmethod(progress_cross_val, option))
-            # setattr(model_selection.RandomizedSearchCV, name, functools.partialmethod(progress_cross_val, option))
+            setattr(model_selection.RandomizedSearchCV, name, functools.partialmethod(progress_cross_val, option))
             continue
 
         setattr(model_selection, name, functools.partial(progress_cross_val, option))
