@@ -4,19 +4,38 @@ def sklearn(tclass, *targs, **tkwargs):
     import functools
     import warnings
     from sklearn import model_selection
+
+    def tqdm_SearchCV_fit(self, fit, X, **searchkwargs):
+        # TODO: Need to edit the line below to work with RandomizedSearchCV as well!
+        passing = {'!len(param_grid)': len(self.param_grid)}
+        if 'verbose' in searchkwargs:
+            passing['verbose'] = searchkwargs['verbose']
+        if 'cv' in searchkwargs:
+            passing['cv'] = searchkwargs['cv']
+
+        progress_cross_val('SearchCV', self.estimator, X, **passing)
+        return self.fit(fit, X, **searchkwargs)
+
     # Maintainers do not forget to look at the default value of cv it may change over time and has changed in the past
     def progress_cross_val(option, estimator, X, *args, cv=5, **kwargs):
         if 'verbose' in kwargs and kwargs['verbose'] >= 1:
             warnings.warn('Using verbose with tqdm can cause display issues with tqdm and/or the verbose messages', category=SyntaxWarning)
         valid_options = ['predict', 'score', 'validate',
                         'learning_curve', 'permutation_test_score',
-                        'validation_curve']
+                        'validation_curve', 'SearchCV']
+
+        if isinstance(option, (model_selection.GridSearchCV, model_selection.RandomizedSearchCV)):
+            self = option
+            estimator = self.estimator
+            option = 'SearchCV'
+
         assert option in valid_options, f"[tqdm: Internal] progress_cross_val() {option} not in valid options"
 
         option, validate = ('score', True) if option == 'validate' else (option, False)
         option, learning_curve = ('score', True) if option == 'learning_curve' else (option, False)
         option, permutation_test_score = ('score', True) if option == 'permutation_test_score' else (option, False)
         option, validation_curve = ('score', True) if option == 'validation_curve' else (option, False)
+        option, SearchCV = ('score', True) if option == 'SearchCV' else (option, False)
 
         if hasattr(cv, 'n_splits'):
             parsed_cv = cv.n_splits
@@ -36,6 +55,9 @@ def sklearn(tclass, *targs, **tkwargs):
             total = total * parsed_cv + parsed_cv
         elif validation_curve:
             total = parsed_cv * len(args[2]) * 2
+        elif SearchCV:
+            # TODO: Need to make this work with RandomizedSearchCV as well
+            total = len(model_selection.ParameterGrid(self.param_grid)) * (parsed_cv if self.cv is None else self.cv)
         else:
             total = parsed_cv
 
@@ -59,6 +81,9 @@ def sklearn(tclass, *targs, **tkwargs):
                 else:
                     final_func = f"cross_{'validate' if validate else f'val_{option}'}"
 
+                if SearchCV:
+                    return self.fit(X, *args, **kwargs)
+
                 return getattr(model_selection, final_func)(estimator, X, *args, cv=cv, **kwargs)
         finally:
             setattr(estimator.__class__, option, _save_me)
@@ -70,13 +95,15 @@ def sklearn(tclass, *targs, **tkwargs):
     learning_curve_alias = ['progress_learning_curve', 'plc', 'plearning_curve']
     permutation_test_score_alias = ['progress_permutation_test_score', 'ppts', 'ppermutation_test_score']
     validation_curve_alias = ['progress_validation_curve', 'pvc', 'pvalidation_curve']
+    SearchCV_alias = ['progress_fit']
 
     aliases = cross_val_predict_alias \
             + cross_val_score_alias \
             + cross_validate_alias \
             + learning_curve_alias \
             + permutation_test_score_alias \
-            + validation_curve_alias
+            + validation_curve_alias \
+            + SearchCV_alias
 
     for name in aliases:
         if name in cross_val_predict_alias:
@@ -91,4 +118,10 @@ def sklearn(tclass, *targs, **tkwargs):
             option = 'permutation_test_score'
         elif name in validation_curve_alias:
             option = 'validation_curve'
+        elif name in SearchCV_alias:
+            option = 'SearchCV'
+            setattr(model_selection.GridSearchCV, name, functools.partialmethod(progress_cross_val, option))
+            # setattr(model_selection.RandomizedSearchCV, name, functools.partialmethod(progress_cross_val, option))
+            continue
+
         setattr(model_selection, name, functools.partial(progress_cross_val, option))
