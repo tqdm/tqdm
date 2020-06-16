@@ -32,7 +32,9 @@ def sklearn(tclass, *targs, **tkwargs):
         option, SearchCV = ('score', True) if option == 'SearchCV' else (option, False)
 
         # TODO: parsing cv has NOT been tested! Need to test!
-        cv = self.cv
+        if SearchCV:
+            cv = self.cv
+        
         if hasattr(cv, 'n_splits'):
             parsed_cv = cv.n_splits
         elif hasattr(cv, '__iter__') or isinstance(cv, types.GeneratorType):
