@@ -115,7 +115,6 @@ def sklearn(tclass, *targs, **tkwargs):
         elif validation_curve:
             total = parsed_cv * len(args[2]) * 2
         elif SearchCV:
-            # TODO: Need to make this work with RandomizedSearchCV as well
             if isinstance(self, model_selection.GridSearchCV):
                 total = len(model_selection.ParameterGrid(self.param_grid))
             elif isinstance(self, model_selection.RandomizedSearchCV):
