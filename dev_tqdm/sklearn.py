@@ -7,7 +7,7 @@ def sklearn(tclass, *targs, **tkwargs):
 
     earliest_supported_version = (0, 22, 1)
     if tuple(map(int, sklearn.__version__.split('.'))) < earliest_supported_version:
-        warnings.warn("tqdm.sklearn() has not been tested on versions of sklearn older than {}".format(".".join(map(str, earliest_supported_version))), category=RuntimeWarning, stacklevel=2)
+        warnings.warn("tqdm.sklearn() has not been tested on versions of sklearn earlier than {}".format(".".join(map(str, earliest_supported_version))), category=RuntimeWarning, stacklevel=2)
 
     # Maintainers do not forget to look at the default value of cv it may change over time and has changed in the past
     def progress_cross_val(option, estimator, X, *args, **kwargs):
@@ -34,7 +34,7 @@ def sklearn(tclass, *targs, **tkwargs):
         # TODO: parsing cv has NOT been tested! Need to test!
         if SearchCV:
             cv = self.cv
-        
+
         if hasattr(cv, 'n_splits'):
             parsed_cv = cv.n_splits
         elif hasattr(cv, '__iter__') or isinstance(cv, types.GeneratorType):
