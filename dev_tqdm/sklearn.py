@@ -147,7 +147,7 @@ def sklearn(tclass, *targs, **tkwargs):
                 if SearchCV:
                     return self.fit(X, *args, **kwargs)
 
-                return getattr(model_selection, final_func)(estimator, X, *args, cv=cv, **kwargs)
+                return getattr(model_selection, final_func)(estimator, X, *args, **kwargs)
         finally:
             setattr(estimator.__class__, option, _save_me)
 
