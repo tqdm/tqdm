@@ -1,5 +1,67 @@
 @classmethod
 def sklearn(tclass, *targs, **tkwargs):
+    """
+    Registers the given `tqdm` class with:
+    sklearn.model_selection.
+    ( cross_val_predict,
+    | cross_val_score,
+    | cross_validate,
+    | learning_curve,
+    | permutation_test_score,
+    | validation_curve,
+    | GridSearchCV,
+    | RandomizedSearchCV
+    )
+    Parameters
+    ----------
+    targs, twargs : arguments for the tqdm instance
+
+    For functions in model_selection, such as cross_val_predict,
+    a tqdm version of the function is registered with sklearn.
+    The tqdm function can be accessed by adding the letter 'p' to
+    the beginning of name of the function.  For example, the tqdm
+    version of 'cross_val_predict' would be accessed as 'pcross_val_predict'
+    The tqdm functions also have one other alias which is accessed
+    similarly to the tqdm pandas methods; by adding 'progress_' to the
+    beginning of the function name. For example, the tqdm version of
+    'cross_val_predict' can also be accessed as 'progress_cross_val_predict'.
+
+    Example 1
+    ---------
+    >>> from sklearn import model_selection, datasets, neighbors
+    >>> from tqdm import tqdm
+    >>> mnist = datasets.fetch_openml('mnist_784', version=1)
+    >>> X, y = mnist['data'], mnist['target']
+    >>> # Register tqdm with sklearn by calling the `tqdm.sklearn` function
+    >>> tqdm.sklearn(unit='cv')
+    >>> basic_KNN = neighbors.KNeighborsClassifier()
+    >>> # Using the tqdm version of the 'cross_val_predict' function
+    >>> model_selection.pcross_val_predict(basic_KNN, X, y, cv=10)
+    >>> # or this -> model_selection.progress_cross_val_predict(...)
+
+    When using a class from model_selection, such as GridSearchCV,
+    a tqdm version of the fit method can be accessed. Access the tqdm
+    version by calling `progress_fit`.
+
+    Example 2
+    ---------
+    >>> from sklearn import model_selection, datasets, neighbors
+    >>> from tqdm import tqdm
+    >>> mnist = datasets.fetch_openml('mnist_784', version=1)
+    >>> X, y = mnist['data'], mnist['target']
+    >>> # Register tqdm with sklearn by calling `tqdm.sklearn` function
+    >>> tqdm.sklearn()
+    >>> basic_KNN = neighbors.KNeighborsClassifier()
+    >>> params = {'n_neighbors': range(1, 11)}
+    >>> search = model_selection.GridSearchCV(basic_KNN, params)
+    >>> # Using the tqdm version of the `fit` method
+    >>> search.progress_fit(X, y)
+
+    **When using tqdm with sklearn it is highly recommended that you
+    DO NOT use the verbose keyword argument. It may cause display
+    issues with the tqdm progress bar.**
+    """
+
     import types
     import functools
     import warnings
@@ -31,10 +93,9 @@ def sklearn(tclass, *targs, **tkwargs):
         option, validation_curve = ('score', True) if option == 'validation_curve' else (option, False)
         option, SearchCV = ('score', True) if option == 'SearchCV' else (option, False)
 
-        # TODO: parsing cv has NOT been tested! Need to test!
+        # TODO: parsing cv has NOT been tested with values other than ints. Need to test!
         if SearchCV:
             cv = self.cv
-
         if hasattr(cv, 'n_splits'):
             parsed_cv = cv.n_splits
         elif hasattr(cv, '__iter__') or isinstance(cv, types.GeneratorType):
