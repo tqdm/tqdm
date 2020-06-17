@@ -1,3 +1,5 @@
+__author__ = {'github.com/': ['TurretAA12']}
+
 @classmethod
 def sklearn(tclass, *targs, **tkwargs):
     """
