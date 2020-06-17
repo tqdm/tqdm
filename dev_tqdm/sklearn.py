@@ -36,7 +36,7 @@ def sklearn(tclass, *targs, **tkwargs):
     >>> tqdm.sklearn(unit='cv')
     >>> basic_KNN = neighbors.KNeighborsClassifier()
     >>> # Using the tqdm version of the 'cross_val_predict' function
-    >>> model_selection.pcross_val_predict(basic_KNN, X, y, cv=10)
+    >>> model_selection.pcross_val_predict(basic_KNN, X[:5000], y[:5000], cv=10)
     >>> # or this -> model_selection.progress_cross_val_predict(...)
 
     When using a class from model_selection, such as GridSearchCV,
@@ -55,7 +55,7 @@ def sklearn(tclass, *targs, **tkwargs):
     >>> params = {'n_neighbors': range(1, 11)}
     >>> search = model_selection.GridSearchCV(basic_KNN, params)
     >>> # Using the tqdm version of the `fit` method
-    >>> search.progress_fit(X, y)
+    >>> search.progress_fit(X[:5000], y[:5000])
 
     **When using tqdm with sklearn it is highly recommended that you
     DO NOT use the verbose keyword argument. It may cause display
