@@ -37,7 +37,7 @@ def sklearn(tclass, *targs, **tkwargs):
     >>> # Register tqdm with sklearn by calling the `tqdm.sklearn` function
     >>> tqdm.sklearn(unit='cv')
     >>> basic_KNN = neighbors.KNeighborsClassifier()
-    >>> # Using the tqdm version of the 'cross_val_predict' function
+    >>> # Using the tqdm version of the `cross_val_predict` function
     >>> model_selection.pcross_val_predict(basic_KNN, X[:5000], y[:5000], cv=10)
     >>> # or this -> model_selection.progress_cross_val_predict(...)
 
