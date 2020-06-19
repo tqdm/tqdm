@@ -103,7 +103,7 @@ def sklearn(tclass, *targs, **tkwargs):
         elif hasattr(cv, '__iter__') or isinstance(cv, types.GeneratorType):
             parsed_cv = len(list(cv))
         else:
-            parsed_cv = cv if not SearchCV else 5
+            parsed_cv = cv if not SearchCV else 5 if cv is None else cv
 
         if 'total' in kwargs:
             # Maybe remove this? IDK
@@ -121,7 +121,7 @@ def sklearn(tclass, *targs, **tkwargs):
                 total = len(model_selection.ParameterGrid(self.param_grid))
             elif isinstance(self, model_selection.RandomizedSearchCV):
                 total = self.n_iter
-            total *= parsed_cv if self.cv is None else self.cv
+            total *= parsed_cv
         else:
             total = parsed_cv
 
