@@ -61,11 +61,16 @@ class tqdm_telegram(tqdm_auto):
     Standard `tqdm.auto.tqdm` but also sends updates to a Telegram Bot.
     May take a few seconds to create (`__init__`).
 
+    - create a bot https://core.telegram.org/bots#6-botfather
+    - copy its `{token}`
+    - add the bot to a chat and send it a message such as `/start`
+    - go to https://api.telegram.org/bot`{token}`/getUpdates to find out
+      the `{chat_id}`
+    - paste the `{token}` & `{chat_id}` below
+
     >>> from tqdm.contrib.telegram import tqdm, trange
-    >>> for i in tqdm(
-    ...     iterable,
-    ...     token='1234567890:THIS1SSOMETOKEN0BTAINeDfrOmTELEGrAM',
-    ...     chat_id='0246813579'):
+    >>> for i in tqdm(iterable, token='{token}', chat_id='{chat_id}'):
+    ...     ...
     """
     def __init__(self, *args, **kwargs):
         """

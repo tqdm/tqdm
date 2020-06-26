@@ -53,11 +53,14 @@ class tqdm_discord(tqdm_auto):
     Standard `tqdm.auto.tqdm` but also sends updates to a Discord Bot.
     May take a few seconds to create (`__init__`).
 
+    - create a discord bot (not public, no requirement of OAuth2 code
+      grant, only send message permissions) & invite it to a channel:
+      https://discordpy.readthedocs.io/en/latest/discord.html
+    - copy the bot `{token}` & `{channel_id}` and paste below
+
     >>> from tqdm.contrib.discord import tqdm, trange
-    >>> for i in tqdm(
-    ...     iterable,
-    ...     token='THIS1SSOMETOKEN0BTAINeDfrOmD1SC0rd',
-    ...     channel_id=0246813579):
+    >>> for i in tqdm(iterable, token='{token}', channel_id='{channel_id}'):
+    ...     ...
     """
     def __init__(self, *args, **kwargs):
         """
