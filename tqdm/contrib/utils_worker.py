@@ -29,7 +29,7 @@ class MonoWorker(object):
                 if len(futures):  # clear waiting
                     waiting = futures.pop()
                     waiting.cancel()
-                futures.append(running)  # re-insert running
+                futures.appendleft(running)  # re-insert running
         try:
             waiting = self.pool.submit(func, *args, **kwargs)
         except Exception as e:
