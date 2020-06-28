@@ -2,6 +2,9 @@
 branch = True
 omit =
     tqdm/tests/*
+    tqdm/contrib/bells.py
+    tqdm/contrib/discord.py
     tqdm/contrib/telegram.py
+    tqdm/contrib/utils_worker.py
 [report]
 show_missing = True

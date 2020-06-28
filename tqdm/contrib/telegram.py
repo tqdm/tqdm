@@ -2,28 +2,29 @@
 Sends updates to a Telegram bot.
 """
 from __future__ import absolute_import
+from copy import deepcopy
+from os import getenv
 
-from concurrent.futures import ThreadPoolExecutor
 from requests import Session
 
 from tqdm.auto import tqdm as tqdm_auto
 from tqdm.utils import _range
+from .utils_worker import MonoWorker
 __author__ = {"github.com/": ["casperdcl"]}
 __all__ = ['TelegramIO', 'tqdm_telegram', 'ttgrange', 'tqdm', 'trange']
 
 
-class TelegramIO():
-    """Non-blocking file-like IO to a Telegram Bot."""
+class TelegramIO(MonoWorker):
+    """Non-blocking file-like IO using a Telegram Bot."""
     API = 'https://api.telegram.org/bot'
 
     def __init__(self, token, chat_id):
         """Creates a new message in the given `chat_id`."""
+        super(TelegramIO, self).__init__()
         self.token = token
         self.chat_id = chat_id
         self.session = session = Session()
         self.text = self.__class__.__name__
-        self.pool = ThreadPoolExecutor()
-        self.futures = []
         try:
             res = session.post(
                 self.API + '%s/sendMessage' % self.token,
@@ -38,12 +39,12 @@ class TelegramIO():
         """Replaces internal `message_id`'s text with `s`."""
         if not s:
             return
-        s = s.strip().replace('\r', '')
+        s = s.replace('\r', '').strip()
         if s == self.text:
             return  # avoid duplicate message Bot error
         self.text = s
         try:
-            f = self.pool.submit(
+            future = self.submit(
                 self.session.post,
                 self.API + '%s/editMessageText' % self.token,
                 data=dict(
@@ -52,44 +53,40 @@ class TelegramIO():
         except Exception as e:
             tqdm_auto.write(str(e))
         else:
-            self.futures.append(f)
-            return f
-
-    def flush(self):
-        """Ensure the last `write` has been processed."""
-        [f.cancel() for f in self.futures[-2::-1]]
-        try:
-            return self.futures[-1].result()
-        except IndexError:
-            pass
-        finally:
-            self.futures = []
-
-    def __del__(self):
-        self.flush()
+            return future
 
 
 class tqdm_telegram(tqdm_auto):
     """
-    Standard `tqdm.auto.tqdm` but also sends updates to a Telegram bot.
-    May take a few seconds to create (`__init__`) and clear (`__del__`).
+    Standard `tqdm.auto.tqdm` but also sends updates to a Telegram Bot.
+    May take a few seconds to create (`__init__`).
+
+    - create a bot https://core.telegram.org/bots#6-botfather
+    - copy its `{token}`
+    - add the bot to a chat and send it a message such as `/start`
+    - go to https://api.telegram.org/bot`{token}`/getUpdates to find out
+      the `{chat_id}`
+    - paste the `{token}` & `{chat_id}` below
 
     >>> from tqdm.contrib.telegram import tqdm, trange
-    >>> for i in tqdm(
-    ...     iterable,
-    ...     token='1234567890:THIS1SSOMETOKEN0BTAINeDfrOmTELEGrAM',
-    ...     chat_id='0246813579'):
+    >>> for i in tqdm(iterable, token='{token}', chat_id='{chat_id}'):
+    ...     ...
     """
     def __init__(self, *args, **kwargs):
         """
         Parameters
         ----------
-        token  : str, required. Telegram token.
-        chat_id  : str, required. Telegram chat ID.
+        token  : str, required. Telegram token
+            [default: ${TQDM_TELEGRAM_TOKEN}].
+        chat_id  : str, required. Telegram chat ID
+            [default: ${TQDM_TELEGRAM_CHAT_ID}].
 
         See `tqdm.auto.tqdm.__init__` for other parameters.
         """
-        self.tgio = TelegramIO(kwargs.pop('token'), kwargs.pop('chat_id'))
+        kwargs = deepcopy(kwargs)
+        self.tgio = TelegramIO(
+            kwargs.pop('token', getenv('TQDM_TELEGRAM_TOKEN')),
+            kwargs.pop('chat_id', getenv('TQDM_TELEGRAM_CHAT_ID')))
         super(tqdm_telegram, self).__init__(*args, **kwargs)
 
     def display(self, **kwargs):

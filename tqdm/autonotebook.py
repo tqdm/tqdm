@@ -1,7 +1,8 @@
 import os
+import sys
 
 try:
-    from IPython import get_ipython
+    get_ipython = sys.modules['IPython'].get_ipython
     if 'IPKernelApp' not in get_ipython().config:  # pragma: no cover
         raise ImportError("console")
     if 'VSCODE_PID' in os.environ:  # pragma: no cover

@@ -56,6 +56,7 @@ if True:  # pragma: no cover
             IPY = 2
         except ImportError:
             IPY = 0
+            IProgress = None
 
     try:
         from IPython.display import display  # , clear_output
@@ -91,19 +92,17 @@ class tqdm_notebook(std_tqdm):
         # fp = file
 
         # Prepare IPython progress bar
-        try:
-            if total:
-                pbar = IProgress(min=0, max=total)
-            else:  # No total? Show info style bar with no progress tqdm status
-                pbar = IProgress(min=0, max=1)
-                pbar.value = 1
-                pbar.bar_style = 'info'
-        except NameError:
-            # #187 #451 #558
+        if IProgress is None:  # #187 #451 #558 #872
             raise ImportError(
-                "FloatProgress not found. Please update jupyter and ipywidgets."
+                "IProgress not found. Please update jupyter and ipywidgets."
                 " See https://ipywidgets.readthedocs.io/en/stable"
                 "/user_install.html")
+        if total:
+            pbar = IProgress(min=0, max=total)
+        else:  # No total? Show info style bar with no progress tqdm status
+            pbar = IProgress(min=0, max=1)
+            pbar.value = 1
+            pbar.bar_style = 'info'
 
         if desc:
             pbar.description = desc

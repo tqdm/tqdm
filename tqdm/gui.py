@@ -53,7 +53,7 @@ class tqdm_gui(std_tqdm):  # pragma: no cover
         self.mininterval = max(self.mininterval, 0.5)
         self.fig, ax = plt.subplots(figsize=(9, 2.2))
         # self.fig.subplots_adjust(bottom=0.2)
-        total = len(self)
+        total = self.__len__()  # avoids TypeError on None #971
         if total is not None:
             self.xdata = []
             self.ydata = []

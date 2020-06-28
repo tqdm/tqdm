@@ -1,3 +1,6 @@
+"""
+General helpers required for `tqdm.std`.
+"""
 from functools import wraps
 import os
 from platform import system as _curos
