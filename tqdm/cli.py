@@ -7,10 +7,10 @@ import sys
 import re
 import logging
 __all__ = ["main"]
+log = logging.getLogger(__name__)
 
 
 def cast(val, typ):
-    log = logging.getLogger(__name__)
     log.debug((val, typ))
     if " or " in typ:
         for t in typ.split(" or "):
@@ -167,7 +167,7 @@ def main(fp=sys.stderr, argv=None):
     if argv is None:
         argv = sys.argv[1:]
     try:
-        log = argv.index('--log')
+        log_idx = argv.index('--log')
     except ValueError:
         for i in argv:
             if i.startswith('--log='):
@@ -176,13 +176,12 @@ def main(fp=sys.stderr, argv=None):
         else:
             logLevel = 'INFO'
     else:
-        # argv.pop(log)
-        # logLevel = argv.pop(log)
-        logLevel = argv[log + 1]
+        # argv.pop(log_idx)
+        # logLevel = argv.pop(log_idx)
+        logLevel = argv[log_idx + 1]
     logging.basicConfig(
         level=getattr(logging, logLevel),
         format="%(levelname)s:%(module)s:%(lineno)d:%(message)s")
-    log = logging.getLogger(__name__)
 
     d = tqdm.__init__.__doc__ + CLI_EXTRA_DOC
 
