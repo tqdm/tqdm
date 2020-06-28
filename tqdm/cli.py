@@ -47,14 +47,16 @@ def isBytes(val):
 
 
 def posix_pipe(fin, fout, delim=b'\\n', buf_size=256,
-               callback=lambda int: None  # pragma: no cover
-               ):
+               callback=lambda float: None,  # pragma: no cover
+               callback_len=True):
     """
     Params
     ------
     fin  : file with `read(buf_size : int)` method
     fout  : file with `write` (and optionally `flush`) methods.
-    callback  : function(int), e.g.: `tqdm.update`
+    callback  : function(float), e.g.: `tqdm.update`
+    callback_len  : If (default: True) do `callback(len(buffer))`.
+      Otherwise, do `callback(data) for data in buffer.split(delim)`.
     """
     fp_write = fout.write
 
@@ -92,7 +94,12 @@ def posix_pipe(fin, fout, delim=b'\\n', buf_size=256,
         if not tmp:
             if buf:
                 fp_write(buf)
-                callback(1 + buf.count(delim))  # n += 1 + buf.count(delim)
+                if callback_len:
+                    # n += 1 + buf.count(delim)
+                    callback(1 + buf.count(delim))
+                else:
+                    for i in buf.split(delim):
+                        callback(i)
             getattr(fout, 'flush', lambda: None)()  # pragma: no cover
             return  # n
 
@@ -104,7 +111,8 @@ def posix_pipe(fin, fout, delim=b'\\n', buf_size=256,
                 break
             else:
                 fp_write(buf + tmp[:i + len(delim)])
-                callback(1)  # n += 1
+                # n += 1
+                callback(1 if callback_len else (buf + tmp[:i]))
                 buf = b'' if write_bytes else ''
                 tmp = tmp[i + len(delim):]
 
@@ -134,6 +142,12 @@ CLI_EXTRA_DOC = r"""
             `unit_scale` to True, `unit_divisor` to 1024, and `unit` to 'B'.
         tee  : bool, optional
             If true, passes `stdin` to both `stderr` and `stdout`.
+        update  : bool, optional
+            If true, will treat input as newly elapsed iterations,
+            i.e. numbers to pass to `update()`.
+        update_to  : bool, optional
+            If true, will treat input as total elapsed iterations,
+            i.e. numbers to assign to `self.n`.
         manpath  : str, optional
             Directory in which to install tqdm man pages.
         comppath  : str, optional
@@ -217,6 +231,13 @@ Options:
             except KeyError as e:
                 raise TqdmKeyError(str(e))
         log.debug('args:' + str(tqdm_args))
+
+        delim_per_char = tqdm_args.pop('bytes', False)
+        update = tqdm_args.pop('update', False)
+        update_to = tqdm_args.pop('update_to', False)
+        if sum((delim_per_char, update, update_to)) > 1:
+            raise TqdmKeyError(
+                "Can only have one of --bytes --update --update_to")
     except:
         fp.write('\nError:\nUsage:\n  tqdm [--help | options]\n')
         for i in sys.stdin:
@@ -225,7 +246,6 @@ Options:
     else:
         buf_size = tqdm_args.pop('buf_size', 256)
         delim = tqdm_args.pop('delim', b'\\n')
-        delim_per_char = tqdm_args.pop('bytes', False)
         tee = tqdm_args.pop('tee', False)
         manpath = tqdm_args.pop('manpath', None)
         comppath = tqdm_args.pop('comppath', None)
@@ -267,9 +287,32 @@ Options:
                 posix_pipe(stdin, stdout, '', buf_size, t.update)
         elif delim == b'\\n':
             log.debug(tqdm_args)
-            for i in tqdm(stdin, **tqdm_args):
-                stdout.write(i)
+            if update or update_to:
+                with tqdm(**tqdm_args) as t:
+                    if update:
+                        def callback(i):
+                            t.update(float(i))
+                    else:  # update_to
+                        def callback(i):
+                            t.update(float(i) - t.n)
+                    for i in stdin:
+                        stdout.write(i)
+                        callback(i)
+            else:
+                for i in tqdm(stdin, **tqdm_args):
+                    stdout.write(i)
         else:
             log.debug(tqdm_args)
             with tqdm(**tqdm_args) as t:
-                posix_pipe(stdin, stdout, delim, buf_size, t.update)
+                callback_len = False
+                if update:
+                    def callback(i):
+                        t.update(float(i))
+                elif update_to:
+                    def callback(i):
+                        t.update(float(i) - t.n)
+                else:
+                    callback = t.update
+                    callback_len = True
+                posix_pipe(stdin, stdout, delim, buf_size,
+                           callback, callback_len)

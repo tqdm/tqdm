@@ -258,6 +258,20 @@ If true, passes \f[C]stdin\f[] to both \f[C]stderr\f[] and
 .RS
 .RE
 .TP
+.B \-\-update=\f[I]update\f[]
+bool, optional.
+If true, will treat input as newly elapsed iterations, i.e.
+numbers to pass to \f[C]update()\f[].
+.RS
+.RE
+.TP
+.B \-\-update_to=\f[I]update_to\f[]
+bool, optional.
+If true, will treat input as total elapsed iterations, i.e.
+numbers to assign to \f[C]self.n\f[].
+.RS
+.RE
+.TP
 .B \-\-manpath=\f[I]manpath\f[]
 str, optional.
 Directory in which to install tqdm man pages.

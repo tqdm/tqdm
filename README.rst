@@ -465,6 +465,12 @@ Extra CLI Options
     ``unit_scale`` to True, ``unit_divisor`` to 1024, and ``unit`` to 'B'.
 * tee  : bool, optional  
     If true, passes ``stdin`` to both ``stderr`` and ``stdout``.
+* update  : bool, optional  
+    If true, will treat input as newly elapsed iterations,
+    i.e. numbers to pass to ``update()``.
+* update_to  : bool, optional  
+    If true, will treat input as total elapsed iterations,
+    i.e. numbers to assign to ``self.n``.
 * manpath  : str, optional  
     Directory in which to install tqdm man pages.
 * comppath  : str, optional  
