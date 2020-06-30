@@ -471,6 +471,8 @@ Extra CLI Options
 * update_to  : bool, optional  
     If true, will treat input as total elapsed iterations,
     i.e. numbers to assign to ``self.n``.
+* null  : bool, optional  
+    If true, will discard input (no stdout).
 * manpath  : str, optional  
     Directory in which to install tqdm man pages.
 * comppath  : str, optional  
