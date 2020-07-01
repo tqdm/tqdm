@@ -63,7 +63,7 @@ specify an initial arbitrary large positive number, e.g.
 .RS
 .RE
 .TP
-.B \-\-leave=\f[I]leave\f[]
+.B \-\-leave
 bool, optional.
 If [default: True], keeps all traces of the progressbar upon termination
 of iteration.
@@ -117,7 +117,7 @@ The fallback is to use ASCII characters " 123456789#".
 .RS
 .RE
 .TP
-.B \-\-disable=\f[I]disable\f[]
+.B \-\-disable
 bool, optional.
 Whether to disable the entire progressbar wrapper [default: False].
 If set to None, disable on non\-TTY.
@@ -140,7 +140,7 @@ If any other non\-zero number, will scale \f[C]total\f[] and \f[C]n\f[].
 .RS
 .RE
 .TP
-.B \-\-dynamic\-ncols=\f[I]dynamic_ncols\f[]
+.B \-\-dynamic\-ncols
 bool, optional.
 If set, constantly alters \f[C]ncols\f[] and \f[C]nrows\f[] to the
 environment (allowing for window resizes) [default: False].
@@ -202,7 +202,7 @@ float, optional.
 .RS
 .RE
 .TP
-.B \-\-write\-bytes=\f[I]write_bytes\f[]
+.B \-\-write\-bytes
 bool, optional.
 If (default: None) and \f[C]file\f[] is unspecified, bytes will be
 written in Python 2.
@@ -243,7 +243,7 @@ specified.
 .RS
 .RE
 .TP
-.B \-\-bytes=\f[I]bytes\f[]
+.B \-\-bytes
 bool, optional.
 If true, will count bytes, ignore \f[C]delim\f[], and default
 \f[C]unit_scale\f[] to True, \f[C]unit_divisor\f[] to 1024, and
@@ -258,21 +258,21 @@ If true, passes \f[C]stdin\f[] to both \f[C]stderr\f[] and
 .RS
 .RE
 .TP
-.B \-\-update=\f[I]update\f[]
+.B \-\-update
 bool, optional.
 If true, will treat input as newly elapsed iterations, i.e.
 numbers to pass to \f[C]update()\f[].
 .RS
 .RE
 .TP
-.B \-\-update\-to=\f[I]update_to\f[]
+.B \-\-update\-to
 bool, optional.
 If true, will treat input as total elapsed iterations, i.e.
 numbers to assign to \f[C]self.n\f[].
 .RS
 .RE
 .TP
-.B \-\-null=\f[I]null\f[]
+.B \-\-null
 bool, optional.
 If true, will discard input (no stdout).
 .RS

@@ -198,8 +198,9 @@ def main(fp=sys.stderr, argv=None):
     # d = RE_OPTS.sub(r'  --\1=<\1>  : \2', d)
     split = RE_OPTS.split(d)
     opt_types_desc = zip(split[1::3], split[2::3], split[3::3])
-    d = ''.join('\n  --{0}=<{1}>  : {2}{3}'.format(
-                otd[0].replace('_', '-'), otd[0], *otd[1:])
+    d = ''.join(('\n  --{0}  : {2}{3}' if otd[1] == 'bool' else
+                 '\n  --{0}=<{1}>  : {2}{3}').format(
+                     otd[0].replace('_', '-'), otd[0], *otd[1:])
                 for otd in opt_types_desc if otd[0] not in UNSUPPORTED_OPTS)
 
     d = """Usage:
