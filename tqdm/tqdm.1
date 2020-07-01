@@ -131,7 +131,7 @@ it].
 .RS
 .RE
 .TP
-.B \-\-unit_scale=\f[I]unit_scale\f[]
+.B \-\-unit\-scale=\f[I]unit_scale\f[]
 bool or int or float, optional.
 If 1 or True, the number of iterations will be reduced/scaled
 automatically and a metric prefix following the International System of
@@ -140,7 +140,7 @@ If any other non\-zero number, will scale \f[C]total\f[] and \f[C]n\f[].
 .RS
 .RE
 .TP
-.B \-\-dynamic_ncols=\f[I]dynamic_ncols\f[]
+.B \-\-dynamic\-ncols=\f[I]dynamic_ncols\f[]
 bool, optional.
 If set, constantly alters \f[C]ncols\f[] and \f[C]nrows\f[] to the
 environment (allowing for window resizes) [default: False].
@@ -156,7 +156,7 @@ Ranges from 0 (average speed) to 1 (current/instantaneous speed)
 .RS
 .RE
 .TP
-.B \-\-bar_format=\f[I]bar_format\f[]
+.B \-\-bar\-format=\f[I]bar_format\f[]
 str, optional.
 Specify a custom bar string formatting.
 May impact performance.
@@ -196,13 +196,13 @@ Calls \f[C]set_postfix(**postfix)\f[] if possible (dict).
 .RS
 .RE
 .TP
-.B \-\-unit_divisor=\f[I]unit_divisor\f[]
+.B \-\-unit\-divisor=\f[I]unit_divisor\f[]
 float, optional.
 [default: 1000], ignored unless \f[C]unit_scale\f[] is True.
 .RS
 .RE
 .TP
-.B \-\-write_bytes=\f[I]write_bytes\f[]
+.B \-\-write\-bytes=\f[I]write_bytes\f[]
 bool, optional.
 If (default: None) and \f[C]file\f[] is unspecified, bytes will be
 written in Python 2.
@@ -211,7 +211,7 @@ In all other cases will default to unicode.
 .RS
 .RE
 .TP
-.B \-\-lock_args=\f[I]lock_args\f[]
+.B \-\-lock\-args=\f[I]lock_args\f[]
 tuple, optional.
 Passed to \f[C]refresh\f[] for intermediate output (initialisation,
 iterating, and updating).
@@ -236,7 +236,7 @@ N.B.: on Windows systems, Python converts \[aq]\\n\[aq] to
 .RS
 .RE
 .TP
-.B \-\-buf_size=\f[I]buf_size\f[]
+.B \-\-buf\-size=\f[I]buf_size\f[]
 int, optional.
 String buffer size in bytes [default: 256] used when \f[C]delim\f[] is
 specified.
@@ -265,7 +265,7 @@ numbers to pass to \f[C]update()\f[].
 .RS
 .RE
 .TP
-.B \-\-update_to=\f[I]update_to\f[]
+.B \-\-update\-to=\f[I]update_to\f[]
 bool, optional.
 If true, will treat input as total elapsed iterations, i.e.
 numbers to assign to \f[C]self.n\f[].

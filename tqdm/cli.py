@@ -198,7 +198,8 @@ def main(fp=sys.stderr, argv=None):
     # d = RE_OPTS.sub(r'  --\1=<\1>  : \2', d)
     split = RE_OPTS.split(d)
     opt_types_desc = zip(split[1::3], split[2::3], split[3::3])
-    d = ''.join('\n  --{0}=<{0}>  : {1}{2}'.format(*otd)
+    d = ''.join('\n  --{0}=<{1}>  : {2}{3}'.format(
+                otd[0].replace('_', '-'), otd[0], *otd[1:])
                 for otd in opt_types_desc if otd[0] not in UNSUPPORTED_OPTS)
 
     d = """Usage:
@@ -226,6 +227,7 @@ Options:
     tqdm_args = {'file': fp}
     try:
         for (o, v) in opts.items():
+            o = o.replace('-', '_')
             try:
                 tqdm_args[o] = cast(v, opt_types[o])
             except KeyError as e:
