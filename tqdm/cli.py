@@ -205,9 +205,8 @@ def main(fp=sys.stderr, argv=None):
   tqdm [--help | options]
 
 Options:
-  -h, --help     Print this help and exit
-  -v, --version  Print version and exit
-
+  -h, --help     Print this help and exit.
+  -v, --version  Print version and exit.
 """ + d.strip('\n') + '\n'
 
     # opts = docopt(d, version=__version__)
