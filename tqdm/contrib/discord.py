@@ -3,6 +3,7 @@ Sends updates to a Discord bot.
 """
 from __future__ import absolute_import
 from copy import deepcopy
+import logging
 from os import getenv
 
 try:
@@ -76,6 +77,7 @@ class tqdm_discord(tqdm_auto):
         See `tqdm.auto.tqdm.__init__` for other parameters.
         """
         kwargs = deepcopy(kwargs)
+        logging.getLogger("HTTPClient").setLevel(logging.WARNING)
         self.dio = DiscordIO(
             kwargs.pop('token', getenv("TQDM_DISCORD_TOKEN")),
             kwargs.pop('channel_id', getenv("TQDM_DISCORD_CHANNEL_ID")))
