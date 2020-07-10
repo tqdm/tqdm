@@ -355,13 +355,15 @@ For experienced devs, once happy with local master:
     a) add helpful release notes
     b) **`[AUTO:TravisCI]`** attach `dist/tqdm-*` binaries
        (usually only `*.whl*`)
-13. **`[SUB]`** run `make` in the `wiki` submodule to update release notes
+13. **`[SUB][AUTO:GHActions]`** run `make` in the `wiki` submodule to update release notes
 14. **`[SUB]`** run `make deploy` in the `docs` submodule to update website
-15. **`[SUB]`** accept the automated PR in the `feedstock` submodule to update conda
+15. **`[SUB][AUTO:GHActions]`** accept the automated PR in the `feedstock` submodule to update conda
 
 Key:
 
 - **`[AUTO:TravisCI]`**: Travis CI should automatically do this after
+  `git push --tags` (6)
+- **`[AUTO:GHActions]`**: GitHub Actions CI should automatically do this after
   `git push --tags` (6)
 - **`[SUB]`**:  Requires one-time `make submodules` to clone
   `docs`, `wiki`, and `feedstock`
