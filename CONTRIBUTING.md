@@ -321,11 +321,14 @@ following:
 Additionally (less maintained), there exists:
 
 - A [wiki] which is publicly editable.
-- The [gh-pages project](https://tqdm.github.io/tqdm/) which is built from the
+- The [gh-pages project] which is built from the
   [gh-pages branch](https://github.com/tqdm/tqdm/tree/gh-pages), which is
-  built using [asv](https://github.com/spacetelescope/asv/).
-- The [gh-pages root](https://tqdm.github.io/) which is built from a separate
+  built using [asv](https://github.com/airspeed-velocity/asv).
+- The [gh-pages root] which is built from a separate
   [github.io repo](https://github.com/tqdm/tqdm.github.io).
+
+[gh-pages project]: https://tqdm.github.io/tqdm/
+[gh-pages root]: https://tqdm.github.io/
 
 
 ## Helper Bots
@@ -338,7 +341,9 @@ to assist with maintenance.
     + allows maintainers to write `/tag vM.m.p commit_hash` in an issue/PR to create a tag
 - Post Release
     + automatically updates the [wiki]
-    + TODO: automatically updates [gh-pages](https://tqdm.github.io/)
+    + TODO: automatically updates the [gh-pages root]
+- Benchmark
+    + automatically updates the [gh-pages project]
 
 
 ## QUICK DEV SUMMARY
@@ -372,12 +377,12 @@ Much is automated so really it's steps 1-6, then 12(a).
 13. **`[SUB][AUTO:GHActions]`** run `make` in the `wiki` submodule to update release notes
 14. **`[SUB]`** run `make deploy` in the `docs` submodule to update website
 15. **`[SUB][AUTO:GHActions]`** accept the automated PR in the `feedstock` submodule to update conda
+16. **`[AUTO:GHActions]`** update the [gh-pages project] benchmarks
+    a) `[python setup.py] make testasvfull`
+    b) `asv gh-pages`
 
 Key:
 
-- **`[AUTO:TravisCI]`**: Travis CI should automatically do this after
-  `git push --tags` (6)
-- **`[AUTO:GHActions]`**: GitHub Actions CI should automatically do this after
-  `git push --tags` (6)
-- **`[SUB]`**:  Requires one-time `make submodules` to clone
-  `docs`, `wiki`, and `feedstock`
+- **`[AUTO:TravisCI]`**: Travis CI should automatically do this after `git push --tags` (6)
+- **`[AUTO:GHActions]`**: GitHub Actions CI should automatically do this
+- **`[SUB]`**:  Requires one-time `make submodules` to clone `docs`, `wiki`, and `feedstock`
