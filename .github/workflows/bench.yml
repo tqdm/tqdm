@@ -21,16 +21,22 @@ jobs:
         asv machine --machine github-actions --yes
         git fetch --tags
         git fetch origin master:master
-    - name: Restore asv results
+    - name: Restore previous results
       uses: actions/cache@v2
       with:
         path: .asv
         key: asv-${{ runner.os }}
         restore-keys: |
           asv-
-    - name: asv
+    - name: Benchmark
       run: |
         asv run --skip-existing-commits -j 8 v3.2.0..HEAD
+    - name: Build pages
+      run: |
+        git config user.email "$GIT_AUTHOR_EMAIL"
+        git config user.name "$GIT_AUTHOR_NAME"
         asv gh-pages --no-push
-    - name: Publish
-      run: git push -f origin gh-pages:gh-pages
+        git push -f origin gh-pages:gh-pages
+      env:
+        GIT_AUTHOR_NAME: ${{ github.actor }}
+        GIT_AUTHOR_EMAIL: ${{ github.actor }}@users.noreply.github.com
