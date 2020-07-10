@@ -328,9 +328,23 @@ Additionally (less maintained), there exists:
   [github.io repo](https://github.com/tqdm/tqdm.github.io).
 
 
+## Helper Bots
+
+There are some helpers in
+[.github/workflows](https://github.com/tqdm/tqdm/tree/master/.github/workflows)
+to assist with maintenance.
+
+- Comment Bot
+    + allows maintainers to write `/tag vM.m.p commit_hash` in an issue/PR to create a tag
+- Post Release
+    + automatically updates the [wiki]
+    + TODO: automatically updates [gh-pages](https://tqdm.github.io/)
+
+
 ## QUICK DEV SUMMARY
 
-For experienced devs, once happy with local master:
+For experienced devs, once happy with local master, follow the steps below.
+Much is automated so really it's steps 1-6, then 12(a).
 
 1. bump version in `tqdm/_version.py`
 2. test (`[python setup.py] make alltests`)
@@ -338,7 +352,7 @@ For experienced devs, once happy with local master:
 4. `git push`
 5. wait for tests to pass
     a) in case of failure, fix and go back to (2)
-6. `git tag vM.m.p && git push --tags`
+6. `git tag vM.m.p && git push --tags` or comment `/tag vM.m.p commit_hash`
 7. **`[AUTO:TravisCI]`** `[python setup.py] make distclean`
 8. **`[AUTO:TravisCI]`** `[python setup.py] make build`
 9. **`[AUTO:TravisCI]`** upload to PyPI. either:
@@ -352,7 +366,7 @@ For experienced devs, once happy with local master:
     a) `make snap`, and
     b) `snapcraft push tqdm*.snap --release stable`
 12. Wait for travis to draft a new release on <https://github.com/tqdm/tqdm/releases>
-    a) add helpful release notes
+    a) replace the commit history with helpful release notes, and click publish
     b) **`[AUTO:TravisCI]`** attach `dist/tqdm-*` binaries
        (usually only `*.whl*`)
 13. **`[SUB][AUTO:GHActions]`** run `make` in the `wiki` submodule to update release notes
