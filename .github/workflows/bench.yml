@@ -1,0 +1,28 @@
+name: Benchmark
+on:
+  push:
+  schedule:
+  - cron: '36 1 * * SUN'  # M H d m w (Sundays at 01:36)
+jobs:
+  asvfull:
+    name: Benchmark
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+    - name: Install
+      run: |
+        pip install -U wheel
+        pip install -U virtualenv asv
+        asv machine --yes
+        git fetch --tags
+    - name: asv
+      run: |
+        asv run -j 8 v1.0.0..HEAD
+        asv gh-pages --no-push
+    - name: Publish
+      run: git push -f origin gh-pages:gh-pages
