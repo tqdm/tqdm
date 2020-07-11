@@ -1097,20 +1097,6 @@ class tqdm(Comparable):
     def __hash__(self):
         return id(self)
 
-    def __aiter__(self):
-        return self
-
-    async def __anext__(self):
-        try:
-            self.update()
-            return await self.iterable.__anext__()
-        except StopIteration:
-            self.close()
-            raise StopAsyncIteration
-        except:
-            self.close()
-            raise
-
     def __iter__(self):
         """Backward-compatibility to use: for x in tqdm(iterable)"""
 
