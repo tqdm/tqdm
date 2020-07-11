@@ -57,6 +57,12 @@ if True:  # pragma: no cover
     except NameError:
         _basestring = str
 
+    try:
+        from asyncio import coroutine
+    except ImportError:
+        def coroutine(func):
+            return func
+
     try:  # py>=2.7,>=3.1
         from collections import OrderedDict as _OrderedDict
     except ImportError:
@@ -357,14 +363,6 @@ def _environ_cols_wrapper():  # pragma: no cover
 
 def _term_move_up():  # pragma: no cover
     return '' if (os.name == 'nt') and (colorama is None) else '\x1b[A'
-
-
-try:
-    from asyncio import coroutine
-    _coroutine = coroutine
-except ImportError:
-    def _coroutine(func):
-        return func
 
 
 try:
