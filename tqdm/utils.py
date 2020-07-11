@@ -57,12 +57,6 @@ if True:  # pragma: no cover
     except NameError:
         _basestring = str
 
-    try:
-        from asyncio import coroutine
-    except ImportError:
-        def coroutine(func):
-            return func
-
     try:  # py>=2.7,>=3.1
         from collections import OrderedDict as _OrderedDict
     except ImportError:

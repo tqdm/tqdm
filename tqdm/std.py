@@ -12,7 +12,7 @@ from __future__ import absolute_import, division
 from .utils import _supports_unicode, _screen_shape_wrapper, _range, _unich, \
     _term_move_up, _unicode, WeakSet, _basestring, _OrderedDict, \
     Comparable, _is_ascii, FormatReplace, disp_len, disp_trim, \
-    SimpleTextIOWrapper, CallbackIOWrapper, coroutine
+    SimpleTextIOWrapper, CallbackIOWrapper
 from ._monitor import TMonitor
 # native libraries
 from contextlib import contextmanager
