@@ -1,11 +1,11 @@
 from .auto import tqdm as tqdm_auto
 __author__ = {"github.com/": ["casperdcl"]}
-__all__ = ['tqdm_async', 'tqdm']
+__all__ = ['tqdm_asyncio', 'tqdm']
 
 
-class tqdm_async(tqdm_auto):
+class tqdm_asyncio(tqdm_auto):
     def __init__(self, iterable=None, *args, **kwargs):
-        super(tqdm_async, self).__init__(iterable, *args, **kwargs)
+        super(tqdm_asyncio, self).__init__(iterable, *args, **kwargs)
         self.iterable_awaitable = False
         if iterable is not None:
             if hasattr(iterable, "__anext__"):
@@ -40,4 +40,4 @@ class tqdm_async(tqdm_auto):
 
 
 # Aliases
-tqdm = tqdm_async
+tqdm = tqdm_asyncio
