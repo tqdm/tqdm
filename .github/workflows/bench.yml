@@ -5,7 +5,7 @@ on:
   - cron: '36 1 * * SUN'  # M H d m w (Sundays at 01:36)
 jobs:
   asvfull:
-    # if: (github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')) || github.event_name == 'schedule'
+    if: (github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')) || github.event_name == 'schedule'
     name: Full
     runs-on: ubuntu-latest
     steps:
