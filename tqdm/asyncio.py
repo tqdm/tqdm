@@ -1,6 +1,6 @@
 from .auto import tqdm as tqdm_auto
 __author__ = {"github.com/": ["casperdcl"]}
-__all__ = ['tqdm_asyncio', 'tqdm']
+__all__ = ['tqdm_asyncio', 'tarange', 'tqdm', 'trange']
 
 
 class tqdm_asyncio(tqdm_auto):
@@ -39,5 +39,13 @@ class tqdm_asyncio(tqdm_auto):
             raise
 
 
+def tarange(*args, **kwargs):
+    """
+    A shortcut for `tqdm.asyncio.tqdm(range(*args), **kwargs)`.
+    """
+    return tqdm_asyncio(range(*args), **kwargs)
+
+
 # Aliases
 tqdm = tqdm_asyncio
+trange = tarange

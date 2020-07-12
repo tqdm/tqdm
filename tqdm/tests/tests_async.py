@@ -2,7 +2,7 @@ import asyncio
 from functools import partial
 
 from tests_tqdm import with_setup, pretest, posttest, StringIO, closing
-from tqdm.asyncio import tqdm_asyncio
+from tqdm.asyncio import tqdm_asyncio, tarange
 
 
 def count(start=0, step=1):
@@ -18,6 +18,7 @@ def count(start=0, step=1):
 async def main():
     with closing(StringIO()) as our_file:
         tqdm = partial(tqdm_asyncio, file=our_file, miniters=0, mininterval=0)
+        trange = partial(tarange, file=our_file, miniters=0, mininterval=0)
 
         async for row in tqdm(count(), desc="counter"):
             if row >= 8:
@@ -32,7 +33,7 @@ async def main():
         our_file.seek(0)
         our_file.truncate()
 
-        async for row in tqdm(tqdm(range(9), desc="inner"), desc="outer"):
+        async for row in tqdm(trange(9, desc="inner"), desc="outer"):
             pass
         assert 'inner: 100%' in our_file.getvalue()
         assert 'outer: 100%' in our_file.getvalue()
