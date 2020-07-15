@@ -1,12 +1,12 @@
 """
 All the bells & whistles:
 
-- tqdm.auto
-- tqdm.tqdm.pandas
-- tqdm.contrib.telegram
-    + uses ${TQDM_TELEGRAM_TOKEN} and ${TQDM_TELEGRAM_CHAT_ID}
-- tqdm.contrib.discord
-    + uses ${TQDM_DISCORD_TOKEN} and ${TQDM_DISCORD_CHANNEL_ID}
+- `tqdm.auto`
+- `tqdm.tqdm.pandas`
+- `tqdm.contrib.telegram`
+    + uses `${TQDM_TELEGRAM_TOKEN}` and `${TQDM_TELEGRAM_CHAT_ID}`
+- `tqdm.contrib.discord`
+    + uses `${TQDM_DISCORD_TOKEN}` and `${TQDM_DISCORD_CHANNEL_ID}`
 """
 __all__ = ['tqdm', 'trange']
 from os import getenv

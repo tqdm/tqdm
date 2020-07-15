@@ -1,11 +1,11 @@
 """
 Customisable progressbar decorator for iterators.
-Includes a default (x)range iterator printing to stderr.
+Includes a default `range` iterator printing to `stderr`.
 
 Usage:
-  >>> from tqdm import trange[, tqdm]
-  >>> for i in trange(10): #same as: for i in tqdm(xrange(10))
-  ...     ...
+>>> from tqdm import trange, tqdm
+>>> for i in trange(10):
+...     ...
 """
 from __future__ import absolute_import, division
 # compatibility functions and utilities
@@ -639,7 +639,7 @@ class tqdm(Comparable):
             ).progress_apply
 
         A new instance will be create every time `progress_apply` is called,
-        and each instance will automatically close() upon completion.
+        and each instance will automatically `close()` upon completion.
 
         Parameters
         ----------
@@ -659,8 +659,8 @@ class tqdm(Comparable):
 
         References
         ----------
-        https://stackoverflow.com/questions/18603270/
-        progress-indicator-during-pandas-operations-python
+        <https://stackoverflow.com/questions/18603270/\
+        progress-indicator-during-pandas-operations-python>
         """
         from pandas.core.frame import DataFrame
         from pandas.core.series import Series

@@ -676,7 +676,8 @@ def test_max_interval():
 def test_min_iters():
     """Test miniters"""
     with closing(StringIO()) as our_file:
-        for _ in tqdm(_range(3), file=our_file, leave=True, mininterval=0, miniters=2):
+        for _ in tqdm(_range(3), file=our_file, leave=True, mininterval=0,
+                      miniters=2):
             pass
 
         out = our_file.getvalue()
@@ -686,7 +687,8 @@ def test_min_iters():
         assert '| 3/3 ' in out
 
     with closing(StringIO()) as our_file:
-        for _ in tqdm(_range(3), file=our_file, leave=True, mininterval=0, miniters=1):
+        for _ in tqdm(_range(3), file=our_file, leave=True, mininterval=0,
+                      miniters=1):
             pass
 
         out = our_file.getvalue()
