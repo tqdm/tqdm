@@ -202,11 +202,13 @@ class tqdm_tk(tqdm_gui):
             grab=False,
             tk_parent=None,
             bar_format=None,
+            cancel_callback=None,
             **kwargs,
     ):
         import tkinter.ttk
 
         kwargs["gui"] = True
+        self._cancel_callback = cancel_callback
 
         # Tkinter specific default bar format
         if bar_format is None:
@@ -246,7 +248,7 @@ class tqdm_tk(tqdm_gui):
             # leave is problematic if the mainloop is not running
             self.leave = False
 
-        self.tk_window.protocol("WM_DELETE_WINDOW", self.close)
+        self.tk_window.protocol("WM_DELETE_WINDOW", self.cancel)
         self.tk_window.wm_title("tqdm_tk")
         self.tk_n_var = tkinter.DoubleVar(self.tk_window, value=0)
         self.tk_desc_var = tkinter.StringVar(self.tk_window)
@@ -280,6 +282,13 @@ class tqdm_tk(tqdm_gui):
         else:
             self.tk_pbar.configure(mode="indeterminate")
         self.tk_pbar.pack()
+        if self._cancel_callback is not None:
+            self.tk_button = tkinter.ttk.Button(
+                pbar_frame,
+                text="Cancel",
+                command=self.cancel,
+            )
+            self.tk_button.pack()
         if grab:
             self.tk_window.grab_set()
 
@@ -304,6 +313,11 @@ class tqdm_tk(tqdm_gui):
         )
         if not self.tk_dispatching:
             self.tk_window.update()
+
+    def cancel(self):
+        if self._cancel_callback is not None:
+            self._cancel_callback()
+        self.close()
 
     def reset(self, total=None):
         if total is not None:
