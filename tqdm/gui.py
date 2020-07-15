@@ -19,8 +19,8 @@ from .std import tqdm as std_tqdm
 # import compatibility functions and utilities
 from .utils import _range
 
-__author__ = {"github.com/": ["casperdcl", "lrq3000"]}
-__all__ = ['tqdm_gui', 'tgrange', 'tqdm', 'trange']
+__author__ = {"github.com/": ["casperdcl", "lrq3000", "richardsheridan"]}
+__all__ = ['tqdm_gui', 'tgrange', 'tqdm_tk', 'ttkrange', 'tqdm', 'trange']
 
 
 class tqdm_gui(std_tqdm):  # pragma: no cover
@@ -186,6 +186,171 @@ def tgrange(*args, **kwargs):
     On Python3+, `range` is used instead of `xrange`.
     """
     return tqdm_gui(_range(*args), **kwargs)
+
+
+class tqdm_tk(tqdm_gui):
+    """
+    Experimental Tkinter GUI version of tqdm!
+    """
+
+    # Monitor thread does not behave nicely with tkinter
+    monitor_interval = 0
+
+    def __init__(
+            self,
+            *args,
+            grab=False,
+            tk_parent=None,
+            bar_format=None,
+            **kwargs,
+    ):
+        import tkinter.ttk
+
+        kwargs["gui"] = True
+
+        # Tkinter specific default bar format
+        if bar_format is None:
+            kwargs["bar_format"] = (
+                "{n_fmt}/{total_fmt}, {rate_noinv_fmt}\n"
+                "{elapsed} elapsed, {remaining} ETA\n\n"
+                "{percentage:3.0f}%"
+            )
+
+        # don't want to share __init__ with tqdm_gui
+        # preferably we would have a gui base class
+        super(tqdm_gui, self).__init__(*args, **kwargs)
+
+        # Discover parent widget
+        if tk_parent is None:
+            # this will error if tkinter.NoDefaultRoot() called
+            try:
+                tkparent = tkinter._default_root
+            except AttributeError:
+                raise ValueError("tk_parent required when using NoDefaultRoot")
+            if tkparent is None:
+                # use new default root window as display
+                self.tk_window = tkinter.Tk()
+            else:
+                # some other windows already exist
+                self.tk_window = tkinter.Toplevel()
+        else:
+            self.tk_window = tkinter.Toplevel(tk_parent)
+
+        if self.disable:
+            return
+
+        warn('GUI is experimental/alpha', TqdmExperimentalWarning, stacklevel=2
+             )
+        self.tk_dispatching = self.tk_dispatching_helper()
+        if not self.tk_dispatching:
+            # leave is problematic if the mainloop is not running
+            self.leave = False
+
+        self.tk_window.protocol("WM_DELETE_WINDOW", self.close)
+        self.tk_window.wm_title("tqdm_tk")
+        self.tk_n_var = tkinter.DoubleVar(self.tk_window, value=0)
+        self.tk_desc_var = tkinter.StringVar(self.tk_window)
+        self.tk_desc_var.set(self.desc)
+        self.tk_text_var = tkinter.StringVar(self.tk_window)
+        pbar_frame = tkinter.ttk.Frame(self.tk_window, padding=5)
+        pbar_frame.pack()
+        self.tk_desc_label = tkinter.ttk.Label(
+            pbar_frame,
+            textvariable=self.tk_desc_var,
+            wraplength=600,
+            anchor="center",
+            justify="center",
+        )
+        self.tk_desc_label.pack()
+        self.tk_label = tkinter.ttk.Label(
+            pbar_frame,
+            textvariable=self.tk_text_var,
+            wraplength=600,
+            anchor="center",
+            justify="center",
+        )
+        self.tk_label.pack()
+        self.tk_pbar = tkinter.ttk.Progressbar(
+            pbar_frame,
+            variable=self.tk_n_var,
+            length=450,
+        )
+        if self.total is not None:
+            self.tk_pbar.configure(maximum=self.total)
+        else:
+            self.tk_pbar.configure(mode="indeterminate")
+        self.tk_pbar.pack()
+        if grab:
+            self.tk_window.grab_set()
+
+    def display(self):
+        self.tk_n_var.set(self.n)
+        self.tk_desc_var.set(self.desc)
+        self.tk_text_var.set(
+            self.format_meter(
+                n=self.n,
+                total=self.total,
+                elapsed=self._time() - self.start_t,
+                ncols=None,
+                prefix=self.desc,
+                ascii=self.ascii,
+                unit=self.unit,
+                unit_scale=self.unit_scale,
+                rate=1 / self.avg_time if self.avg_time else None,
+                bar_format=self.bar_format,
+                postfix=self.postfix,
+                unit_divisor=self.unit_divisor,
+            )
+        )
+        if not self.tk_dispatching:
+            self.tk_window.update()
+
+    def reset(self, total=None):
+        if total is not None:
+            self.tk_pbar.configure(maximum=total)
+        super(tqdm_tk, self).reset(total)
+
+    def close(self):
+        if self.disable:
+            return
+
+        self.disable = True
+
+        with self.get_lock():
+            self._instances.remove(self)
+
+        def _close():
+            self.tk_window.after(0, self.tk_window.destroy)
+            if not self.tk_dispatching:
+                self.tk_window.update()
+
+        self.tk_window.protocol("WM_DELETE_WINDOW", _close)
+        if not self.leave:
+            _close()
+
+    def tk_dispatching_helper(self):
+        try:
+            return self.tk_window.dispatching()
+        except AttributeError:
+            pass
+
+        import tkinter, sys
+
+        codes = {tkinter.mainloop.__code__, tkinter.Misc.mainloop.__code__}
+        for frame in sys._current_frames().values():
+            while frame:
+                if frame.f_code in codes:
+                    return True
+                frame = frame.f_back
+        return False
+
+
+def ttkrange(*args, **kwargs):
+    """
+    A shortcut for `tqdm.gui.tqdm_tk(xrange(*args), **kwargs)`.
+    On Python3+, `range` is used instead of `xrange`.
+    """
+    return tqdm_tk(_range(*args), **kwargs)
 
 
 # Aliases
