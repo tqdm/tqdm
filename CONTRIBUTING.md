@@ -341,7 +341,7 @@ to assist with maintenance.
     + allows maintainers to write `/tag vM.m.p commit_hash` in an issue/PR to create a tag
 - Post Release
     + automatically updates the [wiki]
-    + TODO: automatically updates the [gh-pages root]
+    + automatically updates the [gh-pages root]
 - Benchmark
     + automatically updates the [gh-pages project]
 
@@ -375,7 +375,7 @@ Much is automated so really it's steps 1-6, then 12(a).
     b) **`[AUTO:TravisCI]`** attach `dist/tqdm-*` binaries
        (usually only `*.whl*`)
 13. **`[SUB][AUTO:GHActions]`** run `make` in the `wiki` submodule to update release notes
-14. **`[SUB]`** run `make deploy` in the `docs` submodule to update website
+14. **`[SUB][AUTO:GHActions]`** run `make deploy` in the `docs` submodule to update website
 15. **`[SUB][AUTO:GHActions]`** accept the automated PR in the `feedstock` submodule to update conda
 16. **`[AUTO:GHActions]`** update the [gh-pages project] benchmarks
     a) `[python setup.py] make testasvfull`
@@ -384,5 +384,5 @@ Much is automated so really it's steps 1-6, then 12(a).
 Key:
 
 - **`[AUTO:TravisCI]`**: Travis CI should automatically do this after `git push --tags` (6)
-- **`[AUTO:GHActions]`**: GitHub Actions CI should automatically do this
+- **`[AUTO:GHActions]`**: GitHub Actions CI should automatically do this after release (12a)
 - **`[SUB]`**:  Requires one-time `make submodules` to clone `docs`, `wiki`, and `feedstock`

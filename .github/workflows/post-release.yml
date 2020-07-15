@@ -6,16 +6,47 @@ jobs:
   wiki:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - name: Checkout repo
+      uses: actions/checkout@v2
+    - name: Checkout wiki
+      uses: actions/checkout@v2
       with:
         repository: ${{ github.repository }}.wiki
-    - name: Update Releases
+        path: wiki
+    - name: Checkout docs
+      uses: actions/checkout@v2
+      with:
+        repository: ${{ github.repository }}.github.io
+        path: docs
+        ref: src
+        token: ${{ secrets.GH_TOKEN }}
+    - uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+    - name: Install
       run: |
+        pip install -U wheel argopt tqdm
+        pip install -U ./docs/
+    - name: Update Wiki Releases
+      run: |
+        pushd wiki
         make
         git config user.email "$GIT_AUTHOR_EMAIL"
         git config user.name "$GIT_AUTHOR_NAME"
         git commit -a -m "update release notes to ${GITHUB_REF#refs/tags/}"
         git push
+        popd
+      env:
+        GIT_AUTHOR_NAME: ${{ github.event.sender.login }}
+        GIT_AUTHOR_EMAIL: ${{ github.event.sender.login }}@users.noreply.github.com
+    - name: Update Docs
+      run: |
+        pushd docs
+        git fetch origin master:master
+        git config user.email "$GIT_AUTHOR_EMAIL"
+        git config user.name "$GIT_AUTHOR_NAME"
+        make deploy
+        popd
       env:
         GIT_AUTHOR_NAME: ${{ github.event.sender.login }}
         GIT_AUTHOR_EMAIL: ${{ github.event.sender.login }}@users.noreply.github.com
