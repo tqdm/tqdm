@@ -90,6 +90,8 @@ class TMonitor(Thread):
                         instance.miniters = 1
                         # Refresh now! (works only for manual tqdm)
                         instance.refresh(nolock=True)
+                # Remove accidental long-lived strong reference
+                del instance
                 if instances != self.get_instances():  # pragma: nocover
                     warn("Set changed size during iteration" +
                          " (see https://github.com/tqdm/tqdm/issues/481)",
