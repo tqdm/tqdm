@@ -205,7 +205,12 @@ class tqdm_tk(tqdm_gui):
             cancel_callback=None,
             **kwargs,
     ):
-        import tkinter.ttk
+        try:
+            import tkinter
+            import tkinter.ttk as ttk
+        except ImportError:
+            import Tkinter as tkinter
+            import Tkinter.ttk as ttk
 
         kwargs["gui"] = True
         self._cancel_callback = cancel_callback
@@ -220,7 +225,7 @@ class tqdm_tk(tqdm_gui):
 
         # don't want to share __init__ with tqdm_gui
         # preferably we would have a gui base class
-        super(tqdm_gui, self).__init__(*args, **kwargs)
+        std_tqdm.__init__(self, *args, **kwargs)
 
         # Discover parent widget
         if tk_parent is None:
@@ -254,9 +259,9 @@ class tqdm_tk(tqdm_gui):
         self.tk_desc_var = tkinter.StringVar(self.tk_window)
         self.tk_desc_var.set(self.desc)
         self.tk_text_var = tkinter.StringVar(self.tk_window)
-        pbar_frame = tkinter.ttk.Frame(self.tk_window, padding=5)
+        pbar_frame = ttk.Frame(self.tk_window, padding=5)
         pbar_frame.pack()
-        self.tk_desc_label = tkinter.ttk.Label(
+        self.tk_desc_label = ttk.Label(
             pbar_frame,
             textvariable=self.tk_desc_var,
             wraplength=600,
@@ -264,7 +269,7 @@ class tqdm_tk(tqdm_gui):
             justify="center",
         )
         self.tk_desc_label.pack()
-        self.tk_label = tkinter.ttk.Label(
+        self.tk_label = ttk.Label(
             pbar_frame,
             textvariable=self.tk_text_var,
             wraplength=600,
@@ -272,7 +277,7 @@ class tqdm_tk(tqdm_gui):
             justify="center",
         )
         self.tk_label.pack()
-        self.tk_pbar = tkinter.ttk.Progressbar(
+        self.tk_pbar = ttk.Progressbar(
             pbar_frame,
             variable=self.tk_n_var,
             length=450,
@@ -283,7 +288,7 @@ class tqdm_tk(tqdm_gui):
             self.tk_pbar.configure(mode="indeterminate")
         self.tk_pbar.pack()
         if self._cancel_callback is not None:
-            self.tk_button = tkinter.ttk.Button(
+            self.tk_button = ttk.Button(
                 pbar_frame,
                 text="Cancel",
                 command=self.cancel,
@@ -315,6 +320,7 @@ class tqdm_tk(tqdm_gui):
             self.tk_window.update()
 
     def cancel(self):
+        """Call cancel_callback and close the progress bar"""
         if self._cancel_callback is not None:
             self._cancel_callback()
         self.close()
@@ -343,14 +349,21 @@ class tqdm_tk(tqdm_gui):
             _close()
 
     def tk_dispatching_helper(self):
+        """determine if Tkinter mainloop is dispatching events"""
         try:
+            # Landing in CPython 3.10
             return self.tk_window.dispatching()
         except AttributeError:
             pass
 
-        import tkinter, sys
+        try:
+            import tkinter
+        except ImportError:
+            import Tkinter as tkinter
+        import sys
 
-        codes = {tkinter.mainloop.__code__, tkinter.Misc.mainloop.__code__}
+        codes = set((tkinter.mainloop.__code__,
+                     tkinter.Misc.mainloop.__code__))
         for frame in sys._current_frames().values():
             while frame:
                 if frame.f_code in codes:
