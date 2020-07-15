@@ -25,7 +25,7 @@ jobs:
         python-version: '3.x'
     - name: Install
       run: |
-        pip install -U wheel argopt tqdm
+        pip install -U wheel
         pip install -U ./docs/
     - name: Update Wiki Releases
       run: |
