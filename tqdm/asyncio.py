@@ -27,9 +27,6 @@ class tqdm_asyncio(tqdm_auto):
                 self.iterable_iterator = iter(iterable)
                 self.iterable_next = self.iterable_iterator.__next__
 
-    def send(self, *args, **kwargs):
-        return self.iterable.send(*args, **kwargs)
-
     def __aiter__(self):
         return self
 
@@ -47,6 +44,9 @@ class tqdm_asyncio(tqdm_auto):
         except:
             self.close()
             raise
+
+    def send(self, *args, **kwargs):
+        return self.iterable.send(*args, **kwargs)
 
     @classmethod
     def as_completed(cls, fs, *, loop=None, timeout=None, total=None,
