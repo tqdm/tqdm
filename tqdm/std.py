@@ -662,7 +662,6 @@ class tqdm(Comparable):
         <https://stackoverflow.com/questions/18603270/\
         progress-indicator-during-pandas-operations-python>
         """
-        from copy import deepcopy
         from pandas.core.frame import DataFrame
         from pandas.core.series import Series
         try:
@@ -699,7 +698,7 @@ class tqdm(Comparable):
             except ImportError:  # pandas>=0.25.0
                 PanelGroupBy = None
 
-        tqdm_kwargs = deepcopy(tqdm_kwargs)
+        tqdm_kwargs = tqdm_kwargs.copy()
         deprecated_t = [tqdm_kwargs.pop('deprecated_t', None)]
 
         def inner_generator(df_function='apply'):
