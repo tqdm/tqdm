@@ -188,7 +188,7 @@ def tgrange(*args, **kwargs):
     return tqdm_gui(_range(*args), **kwargs)
 
 
-class tqdm_tk(tqdm_gui):
+class tqdm_tk(std_tqdm):
     """
     Experimental Tkinter GUI version of tqdm!
     """
@@ -230,9 +230,11 @@ class tqdm_tk(tqdm_gui):
                 "{percentage:3.0f}%"
             )
 
-        # don't want to share __init__ with tqdm_gui
-        # preferably we would have a gui base class
-        std_tqdm.__init__(self, *args, **kwargs)
+        # This signals std_tqdm that it's a GUI but no need to crash
+        # Maybe there is a better way?
+        self.sp = object()
+
+        super(tqdm_tk, self).__init__(*args, **kwargs)
 
         # Discover parent widget
         if tk_parent is None:
@@ -299,6 +301,20 @@ class tqdm_tk(tqdm_gui):
             self.tk_button.pack()
         if grab:
             self.tk_window.grab_set()
+
+    def refresh(self, nolock=True, lock_args=None):
+        """
+        Force refresh the display of this bar.
+
+        Parameters
+        ----------
+        nolock  : bool, optional
+            Ignored, behaves as if always set true
+        lock_args  : tuple, optional
+            Ignored
+        """
+        nolock = True  # necessary to force true or is default true enough?
+        return super(tqdm_tk, self).refresh(nolock, lock_args)
 
     def display(self):
         self.tk_n_var.set(self.n)
