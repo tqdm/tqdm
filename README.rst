@@ -580,8 +580,7 @@ Returns
 
       @classmethod
       @contextmanager
-      def wrapattr(tclass, stream, method, total=None, bytes=True,
-                   **tqdm_kwargs):
+      def wrapattr(cls, stream, method, total=None, bytes=True, **tqdm_kwargs):
           """
           stream  : file-like object.
           method  : str, "read" or "write". The result of ``read()`` and
