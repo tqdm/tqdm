@@ -240,7 +240,6 @@ def test_lock_args():
         from threading import RLock
     except ImportError:
         raise SkipTest
-    import sys
 
     total = 8
     subtotal = 1000
