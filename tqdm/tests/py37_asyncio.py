@@ -23,11 +23,15 @@ def count(start=0, step=1):
             i = new_start
 
 
+async def acount(*args, **kwargs):
+    for i in count(*args, **kwargs):
+        yield i
+
+
 @with_setup_sync
-async def test_all():
+async def test_generators():
     with closing(StringIO()) as our_file:
         tqdm = partial(tqdm_asyncio, file=our_file, miniters=0, mininterval=0)
-        trange = partial(tarange, file=our_file, miniters=0, mininterval=0)
 
         async for row in tqdm(count(), desc="counter"):
             if row >= 8:
@@ -36,18 +40,45 @@ async def test_all():
         our_file.seek(0)
         our_file.truncate()
 
+        async for row in tqdm(acount(), desc="async_counter"):
+            if row >= 8:
+                break
+        assert '9it' in our_file.getvalue()
+
+
+@with_setup_sync
+async def test_range():
+    with closing(StringIO()) as our_file:
+        tqdm = partial(tqdm_asyncio, file=our_file, miniters=0, mininterval=0)
+        trange = partial(tarange, file=our_file, miniters=0, mininterval=0)
+
         async for row in tqdm(range(9), desc="range"):
             pass
         assert '9/9' in our_file.getvalue()
         our_file.seek(0)
         our_file.truncate()
 
-        async for row in tqdm(trange(9, desc="inner"), desc="outer"):
+        async for row in trange(9, desc="trange"):
             pass
-        assert 'inner: 100%' in our_file.getvalue()
+        assert '9/9' in our_file.getvalue()
+
+
+@with_setup_sync
+async def test_nested():
+    with closing(StringIO()) as our_file:
+        tqdm = partial(tqdm_asyncio, file=our_file, miniters=0, mininterval=0)
+        trange = partial(tarange, file=our_file, miniters=0, mininterval=0)
+
+        async for row in tqdm(trange(9, desc="trange"), desc="outer"):
+            pass
+        assert 'trange: 100%' in our_file.getvalue()
         assert 'outer: 100%' in our_file.getvalue()
-        our_file.seek(0)
-        our_file.truncate()
+
+
+@with_setup_sync
+async def test_coroutines():
+    with closing(StringIO()) as our_file:
+        tqdm = partial(tqdm_asyncio, file=our_file, miniters=0, mininterval=0)
 
         with tqdm(count(), desc="coroutine") as pbar:
             async for row in pbar:
