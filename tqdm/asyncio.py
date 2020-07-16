@@ -8,6 +8,7 @@ Usage:
 ...     ...
 """
 from .auto import tqdm as tqdm_auto
+import asyncio
 __author__ = {"github.com/": ["casperdcl"]}
 __all__ = ['tqdm_asyncio', 'tarange', 'tqdm', 'trange']
 
@@ -46,6 +47,17 @@ class tqdm_asyncio(tqdm_auto):
         except:
             self.close()
             raise
+
+    @classmethod
+    def as_completed(cls, fs, *, loop=None, timeout=None, total=None,
+                     **tqdm_kwargs):
+        """
+        Wrapper for `asyncio.as_completed`.
+        """
+        if total is None:
+            total = len(fs)
+        yield from cls(asyncio.as_completed(fs, loop=loop, timeout=timeout),
+                       total=total, **tqdm_kwargs)
 
 
 def tarange(*args, **kwargs):

@@ -1,5 +1,6 @@
 import asyncio
 from functools import partial, wraps
+from time import time
 
 from tests_tqdm import with_setup, pretest, posttest, StringIO, closing
 from tqdm.asyncio import tqdm_asyncio, tarange
@@ -88,3 +89,17 @@ async def test_coroutines():
                     assert row == -9
                     break
         assert '10it' in our_file.getvalue()
+
+
+@with_setup_sync
+async def test_as_completed():
+    with closing(StringIO()) as our_file:
+        as_completed = partial(tqdm_asyncio.as_completed, file=our_file,
+                               miniters=0, mininterval=0)
+
+        t = time()
+        skew = time() - t
+        for i in as_completed([asyncio.sleep(0.01) for _ in range(100)]):
+            await i
+        assert time() - t - 2 * skew < (0.01 * 100) / 2, "Assuming >=2 cores"
+        assert '100/100' in our_file.getvalue()
