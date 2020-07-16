@@ -45,12 +45,6 @@ class tqdm_asyncio(tqdm_auto):
             self.close()
             raise
 
-    async def __aenter__(self):
-        return self
-
-    async def __aexit__(self, exc_type, exc_value, traceback):
-        return super().__exit__(exc_type, exc_value, traceback)
-
     def send(self, *args, **kwargs):
         return self.iterable.send(*args, **kwargs)
 

@@ -91,17 +91,6 @@ async def test_coroutines():
 
 
 @with_setup_sync
-async def test_async_with():
-    """Test asyncio async with context manager"""
-    with closing(StringIO()) as our_file:
-        async with tqdm(count(), file=our_file) as pbar:
-            async for row in pbar:
-                if row >= 8:
-                    break
-        assert '9it' in our_file.getvalue()
-
-
-@with_setup_sync
 async def test_as_completed():
     """Test asyncio as_completed"""
     with closing(StringIO()) as our_file:
