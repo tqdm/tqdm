@@ -123,7 +123,7 @@ jobs:
       -iv $encrypted_a6d6301302b7_iv -in .meta/.tqdm.gpg.enc -out .tqdm.gpg -d
     - gpg --import .tqdm.gpg
     - rm .tqdm.gpg
-    - git log --pretty='format:- %s%n%b---' $(git tag --sort=creatordate | tail -n2 | head -n1)..HEAD > CHANGES.md
+    - git log --pretty='format:%d%n- %s%n%b---' $(git tag --sort=v:refname | tail -n2 | head -n1)..HEAD > _CHANGES.md
     deploy:
     - provider: script
       script: twine upload -s -i tqdm@caspersci.uk.to dist/tqdm-*
@@ -140,7 +140,7 @@ jobs:
       edge: true
       tag_name: $TRAVIS_TAG
       target_commitish: $TRAVIS_COMMIT
-      release_notes_file: CHANGES.md
+      release_notes_file: _CHANGES.md
       on:
         tags: true
   - name: docker

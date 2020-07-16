@@ -1,5 +1,13 @@
 """
 Sends updates to a Telegram bot.
+
+Usage:
+>>> from tqdm.contrib.telegram import tqdm, trange
+>>> for i in trange(10, token='{token}', chat_id='{chat_id}'):
+...     ...
+
+![screenshot](
+https://raw.githubusercontent.com/tqdm/img/src/screenshot-telegram.gif)
 """
 from __future__ import absolute_import
 from copy import deepcopy
@@ -61,10 +69,10 @@ class tqdm_telegram(tqdm_auto):
     Standard `tqdm.auto.tqdm` but also sends updates to a Telegram Bot.
     May take a few seconds to create (`__init__`).
 
-    - create a bot https://core.telegram.org/bots#6-botfather
+    - create a bot <https://core.telegram.org/bots#6-botfather>
     - copy its `{token}`
     - add the bot to a chat and send it a message such as `/start`
-    - go to https://api.telegram.org/bot`{token}`/getUpdates to find out
+    - go to <https://api.telegram.org/bot`{token}`/getUpdates> to find out
       the `{chat_id}`
     - paste the `{token}` & `{chat_id}` below
 

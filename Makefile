@@ -79,7 +79,7 @@ testasv:
 
 testasvfull:
 	# Test all the commits since the beginning (full test)
-	asv run -j 8 v1.0.0..master
+	asv run --skip-existing-commits -j 8 v1.0.0..HEAD
 	@make testasv
 
 viewasv:

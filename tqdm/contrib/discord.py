@@ -1,8 +1,17 @@
 """
 Sends updates to a Discord bot.
+
+Usage:
+>>> from tqdm.contrib.discord import tqdm, trange
+>>> for i in tqdm(iterable, token='{token}', channel_id='{channel_id}'):
+...     ...
+
+![screenshot](
+https://raw.githubusercontent.com/tqdm/img/src/screenshot-discord.png)
 """
 from __future__ import absolute_import
 from copy import deepcopy
+import logging
 from os import getenv
 
 try:
@@ -55,7 +64,7 @@ class tqdm_discord(tqdm_auto):
 
     - create a discord bot (not public, no requirement of OAuth2 code
       grant, only send message permissions) & invite it to a channel:
-      https://discordpy.readthedocs.io/en/latest/discord.html
+      <https://discordpy.readthedocs.io/en/latest/discord.html>
     - copy the bot `{token}` & `{channel_id}` and paste below
 
     >>> from tqdm.contrib.discord import tqdm, trange
@@ -76,6 +85,7 @@ class tqdm_discord(tqdm_auto):
         See `tqdm.auto.tqdm.__init__` for other parameters.
         """
         kwargs = deepcopy(kwargs)
+        logging.getLogger("HTTPClient").setLevel(logging.WARNING)
         self.dio = DiscordIO(
             kwargs.pop('token', getenv("TQDM_DISCORD_TOKEN")),
             kwargs.pop('channel_id', getenv("TQDM_DISCORD_CHANNEL_ID")))

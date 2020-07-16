@@ -1,3 +1,11 @@
+"""
+Automatically choose between `tqdm.notebook` and `tqdm.std`.
+
+Usage:
+>>> from tqdm.autonotebook import trange, tqdm
+>>> for i in trange(10):
+...     ...
+"""
 import os
 import sys
 

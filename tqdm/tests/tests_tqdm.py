@@ -676,15 +676,26 @@ def test_max_interval():
 def test_min_iters():
     """Test miniters"""
     with closing(StringIO()) as our_file:
-        for _ in tqdm(_range(3), file=our_file, leave=True, miniters=4):
-            our_file.write('blank\n')
-        assert '\nblank\nblank\n' in our_file.getvalue()
+        for _ in tqdm(_range(3), file=our_file, leave=True, mininterval=0,
+                      miniters=2):
+            pass
+
+        out = our_file.getvalue()
+        assert '| 0/3 ' in out
+        assert '| 1/3 ' not in out
+        assert '| 2/3 ' in out
+        assert '| 3/3 ' in out
 
     with closing(StringIO()) as our_file:
-        for _ in tqdm(_range(3), file=our_file, leave=True, miniters=1):
-            our_file.write('blank\n')
-        # assume automatic mininterval = 0 means intermediate output
-        assert '| 3/3 ' in our_file.getvalue()
+        for _ in tqdm(_range(3), file=our_file, leave=True, mininterval=0,
+                      miniters=1):
+            pass
+
+        out = our_file.getvalue()
+        assert '| 0/3 ' in out
+        assert '| 1/3 ' in out
+        assert '| 2/3 ' in out
+        assert '| 3/3 ' in out
 
 
 @with_setup(pretest, posttest)

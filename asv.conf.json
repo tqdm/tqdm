@@ -5,12 +5,13 @@
     "repo": ".",
     "environment_type": "virtualenv",
     "show_commit_url": "https://github.com/tqdm/tqdm/commit/",
-    // "pythons": ["2.7", "3.3"],
-    // "matrix": {
-    //     "numpy": ["1.6", "1.7"],
-    //     "six": ["", null],        // test with and without six installed
-    //     "pip+emcee": [""],   // emcee is only available for install with pip.
-    // },
+    // "pythons": ["2.7", "3.6"],
+    // "conda_channels": ["conda-forge", "defaults"],
+    "matrix": {
+        "alive-progress": [""],
+        "progressbar2": [""],
+        "rich": [""],
+    },
     // "exclude": [
     //     {"python": "3.2", "sys_platform": "win32"}, // skip py3.2 on windows
     //     {"environment_type": "conda", "six": null}, // don't run without six on conda

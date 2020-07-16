@@ -321,16 +321,35 @@ following:
 Additionally (less maintained), there exists:
 
 - A [wiki] which is publicly editable.
-- The [gh-pages project](https://tqdm.github.io/tqdm/) which is built from the
+- The [gh-pages project] which is built from the
   [gh-pages branch](https://github.com/tqdm/tqdm/tree/gh-pages), which is
-  built using [asv](https://github.com/spacetelescope/asv/).
-- The [gh-pages root](https://tqdm.github.io/) which is built from a separate
+  built using [asv](https://github.com/airspeed-velocity/asv).
+- The [gh-pages root] which is built from a separate
   [github.io repo](https://github.com/tqdm/tqdm.github.io).
+
+[gh-pages project]: https://tqdm.github.io/tqdm/
+[gh-pages root]: https://tqdm.github.io/
+
+
+## Helper Bots
+
+There are some helpers in
+[.github/workflows](https://github.com/tqdm/tqdm/tree/master/.github/workflows)
+to assist with maintenance.
+
+- Comment Bot
+    + allows maintainers to write `/tag vM.m.p commit_hash` in an issue/PR to create a tag
+- Post Release
+    + automatically updates the [wiki]
+    + automatically updates the [gh-pages root]
+- Benchmark
+    + automatically updates the [gh-pages project]
 
 
 ## QUICK DEV SUMMARY
 
-For experienced devs, once happy with local master:
+For experienced devs, once happy with local master, follow the steps below.
+Much is automated so really it's steps 1-6, then 12(a).
 
 1. bump version in `tqdm/_version.py`
 2. test (`[python setup.py] make alltests`)
@@ -338,7 +357,7 @@ For experienced devs, once happy with local master:
 4. `git push`
 5. wait for tests to pass
     a) in case of failure, fix and go back to (2)
-6. `git tag vM.m.p && git push --tags`
+6. `git tag vM.m.p && git push --tags` or comment `/tag vM.m.p commit_hash`
 7. **`[AUTO:TravisCI]`** `[python setup.py] make distclean`
 8. **`[AUTO:TravisCI]`** `[python setup.py] make build`
 9. **`[AUTO:TravisCI]`** upload to PyPI. either:
@@ -352,16 +371,18 @@ For experienced devs, once happy with local master:
     a) `make snap`, and
     b) `snapcraft push tqdm*.snap --release stable`
 12. Wait for travis to draft a new release on <https://github.com/tqdm/tqdm/releases>
-    a) add helpful release notes
+    a) replace the commit history with helpful release notes, and click publish
     b) **`[AUTO:TravisCI]`** attach `dist/tqdm-*` binaries
        (usually only `*.whl*`)
-13. **`[SUB]`** run `make` in the `wiki` submodule to update release notes
-14. **`[SUB]`** run `make deploy` in the `docs` submodule to update website
-15. **`[SUB]`** accept the automated PR in the `feedstock` submodule to update conda
+13. **`[SUB][AUTO:GHActions]`** run `make` in the `wiki` submodule to update release notes
+14. **`[SUB][AUTO:GHActions]`** run `make deploy` in the `docs` submodule to update website
+15. **`[SUB][AUTO:GHActions]`** accept the automated PR in the `feedstock` submodule to update conda
+16. **`[AUTO:GHActions]`** update the [gh-pages project] benchmarks
+    a) `[python setup.py] make testasvfull`
+    b) `asv gh-pages`
 
 Key:
 
-- **`[AUTO:TravisCI]`**: Travis CI should automatically do this after
-  `git push --tags` (6)
-- **`[SUB]`**:  Requires one-time `make submodules` to clone
-  `docs`, `wiki`, and `feedstock`
+- **`[AUTO:TravisCI]`**: Travis CI should automatically do this after `git push --tags` (6)
+- **`[AUTO:GHActions]`**: GitHub Actions CI should automatically do this after release (12a)
+- **`[SUB]`**:  Requires one-time `make submodules` to clone `docs`, `wiki`, and `feedstock`
