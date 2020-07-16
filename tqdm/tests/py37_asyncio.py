@@ -5,6 +5,10 @@ from time import time
 from tests_tqdm import with_setup, pretest, posttest, StringIO, closing
 from tqdm.asyncio import tqdm_asyncio, tarange
 
+tqdm = partial(tqdm_asyncio, miniters=0, mininterval=0)
+trange = partial(tarange, miniters=0, mininterval=0)
+as_completed = partial(tqdm_asyncio.as_completed, miniters=0, mininterval=0)
+
 
 def with_setup_sync(func):
     @with_setup(pretest, posttest)
@@ -33,16 +37,14 @@ async def acount(*args, **kwargs):
 async def test_generators():
     """Test asyncio generators"""
     with closing(StringIO()) as our_file:
-        tqdm = partial(tqdm_asyncio, file=our_file, miniters=0, mininterval=0)
-
-        async for row in tqdm(count(), desc="counter"):
+        async for row in tqdm(count(), desc="counter", file=our_file):
             if row >= 8:
                 break
         assert '9it' in our_file.getvalue()
         our_file.seek(0)
         our_file.truncate()
 
-        async for row in tqdm(acount(), desc="async_counter"):
+        async for row in tqdm(acount(), desc="async_counter", file=our_file):
             if row >= 8:
                 break
         assert '9it' in our_file.getvalue()
@@ -52,16 +54,13 @@ async def test_generators():
 async def test_range():
     """Test asyncio range"""
     with closing(StringIO()) as our_file:
-        tqdm = partial(tqdm_asyncio, file=our_file, miniters=0, mininterval=0)
-        trange = partial(tarange, file=our_file, miniters=0, mininterval=0)
-
-        async for row in tqdm(range(9), desc="range"):
+        async for row in tqdm(range(9), desc="range", file=our_file):
             pass
         assert '9/9' in our_file.getvalue()
         our_file.seek(0)
         our_file.truncate()
 
-        async for row in trange(9, desc="trange"):
+        async for row in trange(9, desc="trange", file=our_file):
             pass
         assert '9/9' in our_file.getvalue()
 
@@ -70,10 +69,8 @@ async def test_range():
 async def test_nested():
     """Test asyncio nested"""
     with closing(StringIO()) as our_file:
-        tqdm = partial(tqdm_asyncio, file=our_file, miniters=0, mininterval=0)
-        trange = partial(tarange, file=our_file, miniters=0, mininterval=0)
-
-        async for row in tqdm(trange(9, desc="inner"), desc="outer"):
+        async for row in tqdm(trange(9, desc="inner", file=our_file),
+                              desc="outer", file=our_file):
             pass
         assert 'inner: 100%' in our_file.getvalue()
         assert 'outer: 100%' in our_file.getvalue()
@@ -83,9 +80,7 @@ async def test_nested():
 async def test_coroutines():
     """Test asyncio coroutine.send"""
     with closing(StringIO()) as our_file:
-        tqdm = partial(tqdm_asyncio, file=our_file, miniters=0, mininterval=0)
-
-        with tqdm(count()) as pbar:
+        with tqdm(count(), file=our_file) as pbar:
             async for row in pbar:
                 if row == 9:
                     pbar.send(-10)
@@ -99,9 +94,7 @@ async def test_coroutines():
 async def test_async_with():
     """Test asyncio async with context manager"""
     with closing(StringIO()) as our_file:
-        tqdm = partial(tqdm_asyncio, file=our_file, miniters=0, mininterval=0)
-
-        async with tqdm(count()) as pbar:
+        async with tqdm(count(), file=our_file) as pbar:
             async for row in pbar:
                 if row >= 8:
                     break
@@ -112,12 +105,10 @@ async def test_async_with():
 async def test_as_completed():
     """Test asyncio as_completed"""
     with closing(StringIO()) as our_file:
-        as_completed = partial(tqdm_asyncio.as_completed, file=our_file,
-                               miniters=0, mininterval=0)
-
         t = time()
         skew = time() - t
-        for i in as_completed([asyncio.sleep(0.01) for _ in range(100)]):
+        for i in as_completed([asyncio.sleep(0.01) for _ in range(100)],
+                              file=our_file):
             await i
         assert time() - t - 2 * skew < (0.01 * 100) / 2, "Assuming >= 2 cores"
         assert '100/100' in our_file.getvalue()
