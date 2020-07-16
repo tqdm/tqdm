@@ -1,8 +1,16 @@
 import asyncio
-from functools import partial
+from functools import partial, wraps
 
 from tests_tqdm import with_setup, pretest, posttest, StringIO, closing
 from tqdm.asyncio import tqdm_asyncio, tarange
+
+
+def with_setup_sync(func):
+    @with_setup(pretest, posttest)
+    @wraps(func)
+    def inner():
+        return asyncio.run(func())
+    return inner
 
 
 def count(start=0, step=1):
@@ -15,7 +23,8 @@ def count(start=0, step=1):
             i = new_start
 
 
-async def main():
+@with_setup_sync
+async def test_all():
     with closing(StringIO()) as our_file:
         tqdm = partial(tqdm_asyncio, file=our_file, miniters=0, mininterval=0)
         trange = partial(tarange, file=our_file, miniters=0, mininterval=0)
@@ -48,8 +57,3 @@ async def main():
                     assert row == -9
                     break
         assert '10it' in our_file.getvalue()
-
-
-@with_setup(pretest, posttest)
-def test_all():
-    asyncio.run(main())
