@@ -628,7 +628,7 @@ class tqdm(Comparable):
         return cls._lock
 
     @classmethod
-    def pandas(tclass, *targs, **tkwargs):
+    def pandas(cls, **tqdm_kwargs):
         """
         Registers the given `tqdm` class with
             pandas.core.
@@ -643,7 +643,7 @@ class tqdm(Comparable):
 
         Parameters
         ----------
-        targs, tkwargs  : arguments for the tqdm instance
+        tqdm_kwargs  : arguments for the tqdm instance
 
         Examples
         --------
@@ -662,6 +662,7 @@ class tqdm(Comparable):
         <https://stackoverflow.com/questions/18603270/\
         progress-indicator-during-pandas-operations-python>
         """
+        from copy import deepcopy
         from pandas.core.frame import DataFrame
         from pandas.core.series import Series
         try:
@@ -698,7 +699,8 @@ class tqdm(Comparable):
             except ImportError:  # pandas>=0.25.0
                 PanelGroupBy = None
 
-        deprecated_t = [tkwargs.pop('deprecated_t', None)]
+        tqdm_kwargs = deepcopy(tqdm_kwargs)
+        deprecated_t = [tqdm_kwargs.pop('deprecated_t', None)]
 
         def inner_generator(df_function='apply'):
             def inner(df, func, *args, **kwargs):
@@ -714,7 +716,7 @@ class tqdm(Comparable):
                 """
 
                 # Precompute total iterations
-                total = tkwargs.pop("total", getattr(df, 'ngroups', None))
+                total = tqdm_kwargs.pop("total", getattr(df, 'ngroups', None))
                 if total is None:  # not grouped
                     if df_function == 'applymap':
                         total = df.size
@@ -736,7 +738,7 @@ class tqdm(Comparable):
                     t = deprecated_t[0]
                     deprecated_t[0] = None
                 else:
-                    t = tclass(*targs, total=total, **tkwargs)
+                    t = cls(total=total, **tqdm_kwargs)
 
                 if len(args) > 0:
                     # *args intentionally not supported (see #244, #299)
@@ -1475,7 +1477,7 @@ class tqdm(Comparable):
 
     @classmethod
     @contextmanager
-    def wrapattr(tclass, stream, method, total=None, bytes=True, **tkwargs):
+    def wrapattr(cls, stream, method, total=None, bytes=True, **tqdm_kwargs):
         """
         stream  : file-like object.
         method  : str, "read" or "write". The result of `read()` and
@@ -1487,7 +1489,7 @@ class tqdm(Comparable):
         ...         if not chunk:
         ...             break
         """
-        with tclass(total=total, **tkwargs) as t:
+        with cls(total=total, **tqdm_kwargs) as t:
             if bytes:
                 t.unit = "B"
                 t.unit_scale = True
