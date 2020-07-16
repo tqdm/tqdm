@@ -56,7 +56,7 @@ jobs:
         pip install -U virtualenv asv
         asv machine --machine github-actions --yes
         git fetch --tags
-        git fetch origin master:master
+        [ "$(git symbolic-ref --short HEAD)" == master ] || git fetch origin master:master
     - name: Restore previous results
       uses: actions/cache@v2
       with:
@@ -66,7 +66,9 @@ jobs:
           asv-
     - name: Benchmark
       run: |
-        asv continuous --interleave-processes --only-changed -f 1.25 master HEAD
-        CHANGES="$(asv compare --only-changed -f 1.25 master HEAD)"
-        echo "$CHANGES"
-        [ -z "$CHANGES" ] || exit 1
+        if [ "$(git symbolic-ref --short HEAD)" != master ]; then
+          asv continuous --interleave-processes --only-changed -f 1.25 master HEAD
+          CHANGES="$(asv compare --only-changed -f 1.25 master HEAD)"
+          echo "$CHANGES"
+          [ -z "$CHANGES" ] || exit 1
+        fi
