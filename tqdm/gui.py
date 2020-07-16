@@ -196,24 +196,31 @@ class tqdm_tk(tqdm_gui):
     # Monitor thread does not behave nicely with tkinter
     monitor_interval = 0
 
-    def __init__(
-            self,
-            *args,
-            grab=False,
-            tk_parent=None,
-            bar_format=None,
-            cancel_callback=None,
-            **kwargs,
-    ):
+    def __init__(self, *args, **kwargs):
         try:
             import tkinter
             import tkinter.ttk as ttk
         except ImportError:
             import Tkinter as tkinter
-            import Tkinter.ttk as ttk
+            import ttk as ttk
+        try:
+            grab = kwargs.pop("grab")
+        except KeyError:
+            grab = False
+        try:
+            tk_parent = kwargs.pop("tk_parent")
+        except KeyError:
+            tk_parent = None
+        try:
+            self._cancel_callback = kwargs.pop("cancel_callback")
+        except KeyError:
+            self._cancel_callback = None
+        try:
+            bar_format = kwargs.pop("bar_format")
+        except KeyError:
+            bar_format = None
 
         kwargs["gui"] = True
-        self._cancel_callback = cancel_callback
 
         # Tkinter specific default bar format
         if bar_format is None:
@@ -261,15 +268,11 @@ class tqdm_tk(tqdm_gui):
         self.tk_text_var = tkinter.StringVar(self.tk_window)
         pbar_frame = ttk.Frame(self.tk_window, padding=5)
         pbar_frame.pack()
-        self.tk_desc_label = ttk.Label(
-            pbar_frame,
-            textvariable=self.tk_desc_var,
-            wraplength=600,
-            anchor="center",
-            justify="center",
-        )
-        self.tk_desc_label.pack()
-        self.tk_label = ttk.Label(
+        self.tk_desc_frame = ttk.Frame(pbar_frame)
+        self.tk_desc_frame.pack()
+        self.tk_desc_label = None
+        self.ttk_label = ttk.Label
+        self.tk_label = self.ttk_label(
             pbar_frame,
             textvariable=self.tk_text_var,
             wraplength=600,
@@ -299,7 +302,21 @@ class tqdm_tk(tqdm_gui):
 
     def display(self):
         self.tk_n_var.set(self.n)
-        self.tk_desc_var.set(self.desc)
+        if self.desc:
+            if self.tk_desc_label is None:
+                self.tk_desc_label = self.ttk_label(
+                    self.tk_desc_frame,
+                    textvariable=self.tk_desc_var,
+                    wraplength=600,
+                    anchor="center",
+                    justify="center",
+                )
+                self.tk_desc_label.pack()
+            self.tk_desc_var.set(self.desc)
+        else:
+            if self.tk_desc_label is not None:
+                self.tk_desc_label.destroy()
+                self.tk_desc_label = None
         self.tk_text_var.set(
             self.format_meter(
                 n=self.n,
