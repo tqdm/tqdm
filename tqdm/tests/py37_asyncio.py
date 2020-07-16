@@ -31,6 +31,7 @@ async def acount(*args, **kwargs):
 
 @with_setup_sync
 async def test_generators():
+    """Test asyncio generators"""
     with closing(StringIO()) as our_file:
         tqdm = partial(tqdm_asyncio, file=our_file, miniters=0, mininterval=0)
 
@@ -49,6 +50,7 @@ async def test_generators():
 
 @with_setup_sync
 async def test_range():
+    """Test asyncio range"""
     with closing(StringIO()) as our_file:
         tqdm = partial(tqdm_asyncio, file=our_file, miniters=0, mininterval=0)
         trange = partial(tarange, file=our_file, miniters=0, mininterval=0)
@@ -66,22 +68,24 @@ async def test_range():
 
 @with_setup_sync
 async def test_nested():
+    """Test asyncio nested"""
     with closing(StringIO()) as our_file:
         tqdm = partial(tqdm_asyncio, file=our_file, miniters=0, mininterval=0)
         trange = partial(tarange, file=our_file, miniters=0, mininterval=0)
 
-        async for row in tqdm(trange(9, desc="trange"), desc="outer"):
+        async for row in tqdm(trange(9, desc="inner"), desc="outer"):
             pass
-        assert 'trange: 100%' in our_file.getvalue()
+        assert 'inner: 100%' in our_file.getvalue()
         assert 'outer: 100%' in our_file.getvalue()
 
 
 @with_setup_sync
 async def test_coroutines():
+    """Test asyncio coroutine.send"""
     with closing(StringIO()) as our_file:
         tqdm = partial(tqdm_asyncio, file=our_file, miniters=0, mininterval=0)
 
-        with tqdm(count(), desc="coroutine") as pbar:
+        with tqdm(count()) as pbar:
             async for row in pbar:
                 if row == 9:
                     pbar.send(-10)
@@ -93,6 +97,7 @@ async def test_coroutines():
 
 @with_setup_sync
 async def test_as_completed():
+    """Test asyncio as_completed"""
     with closing(StringIO()) as our_file:
         as_completed = partial(tqdm_asyncio.as_completed, file=our_file,
                                miniters=0, mininterval=0)
@@ -101,5 +106,5 @@ async def test_as_completed():
         skew = time() - t
         for i in as_completed([asyncio.sleep(0.01) for _ in range(100)]):
             await i
-        assert time() - t - 2 * skew < (0.01 * 100) / 2, "Assuming >=2 cores"
+        assert time() - t - 2 * skew < (0.01 * 100) / 2, "Assuming >= 2 cores"
         assert '100/100' in our_file.getvalue()
