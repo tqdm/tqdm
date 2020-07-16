@@ -630,7 +630,7 @@ class tqdm(Comparable):
     @classmethod
     def pandas(cls, **tqdm_kwargs):
         """
-        Registers the given `tqdm` class with
+        Registers the current `tqdm` class with
             pandas.core.
             ( frame.DataFrame
             | series.Series

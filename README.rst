@@ -543,7 +543,7 @@ Returns
               Forces refresh [default: True].
           """
 
-      def set_postfix(self, ordered_dict=None, refresh=True, **kwargs):
+      def set_postfix(self, ordered_dict=None, refresh=True, **tqdm_kwargs):
           """
           Set/modify postfix (additional stats)
           with automatic formatting based on datatype.
@@ -578,29 +578,55 @@ Returns
             (default: ``abs(self.pos)``).
           """
 
-    def trange(*args, **kwargs):
-        """
-        A shortcut for tqdm(xrange(*args), **kwargs).
-        On Python3+ range is used instead of xrange.
-        """
+      @classmethod
+      @contextmanager
+      def wrapattr(cls, stream, method, total=None, bytes=True, **tqdm_kwargs):
+          """
+          stream  : file-like object.
+          method  : str, "read" or "write". The result of ``read()`` and
+              the first argument of ``write()`` should have a ``len()``.
 
-    class tqdm.gui.tqdm(tqdm.tqdm):
-        """Experimental GUI version"""
+          >>> with tqdm.wrapattr(file_obj, "read", total=file_obj.size) as fobj:
+          ...     while True:
+          ...         chunk = fobj.read(chunk_size)
+          ...         if not chunk:
+          ...             break
+          """
 
-    def tqdm.gui.trange(*args, **kwargs):
-        """Experimental GUI version of trange"""
+      @classmethod
+      def pandas(cls, *targs, **tqdm_kwargs):
+          """Registers the current `tqdm` class with `pandas`."""
+
+    def trange(*args, **tqdm_kwargs):
+        """
+        A shortcut for `tqdm(xrange(*args), **tqdm_kwargs)`.
+        On Python3+, `range` is used instead of `xrange`.
+        """
 
     class tqdm.notebook.tqdm(tqdm.tqdm):
-        """Experimental IPython/Jupyter Notebook widget"""
+        """Experimental IPython/Jupyter Notebook widget."""
 
-    def tqdm.notebook.trange(*args, **kwargs):
-        """Experimental IPython/Jupyter Notebook widget version of trange"""
+    def tqdm.notebook.trange(*args, **tqdm_kwargs):
+        """Experimental IPython/Jupyter Notebook widget version of `trange`."""
+
+    class tqdm.auto.tqdm(tqdm.tqdm):
+        """Automatically chooses beween `tqdm.notebook` and `tqdm.tqdm`."""
+
+    class tqdm.asyncio.tqdm(tqdm.tqdm):
+      """Asynchronous version."""
+      @classmethod
+      def as_completed(cls, fs, *, loop=None, timeout=None, total=None,
+                       **tqdm_kwargs):
+          """Wrapper for `asyncio.as_completed`."""
+
+    class tqdm.gui.tqdm(tqdm.tqdm):
+        """Experimental GUI version."""
 
     class tqdm.keras.TqdmCallback(keras.callbacks.Callback):
-        """`keras` callback for epoch and batch progress"""
+        """`keras` callback for epoch and batch progress."""
 
     def tqdm.contrib.tenumerate(iterable, start=0, total=None,
-                                tqdm_class=tqdm.auto.tqdm, **kwargs):
+                                tqdm_class=tqdm.auto.tqdm, **tqdm_kwargs):
         """Equivalent of `numpy.ndenumerate` or builtin `enumerate`."""
 
     def tqdm.contrib.tzip(iter1, *iter2plus, **tqdm_kwargs):
@@ -616,12 +642,11 @@ The ``tqdm.contrib`` package also contains experimental modules:
 
 - ``tqdm.contrib.itertools``: Thin wrappers around ``itertools``
 - ``tqdm.contrib.concurrent``: Thin wrappers around ``concurrent.futures``
+- ``tqdm.contrib.discord``: Posts to `Discord <https://discord.com/>`__ bots
+- ``tqdm.contrib.telegram``: Posts to `Telegram <https://telegram.org/>`__ bots
 - ``tqdm.contrib.bells``: Automagically enables all optional features
 
   * ``auto``, ``pandas``, ``discord``, ``telegram``
-
-- ``tqdm.contrib.discord``: Posts to `Discord <https://discord.com/>`__ bots
-- ``tqdm.contrib.telegram``: Posts to `Telegram <https://telegram.org/>`__ bots
 
 Examples and Advanced Usage
 ---------------------------
