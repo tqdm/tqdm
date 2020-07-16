@@ -42,6 +42,9 @@ jobs:
     - name: Update Docs
       run: |
         pushd docs
-        git fetch origin master:master
+        git fetch --depth=1 origin master:master
+        git checkout master
+        git push --set-upstream origin master
+        git checkout -
         make deploy
         popd
