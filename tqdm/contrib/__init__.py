@@ -7,7 +7,7 @@ from tqdm import tqdm
 from tqdm.auto import tqdm as tqdm_auto
 from tqdm.utils import ObjectWrapper
 from copy import deepcopy
-import functools
+from functools import wraps
 import sys
 __author__ = {"github.com/": ["casperdcl"]}
 __all__ = ['tenumerate', 'tzip', 'tmap']
@@ -19,6 +19,16 @@ class DummyTqdmFile(ObjectWrapper):
         # Avoid print() second call (useless \n)
         if len(x.rstrip()) > 0:
             tqdm.write(x, file=self._wrapped, nolock=nolock)
+
+
+def builtin_iterable(func):
+    """Wraps `func()` output in a `list()` in py2"""
+    if sys.version_info[:1] < (3,):
+        @wraps(func)
+        def inner(*args, **kwargs):
+            return list(func(*args, **kwargs))
+        return inner
+    return func
 
 
 def tenumerate(iterable, start=0, total=None, tqdm_class=tqdm_auto,
@@ -41,7 +51,8 @@ def tenumerate(iterable, start=0, total=None, tqdm_class=tqdm_auto,
     return enumerate(tqdm_class(iterable, **tqdm_kwargs), start)
 
 
-def _tzip(iter1, *iter2plus, **tqdm_kwargs):
+@builtin_iterable
+def tzip(iter1, *iter2plus, **tqdm_kwargs):
     """
     Equivalent of builtin `zip`.
 
@@ -55,7 +66,8 @@ def _tzip(iter1, *iter2plus, **tqdm_kwargs):
         yield i
 
 
-def _tmap(function, *sequences, **tqdm_kwargs):
+@builtin_iterable
+def tmap(function, *sequences, **tqdm_kwargs):
     """
     Equivalent of builtin `map`.
 
@@ -63,18 +75,5 @@ def _tmap(function, *sequences, **tqdm_kwargs):
     ----------
     tqdm_class  : [default: tqdm.auto.tqdm].
     """
-    for i in _tzip(*sequences, **tqdm_kwargs):
+    for i in tzip(*sequences, **tqdm_kwargs):
         yield function(*i)
-
-
-if sys.version_info[:1] < (3,):
-    @functools.wraps(_tzip)
-    def tzip(*args, **kwargs):
-        return list(_tzip(*args, **kwargs))
-
-    @functools.wraps(_tmap)
-    def tmap(*args, **kwargs):
-        return list(_tmap(*args, **kwargs))
-else:
-    tzip = _tzip
-    tmap = _tmap
