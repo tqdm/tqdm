@@ -10,7 +10,6 @@ Usage:
 https://raw.githubusercontent.com/tqdm/img/src/screenshot-discord.png)
 """
 from __future__ import absolute_import
-from copy import deepcopy
 import logging
 from os import getenv
 
@@ -84,7 +83,7 @@ class tqdm_discord(tqdm_auto):
 
         See `tqdm.auto.tqdm.__init__` for other parameters.
         """
-        kwargs = deepcopy(kwargs)
+        kwargs = kwargs.copy()
         logging.getLogger("HTTPClient").setLevel(logging.WARNING)
         self.dio = DiscordIO(
             kwargs.pop('token', getenv("TQDM_DISCORD_TOKEN")),

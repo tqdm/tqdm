@@ -10,7 +10,6 @@ Usage:
 https://raw.githubusercontent.com/tqdm/img/src/screenshot-telegram.gif)
 """
 from __future__ import absolute_import
-from copy import deepcopy
 from os import getenv
 
 from requests import Session
@@ -91,7 +90,7 @@ class tqdm_telegram(tqdm_auto):
 
         See `tqdm.auto.tqdm.__init__` for other parameters.
         """
-        kwargs = deepcopy(kwargs)
+        kwargs = kwargs.copy()
         self.tgio = TelegramIO(
             kwargs.pop('token', getenv('TQDM_TELEGRAM_TOKEN')),
             kwargs.pop('chat_id', getenv('TQDM_TELEGRAM_CHAT_ID')))

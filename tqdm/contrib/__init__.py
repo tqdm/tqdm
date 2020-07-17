@@ -6,7 +6,6 @@ Subpackages contain potentially unstable extensions.
 from tqdm import tqdm
 from tqdm.auto import tqdm as tqdm_auto
 from tqdm.utils import ObjectWrapper
-from copy import deepcopy
 from functools import wraps
 import sys
 __author__ = {"github.com/": ["casperdcl"]}
@@ -60,7 +59,7 @@ def tzip(iter1, *iter2plus, **tqdm_kwargs):
     ----------
     tqdm_class  : [default: tqdm.auto.tqdm].
     """
-    kwargs = deepcopy(tqdm_kwargs)
+    kwargs = tqdm_kwargs.copy()
     tqdm_class = kwargs.pop("tqdm_class", tqdm_auto)
     for i in zip(tqdm_class(iter1, **tqdm_kwargs), *iter2plus):
         yield i
