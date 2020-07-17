@@ -4,7 +4,7 @@ Enables multiple commonly used features.
 Method resolution order:
 
 - `tqdm.autonotebook` without import warnings
-- `tqdm.asyncio` on Python3+
+- `tqdm.asyncio` on Python3.5+
 - `tqdm.std` base class
 
 Usage:
@@ -20,7 +20,7 @@ with warnings.catch_warnings():
     from .autonotebook import tqdm as notebook_tqdm
     from .autonotebook import trange as notebook_trange
 
-if sys.version_info[:1] < (3,):
+if sys.version_info[:1] < (3, 4):
     tqdm = notebook_tqdm
     trange = notebook_trange
 else:  # Python3+
