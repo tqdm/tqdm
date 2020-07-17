@@ -1,5 +1,5 @@
 """
-All the bells & whistles:
+Even more features than `tqdm.auto` (all the bells & whistles):
 
 - `tqdm.auto`
 - `tqdm.tqdm.pandas`

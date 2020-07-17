@@ -7,13 +7,13 @@ Usage:
 >>> async for i in trange(10):
 ...     ...
 """
-from .auto import tqdm as tqdm_auto
+from .std import tqdm as std_tqdm
 import asyncio
 __author__ = {"github.com/": ["casperdcl"]}
 __all__ = ['tqdm_asyncio', 'tarange', 'tqdm', 'trange']
 
 
-class tqdm_asyncio(tqdm_auto):
+class tqdm_asyncio(std_tqdm):
     def __init__(self, iterable=None, *args, **kwargs):
         super(tqdm_asyncio, self).__init__(iterable, *args, **kwargs)
         self.iterable_awaitable = False
