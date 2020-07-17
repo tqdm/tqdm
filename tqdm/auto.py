@@ -2,6 +2,7 @@
 Enables multiple commonly used features.
 
 Method resolution order:
+
 - `tqdm.autonotebook` without import warnings
 - `tqdm.asyncio` on Python3+
 - `tqdm.std` base class
