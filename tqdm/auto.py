@@ -23,7 +23,7 @@ with warnings.catch_warnings():
 if sys.version_info[:1] < (3, 4):
     tqdm = notebook_tqdm
     trange = notebook_trange
-else:  # Python3+
+else:  # Python3.5+
     from .asyncio import tqdm as asyncio_tqdm
     from .std import tqdm as std_tqdm
 
