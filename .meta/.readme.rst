@@ -320,6 +320,8 @@ of a neat one-line progress bar.
 - `Hanging pipes in python2 <https://github.com/tqdm/tqdm/issues/359>`__:
   when using ``tqdm`` on the CLI, you may need to use Python 3.5+ for correct
   buffering.
+- `No intermediate output in docker-compose <https://github.com/tqdm/tqdm/issues/771>`__:
+  use ``docker-compose run`` instead of ``docker-compose up`` and ``tty: true``.
 
 If you come across any other difficulties, browse and file |GitHub-Issues|.
 
