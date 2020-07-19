@@ -268,12 +268,6 @@ def test_iter_overhead_hard():
     total = int(1e5)
 
     with closing(MockIO()) as our_file:
-        with trange(1, file=our_file, leave=True, miniters=1,
-                    mininterval=0, maxinterval=0) as t:
-            with relative_timer() as prime:
-                for i in t:
-                    pass
-
         a = 0
         with trange(total, file=our_file, leave=True, miniters=1,
                     mininterval=0, maxinterval=0) as t:
@@ -288,8 +282,7 @@ def test_iter_overhead_hard():
                 a += i
                 our_file.write(("%i" % a) * 40)
 
-    assert_performance(
-        85, 'trange', time_tqdm() - prime(), 'range', time_bench())
+    assert_performance(125, 'trange', time_tqdm(), 'range', time_bench())
 
 
 @with_setup(pretest, posttest)
@@ -300,12 +293,6 @@ def test_manual_overhead_hard():
     total = int(1e5)
 
     with closing(MockIO()) as our_file:
-        with trange(1, file=our_file, leave=True, miniters=1,
-                    mininterval=0, maxinterval=0) as t:
-            with relative_timer() as prime:
-                for i in t:
-                    pass
-
         t = tqdm(total=total * 10, file=our_file, leave=True, miniters=1,
                  mininterval=0, maxinterval=0)
         a = 0
@@ -320,8 +307,7 @@ def test_manual_overhead_hard():
                 a += i
                 our_file.write(("%i" % a) * 40)
 
-    assert_performance(
-        85, 'tqdm', time_tqdm() - prime(), 'range', time_bench())
+    assert_performance(125, 'tqdm', time_tqdm(), 'range', time_bench())
 
 
 @with_setup(pretest, posttest)
@@ -332,12 +318,6 @@ def test_iter_overhead_simplebar_hard():
     total = int(1e4)
 
     with closing(MockIO()) as our_file:
-        with trange(1, file=our_file, leave=True, miniters=1,
-                    mininterval=0, maxinterval=0) as t:
-            with relative_timer() as prime:
-                for i in t:
-                    pass
-
         a = 0
         with trange(total, file=our_file, leave=True, miniters=1,
                     mininterval=0, maxinterval=0) as t:
@@ -354,7 +334,7 @@ def test_iter_overhead_simplebar_hard():
                 a += i
 
     assert_performance(
-        5, 'trange', time_tqdm() - prime(), 'simple_progress', time_bench())
+        7.5, 'trange', time_tqdm(), 'simple_progress', time_bench())
 
 
 @with_setup(pretest, posttest)
@@ -365,12 +345,6 @@ def test_manual_overhead_simplebar_hard():
     total = int(1e4)
 
     with closing(MockIO()) as our_file:
-        with trange(1, file=our_file, leave=True, miniters=1,
-                    mininterval=0, maxinterval=0) as t:
-            with relative_timer() as prime:
-                for i in t:
-                    pass
-
         t = tqdm(total=total * 10, file=our_file, leave=True, miniters=1,
                  mininterval=0, maxinterval=0)
         a = 0
@@ -389,4 +363,4 @@ def test_manual_overhead_simplebar_hard():
                 simplebar_update(10)
 
     assert_performance(
-        5, 'tqdm', time_tqdm() - prime(), 'simple_progress', time_bench())
+        7.5, 'tqdm', time_tqdm(), 'simple_progress', time_bench())
