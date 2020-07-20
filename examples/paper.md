@@ -270,7 +270,7 @@ released under the terms of the MIT licence [@licence].
 # Acknowledgements
 
 `tqdm` is the result of the collaborative efforts since October 2013 of a community
-of contributors which are listed at the top of the document. The co-authors are
-grateful for all the contributions.
+of contributors which are listed in alphabetical order at the top of the document.
+The authors would like to express their gratitude for all the contributions.
 
 # References
