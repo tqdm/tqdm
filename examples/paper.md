@@ -209,7 +209,7 @@ Supported features include:
 - Automatic use of Unicode to render smooth-filling progress bars on supported
   terminals
 - Nested and parallel progress bars
-- Anti-freezing background monitor to ensure progress updates
+- Anti-freezing background monitor to ensure timely progress updates
 - Support for custom rendering frontends, including:
     * Command-line interface
     * Jupyter Notebook
