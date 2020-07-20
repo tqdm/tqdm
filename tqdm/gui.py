@@ -191,6 +191,10 @@ def tgrange(*args, **kwargs):
 class tqdm_tk(std_tqdm):
     """
     Experimental Tkinter GUI version of tqdm!
+
+    Note: Window interactivity suffers if `tqdm_tk` is not running within
+    a Tkinter mainloop and values are generated infrequently. In this case,
+    consider calling `tqdm_tk.update(0)` frequently in the Tk thread.
     """
 
     def __init__(self, *args, **kwargs):
@@ -350,7 +354,9 @@ class tqdm_tk(std_tqdm):
             self._tk_window.update()
 
     def cancel(self):
-        """Call cancel_callback and close the progress bar"""
+        """Call cancel_callback and then close the progress bar
+
+        Called when the window close or cancel buttons are clicked."""
         if self._cancel_callback is not None:
             self._cancel_callback()
         self.close()
