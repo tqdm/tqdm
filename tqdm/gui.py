@@ -20,12 +20,13 @@ from .std import tqdm as std_tqdm
 from .utils import _range
 
 __author__ = {"github.com/": ["casperdcl", "lrq3000", "richardsheridan"]}
-__all__ = ['tqdm_gui', 'tgrange', 'tqdm_tk', 'ttkrange', 'tqdm', 'trange']
+__all__ = ['tqdm', 'trange', 'tqdm_gui', 'tgrange', 'tqdm_mpl', 'tmplrange',
+           'tqdm_tk', 'ttkrange']
 
 
-class tqdm_gui(std_tqdm):  # pragma: no cover
+class tqdm_mpl(std_tqdm):  # pragma: no cover
     """
-    Experimental GUI version of tqdm!
+    Experimental Matplotlib GUI version of tqdm!
     """
 
     # TODO: @classmethod: write() on GUI?
@@ -38,7 +39,7 @@ class tqdm_gui(std_tqdm):  # pragma: no cover
         kwargs = kwargs.copy()
         kwargs['gui'] = True
         colour = kwargs.pop('colour', 'g')
-        super(tqdm_gui, self).__init__(*args, **kwargs)
+        super(tqdm_mpl, self).__init__(*args, **kwargs)
 
         # Initialize the GUI display
         if self.disable or not kwargs['gui']:
@@ -180,15 +181,15 @@ class tqdm_gui(std_tqdm):  # pragma: no cover
         self.plt.pause(1e-9)
 
 
-def tgrange(*args, **kwargs):
+def tmplrange(*args, **kwargs):
     """
-    A shortcut for `tqdm.gui.tqdm(xrange(*args), **kwargs)`.
+    A shortcut for `tqdm.gui.tqdm_mpl(xrange(*args), **kwargs)`.
     On Python3+, `range` is used instead of `xrange`.
     """
-    return tqdm_gui(_range(*args), **kwargs)
+    return tqdm_mpl(_range(*args), **kwargs)
 
 
-class tqdm_tk(std_tqdm):
+class tqdm_tk(std_tqdm):  # pragma: no cover
     """
     Experimental Tkinter GUI version of tqdm!
 
@@ -417,5 +418,5 @@ def ttkrange(*args, **kwargs):
 
 
 # Aliases
-tqdm = tqdm_gui
-trange = tgrange
+tqdm = tqdm_gui = tqdm_tk
+trange = tgrange = ttkrange
