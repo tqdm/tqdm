@@ -188,6 +188,18 @@ for i in tqdm(range(100)):
 100%|#########################################| 100/100 [00:10<00:00,  9.95it/s]
 ```
 
+Unbounded loops are also supported through manual control of `tqdm`:
+
+```python
+from tqdm import tqdm
+from time import sleep
+
+with tqdm() as pbar:
+    while True:
+        sleep(0.1)
+        pbar.update(1)
+```
+
 Supported features include:
 
 - Display customisation via arguments such as `desc`, `postfix` and `bar_format`
@@ -196,6 +208,8 @@ Supported features include:
 - Automatic detection of console width to fill  the display
 - Automatic use of Unicode to render smooth-filling progress bars on supported
   terminals
+- Nested and parallel progress bars
+- Anti-freezing background monitor to ensure progress updates
 - Support for custom rendering frontends, including:
     * Command-line interface
     * Jupyter Notebook
@@ -234,7 +248,8 @@ Unit tests are run at least weekly on cloud-based continuous integration
 [Codacy](https://app.codacy.com/project/tqdm/tqdm/dashboard) [@code-review].
 Coverage is reported on [Coveralls](https://coveralls.io/github/tqdm/tqdm) and
 [Codecov](https://codecov.io/gh/tqdm/tqdm), and performance is monitored against
-regression [@asv].
+regression [@asv] and against a minimal loop with and without progress monitoring
+to automatically quantify the overhead.
 
 # Impact
 
