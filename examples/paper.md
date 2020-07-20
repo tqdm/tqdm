@@ -26,129 +26,18 @@ authors:
  - name: Stephen Karl Larroque
    orcid: 0000-0002-6248-0957
    affiliation: 1
- - name: Martin Zugnoni
-   affiliation: 2
- - name: Guangshuo Chen
-   affiliation: 2
- - name: Hadrien Mary
-   orcid: 0000-0001-8199-5932
-   affiliation: 1
- - name: Kyle Altendorf
-   affiliation: 2
- - name: Ivan Ivanov
-   affiliation: 2
- - name: James E. King
-   affiliation: 2
- - name: Mikhail Korobov
-   affiliation: 7
- - name: Daniel Panteleit
-   affiliation: 2
  - name: Noam Yorav-Raphael
-   affiliation: 2
- - name: Matthew D. Pagel
-   affiliation: 3
- - name: James Lu
-   affiliation: 2
- - name: Hugo van Kemenade
-   orcid: 0000-0001-5715-8632
-   affiliation: 2
- - name: Igor Ljubuncic
-   affiliation: 4
- - name: Adnan Umer
-   affiliation: 2
- - name: Johannes Hansen
-   affiliation: 2
- - name: Charles Newey
-   affiliation: 2
- - name: Veith Röthlingshöfer
-   orcid: 0000-0002-1824-3153
-   affiliation: 2
- - name: FichteFoll
-   affiliation: 2
- - name: Mikhail Dektyarev
-   affiliation: 2
- - name: Chung-Kai Hung
-   affiliation: 2
- - name: Greg Gandenberger
-   affiliation: 2
- - name: Min ho Kim
-   affiliation: 2
- - name: Thomas A. Caswell
-   affiliation: 2
- - name: Orivej Desh
-   affiliation: 2
- - name: Kuang-che Wu
-   affiliation: 5
- - name: Alexander Plavin
-   orcid: 0000-0003-2914-8554
-   affiliation: 2
- - name: zz
-   affiliation: 2
- - name: Sepehr Sameni
-   affiliation: 2
- - name: David W. H. Swenson
-   affiliation: 6
- - name: ReadmeCritic
-   affiliation: 2
- - name: stonebig
-   affiliation: 2
- - name: Cheng Chen
-   affiliation: 2
- - name: Staffan Malmgren
-   affiliation: 2
- - name: Sergei Izmailov
-   affiliation: 2
- - name: Anurag Pandey
-   affiliation: 2
- - name: Peter VandeHaar
-   affiliation: 2
- - name: Alex Rothberg
-   affiliation: 2
- - name: Carlin MacKenzie
-   orcid: 0000-0002-9300-0741
-   affiliation: 2
- - name: Edward Betts
-   affiliation: 2
- - name: Socialery
-   affiliation: 2
- - name: Dyno Fu
-   affiliation: 2
- - name: Jack McCracken
-   affiliation: 2
- - name: Jose Tiago Macara Coutinho
-   affiliation: 2
- - name: Lev Velykoivanenko
-   affiliation: 2
- - name: Albert Kottke
-   affiliation: 2
- - name: Fabian Dill
-   affiliation: 2
- - name: Ford Hurley
-   affiliation: 2
- - name: Shirish Pokharel
-   affiliation: 2
- - name: David Bau
-   affiliation: 2
- - name: tqdm developers
    affiliation: 2
 affiliations:
  - name: tqdm maintainers
    index: 1
  - name: Independent (Non-affiliated)
    index: 2
- - name: University of California, Davis
-   index: 3
- - name: Snap Advocacy
-   index: 4
- - name: Google Inc.
-   index: 5
- - name: École Normale Supérieure de Lyon
-   index: 6
- - name: Scrapinghub Inc.
-   index: 7
 date: 16 February 2019
 bibliography: paper.bib
 ---
+
+Contributors: Martin Zugnoni, Guangshuo Chen, Hadrien Mary (orcid: 0000-0001-8199-5932), Kyle Altendorf, Ivan Ivanov, James E. King, Mikhail Korobov, Daniel Panteleit, Matthew D. Pagel, James Lu, Hugo van Kemenade (orcid: 0000-0001-5715-8632), Igor Ljubuncic, Adnan Umer, Johannes Hansen, Charles Newey, Veith Röthlingshöfer (orcid: 0000-0002-1824-3153), FichteFoll, Mikhail Dektyarev, Chung-Kai Hung, Greg Gandenberger, Min ho Kim, Thomas A. Caswell, Orivej Desh, Kuang-che Wu, Alexander Plavin (orcid: 0000-0003-2914-8554), zz, Sepehr Sameni, David W. H. Swenson, ReadmeCritic, stonebig, Cheng Chen, Staffan Malmgren, Sergei Izmailov, Anurag Pandey, Peter VandeHaar, Alex Rothberg, Carlin MacKenzie (orcid: 0000-0002-9300-0741), Edward Betts, Socialery, Dyno Fu, Jack McCracken, Jose Tiago Macara Coutinho, Lev Velykoivanenko, Albert Kottke, Fabian Dill, Ford Hurley, Shirish Pokharel, David Bau
 
 # Introduction
 
