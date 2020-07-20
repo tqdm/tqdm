@@ -193,11 +193,11 @@ Unbounded loops are also supported through manual control of `tqdm`:
 ```python
 from tqdm import tqdm
 from time import sleep
-
 with tqdm() as pbar:
     while True:
         sleep(0.1)
         pbar.update(1)
+146it [00:14,  9.89it/s]
 ```
 
 Supported features include:
