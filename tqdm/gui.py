@@ -261,7 +261,7 @@ class tqdm_tk(std_tqdm):
             self.leave = False
 
         self._tk_window.protocol("WM_DELETE_WINDOW", self.cancel)
-        self._tk_window.wm_title("tqdm_tk")
+        self._tk_window.wm_title(self.desc)
         self._tk_window.wm_attributes("-topmost", 1)
         self._tk_window.after(
             0,
@@ -276,20 +276,7 @@ class tqdm_tk(std_tqdm):
         self._tk_desc_frame = ttk.Frame(pbar_frame)
         self._tk_desc_frame.pack()
         self._tk_desc_var.set(self.desc)
-        # avoid importing ttk in display method
-        self._ttk_label = ttk.Label
-        if self.desc:
-            self._tk_desc_label = self._ttk_label(
-                self._tk_desc_frame,
-                textvariable=self._tk_desc_var,
-                wraplength=600,
-                anchor="center",
-                justify="center",
-            )
-            self._tk_desc_label.pack()
-        else:
-            self._tk_desc_label = None
-        self._tk_label = self._ttk_label(
+        self._tk_label = ttk.Label(
             pbar_frame,
             textvariable=self._tk_text_var,
             wraplength=600,
@@ -317,6 +304,16 @@ class tqdm_tk(std_tqdm):
         if grab:
             self._tk_window.grab_set()
 
+    def set_description(self, desc=None, refresh=True):
+        self.set_description_str(desc, refresh)
+
+    def set_description_str(self, desc=None, refresh=True):
+        self.desc = desc
+        if not self.disable:
+            self._tk_window.wm_title(desc)
+            if refresh and not self._tk_dispatching:
+                self._tk_window.update()
+
     def refresh(self, nolock=True, lock_args=None):
         """
         Force refresh the display of this bar.
@@ -333,21 +330,6 @@ class tqdm_tk(std_tqdm):
 
     def display(self):
         self._tk_n_var.set(self.n)
-        if self.desc:
-            if self._tk_desc_label is None:
-                self._tk_desc_label = self._ttk_label(
-                    self._tk_desc_frame,
-                    textvariable=self._tk_desc_var,
-                    wraplength=600,
-                    anchor="center",
-                    justify="center",
-                )
-                self._tk_desc_label.pack()
-            self._tk_desc_var.set(self.desc)
-        else:
-            if self._tk_desc_label is not None:
-                self._tk_desc_label.destroy()
-                self._tk_desc_label = None
         self._tk_text_var.set(
             self.format_meter(
                 n=self.n,
