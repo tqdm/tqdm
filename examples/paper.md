@@ -155,14 +155,14 @@ and addresses all of these problems once and for all. It takes advantage of
 Pythonic patterns to make it a trivial task to add visually appealing,
 customisable progress bars without any significant performance degradation even
 in the most demanding of scenarios. Performance is unit tested to ensure the
-overhead stays negligible, and the modular architecture eases the implementation
-of specific extensions such as wrappers for Jupyter scientific notebooks.
+overhead stays negligible, and the modular architecture eases the development of
+extensions such as wrappers for Jupyter scientific notebooks.
 
 `tqdm` is intended to be used both in frontends (giving end users a visual indication
 of progress of computations or data transfer), or for quick prototyping by developers
 for debugging purposes, both as a profiling tool and also as a way of displaying
 logging information of an iterative task (such as error during training of
-machine learning algorithms), and can be disabled at runtime with no code change.
+machine learning algorithms), as it can be disabled at runtime with no code change.
 Due to its ease of use, the library is also an ideal candidate for inclusion in
 Python educational courses. For general (not necessarily Python) purposes, the
 command-line interface (CLI) mode further presents a useful tool for CLI users
