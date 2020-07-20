@@ -261,6 +261,11 @@ class tqdm_tk(std_tqdm):
 
         self.tk_window.protocol("WM_DELETE_WINDOW", self.cancel)
         self.tk_window.wm_title("tqdm_tk")
+        self.tk_window.wm_attributes("-topmost", 1)
+        self.tk_window.after(
+            0,
+            lambda: self.tk_window.wm_attributes("-topmost", 0),
+        )
         self.tk_n_var = tkinter.DoubleVar(self.tk_window, value=0)
         self.tk_desc_var = tkinter.StringVar(self.tk_window)
         self.tk_desc_var.set(self.desc)
