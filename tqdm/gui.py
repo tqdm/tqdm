@@ -195,12 +195,6 @@ class tqdm_tk(std_tqdm):
 
     def __init__(self, *args, **kwargs):
         try:
-            import tkinter
-            import tkinter.ttk as ttk
-        except ImportError:
-            import Tkinter as tkinter
-            import ttk as ttk
-        try:
             grab = kwargs.pop("grab")
         except KeyError:
             grab = False
@@ -233,6 +227,16 @@ class tqdm_tk(std_tqdm):
 
         super(tqdm_tk, self).__init__(*args, **kwargs)
 
+        if self.disable:
+            return
+
+        try:
+            import tkinter
+            import tkinter.ttk as ttk
+        except ImportError:
+            import Tkinter as tkinter
+            import ttk as ttk
+
         # Discover parent widget
         if tk_parent is None:
             # this will error if tkinter.NoDefaultRoot() called
@@ -248,9 +252,6 @@ class tqdm_tk(std_tqdm):
                 self.tk_window = tkinter.Toplevel()
         else:
             self.tk_window = tkinter.Toplevel(tk_parent)
-
-        if self.disable:
-            return
 
         warn('GUI is experimental/alpha', TqdmExperimentalWarning, stacklevel=2
              )
@@ -373,7 +374,7 @@ class tqdm_tk(std_tqdm):
         self.close()
 
     def reset(self, total=None):
-        if total is not None:
+        if total is not None and not self.disable:
             self.tk_pbar.configure(maximum=total)
         super(tqdm_tk, self).reset(total)
 
