@@ -193,9 +193,6 @@ class tqdm_tk(std_tqdm):
     Experimental Tkinter GUI version of tqdm!
     """
 
-    # Monitor thread does not behave nicely with tkinter
-    monitor_interval = 0
-
     def __init__(self, *args, **kwargs):
         try:
             import tkinter
