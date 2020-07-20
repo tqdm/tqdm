@@ -121,37 +121,52 @@ written in Python, though ports in other languages are available. `tqdm` means
 **progress** in Arabic (*taqaddum* [@tqdm-ar]) and is an abbreviation for
 **I love you so much** in Spanish (*te quiero demasiado* [@tqdm-es]).
 
-It is a common programming problem to have iterative operations where progress
-monitoring is desirable or advantageous. Including statements within a `for` loop
-to `print` out the current iteration number is a common strategy. However, there
-are many improvements which could be made in such a scenario:
+Software optimization is one of the pervasive goals of any computing application:
+everybody wants to complete their tasks fast. But when this is not possible,
+a slow task can be made more ergonomic through progress monitoring.
+A common time sink and programming problem is to have iterative operations where progress
+monitoring is desirable. Progress monitoring is often implemented as an afterthought,
+resulting in a suboptimal overhead and various issues which only adds to the development
+time that could be better spent on the core software. A common, but suboptimal, strategy
+is to include statements within a `for` loop to `print` out the current iteration number.
+However, there are many improvements which could be made in such a scenario:
 
-- preventing excessive printing, such as only displaying every $n$^th^
-  iteration;
-- displaying iteration rate;
-- displaying elapsed and estimated completion times, and
-- showing all of the above on one continuously updating line.
+- preventing expensive I/O access such as excessive printing and time access,
+  by a dual memoization of time and iterations (e.g., allowing to display only
+  every $n$^th^ iteration);
+- leverage Pythonic structures such as iterables to ease and universalize
+  progress meter calls;
+- displaying iteration rate, elapsed and estimated completion times;
+- showing all of the above on one continuously updating line;
+- support hierarchical or parallel tasks, with a progress bar for each.
 
 Addressing all these issues may well take up more developer time and effort than
 the rest of the content of the loop. Any changes to iteration rates or attempts
 to re-use the printing logic in a different loop may well result in suboptimal
 display rates -- displaying every $n$^th^ iteration may be too (in)frequent --
-requiring manual adjustment of $n$ to fix.
+requiring manual adjustment of $n$ to fix. Accomodating a wide range of use cases,
+such as hierarchical or parallel tasks, which are common needs, can be highly
+challenging and usual implementations tend to scale badly and be too specific
+for reuse in other projects.
 
-`tqdm` addresses all of these problems once and for all, taking advantage of
+By modularizing this task in a package dedicated for progress monitoring,
+`tqdm` decouples the progress monitoring logic from the core application
+and addresses all of these problems once and for all. It takes advantage of
 Pythonic patterns to make it a trivial task to add visually appealing,
 customisable progress bars without any significant performance degradation even
-in the most demanding of scenarios.
+in the most demanding of scenarios. Performance is unit tested to ensure the
+overhead stays negligible, and the modular architecture eases the implementation
+of specific extensions such as wrappers for Jupyter scientific notebooks.
 
-`tqdm` is intended to be used in frontends (giving end users a visual indication
-of progress of computations or data transfer). It is also useful for developers
+`tqdm` is intended to be used both in frontends (giving end users a visual indication
+of progress of computations or data transfer), or for quick prototyping by developers
 for debugging purposes, both as a profiling tool and also as a way of displaying
 logging information of an iterative task (such as error during training of
-machine learning algorithms). Due to its ease of use, the library is also an
-ideal candidate for inclusion in Python educational courses. For general (not
-necessarily Python) purposes, the command-line interface (CLI) mode further
-presents a useful tool for CLI users and system administrators monitoring data
-flow through pipes.
+machine learning algorithms), and can be disabled at runtime with no code change.
+Due to its ease of use, the library is also an ideal candidate for inclusion in
+Python educational courses. For general (not necessarily Python) purposes, the
+command-line interface (CLI) mode further presents a useful tool for CLI users
+and system administrators monitoring data flow through pipes.
 
 # Features
 
