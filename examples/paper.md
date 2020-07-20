@@ -122,7 +122,7 @@ written in Python, though ports in other languages are available. `tqdm` means
 **I love you so much** in Spanish (*te quiero demasiado* [@tqdm-es]).
 
 Program optimization is a pervasive goal in all computing applications:
-everybody wants to complete their tasks fast. But when this is not possible,
+everybody wants their tasks completed fast. But when this is not possible,
 a slow task can be made more ergonomic through progress monitoring.
 A common time sink and programming problem is to have iterative operations where progress
 monitoring is desirable. Progress monitoring is often implemented as an afterthought,
