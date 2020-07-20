@@ -27,12 +27,10 @@ authors:
    orcid: 0000-0002-6248-0957
    affiliation: 1
  - name: Noam Yorav-Raphael
-   affiliation: 2
+   affiliation: 1
 affiliations:
- - name: tqdm maintainers
-   index: 1
  - name: Independent (Non-affiliated)
-   index: 2
+   index: 1
 date: 16 February 2019
 bibliography: paper.bib
 ---
@@ -47,7 +45,9 @@ written in Python, though ports in other languages are available. `tqdm` means
 **I love you so much** in Spanish (*te quiero demasiado* [@tqdm-es]).
 
 It is a common programming problem to have iterative operations where progress
-monitoring is desirable or advantageous. Including statements within a `for` loop to `print` out the current iteration number is a common strategy. However, there are many improvements which could be made in such a scenario:
+monitoring is desirable or advantageous. Including statements within a `for` loop
+to `print` out the current iteration number is a common strategy. However, there
+are many improvements which could be made in such a scenario:
 
 - preventing excessive printing, such as only displaying every $n$^th^
   iteration;
@@ -169,10 +169,16 @@ in public media.
 
 # Licence
 
-`tqdm`'s source code is OSS, and all versions are archived at the DOI
-[10.5281/zenodo.595120](https://doi.org/10.5281/zenodo.595120). The primary
+`tqdm`'s source code is an open-source software (OSS), and all versions are archived
+at the DOI [10.5281/zenodo.595120](https://doi.org/10.5281/zenodo.595120). The primary
 maintainer [Casper da Costa-Luis](https://github.com/casperdcl) releases
 contributions under the terms of the MPLv2.0, while all other contributions are
 released under the terms of the MIT licence [@licence].
+
+# Acknowledgements
+
+`tqdm` is the result of the collaborative efforts since October 2013 of a community
+of contributors which are listed at the top of the document. The co-authors are
+grateful for all the contributions.
 
 # References
