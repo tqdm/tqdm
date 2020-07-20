@@ -274,8 +274,20 @@ class tqdm_tk(std_tqdm):
         pbar_frame.pack()
         self.tk_desc_frame = ttk.Frame(pbar_frame)
         self.tk_desc_frame.pack()
-        self.tk_desc_label = None
+        self.tk_desc_var.set(self.desc)
+        # avoid importing ttk in display method
         self.ttk_label = ttk.Label
+        if self.desc:
+            self.tk_desc_label = self.ttk_label(
+                self.tk_desc_frame,
+                textvariable=self.tk_desc_var,
+                wraplength=600,
+                anchor="center",
+                justify="center",
+            )
+            self.tk_desc_label.pack()
+        else:
+            self.tk_desc_label = None
         self.tk_label = self.ttk_label(
             pbar_frame,
             textvariable=self.tk_text_var,
