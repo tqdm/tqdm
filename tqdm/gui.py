@@ -246,76 +246,76 @@ class tqdm_tk(std_tqdm):
                 raise ValueError("tk_parent required when using NoDefaultRoot")
             if tkparent is None:
                 # use new default root window as display
-                self.tk_window = tkinter.Tk()
+                self._tk_window = tkinter.Tk()
             else:
                 # some other windows already exist
-                self.tk_window = tkinter.Toplevel()
+                self._tk_window = tkinter.Toplevel()
         else:
-            self.tk_window = tkinter.Toplevel(tk_parent)
+            self._tk_window = tkinter.Toplevel(tk_parent)
 
         warn('GUI is experimental/alpha', TqdmExperimentalWarning, stacklevel=2
              )
-        self.tk_dispatching = self.tk_dispatching_helper()
-        if not self.tk_dispatching:
+        self._tk_dispatching = self._tk_dispatching_helper()
+        if not self._tk_dispatching:
             # leave is problematic if the mainloop is not running
             self.leave = False
 
-        self.tk_window.protocol("WM_DELETE_WINDOW", self.cancel)
-        self.tk_window.wm_title("tqdm_tk")
-        self.tk_window.wm_attributes("-topmost", 1)
-        self.tk_window.after(
+        self._tk_window.protocol("WM_DELETE_WINDOW", self.cancel)
+        self._tk_window.wm_title("tqdm_tk")
+        self._tk_window.wm_attributes("-topmost", 1)
+        self._tk_window.after(
             0,
-            lambda: self.tk_window.wm_attributes("-topmost", 0),
+            lambda: self._tk_window.wm_attributes("-topmost", 0),
         )
-        self.tk_n_var = tkinter.DoubleVar(self.tk_window, value=0)
-        self.tk_desc_var = tkinter.StringVar(self.tk_window)
-        self.tk_desc_var.set(self.desc)
-        self.tk_text_var = tkinter.StringVar(self.tk_window)
-        pbar_frame = ttk.Frame(self.tk_window, padding=5)
+        self._tk_n_var = tkinter.DoubleVar(self._tk_window, value=0)
+        self._tk_desc_var = tkinter.StringVar(self._tk_window)
+        self._tk_desc_var.set(self.desc)
+        self._tk_text_var = tkinter.StringVar(self._tk_window)
+        pbar_frame = ttk.Frame(self._tk_window, padding=5)
         pbar_frame.pack()
-        self.tk_desc_frame = ttk.Frame(pbar_frame)
-        self.tk_desc_frame.pack()
-        self.tk_desc_var.set(self.desc)
+        self._tk_desc_frame = ttk.Frame(pbar_frame)
+        self._tk_desc_frame.pack()
+        self._tk_desc_var.set(self.desc)
         # avoid importing ttk in display method
-        self.ttk_label = ttk.Label
+        self._ttk_label = ttk.Label
         if self.desc:
-            self.tk_desc_label = self.ttk_label(
-                self.tk_desc_frame,
-                textvariable=self.tk_desc_var,
+            self._tk_desc_label = self._ttk_label(
+                self._tk_desc_frame,
+                textvariable=self._tk_desc_var,
                 wraplength=600,
                 anchor="center",
                 justify="center",
             )
-            self.tk_desc_label.pack()
+            self._tk_desc_label.pack()
         else:
-            self.tk_desc_label = None
-        self.tk_label = self.ttk_label(
+            self._tk_desc_label = None
+        self._tk_label = self._ttk_label(
             pbar_frame,
-            textvariable=self.tk_text_var,
+            textvariable=self._tk_text_var,
             wraplength=600,
             anchor="center",
             justify="center",
         )
-        self.tk_label.pack()
-        self.tk_pbar = ttk.Progressbar(
+        self._tk_label.pack()
+        self._tk_pbar = ttk.Progressbar(
             pbar_frame,
-            variable=self.tk_n_var,
+            variable=self._tk_n_var,
             length=450,
         )
         if self.total is not None:
-            self.tk_pbar.configure(maximum=self.total)
+            self._tk_pbar.configure(maximum=self.total)
         else:
-            self.tk_pbar.configure(mode="indeterminate")
-        self.tk_pbar.pack()
+            self._tk_pbar.configure(mode="indeterminate")
+        self._tk_pbar.pack()
         if self._cancel_callback is not None:
-            self.tk_button = ttk.Button(
+            self._tk_button = ttk.Button(
                 pbar_frame,
                 text="Cancel",
                 command=self.cancel,
             )
-            self.tk_button.pack()
+            self._tk_button.pack()
         if grab:
-            self.tk_window.grab_set()
+            self._tk_window.grab_set()
 
     def refresh(self, nolock=True, lock_args=None):
         """
@@ -332,23 +332,23 @@ class tqdm_tk(std_tqdm):
         return super(tqdm_tk, self).refresh(nolock, lock_args)
 
     def display(self):
-        self.tk_n_var.set(self.n)
+        self._tk_n_var.set(self.n)
         if self.desc:
-            if self.tk_desc_label is None:
-                self.tk_desc_label = self.ttk_label(
-                    self.tk_desc_frame,
-                    textvariable=self.tk_desc_var,
+            if self._tk_desc_label is None:
+                self._tk_desc_label = self._ttk_label(
+                    self._tk_desc_frame,
+                    textvariable=self._tk_desc_var,
                     wraplength=600,
                     anchor="center",
                     justify="center",
                 )
-                self.tk_desc_label.pack()
-            self.tk_desc_var.set(self.desc)
+                self._tk_desc_label.pack()
+            self._tk_desc_var.set(self.desc)
         else:
-            if self.tk_desc_label is not None:
-                self.tk_desc_label.destroy()
-                self.tk_desc_label = None
-        self.tk_text_var.set(
+            if self._tk_desc_label is not None:
+                self._tk_desc_label.destroy()
+                self._tk_desc_label = None
+        self._tk_text_var.set(
             self.format_meter(
                 n=self.n,
                 total=self.total,
@@ -364,8 +364,8 @@ class tqdm_tk(std_tqdm):
                 unit_divisor=self.unit_divisor,
             )
         )
-        if not self.tk_dispatching:
-            self.tk_window.update()
+        if not self._tk_dispatching:
+            self._tk_window.update()
 
     def cancel(self):
         """Call cancel_callback and close the progress bar"""
@@ -375,7 +375,7 @@ class tqdm_tk(std_tqdm):
 
     def reset(self, total=None):
         if total is not None and not self.disable:
-            self.tk_pbar.configure(maximum=total)
+            self._tk_pbar.configure(maximum=total)
         super(tqdm_tk, self).reset(total)
 
     def close(self):
@@ -388,19 +388,19 @@ class tqdm_tk(std_tqdm):
             self._instances.remove(self)
 
         def _close():
-            self.tk_window.after(0, self.tk_window.destroy)
-            if not self.tk_dispatching:
-                self.tk_window.update()
+            self._tk_window.after(0, self._tk_window.destroy)
+            if not self._tk_dispatching:
+                self._tk_window.update()
 
-        self.tk_window.protocol("WM_DELETE_WINDOW", _close)
+        self._tk_window.protocol("WM_DELETE_WINDOW", _close)
         if not self.leave:
             _close()
 
-    def tk_dispatching_helper(self):
+    def _tk_dispatching_helper(self):
         """determine if Tkinter mainloop is dispatching events"""
         try:
             # Landing in CPython 3.10
-            return self.tk_window.dispatching()
+            return self._tk_window.dispatching()
         except AttributeError:
             pass
 
