@@ -281,7 +281,7 @@ in public media.
 
 # Licence
 
-`tqdm`'s source code is an open-source software (OSS), and all versions are archived
+`tqdm`'s source code is open-source software (OSS), and all versions are archived
 at the DOI [10.5281/zenodo.595120](https://doi.org/10.5281/zenodo.595120). The primary
 maintainer [Casper da Costa-Luis](https://github.com/casperdcl) releases
 contributions under the terms of the MPLv2.0, while all other contributions are
