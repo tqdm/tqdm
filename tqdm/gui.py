@@ -246,10 +246,10 @@ class tqdm_tk(std_tqdm):  # pragma: no cover
         if tk_parent is None:
             # this will error if tkinter.NoDefaultRoot() called
             try:
-                tkparent = tkinter._default_root
+                tk_parent = tkinter._default_root
             except AttributeError:
                 raise ValueError("tk_parent required when using NoDefaultRoot")
-            if tkparent is None:
+            if tk_parent is None:
                 # use new default root window as display
                 self._tk_window = tkinter.Tk()
             else:
@@ -273,22 +273,17 @@ class tqdm_tk(std_tqdm):  # pragma: no cover
             lambda: self._tk_window.wm_attributes("-topmost", 0),
         )
         self._tk_n_var = tkinter.DoubleVar(self._tk_window, value=0)
-        self._tk_desc_var = tkinter.StringVar(self._tk_window)
-        self._tk_desc_var.set(self.desc)
         self._tk_text_var = tkinter.StringVar(self._tk_window)
         pbar_frame = ttk.Frame(self._tk_window, padding=5)
         pbar_frame.pack()
-        self._tk_desc_frame = ttk.Frame(pbar_frame)
-        self._tk_desc_frame.pack()
-        self._tk_desc_var.set(self.desc)
-        self._tk_label = ttk.Label(
+        _tk_label = ttk.Label(
             pbar_frame,
             textvariable=self._tk_text_var,
             wraplength=600,
             anchor="center",
             justify="center",
         )
-        self._tk_label.pack()
+        _tk_label.pack()
         self._tk_pbar = ttk.Progressbar(
             pbar_frame,
             variable=self._tk_n_var,
@@ -300,12 +295,12 @@ class tqdm_tk(std_tqdm):  # pragma: no cover
             self._tk_pbar.configure(mode="indeterminate")
         self._tk_pbar.pack()
         if self._cancel_callback is not None:
-            self._tk_button = ttk.Button(
+            _tk_button = ttk.Button(
                 pbar_frame,
                 text="Cancel",
                 command=self.cancel,
             )
-            self._tk_button.pack()
+            _tk_button.pack()
         if grab:
             self._tk_window.grab_set()
 
