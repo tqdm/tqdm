@@ -199,6 +199,20 @@ class tqdm_tk(std_tqdm):  # pragma: no cover
     """
 
     def __init__(self, *args, **kwargs):
+        """
+        This class accepts the following parameters *in addition* to
+        the parameters accepted by tqdm.
+
+        Parameters
+        ----------
+        grab  : bool, optional
+            Grab the input across all windows of the process.
+        tk_parent  : tkinter.Wm, optional
+            Parent Tk window.
+        cancel_callback  : Callable, optional
+            Create a cancel button and set cancel_callback to be called
+            when the cancel or window close button is clicked.
+        """
         try:
             grab = kwargs.pop("grab")
         except KeyError:
