@@ -227,15 +227,15 @@ Supported features include:
 
 A CLI is also provided, where `tqdm` may be used a pipe:
 
-```sh
+```console
  # count lines of text in all *.txt files
-$ cat *.txt | wc -l
+$ cat *.txt | wc -l
 1075075
  # same but with continuously updating progress information
-$ cat *.txt | python3 -m tqdm --unit loc --unit_scale | wc -l
+$ cat *.txt | python3 -m tqdm --unit loc --unit_scale | wc -l
 1.08Mloc [00:07, 142kloc/s]
  # same if `total` is known
-$ cat *.txt | python3 -m tqdm --unit loc --unit_scale --total 1075075 | wc -l
+$ cat *.txt | python3 -m tqdm --unit loc --unit_scale --total 1075075 | wc -l
 100%|#####################################| 1.08/1.08M [00:07<00:00,  142kloc/s]
 1075075
 ```
