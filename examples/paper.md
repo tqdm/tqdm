@@ -187,7 +187,7 @@ from time import sleep
 for i in tqdm(range(100)):
     sleep(0.1)
 ```
-```sh
+```
 100%|#########################################| 100/100 [00:10<00:00,  9.95it/s]
 ```
 
@@ -201,7 +201,7 @@ with tqdm() as pbar:
         sleep(0.1)
         pbar.update(1)
 ```
-```sh
+```
 146it [00:14,  9.89it/s]
 ```
 
