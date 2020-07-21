@@ -358,8 +358,19 @@ class tqdm_tk(std_tqdm):  # pragma: no cover
         self.close()
 
     def reset(self, total=None):
-        if total is not None and not self.disable:
-            self._tk_pbar.configure(maximum=total)
+        """
+        Resets to 0 iterations for repeated use.
+
+        Parameters
+        ----------
+        total  : int or float, optional. Total to use for the new bar.
+                 If not set, transform progress bar to indeterminate mode.
+        """
+        if not self.disable:
+            if total is None:
+                self._tk_pbar.configure(maximum=100, mode="indeterminate")
+            else:
+                self._tk_pbar.configure(maximum=total, mode="determinate")
         super(tqdm_tk, self).reset(total)
 
     def close(self):
