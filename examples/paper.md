@@ -135,7 +135,7 @@ However, there are many improvements which could be made in such a scenario:
 - preventing expensive I/O access such as excessive printing and time access,
   by a dual memoization of time and iterations (e.g., allowing to display only
   every $n$^th^ iteration);
-- leverage Pythonic structures such as iterables to ease and universalize
+- use Pythonic structures such as iterables to ease and universalize
   progress meter calls;
 - displaying iteration rate, elapsed and estimated completion times;
 - showing all of the above on one continuously updating line;
