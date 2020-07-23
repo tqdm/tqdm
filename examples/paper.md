@@ -135,7 +135,7 @@ However, there are many improvements which could be made in such a scenario:
 - preventing expensive I/O access such as excessive printing and time access,
   by a dual memoization of time and iterations (e.g., allowing to display only
   every $n$^th^ iteration);
-- leverage Pythonic structures such as iterables to ease and universalize
+- use Pythonic structures such as iterables to ease and universalize
   progress meter calls;
 - displaying iteration rate, elapsed and estimated completion times;
 - showing all of the above on one continuously updating line;
@@ -187,7 +187,7 @@ from time import sleep
 for i in tqdm(range(100)):
     sleep(0.1)
 ```
-```sh
+```
 100%|#########################################| 100/100 [00:10<00:00,  9.95it/s]
 ```
 
@@ -201,7 +201,7 @@ with tqdm() as pbar:
         sleep(0.1)
         pbar.update(1)
 ```
-```sh
+```
 146it [00:14,  9.89it/s]
 ```
 
@@ -227,15 +227,15 @@ Supported features include:
 
 A CLI is also provided, where `tqdm` may be used a pipe:
 
-```sh
+```console
  # count lines of text in all *.txt files
-$ cat *.txt | wc -l
+$ cat *.txt | wc -l
 1075075
  # same but with continuously updating progress information
-$ cat *.txt | python3 -m tqdm --unit loc --unit_scale | wc -l
+$ cat *.txt | python3 -m tqdm --unit loc --unit_scale | wc -l
 1.08Mloc [00:07, 142kloc/s]
  # same if `total` is known
-$ cat *.txt | python3 -m tqdm --unit loc --unit_scale --total 1075075 | wc -l
+$ cat *.txt | python3 -m tqdm --unit loc --unit_scale --total 1075075 | wc -l
 100%|#####################################| 1.08/1.08M [00:07<00:00,  142kloc/s]
 1075075
 ```
@@ -281,7 +281,7 @@ in public media.
 
 # Licence
 
-`tqdm`'s source code is an open-source software (OSS), and all versions are archived
+`tqdm`'s source code is open-source software (OSS), and all versions are archived
 at the DOI [10.5281/zenodo.595120](https://doi.org/10.5281/zenodo.595120). The primary
 maintainer [Casper da Costa-Luis](https://github.com/casperdcl) releases
 contributions under the terms of the MPLv2.0, while all other contributions are
