@@ -112,6 +112,8 @@ CLI_EXTRA_DOC = r"""
         bytes  : bool, optional
             If true, will count bytes, ignore `delim`, and default
             `unit_scale` to True, `unit_divisor` to 1024, and `unit` to 'B'.
+        tee  : bool, optional
+            If true, outputs to both `stdin` and `stdout`.
         manpath  : str, optional
             Directory in which to install tqdm man pages.
         comppath  : str, optional
@@ -204,6 +206,7 @@ Options:
         buf_size = tqdm_args.pop('buf_size', 256)
         delim = tqdm_args.pop('delim', '\n')
         delim_per_char = tqdm_args.pop('bytes', False)
+        tee = tqdm_args.pop('tee', False)
         manpath = tqdm_args.pop('manpath', None)
         comppath = tqdm_args.pop('comppath', None)
         stdin = getattr(sys.stdin, 'buffer', sys.stdin)
@@ -225,6 +228,16 @@ Options:
                                      'tqdm/completion.sh'),
                    path.join(comppath, 'tqdm_completion.sh'))
             sys.exit(0)
+        if tee:
+            stdout_write = stdout.write
+            fp_write = getattr(fp, 'buffer', fp).write
+
+            class stdout(object):
+                @staticmethod
+                def write(x):
+                    with tqdm.external_write_mode(file=fp):
+                        fp_write(x)
+                    stdout_write(x)
         if delim_per_char:
             tqdm_args.setdefault('unit', 'B')
             tqdm_args.setdefault('unit_scale', True)
