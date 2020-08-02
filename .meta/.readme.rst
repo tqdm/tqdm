@@ -7,7 +7,7 @@ tqdm
 
 |Build-Status| |Coverage-Status| |Branch-Coverage-Status| |Codacy-Grade| |Libraries-Rank| |PyPI-Downloads|
 
-|DOI| |LICENCE| |OpenHub-Status| |binder-demo| |notebook-demo| |awesome-python|
+|LICENCE| |OpenHub-Status| |binder-demo| |notebook-demo| |awesome-python|
 
 ``tqdm`` derives from the Arabic word *taqaddum* (تقدّم) which can mean "progress,"
 and is an abbreviation for "I love you so much" in Spanish (*te quiero demasiado*).
@@ -1056,7 +1056,7 @@ LICENCE
 
 Open Source (OSI approved): |LICENCE|
 
-Citation information: |DOI| (publication), |DOI-code| (code)
+Citation information: |DOI|
 
 |README-Hits| (Since 19 May 2016)
 
@@ -1116,9 +1116,7 @@ Citation information: |DOI| (publication), |DOI-code| (code)
    :target: https://github.com/vinta/awesome-python
 .. |LICENCE| image:: https://img.shields.io/pypi/l/tqdm.svg
    :target: https://raw.githubusercontent.com/tqdm/tqdm/master/LICENCE
-.. |DOI| image:: https://img.shields.io/badge/DOI-10.21105/joss.01277-green.svg
-   :target: https://doi.org/10.21105/joss.01277
-.. |DOI-code| image:: https://img.shields.io/badge/DOI-10.5281/zenodo.595120-blue.svg
+.. |DOI| image:: https://img.shields.io/badge/DOI-10.5281/zenodo.595120-blue.svg
    :target: https://doi.org/10.5281/zenodo.595120
 .. |notebook-demo| image:: https://img.shields.io/badge/launch-notebook-orange.svg?logo=jupyter
    :target: https://notebooks.ai/demo/gh/tqdm/tqdm
