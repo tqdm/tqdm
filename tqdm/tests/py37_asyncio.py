@@ -37,15 +37,15 @@ async def acount(*args, **kwargs):
 async def test_generators():
     """Test asyncio generators"""
     with closing(StringIO()) as our_file:
-        async for row in tqdm(count(), desc="counter", file=our_file):
-            if row >= 8:
+        async for i in tqdm(count(), desc="counter", file=our_file):
+            if i >= 8:
                 break
         assert '9it' in our_file.getvalue()
         our_file.seek(0)
         our_file.truncate()
 
-        async for row in tqdm(acount(), desc="async_counter", file=our_file):
-            if row >= 8:
+        async for i in tqdm(acount(), desc="async_counter", file=our_file):
+            if i >= 8:
                 break
         assert '9it' in our_file.getvalue()
 
@@ -54,13 +54,13 @@ async def test_generators():
 async def test_range():
     """Test asyncio range"""
     with closing(StringIO()) as our_file:
-        async for row in tqdm(range(9), desc="range", file=our_file):
+        async for _ in tqdm(range(9), desc="range", file=our_file):
             pass
         assert '9/9' in our_file.getvalue()
         our_file.seek(0)
         our_file.truncate()
 
-        async for row in trange(9, desc="trange", file=our_file):
+        async for _ in trange(9, desc="trange", file=our_file):
             pass
         assert '9/9' in our_file.getvalue()
 
@@ -69,8 +69,8 @@ async def test_range():
 async def test_nested():
     """Test asyncio nested"""
     with closing(StringIO()) as our_file:
-        async for row in tqdm(trange(9, desc="inner", file=our_file),
-                              desc="outer", file=our_file):
+        async for _ in tqdm(trange(9, desc="inner", file=our_file),
+                            desc="outer", file=our_file):
             pass
         assert 'inner: 100%' in our_file.getvalue()
         assert 'outer: 100%' in our_file.getvalue()
@@ -81,11 +81,11 @@ async def test_coroutines():
     """Test asyncio coroutine.send"""
     with closing(StringIO()) as our_file:
         with tqdm(count(), file=our_file) as pbar:
-            async for row in pbar:
-                if row == 9:
+            async for i in pbar:
+                if i == 9:
                     pbar.send(-10)
-                elif row < 0:
-                    assert row == -9
+                elif i < 0:
+                    assert i == -9
                     break
         assert '10it' in our_file.getvalue()
 
@@ -96,8 +96,8 @@ async def test_as_completed():
     with closing(StringIO()) as our_file:
         t = time()
         skew = time() - t
-        for i in as_completed([asyncio.sleep(0.01) for _ in range(100)],
-                              file=our_file):
+        for i in as_completed([asyncio.sleep(0.01 * i)
+                               for i in range(30, 0, -1)], file=our_file):
             await i
-        assert time() - t - 2 * skew < (0.01 * 100) / 2, "Assuming >= 2 cores"
-        assert '100/100' in our_file.getvalue()
+        assert 0.29 < time() - t - 2 * skew < 0.31
+        assert '30/30' in our_file.getvalue()

@@ -4,7 +4,6 @@ Thin wrappers around `concurrent.futures`.
 from __future__ import absolute_import
 from tqdm import TqdmWarning
 from tqdm.auto import tqdm as tqdm_auto
-from copy import deepcopy
 try:
     from operator import length_hint
 except ImportError:
@@ -37,7 +36,7 @@ def _executor_map(PoolExecutor, fn, *iterables, **tqdm_kwargs):
     max_workers  : [default: min(32, cpu_count() + 4)].
     chunksize  : [default: 1].
     """
-    kwargs = deepcopy(tqdm_kwargs)
+    kwargs = tqdm_kwargs.copy()
     if "total" not in kwargs:
         kwargs["total"] = len(iterables[0])
     tqdm_class = kwargs.pop("tqdm_class", tqdm_auto)

@@ -42,7 +42,7 @@ jobs:
         GIT_AUTHOR_NAME: ${{ github.actor }}
         GIT_AUTHOR_EMAIL: ${{ github.actor }}@users.noreply.github.com
   testasv:
-    if: github.event_name == 'push' && ! startsWith(github.event.ref, 'refs/tags')
+    if: github.event_name == 'push' && ! startsWith(github.event.ref, 'refs/tags') && github.event.ref != 'refs/heads/master'
     name: Branch
     runs-on: ubuntu-latest
     steps:
@@ -70,3 +70,7 @@ jobs:
         CHANGES="$(asv compare --only-changed -f 1.25 master HEAD)"
         echo "$CHANGES"
         [ -z "$CHANGES" ] || exit 1
+  always:
+    runs-on: ubuntu-latest
+    steps:
+    - run: echo prevent failure when other jobs are skipped

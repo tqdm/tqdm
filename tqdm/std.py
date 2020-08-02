@@ -301,7 +301,7 @@ class tqdm(Comparable):
         last_len = [0]
 
         def print_status(s):
-            len_s = len(s)
+            len_s = disp_len(s)
             fp_write('\r' + s + (' ' * max(last_len[0] - len_s, 0)))
             last_len[0] = len_s
 

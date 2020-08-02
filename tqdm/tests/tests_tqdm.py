@@ -920,12 +920,12 @@ def test_infinite_total():
 def test_nototal():
     """Test unknown total length"""
     with closing(StringIO()) as our_file:
-        for i in tqdm((i for i in range(10)), file=our_file, unit_scale=10):
+        for _ in tqdm((i for i in range(10)), file=our_file, unit_scale=10):
             pass
         assert "100it" in our_file.getvalue()
 
     with closing(StringIO()) as our_file:
-        for i in tqdm((i for i in range(10)), file=our_file,
+        for _ in tqdm((i for i in range(10)), file=our_file,
                       bar_format="{l_bar}{bar}{r_bar}"):
             pass
         assert "10/?" in our_file.getvalue()
@@ -1196,7 +1196,7 @@ def test_custom_format():
             return d
 
     with closing(StringIO()) as our_file:
-        for i in TqdmExtraFormat(
+        for _ in TqdmExtraFormat(
                 range(10), file=our_file,
                 bar_format="{total_time}: {percentage:.0f}%|{bar}{r_bar}"):
             pass

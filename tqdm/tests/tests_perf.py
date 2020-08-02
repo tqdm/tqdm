@@ -240,7 +240,6 @@ def test_lock_args():
         from threading import RLock
     except ImportError:
         raise SkipTest
-    import sys
 
     total = 8
     subtotal = 1000
@@ -283,7 +282,7 @@ def test_iter_overhead_hard():
                 a += i
                 our_file.write(("%i" % a) * 40)
 
-    assert_performance(85, 'trange', time_tqdm(), 'range', time_bench())
+    assert_performance(125, 'trange', time_tqdm(), 'range', time_bench())
 
 
 @with_setup(pretest, posttest)
@@ -308,7 +307,7 @@ def test_manual_overhead_hard():
                 a += i
                 our_file.write(("%i" % a) * 40)
 
-    assert_performance(85, 'tqdm', time_tqdm(), 'range', time_bench())
+    assert_performance(125, 'tqdm', time_tqdm(), 'range', time_bench())
 
 
 @with_setup(pretest, posttest)
@@ -335,7 +334,7 @@ def test_iter_overhead_simplebar_hard():
                 a += i
 
     assert_performance(
-        5, 'trange', time_tqdm(), 'simple_progress', time_bench())
+        7.5, 'trange', time_tqdm(), 'simple_progress', time_bench())
 
 
 @with_setup(pretest, posttest)
@@ -364,4 +363,4 @@ def test_manual_overhead_simplebar_hard():
                 simplebar_update(10)
 
     assert_performance(
-        5, 'tqdm', time_tqdm(), 'simple_progress', time_bench())
+        7.5, 'tqdm', time_tqdm(), 'simple_progress', time_bench())

@@ -19,6 +19,12 @@ def test_enumerate():
         a = range(9)
         assert list(tenumerate(a, file=our_file)) == list(enumerate(a))
         assert list(tenumerate(a, 42, file=our_file)) == list(enumerate(a, 42))
+    with closing(StringIO()) as our_file:
+        _ = list(tenumerate((i for i in a), file=our_file))
+        assert "100%" not in our_file.getvalue()
+    with closing(StringIO()) as our_file:
+        _ = list(tenumerate((i for i in a), file=our_file, total=len(a)))
+        assert "100%" in our_file.getvalue()
 
 
 @with_setup(pretest, posttest)

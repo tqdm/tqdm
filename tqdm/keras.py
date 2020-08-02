@@ -1,6 +1,6 @@
 from __future__ import absolute_import, division
 from .auto import tqdm as tqdm_auto
-from copy import deepcopy
+from copy import copy
 try:
     import keras
 except ImportError as e:
@@ -20,7 +20,7 @@ class TqdmCallback(keras.callbacks.Callback):
             n = delta(logs)
             if logs:
                 if pop:
-                    logs = deepcopy(logs)
+                    logs = copy(logs)
                     [logs.pop(i, 0) for i in pop]
                 bar.set_postfix(logs, refresh=False)
             bar.update(n)
