@@ -103,6 +103,8 @@ class tqdm_notebook(std_tqdm):
             pbar = IProgress(min=0, max=1)
             pbar.value = 1
             pbar.bar_style = 'info'
+            if ncols is None:
+                pbar.layout.width = "20px"
 
         if desc:
             pbar.description = desc
@@ -128,6 +130,13 @@ class tqdm_notebook(std_tqdm):
         display(container)
 
         return container
+
+    @staticmethod
+    def format_meter(n, total, *args, **kwargs):
+        if total and 'bar_format' not in kwargs:
+            kwargs = kwargs.copy()
+            kwargs['bar_format'] = "{l_bar}<bar/>{r_bar}"
+        return std_tqdm.format_meter(n, total, *args, **kwargs)
 
     def display(self, msg=None, pos=None,
                 # additional signals
@@ -182,6 +191,7 @@ class tqdm_notebook(std_tqdm):
                 self.container.visible = False
 
     def __init__(self, *args, **kwargs):
+        kwargs = kwargs.copy()
         # Setup default output
         file_kwarg = kwargs.get('file', sys.stderr)
         if file_kwarg is sys.stderr or file_kwarg is None:
@@ -189,8 +199,9 @@ class tqdm_notebook(std_tqdm):
 
         # Initialize parent class + avoid printing by using gui=True
         kwargs['gui'] = True
-        kwargs.setdefault('bar_format', '{l_bar}{bar}{r_bar}')
-        kwargs['bar_format'] = kwargs['bar_format'].replace('{bar}', '<bar/>')
+        if 'bar_format' in kwargs:
+            kwargs['bar_format'] = kwargs['bar_format'].replace(
+                '{bar}', '<bar/>')
         # convert disable = None to False
         kwargs['disable'] = bool(kwargs.get('disable', False))
         super(tqdm_notebook, self).__init__(*args, **kwargs)
