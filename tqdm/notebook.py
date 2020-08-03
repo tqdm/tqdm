@@ -133,7 +133,7 @@ class tqdm_notebook(std_tqdm):
 
     @staticmethod
     def format_meter(n, total, *args, **kwargs):
-        if total and 'bar_format' not in kwargs:
+        if total and kwargs.get('bar_format', None) is None:
             kwargs = kwargs.copy()
             kwargs['bar_format'] = "{l_bar}<bar/>{r_bar}"
         return std_tqdm.format_meter(n, total, *args, **kwargs)
