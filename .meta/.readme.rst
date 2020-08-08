@@ -298,7 +298,7 @@ of a neat one-line progress bar.
 - Unicode:
 
   * Environments which report that they support unicode will have solid smooth
-    progressbars. The fallback is an ```ascii``-only bar.
+    progressbars. The fallback is an ``ascii``-only bar.
   * Windows consoles often only partially support unicode and thus
     `often require explicit ascii=True <https://github.com/tqdm/tqdm/issues/454#issuecomment-335416815>`__
     (also `here <https://github.com/tqdm/tqdm/issues/499>`__). This is due to
@@ -842,10 +842,13 @@ For further customisation,
 Consider overloading ``display()`` to use e.g.
 ``self.frontend(**self.format_dict)`` instead of ``self.sp(repr(self))``.
 
-`tqdm/notebook.py <https://github.com/tqdm/tqdm/blob/master/tqdm/notebook.py>`__
-and `tqdm/gui.py <https://github.com/tqdm/tqdm/blob/master/tqdm/gui.py>`__
-submodules are examples of inheritance which don't (yet) strictly conform to the
-above recommendation.
+Some submodule examples of inheritance which don't (yet) strictly conform to the
+above recommendation:
+
+- `tqdm/notebook.py <https://github.com/tqdm/tqdm/blob/master/tqdm/notebook.py>`__
+- `tqdm/gui.py <https://github.com/tqdm/tqdm/blob/master/tqdm/gui.py>`__
+- `tqdm/contrib/telegram.py <https://github.com/tqdm/tqdm/blob/master/tqdm/contrib/telegram.py>`__
+- `tqdm/contrib/discord.py <https://github.com/tqdm/tqdm/blob/master/tqdm/contrib/discord.py>`__
 
 Dynamic Monitor/Meter
 ~~~~~~~~~~~~~~~~~~~~~
