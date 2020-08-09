@@ -85,8 +85,10 @@ def sklearn(tclass, *targs, **tkwargs):
             self = option
             estimator = self.estimator
             option = 'SearchCV'
+        else:
+            self = None
         if (('verbose' in kwargs and kwargs['verbose'] >= 1)
-            or ('self' in locals() and self.verbose >= 1)):
+            or (self is not None and self.verbose >= 1)):
             warnings.warn(('Using verbose with tqdm can cause display issues with tqdm'
                           ' and/or the verbose messages'),
                           category=RuntimeWarning, stacklevel=2)
