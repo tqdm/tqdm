@@ -24,7 +24,7 @@ import threading as th
 from warnings import warn
 
 __author__ = {"github.com/": ["noamraph", "obiwanus", "kmike", "hadim",
-                              "casperdcl", "lrq3000"]}
+                              "casperdcl", "lrq3000", "TurretAA12"]}
 __all__ = ['tqdm', 'trange',
            'TqdmTypeError', 'TqdmKeyError', 'TqdmWarning',
            'TqdmExperimentalWarning', 'TqdmDeprecationWarning',
