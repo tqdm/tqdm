@@ -22,11 +22,11 @@ def sklearn(tclass, *targs, **tkwargs):
     a tqdm version of the function is registered with sklearn.
     The tqdm function can be accessed by adding the letter 'p' to
     the beginning of name of the function.  For example, the tqdm
-    version of 'cross_val_predict' would be accessed as 'pcross_val_predict'
+    version of `cross_val_predict` would be accessed as `pcross_val_predict`
     The tqdm functions also have one other alias which is accessed
     similarly to the tqdm pandas methods; by adding 'progress_' to the
     beginning of the function name. For example, the tqdm version of
-    'cross_val_predict' can also be accessed as 'progress_cross_val_predict'.
+    `cross_val_predict` can also be accessed as `progress_cross_val_predict`.
 
     Example 1
     ---------
