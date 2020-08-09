@@ -71,7 +71,8 @@ def sklearn(tclass, *targs, **tkwargs):
 
     earliest_supported_version = (0, 22, 1)
     if tuple(map(int, sklearn.__version__.split('.'))) < earliest_supported_version:
-        warnings.warn("tqdm.sklearn() has not been tested on versions of sklearn earlier than {}".format(".".join(map(str, earliest_supported_version))), category=RuntimeWarning, stacklevel=2)
+        warnings.warn("tqdm.sklearn() has not been tested on versions of sklearn earlier than {}" \
+                    .format(".".join(map(str, earliest_supported_version))), category=RuntimeWarning, stacklevel=2)
 
     # Maintainers do not forget to look at the default value of cv it may change over time and has changed in the past
     def progress_cross_val(option, estimator, X, *args, **kwargs):
@@ -84,10 +85,14 @@ def sklearn(tclass, *targs, **tkwargs):
             self = option
             estimator = self.estimator
             option = 'SearchCV'
-        if ('verbose' in kwargs and kwargs['verbose'] >= 1) or ('self' in locals() and self.verbose >= 1):
-            warnings.warn('Using verbose with tqdm can cause display issues with tqdm and/or the verbose messages', category=RuntimeWarning, stacklevel=2)
+        if (('verbose' in kwargs and kwargs['verbose'] >= 1)
+            or ('self' in locals() and self.verbose >= 1)):
+            warnings.warn(('Using verbose with tqdm can cause display issues with tqdm'
+                          ' and/or the verbose messages'),
+                          category=RuntimeWarning, stacklevel=2)
 
-        assert option in valid_options, "[tqdm: Internal] progress_cross_val() {} not in valid options".format(option)
+        assert option in valid_options, "[tqdm: Internal] progress_cross_val() {} not in valid options" \
+                                        .format(option)
 
         option, validate = ('score', True) if option == 'validate' else (option, False)
         option, learning_curve = ('score', True) if option == 'learning_curve' else (option, False)
@@ -143,7 +148,8 @@ def sklearn(tclass, *targs, **tkwargs):
                 elif validation_curve:
                     final_func = 'validation_curve'
                 else:
-                    final_func = "cross_{}".format('validate' if validate else 'val_{}'.format(option))
+                    final_func = "cross_{}".format('validate' if validate else 'val_{}' \
+                                    .format(option))
 
                 if SearchCV:
                     return self.fit(X, *args, **kwargs)
@@ -157,7 +163,9 @@ def sklearn(tclass, *targs, **tkwargs):
     cross_val_score_alias = ['progress_cross_val_score', 'pcvs', 'pcross_val_score']
     cross_validate_alias = ['progress_cross_validate', 'pcv', 'pcross_validate']
     learning_curve_alias = ['progress_learning_curve', 'plc', 'plearning_curve']
-    permutation_test_score_alias = ['progress_permutation_test_score', 'ppts', 'ppermutation_test_score']
+    permutation_test_score_alias = ['progress_permutation_test_score',
+                                    'ppts',
+                                    'ppermutation_test_score']
     validation_curve_alias = ['progress_validation_curve', 'pvc', 'pvalidation_curve']
     SearchCV_alias = ['progress_fit']
 
@@ -184,8 +192,10 @@ def sklearn(tclass, *targs, **tkwargs):
             option = 'validation_curve'
         elif name in SearchCV_alias:
             option = 'SearchCV'
-            setattr(model_selection.GridSearchCV, name, functools.partialmethod(progress_cross_val, option))
-            setattr(model_selection.RandomizedSearchCV, name, functools.partialmethod(progress_cross_val, option))
+            setattr(model_selection.GridSearchCV, name,
+                    functools.partialmethod(progress_cross_val, option))
+            setattr(model_selection.RandomizedSearchCV, name,
+                    functools.partialmethod(progress_cross_val, option))
             continue
 
         setattr(model_selection, name, functools.partial(progress_cross_val, option))
