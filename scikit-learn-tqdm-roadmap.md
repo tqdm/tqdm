@@ -26,4 +26,3 @@ In conclusion, the first stepping stone for the project is to make as many estim
 * Your probably going to need to learn every estimator in scikit-learn really well so yeah.
 * Take inspiration from the `tqdm.pandas` implementation.  Very well done 👏
 * Probably want to work in another file so everything isn't so cluttered but don't know whether or not in the final version everything will remain in that separate file so that will need to be determined
-* Also DON'T FORGET TO REMOVE YOUR EDIT TO THE PANDAS function.  The objective is not edit already existing code but modify new code.
