@@ -23,7 +23,7 @@ In conclusion, the first stepping stone for the project is to make as many estim
 * See what you can do to implement tqdm no matter how the computation is being done in fit/predict methods. IK that there are some crazy computational tricks going on in the euclidean function of scikit-learn, so decode that and see what u can do without *tanking* computational time.
 * Once the `cross_val_predict` function is implemented hopefully it will be relatively easy to implement all the other `model_selection` functions will be relatively easy to implement
 * It's gonna be interesting to see how your going to communicate the lower level `fit`/`predict` functions with the upper level `cross_val_predict` function
-* Your probably going to need to learn every estimator in scikit-learn really so yeah.
+* Your probably going to need to learn every estimator in scikit-learn really well so yeah.
 * Take inspiration from the `tqdm.pandas` implementation.  Very well done 👏
 * Probably want to work in another file so everything isn't so cluttered but don't know whether or not in the final version everything will remain in that separate file so that will need to be determined
 * Also DON'T FORGET TO REMOVE YOUR EDIT TO THE PANDAS function.  The objective is not edit already existing code but modify new code.
