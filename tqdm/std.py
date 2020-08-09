@@ -859,12 +859,11 @@ class tqdm(Comparable):
 
         import types
         import functools
-        import warnings
         import sklearn, sklearn.model_selection as model_selection
 
         earliest_supported_version = (0, 22, 1)
         if tuple(map(int, sklearn.__version__.split('.'))) < earliest_supported_version:
-            warnings.warn("tqdm.sklearn() has not been tested on versions of sklearn earlier than {}" \
+            warn("tqdm.sklearn() has not been tested on versions of sklearn earlier than {}" \
                         .format(".".join(map(str, earliest_supported_version))), category=RuntimeWarning, stacklevel=2)
 
         # Maintainers do not forget to look at the default value of cv,
@@ -883,7 +882,7 @@ class tqdm(Comparable):
                 self = None
             if (('verbose' in kwargs and kwargs['verbose'] >= 1)
                 or (self is not None and self.verbose >= 1)):
-                warnings.warn(('Using verbose with tqdm can cause display issues with tqdm'
+                warn(('Using verbose with tqdm can cause display issues with tqdm'
                               ' and/or the verbose messages'),
                               category=RuntimeWarning, stacklevel=2)
 
