@@ -864,7 +864,7 @@ class tqdm(Comparable):
         earliest_supported_version = (0, 22, 1)
         if tuple(map(int, sklearn.__version__.split('.'))) < earliest_supported_version:
             warn("tqdm.sklearn() has not been tested on versions of sklearn earlier than {}" \
-                        .format(".".join(map(str, earliest_supported_version))), category=RuntimeWarning, stacklevel=2)
+                        .format(".".join(map(str, earliest_supported_version))), category=TqdmWarning, stacklevel=2)
 
         # Maintainers do not forget to look at the default value of cv,
         # it may change over time and has changed in the past
@@ -884,7 +884,7 @@ class tqdm(Comparable):
                 or (self is not None and self.verbose >= 1)):
                 warn(('Using verbose with tqdm can cause display issues with tqdm'
                               ' and/or the verbose messages'),
-                              category=RuntimeWarning, stacklevel=2)
+                              category=TqdmWarning, stacklevel=2)
 
             assert option in valid_options, "[tqdm: Internal] progress_cross_val() {} not in valid options" \
                                             .format(option)
