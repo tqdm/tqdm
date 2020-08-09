@@ -867,7 +867,8 @@ class tqdm(Comparable):
             warnings.warn("tqdm.sklearn() has not been tested on versions of sklearn earlier than {}" \
                         .format(".".join(map(str, earliest_supported_version))), category=RuntimeWarning, stacklevel=2)
 
-        # Maintainers do not forget to look at the default value of cv it may change over time and has changed in the past
+        # Maintainers do not forget to look at the default value of cv,
+        # it may change over time and has changed in the past
         def progress_cross_val(option, estimator, X, *args, **kwargs):
             cv = kwargs['cv'] if 'cv' in kwargs else 5
             valid_options = ['predict', 'score', 'validate',
@@ -910,7 +911,9 @@ class tqdm(Comparable):
                 total = twargs['total']
             elif learning_curve:
                 total = len(kwargs['train_sizes']) if 'train_sizes' in kwargs else 5
-                total *= parsed_cv * 2 # The extra two is required because the `learning_curve` function trains on both training set and testing sets
+                # The extra two is required because the `learning_curve` function trains
+                # on both training set and testing sets
+                total *= parsed_cv * 2
             elif permutation_test_score:
                 total = kwargs['n_permutations'] if 'n_permutations' in kwargs else 100
                 total = total * parsed_cv + parsed_cv
@@ -925,10 +928,12 @@ class tqdm(Comparable):
             else:
                 total = parsed_cv
 
-            # `_save_me` is outside of try catch so in case something goes wrong in the try catch, whatever function/method (aka predict or score) we changed will go back to way it was no matter what
+            # `_save_me` is outside of try catch so in case something goes wrong in the try catch,
+            # whatever function/method (aka predict or score) we changed will go back to way it was no matter what
             _save_me = getattr(estimator.__class__, option)
             try:
-                # This is "Option 1" of the roadmap; This tracks folds/cvs in several of the model_selection methods/functions
+                # This is "Option 1" of the roadmap
+                # This tracks folds/cvs in several of the model_selection methods/functions
                 with tclass(*targs, total=total, **tkwargs) as t:
                     def update(self, func, *margs, **mkwargs):
                         assert callable(func), "func must a be function or method"
