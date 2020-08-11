@@ -24,7 +24,7 @@ import threading as th
 from warnings import warn
 
 __author__ = {"github.com/": ["noamraph", "obiwanus", "kmike", "hadim",
-                              "casperdcl", "lrq3000"]}
+                              "casperdcl", "lrq3000", "TurretAA12"]}
 __all__ = ['tqdm', 'trange',
            'TqdmTypeError', 'TqdmKeyError', 'TqdmWarning',
            'TqdmExperimentalWarning', 'TqdmDeprecationWarning',
@@ -390,7 +390,11 @@ class tqdm(Comparable):
         # if unspecified, attempt to use rate = average speed
         # (we allow manual override since predicting time is an arcane art)
         if rate is None and elapsed:
-            rate = n / elapsed
+            # Using initial to properly calculate average speed
+            # when an initial value is set in __init__
+            # See #689 for reference
+            initial = extra_kwargs.get('initial', 0)
+            rate = (n - initial) / elapsed
         inv_rate = 1 / rate if rate else None
         format_sizeof = tqdm.format_sizeof
         rate_noinv_fmt = ((format_sizeof(rate) if unit_scale else
@@ -1005,7 +1009,7 @@ class tqdm(Comparable):
         # Store the arguments
         self.iterable = iterable
         self.desc = desc or ''
-        self.total = total
+        self.total = total + initial if total else total
         self.leave = leave
         self.fp = file
         self.ncols = ncols
@@ -1032,6 +1036,10 @@ class tqdm(Comparable):
                 self.set_postfix(refresh=False, **postfix)
             except TypeError:
                 self.postfix = postfix
+
+        # Used to fix #689/#215 where the last iteration
+        # of the progress bar displays the rate incorrectly
+        self.initial = initial
 
         # Init the iterations counters
         self.last_print_n = initial
@@ -1448,7 +1456,7 @@ class tqdm(Comparable):
             unit_scale=self.unit_scale,
             rate=1 / self.avg_time if self.avg_time else None,
             bar_format=self.bar_format, postfix=self.postfix,
-            unit_divisor=self.unit_divisor)
+            unit_divisor=self.unit_divisor, initial=self.initial)
 
     def display(self, msg=None, pos=None):
         """
