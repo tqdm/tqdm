@@ -1,15 +1,18 @@
 from __future__ import division
+
+from tests_tqdm import (SkipTest, StringIO, closing, posttest, pretest,
+                        with_setup)
+
 from tqdm import tqdm
-from tests_tqdm import with_setup, pretest, posttest, SkipTest, StringIO, \
-    closing
 
 
 @with_setup(pretest, posttest)
 def test_keras():
     """Test tqdm.keras.TqdmCallback"""
     try:
-        from tqdm.keras import TqdmCallback
         import numpy as np
+
+        from tqdm.keras import TqdmCallback
         try:
             import keras as K
         except ImportError:

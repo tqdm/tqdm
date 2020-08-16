@@ -1,13 +1,14 @@
 from __future__ import division
-from tqdm import tqdm, trange, TMonitor
-from tests_tqdm import with_setup, pretest, posttest, SkipTest, \
-    StringIO, closing
-from tests_tqdm import DiscreteTimer, cpu_timify
-from tests_perf import retry_on_except
 
 import sys
-from time import sleep
 from threading import Event
+from time import sleep
+
+from tests_perf import retry_on_except
+from tests_tqdm import (DiscreteTimer, SkipTest, StringIO, closing, cpu_timify,
+                        posttest, pretest, with_setup)
+
+from tqdm import TMonitor, tqdm, trange
 
 
 class FakeSleep(object):

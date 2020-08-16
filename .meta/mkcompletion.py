@@ -2,10 +2,11 @@
 Auto-generate tqdm/completion.sh from docstrings.
 """
 from __future__ import print_function
-from io import open as io_open
-from os import path
+
 import re
 import sys
+from io import open as io_open
+from os import path
 
 sys.path.insert(0, path.dirname(path.dirname(__file__)))
 import tqdm  # NOQA

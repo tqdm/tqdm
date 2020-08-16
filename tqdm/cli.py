@@ -1,11 +1,13 @@
 """
 Module version for monitoring CLI pipes (`... | python -m tqdm | ...`).
 """
-from .std import tqdm, TqdmTypeError, TqdmKeyError
-from ._version import __version__  # NOQA
-import sys
-import re
 import logging
+import re
+import sys
+
+from ._version import __version__  # NOQA
+from .std import TqdmKeyError, TqdmTypeError, tqdm
+
 __all__ = ["main"]
 
 
@@ -211,7 +213,8 @@ Options:
         if manpath or comppath:
             from os import path
             from shutil import copyfile
-            from pkg_resources import resource_filename, Requirement
+
+            from pkg_resources import Requirement, resource_filename
 
             def cp(src, dst):
                 """copies from src path to dst"""

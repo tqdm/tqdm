@@ -20,10 +20,11 @@ Options:
     The local file path in which to save the url [default: /dev/null].
 """
 
+import urllib
 from os import devnull
 
 from docopt import docopt
-import urllib
+
 from tqdm.auto import tqdm
 
 

@@ -1,14 +1,15 @@
+from tests_tqdm import (SkipTest, StringIO, closing, posttest, pretest,
+                        with_setup)
+
 from tqdm import tqdm
-from tests_tqdm import with_setup, pretest, posttest, SkipTest, \
-    StringIO, closing
 
 
 @with_setup(pretest, posttest)
 def test_pandas_setup():
     """Test tqdm.pandas()"""
     try:
-        from numpy.random import randint
         import pandas as pd
+        from numpy.random import randint
     except ImportError:
         raise SkipTest
 
@@ -24,8 +25,8 @@ def test_pandas_setup():
 def test_pandas_rolling_expanding():
     """Test pandas.(Series|DataFrame).(rolling|expanding)"""
     try:
-        from numpy.random import randint
         import pandas as pd
+        from numpy.random import randint
     except ImportError:
         raise SkipTest
 
@@ -55,8 +56,8 @@ def test_pandas_rolling_expanding():
 def test_pandas_series():
     """Test pandas.Series.progress_apply and .progress_map"""
     try:
-        from numpy.random import randint
         import pandas as pd
+        from numpy.random import randint
     except ImportError:
         raise SkipTest
 
@@ -86,8 +87,8 @@ def test_pandas_series():
 def test_pandas_data_frame():
     """Test pandas.DataFrame.progress_apply and .progress_applymap"""
     try:
-        from numpy.random import randint
         import pandas as pd
+        from numpy.random import randint
     except ImportError:
         raise SkipTest
 
@@ -135,8 +136,8 @@ def test_pandas_data_frame():
 def test_pandas_groupby_apply():
     """Test pandas.DataFrame.groupby(...).progress_apply"""
     try:
-        from numpy.random import randint, rand
         import pandas as pd
+        from numpy.random import rand, randint
     except ImportError:
         raise SkipTest
 
@@ -196,8 +197,8 @@ def test_pandas_groupby_apply():
 def test_pandas_leave():
     """Test pandas with `leave=True`"""
     try:
-        from numpy.random import randint
         import pandas as pd
+        from numpy.random import randint
     except ImportError:
         raise SkipTest
 
@@ -220,9 +221,10 @@ def test_pandas_apply_args_deprecation():
     """Test warning info in
     `pandas.Dataframe(Series).progress_apply(func, *args)`"""
     try:
-        from numpy.random import randint
-        from tqdm import tqdm_pandas
         import pandas as pd
+        from numpy.random import randint
+
+        from tqdm import tqdm_pandas
     except ImportError:
         raise SkipTest
 
@@ -241,9 +243,10 @@ def test_pandas_apply_args_deprecation():
 def test_pandas_deprecation():
     """Test bar object instance as argument deprecation"""
     try:
-        from numpy.random import randint
-        from tqdm import tqdm_pandas
         import pandas as pd
+        from numpy.random import randint
+
+        from tqdm import tqdm_pandas
     except ImportError:
         raise SkipTest
 

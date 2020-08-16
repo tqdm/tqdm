@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import os
+
 try:
-    from setuptools import setup, find_packages
+    from setuptools import find_packages, setup
 except ImportError:
     from distutils.core import setup
 
@@ -24,6 +25,7 @@ with io_open(version_file, mode='r') as fd:
 # Executing makefile commands if specified
 if sys.argv[1].lower().strip() == 'make':
     import pymake
+
     # Filename of the makefile
     fpath = os.path.join(src_dir, 'Makefile')
     pymake.main(['-f', fpath] + sys.argv[2:])

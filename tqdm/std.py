@@ -8,20 +8,23 @@ Usage:
 ...     ...
 """
 from __future__ import absolute_import, division
-# compatibility functions and utilities
-from .utils import _supports_unicode, _screen_shape_wrapper, _range, _unich, \
-    _term_move_up, _unicode, WeakSet, _basestring, _OrderedDict, \
-    Comparable, _is_ascii, FormatReplace, disp_len, disp_trim, \
-    SimpleTextIOWrapper, CallbackIOWrapper
-from ._monitor import TMonitor
-# native libraries
-from contextlib import contextmanager
+
 import sys
-from numbers import Number
-from time import time
 # For parallelism safety
 import threading as th
+# native libraries
+from contextlib import contextmanager
+from numbers import Number
+from time import time
 from warnings import warn
+
+from ._monitor import TMonitor
+# compatibility functions and utilities
+from .utils import (CallbackIOWrapper, Comparable, FormatReplace,
+                    SimpleTextIOWrapper, WeakSet, _basestring, _is_ascii,
+                    _OrderedDict, _range, _screen_shape_wrapper,
+                    _supports_unicode, _term_move_up, _unich, _unicode,
+                    disp_len, disp_trim)
 
 __author__ = {"github.com/": ["noamraph", "obiwanus", "kmike", "hadim",
                               "casperdcl", "lrq3000"]}
@@ -676,15 +679,15 @@ class tqdm(Comparable):
             except ImportError:  # pragma: no cover
                 _Rolling_and_Expanding = None
         try:  # pandas>=0.25.0
-            from pandas.core.groupby.generic import DataFrameGroupBy, \
+            from pandas.core.groupby.generic import \
                 SeriesGroupBy  # , NDFrameGroupBy
+            from pandas.core.groupby.generic import DataFrameGroupBy
         except ImportError:
             try:  # pandas>=0.23.0
-                from pandas.core.groupby.groupby import DataFrameGroupBy, \
-                    SeriesGroupBy
+                from pandas.core.groupby.groupby import (DataFrameGroupBy,
+                                                         SeriesGroupBy)
             except ImportError:
-                from pandas.core.groupby import DataFrameGroupBy, \
-                    SeriesGroupBy
+                from pandas.core.groupby import DataFrameGroupBy, SeriesGroupBy
         try:  # pandas>=0.23.0
             from pandas.core.groupby.groupby import GroupBy
         except ImportError:

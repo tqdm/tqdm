@@ -18,9 +18,10 @@ try:
 except:
     from .std import tqdm, trange
 else:  # pragma: no cover
+    from warnings import warn
+
     from .notebook import tqdm, trange
     from .std import TqdmExperimentalWarning
-    from warnings import warn
     warn("Using `tqdm.autonotebook.tqdm` in notebook mode."
          " Use `tqdm.tqdm` instead to force console mode"
          " (e.g. in jupyter console)", TqdmExperimentalWarning, stacklevel=2)

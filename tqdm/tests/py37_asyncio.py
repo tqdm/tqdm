@@ -2,8 +2,9 @@ import asyncio
 from functools import partial, wraps
 from time import time
 
-from tests_tqdm import with_setup, pretest, posttest, StringIO, closing
-from tqdm.asyncio import tqdm_asyncio, tarange
+from tests_tqdm import StringIO, closing, posttest, pretest, with_setup
+
+from tqdm.asyncio import tarange, tqdm_asyncio
 
 tqdm = partial(tqdm_asyncio, miniters=0, mininterval=0)
 trange = partial(tarange, miniters=0, mininterval=0)

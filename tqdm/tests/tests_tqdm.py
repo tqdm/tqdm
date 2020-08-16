@@ -2,30 +2,28 @@
 # Advice: use repr(our_file.read()) to print the full output of tqdm
 # (else '\r' will replace the previous lines and you'll see only the latest.
 
-import sys
 import csv
-import re
 import os
-from nose import with_setup
-from nose.plugins.skip import SkipTest
-from nose.tools import assert_raises
-from nose.tools import eq_
+import re
+import sys
 from contextlib import contextmanager
 from warnings import catch_warnings, simplefilter
 
-from tqdm import tqdm
-from tqdm import trange
-from tqdm import TqdmDeprecationWarning
-from tqdm.std import Bar
+from nose import with_setup
+from nose.plugins.skip import SkipTest
+from nose.tools import assert_raises, eq_
+
+from tqdm import TqdmDeprecationWarning, tqdm, trange
 from tqdm.contrib import DummyTqdmFile
+from tqdm.std import Bar
 
 try:
     from StringIO import StringIO
 except ImportError:
     from io import StringIO
 
-from io import BytesIO
 from io import IOBase  # to support unicode strings
+from io import BytesIO
 
 
 class DeprecationError(Exception):
@@ -873,8 +871,8 @@ def test_rlock_creation():
 
 def _rlock_creation_target():
     """Check that the RLock has not been constructed."""
-    from unittest.mock import patch
     import multiprocessing as mp
+    from unittest.mock import patch
 
     # Patch the RLock class/method but use the original implementation
     with patch('multiprocessing.RLock', wraps=mp.RLock) as rlock_mock:
@@ -1860,7 +1858,7 @@ def backendCheck(module):
 @with_setup(pretest, posttest)
 def test_auto():
     """Test auto fallback"""
-    from tqdm import autonotebook, auto
+    from tqdm import auto, autonotebook
     backendCheck(autonotebook)
     backendCheck(auto)
 

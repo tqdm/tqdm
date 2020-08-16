@@ -2,8 +2,11 @@
 Thin wrappers around `itertools`.
 """
 from __future__ import absolute_import
-from tqdm.auto import tqdm as tqdm_auto
+
 import itertools
+
+from tqdm.auto import tqdm as tqdm_auto
+
 __author__ = {"github.com/": ["casperdcl"]}
 __all__ = ['product']
 

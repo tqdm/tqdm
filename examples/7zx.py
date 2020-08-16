@@ -19,14 +19,18 @@ Options:
   -d, --debug-trace      Print lots of debugging information (-D NOTSET)
 """
 from __future__ import print_function
-from argopt import argopt
-import logging
-import subprocess
-import re
-from tqdm import tqdm
-import pty
-import os
+
 import io
+import logging
+import os
+import pty
+import re
+import subprocess
+
+from argopt import argopt
+
+from tqdm import tqdm
+
 __author__ = "Casper da Costa-Luis <casper.dcl@physics.org>"
 __licence__ = "MPLv2.0"
 __version__ = "0.2.1"

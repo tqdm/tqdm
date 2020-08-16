@@ -1,6 +1,9 @@
 from __future__ import absolute_import, division
-from .auto import tqdm as tqdm_auto
+
 from copy import copy
+
+from .auto import tqdm as tqdm_auto
+
 try:
     import keras
 except ImportError as e:

@@ -1,13 +1,15 @@
 from __future__ import print_function
+
+import sys
+from concurrent.futures import ThreadPoolExecutor
+from functools import partial
+from multiprocessing import Pool, freeze_support
+from random import random
+from threading import RLock
 from time import sleep
+
 from tqdm.auto import tqdm, trange
 from tqdm.contrib.concurrent import process_map, thread_map
-from random import random
-from multiprocessing import Pool, freeze_support
-from concurrent.futures import ThreadPoolExecutor
-from threading import RLock
-from functools import partial
-import sys
 
 NUM_SUBITERS = 9
 PY2 = sys.version_info[:1] <= (2,)

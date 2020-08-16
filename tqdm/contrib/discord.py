@@ -10,6 +10,7 @@ Usage:
 https://raw.githubusercontent.com/tqdm/img/src/screenshot-discord.png)
 """
 from __future__ import absolute_import
+
 import logging
 from os import getenv
 
@@ -20,7 +21,9 @@ except ImportError:
 
 from tqdm.auto import tqdm as tqdm_auto
 from tqdm.utils import _range
+
 from .utils_worker import MonoWorker
+
 __author__ = {"github.com/": ["casperdcl"]}
 __all__ = ['DiscordIO', 'tqdm_discord', 'tdrange', 'tqdm', 'trange']
 

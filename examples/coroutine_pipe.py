@@ -3,6 +3,7 @@ Inserting `tqdm` as a "pipe" in a chain of coroutines.
 Not to be confused with `asyncio.coroutine`.
 """
 from functools import wraps
+
 from tqdm.auto import tqdm
 
 

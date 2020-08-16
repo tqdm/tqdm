@@ -1,16 +1,13 @@
-from __future__ import print_function, division
-
-from nose.plugins.skip import SkipTest
-
-from contextlib import contextmanager
+from __future__ import division, print_function
 
 import sys
+from contextlib import contextmanager
 from time import sleep, time
 
-from tqdm import trange
-from tqdm import tqdm
+from nose.plugins.skip import SkipTest
+from tests_tqdm import StringIO, _range, closing, posttest, pretest, with_setup
 
-from tests_tqdm import with_setup, pretest, posttest, StringIO, closing, _range
+from tqdm import tqdm, trange
 
 # Use relative/cpu timer to have reliable timings when there is a sudden load
 try:

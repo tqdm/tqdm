@@ -1,14 +1,15 @@
-import sys
 import subprocess
+import sys
+from io import open as io_open
 from os import path
 from shutil import rmtree
 from tempfile import mkdtemp
-from tqdm.cli import main, TqdmKeyError, TqdmTypeError
-from tqdm.utils import IS_WIN
-from io import open as io_open
 
-from tests_tqdm import with_setup, pretest, posttest, _range, closing, \
-    UnicodeIO, StringIO, SkipTest
+from tests_tqdm import (SkipTest, StringIO, UnicodeIO, _range, closing,
+                        posttest, pretest, with_setup)
+
+from tqdm.cli import TqdmKeyError, TqdmTypeError, main
+from tqdm.utils import IS_WIN
 
 
 def _sh(*cmd, **kwargs):
