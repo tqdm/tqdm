@@ -1975,3 +1975,15 @@ def test_screen_shape():
 
         res = our_file.getvalue()
         assert "two" in res
+
+
+@with_setup(pretest, posttest)
+def test_initial():
+    """Test `initial`"""
+    with closing(StringIO()) as our_file:
+        for _ in tqdm(_range(9), initial=10, total=19, file=our_file,
+                      miniters=1, mininterval=0):
+            pass
+        out = our_file.getvalue()
+        assert '10/19' in out
+        assert '19/19' in out

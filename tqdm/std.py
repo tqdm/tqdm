@@ -23,8 +23,7 @@ from time import time
 import threading as th
 from warnings import warn
 
-__author__ = {"github.com/": ["noamraph", "obiwanus", "kmike", "hadim",
-                              "casperdcl", "lrq3000"]}
+__author__ = "https://github.com/tqdm/tqdm#contributions"
 __all__ = ['tqdm', 'trange',
            'TqdmTypeError', 'TqdmKeyError', 'TqdmWarning',
            'TqdmExperimentalWarning', 'TqdmDeprecationWarning',
@@ -310,7 +309,8 @@ class tqdm(Comparable):
     @staticmethod
     def format_meter(n, total, elapsed, ncols=None, prefix='', ascii=False,
                      unit='it', unit_scale=False, rate=None, bar_format=None,
-                     postfix=None, unit_divisor=1000, **extra_kwargs):
+                     postfix=None, unit_divisor=1000, initial=0,
+                     **extra_kwargs):
         """
         Return a string-based progress bar given some parameters
 
@@ -366,6 +366,8 @@ class tqdm(Comparable):
             However other types are supported (#382).
         unit_divisor  : float, optional
             [default: 1000], ignored unless `unit_scale` is True.
+        initial  : int or float, optional
+            The initial counter value [default: 0].
 
         Returns
         -------
@@ -390,7 +392,7 @@ class tqdm(Comparable):
         # if unspecified, attempt to use rate = average speed
         # (we allow manual override since predicting time is an arcane art)
         if rate is None and elapsed:
-            rate = n / elapsed
+            rate = (n - initial) / elapsed
         inv_rate = 1 / rate if rate else None
         format_sizeof = tqdm.format_sizeof
         rate_noinv_fmt = ((format_sizeof(rate) if unit_scale else
@@ -1019,6 +1021,7 @@ class tqdm(Comparable):
         self.unit = unit
         self.unit_scale = unit_scale
         self.unit_divisor = unit_divisor
+        self.initial = initial
         self.lock_args = lock_args
         self.gui = gui
         self.dynamic_ncols = dynamic_ncols
@@ -1448,7 +1451,7 @@ class tqdm(Comparable):
             unit_scale=self.unit_scale,
             rate=1 / self.avg_time if self.avg_time else None,
             bar_format=self.bar_format, postfix=self.postfix,
-            unit_divisor=self.unit_divisor)
+            unit_divisor=self.unit_divisor, initial=self.initial)
 
     def display(self, msg=None, pos=None):
         """
