@@ -1202,6 +1202,11 @@ class tqdm(Comparable):
             Increment to add to the internal counter of iterations
             [default: 1]. If using float, consider specifying `{n:.3f}`
             or similar in `bar_format`, or specifying `unit_scale`.
+
+        Returns
+        -------
+        out  : bool or None
+            True if a `display()` was triggered.
         """
         # N.B.: see __iter__() for more comments.
         if self.disable:

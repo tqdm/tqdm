@@ -500,6 +500,11 @@ Returns
               Increment to add to the internal counter of iterations
               [default: 1]. If using float, consider specifying ``{n:.3f}``
               or similar in ``bar_format``, or specifying ``unit_scale``.
+
+          Returns
+          -------
+          out  : bool or None
+              True if a ``display()`` was triggered.
           """
 
       def close(self):
@@ -912,6 +917,26 @@ The ``requests`` equivalent is nearly identical, albeit with a ``total``:
                        total=int(response.headers.get('content-length', 0))) as fout:
         for chunk in response.iter_content(chunk_size=4096):
             fout.write(chunk)
+
+**Custom callback**
+
+``tqdm`` is known for intelligently skipping unnecessary displays. To make a
+custom callback take advantage of this, simply use the return value of
+``update()``. This is set to ``True`` if a ``display()`` was triggered.
+
+.. code:: python
+
+    from tqdm.auto import tqdm as std_tqdm
+
+    def external_callback(*args, **kwargs):
+        ...
+
+    class TqdmExt(std_tqdm):
+        def update(self, n=1):
+            displayed = super(TqdmExt, self).update(n):
+            if displayed:
+                external_callback(**self.format_dict)
+            return displayed
 
 Pandas Integration
 ~~~~~~~~~~~~~~~~~~
