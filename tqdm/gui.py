@@ -301,9 +301,9 @@ class tqdm_gui(std_tqdm):  # pragma: no cover
 
         ax.set_title(self.format_meter(
             n, total, elapsed, 0,
-            self.desc, self.ascii, self.unit, self.unit_scale,
-            1 / self.avg_time if self.avg_time else None, self.bar_format,
-            self.postfix, self.unit_divisor),
+            self.desc, self.ascii, self.unit, self.unit_singular,
+            self.unit_scale, 1 / self.avg_time if self.avg_time else None,
+            self.bar_format, self.postfix, self.unit_divisor),
             fontname="DejaVu Sans Mono", fontsize=11)
         self.plt.pause(1e-9)
 

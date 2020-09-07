@@ -309,8 +309,9 @@ class tqdm(Comparable):
 
     @staticmethod
     def format_meter(n, total, elapsed, ncols=None, prefix='', ascii=False,
-                     unit='it', unit_scale=False, rate=None, bar_format=None,
-                     postfix=None, unit_divisor=1000, **extra_kwargs):
+                     unit='it', unit_singular=None, unit_scale=False, rate=None,
+                     bar_format=None, postfix=None, unit_divisor=1000,
+                     **extra_kwargs):
         """
         Return a string-based progress bar given some parameters
 
@@ -336,7 +337,9 @@ class tqdm(Comparable):
             [default: False]. The fallback is to use ASCII characters
             " 123456789#".
         unit  : str, optional
-            The iteration unit [default: 'it'].
+            The iteration unit (plural or neutral form) [default: 'it'].
+        unit_singular  : str, optional
+            The singular form of unit [default: value of unit].
         unit_scale  : bool or int or float, optional
             If 1 or True, the number of iterations will be printed with an
             appropriate SI metric prefix (k = 10^3, M = 10^6, etc.)
@@ -372,6 +375,8 @@ class tqdm(Comparable):
         out  : Formatted meter and stats, ready to display.
         """
 
+        unit_singular = unit_singular or unit  # Default to unit if not provided
+
         # sanity check: total
         if total and n >= (total + 0.5):  # allow float imprecision (#849)
             total = None
@@ -398,7 +403,7 @@ class tqdm(Comparable):
                           if rate else '?') + unit + '/s'
         rate_inv_fmt = ((format_sizeof(inv_rate) if unit_scale else
                          '{0:5.2f}'.format(inv_rate))
-                        if inv_rate else '?') + 's/' + unit
+                        if inv_rate else '?') + 's/' + unit_singular
         rate_fmt = rate_inv_fmt if inv_rate and inv_rate > 1 else rate_noinv_fmt
 
         if unit_scale:
@@ -435,6 +440,7 @@ class tqdm(Comparable):
             n=n, n_fmt=n_fmt, total=total, total_fmt=total_fmt,
             elapsed=elapsed_str, elapsed_s=elapsed,
             ncols=ncols, desc=prefix or '', unit=unit,
+            unit_singular=unit_singular,
             rate=inv_rate if inv_rate and inv_rate > 1 else rate,
             rate_fmt=rate_fmt, rate_noinv=rate,
             rate_noinv_fmt=rate_noinv_fmt, rate_inv=inv_rate,
@@ -797,11 +803,10 @@ class tqdm(Comparable):
     def __init__(self, iterable=None, desc=None, total=None, leave=True,
                  file=None, ncols=None, mininterval=0.1, maxinterval=10.0,
                  miniters=None, ascii=None, disable=False, unit='it',
-                 unit_scale=False, dynamic_ncols=False, smoothing=0.3,
-                 bar_format=None, initial=0, position=None, postfix=None,
-                 unit_divisor=1000, write_bytes=None, lock_args=None,
-                 nrows=None,
-                 gui=False, **kwargs):
+                 unit_singular=None, unit_scale=False, dynamic_ncols=False,
+                 smoothing=0.3, bar_format=None, initial=0, position=None,
+                 postfix=None, unit_divisor=1000, write_bytes=None,
+                 lock_args=None, nrows=None, gui=False, **kwargs):
         """
         Parameters
         ----------
@@ -855,6 +860,10 @@ class tqdm(Comparable):
             [default: False]. If set to None, disable on non-TTY.
         unit  : str, optional
             String that will be used to define the unit of each iteration
+            (plural or neutral form)
+            [default: it].
+        unit_singular  : str, optional
+            Singular form of unit
             [default: it].
         unit_scale  : bool or int or float, optional
             If 1 or True, the number of iterations will be reduced/scaled
@@ -1017,6 +1026,7 @@ class tqdm(Comparable):
         self.ascii = ascii
         self.disable = disable
         self.unit = unit
+        self.unit_singular = unit_singular or self.unit
         self.unit_scale = unit_scale
         self.unit_divisor = unit_divisor
         self.lock_args = lock_args
@@ -1439,6 +1449,7 @@ class tqdm(Comparable):
             if hasattr(self, 'start_t') else 0,
             ncols=ncols, nrows=nrows,
             prefix=self.desc, ascii=self.ascii, unit=self.unit,
+            unit_singular=self.unit_singular,
             unit_scale=self.unit_scale,
             rate=1 / self.avg_time if self.avg_time else None,
             bar_format=self.bar_format, postfix=self.postfix,
