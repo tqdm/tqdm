@@ -24,7 +24,6 @@ class Null(object):
         return self
 
 
-IN_DATA_LIST = map(str, _range(int(123)))
 NULL = Null()
 
 
@@ -50,17 +49,18 @@ def test_main():
     _SYS = sys.stdin, sys.argv
 
     # test direct import
-    sys.stdin = IN_DATA_LIST
+    sys.stdin = map(str, _range(int(123)))
     sys.argv = ['', '--desc', 'Test CLI import',
                 '--ascii', 'True', '--unit_scale', 'True']
     import tqdm.__main__  # NOQA
     sys.stderr.write("Test misc CLI options ... ")
 
     # test --delim
+    IN_DATA = '\0'.join(map(str, _range(int(123))))
     with closing(StringIO()) as sys.stdin:
         sys.argv = ['', '--desc', 'Test CLI delim',
                     '--ascii', 'True', '--delim', r'\0', '--buf_size', '64']
-        sys.stdin.write('\0'.join(map(str, _range(int(123)))))
+        sys.stdin.write(IN_DATA)
         # sys.stdin.write(b'\xff')  # TODO
         sys.stdin.seek(0)
         with closing(UnicodeIO()) as fp:
@@ -68,8 +68,8 @@ def test_main():
             assert "123it" in fp.getvalue()
 
     # test --bytes
+    IN_DATA = IN_DATA.replace('\0', '\n')
     with closing(StringIO()) as sys.stdin:
-        IN_DATA = '\0'.join(IN_DATA_LIST)
         sys.stdin.write(IN_DATA)
         sys.stdin.seek(0)
         sys.argv = ['', '--ascii', '--bytes=True', '--unit_scale', 'False']
@@ -78,14 +78,13 @@ def test_main():
             assert str(len(IN_DATA)) in fp.getvalue()
 
     # test --log
-    sys.stdin = IN_DATA_LIST
+    sys.stdin = map(str, _range(int(123)))
     # with closing(UnicodeIO()) as fp:
     main(argv=['--log', 'DEBUG'], fp=NULL)
     # assert "DEBUG:" in sys.stdout.getvalue()
 
     # test --tee
     with closing(StringIO()) as sys.stdin:
-        IN_DATA = '\0'.join(IN_DATA_LIST)
         sys.stdin.write(IN_DATA)
 
         sys.stdin.seek(0)
@@ -97,8 +96,8 @@ def test_main():
         sys.stdin.seek(0)
         with closing(UnicodeIO()) as fp:
             main(argv=['--tee', '--mininterval', '0', '--miniters', '1'], fp=fp)
-            assert len(fp.getvalue()) == res + len(''.join(IN_DATA_LIST))
-            # assert len(fp.getvalue()) > len(sys.stdout.getvalue())
+            # spaces to clear intermediate lines could increase length
+            assert len(fp.getvalue()) >= res + len(IN_DATA)
 
     # clean up
     sys.stdin, sys.argv = _SYS
@@ -151,7 +150,7 @@ def test_comppath():
 def test_exceptions():
     """Test CLI Exceptions"""
     _SYS = sys.stdin, sys.argv
-    sys.stdin = IN_DATA_LIST
+    sys.stdin = map(str, _range(int(123)))
 
     sys.argv = ['', '-ascii', '-unit_scale', '--bad_arg_u_ment', 'foo']
     try:
