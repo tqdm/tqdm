@@ -28,9 +28,8 @@ IN_DATA_LIST = map(str, _range(int(123)))
 NULL = Null()
 
 
-# WARNING: this should be the last test as it messes with sys.stdin, argv
 @with_setup(pretest, posttest)
-def test_main():
+def test_pipes():
     """Test command line pipes"""
     ls_out = _sh('ls').replace('\r\n', '\n')
     ls = subprocess.Popen('ls', stdout=subprocess.PIPE,
@@ -43,22 +42,32 @@ def test_main():
 
     assert ls_out in res.replace('\r\n', '\n')
 
-    # semi-fake test which gets coverage:
+
+# WARNING: this should be the last test as it messes with sys.stdin, argv
+@with_setup(pretest, posttest)
+def test_main():
+    """Test misc CLI options"""
     _SYS = sys.stdin, sys.argv
 
+    # test direct import
+    sys.stdin = IN_DATA_LIST
+    sys.argv = ['', '--desc', 'Test CLI import',
+                '--ascii', 'True', '--unit_scale', 'True']
+    import tqdm.__main__  # NOQA
+    sys.stderr.write("Test misc CLI options ... ")
+
+    # test --delim
     with closing(StringIO()) as sys.stdin:
-        sys.argv = ['', '--desc', 'Test CLI --delim',
+        sys.argv = ['', '--desc', 'Test CLI delim',
                     '--ascii', 'True', '--delim', r'\0', '--buf_size', '64']
         sys.stdin.write('\0'.join(map(str, _range(int(123)))))
         # sys.stdin.write(b'\xff')  # TODO
         sys.stdin.seek(0)
-        main()
-    sys.stdin = IN_DATA_LIST
+        with closing(UnicodeIO()) as fp:
+            main(fp=fp)
+            assert "123it" in fp.getvalue()
 
-    sys.argv = ['', '--desc', 'Test CLI pipes',
-                '--ascii', 'True', '--unit_scale', 'True']
-    import tqdm.__main__  # NOQA
-
+    # test --bytes
     with closing(StringIO()) as sys.stdin:
         IN_DATA = '\0'.join(IN_DATA_LIST)
         sys.stdin.write(IN_DATA)
@@ -67,16 +76,29 @@ def test_main():
         with closing(UnicodeIO()) as fp:
             main(fp=fp)
             assert str(len(IN_DATA)) in fp.getvalue()
-    sys.stdin = IN_DATA_LIST
 
     # test --log
-    with closing(StringIO()) as sys.stdin:
-        sys.stdin.write('\0'.join(map(str, _range(int(123)))))
-        sys.stdin.seek(0)
-        # with closing(UnicodeIO()) as fp:
-        main(argv=['--log', 'DEBUG'], fp=NULL)
-        # assert "DEBUG:" in sys.stdout.getvalue()
     sys.stdin = IN_DATA_LIST
+    # with closing(UnicodeIO()) as fp:
+    main(argv=['--log', 'DEBUG'], fp=NULL)
+    # assert "DEBUG:" in sys.stdout.getvalue()
+
+    # test --tee
+    with closing(StringIO()) as sys.stdin:
+        IN_DATA = '\0'.join(IN_DATA_LIST)
+        sys.stdin.write(IN_DATA)
+
+        sys.stdin.seek(0)
+        with closing(UnicodeIO()) as fp:
+            main(argv=['--mininterval', '0', '--miniters', '1'], fp=fp)
+            res = len(fp.getvalue())
+            # assert len(fp.getvalue()) < len(sys.stdout.getvalue())
+
+        sys.stdin.seek(0)
+        with closing(UnicodeIO()) as fp:
+            main(argv=['--tee', '--mininterval', '0', '--miniters', '1'], fp=fp)
+            assert len(fp.getvalue()) == res + len(''.join(IN_DATA_LIST))
+            # assert len(fp.getvalue()) > len(sys.stdout.getvalue())
 
     # clean up
     sys.stdin, sys.argv = _SYS

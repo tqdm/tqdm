@@ -464,7 +464,7 @@ Extra CLI Options
     If true, will count bytes, ignore ``delim``, and default
     ``unit_scale`` to True, ``unit_divisor`` to 1024, and ``unit`` to 'B'.
 * tee  : bool, optional  
-    If true, outputs to both ``stdin`` and ``stdout``.
+    If true, passes ``stdin`` to both ``stderr`` and ``stdout``.
 * manpath  : str, optional  
     Directory in which to install tqdm man pages.
 * comppath  : str, optional  
