@@ -20,7 +20,7 @@ with warnings.catch_warnings():
     from .autonotebook import tqdm as notebook_tqdm
     from .autonotebook import trange as notebook_trange
 
-if sys.version_info[:1] < (3, 4):
+if sys.version_info[:2] < (3, 5):
     tqdm = notebook_tqdm
     trange = notebook_trange
 else:  # Python3.5+
