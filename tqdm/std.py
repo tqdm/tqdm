@@ -1257,6 +1257,7 @@ class tqdm(Comparable):
                 # Store old values for next call
                 self.last_print_n = self.n
                 self.last_print_t = cur_t
+                return True
 
     def close(self):
         """Cleanup and (if leave=False) close the progressbar."""

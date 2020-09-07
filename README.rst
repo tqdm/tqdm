@@ -846,7 +846,7 @@ Here's an example with ``urllib``:
             """
             if tsize is not None:
                 self.total = tsize
-            self.update(b * bsize - self.n)  # will also set self.n = b * bsize
+            return self.update(b * bsize - self.n)  # also sets self.n = b * bsize
 
     eg_link = "https://caspersci.uk.to/matryoshka.zip"
     with TqdmUpTo(unit='B', unit_scale=True, unit_divisor=1024, miniters=1,
