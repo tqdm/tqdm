@@ -23,8 +23,7 @@ from time import time
 import threading as th
 from warnings import warn
 
-__author__ = {"github.com/": ["noamraph", "obiwanus", "kmike", "hadim",
-                              "casperdcl", "lrq3000", "TurretAA12"]}
+__author__ = "https://github.com/tqdm/tqdm#contributions"
 __all__ = ['tqdm', 'trange',
            'TqdmTypeError', 'TqdmKeyError', 'TqdmWarning',
            'TqdmExperimentalWarning', 'TqdmDeprecationWarning',
@@ -310,7 +309,8 @@ class tqdm(Comparable):
     @staticmethod
     def format_meter(n, total, elapsed, ncols=None, prefix='', ascii=False,
                      unit='it', unit_scale=False, rate=None, bar_format=None,
-                     postfix=None, unit_divisor=1000, **extra_kwargs):
+                     postfix=None, unit_divisor=1000, initial=0,
+                     **extra_kwargs):
         """
         Return a string-based progress bar given some parameters
 
@@ -366,6 +366,8 @@ class tqdm(Comparable):
             However other types are supported (#382).
         unit_divisor  : float, optional
             [default: 1000], ignored unless `unit_scale` is True.
+        initial  : int or float, optional
+            The initial counter value [default: 0].
 
         Returns
         -------
@@ -390,10 +392,6 @@ class tqdm(Comparable):
         # if unspecified, attempt to use rate = average speed
         # (we allow manual override since predicting time is an arcane art)
         if rate is None and elapsed:
-            # Using initial to properly calculate average speed
-            # when an initial value is set in __init__
-            # See #689 for reference
-            initial = extra_kwargs.get('initial', 0)
             rate = (n - initial) / elapsed
         inv_rate = 1 / rate if rate else None
         format_sizeof = tqdm.format_sizeof
@@ -1023,6 +1021,7 @@ class tqdm(Comparable):
         self.unit = unit
         self.unit_scale = unit_scale
         self.unit_divisor = unit_divisor
+        self.initial = initial
         self.lock_args = lock_args
         self.gui = gui
         self.dynamic_ncols = dynamic_ncols
@@ -1036,10 +1035,6 @@ class tqdm(Comparable):
                 self.set_postfix(refresh=False, **postfix)
             except TypeError:
                 self.postfix = postfix
-
-        # Used to fix #689/#215 where the last iteration
-        # of the progress bar displays the rate incorrectly
-        self.initial = initial
 
         # Init the iterations counters
         self.last_print_n = initial
