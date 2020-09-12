@@ -66,7 +66,7 @@ def test_main():
         sys.stdin.seek(0)
         with closing(UnicodeIO()) as fp:
             main(fp=fp)
-            assert "123it" in fp.getvalue()
+            assert str(N) + "it" in fp.getvalue()
 
     # test --bytes
     IN_DATA = IN_DATA.replace('\0', '\n')
@@ -108,7 +108,17 @@ def test_main():
         with closing(UnicodeIO()) as fp:
             main(argv=['--update'], fp=fp)
             res = fp.getvalue()
-            assert str(N // 2 * N) + 'it' in res  # arithmetic sum formula
+            assert str(N // 2 * N) + "it" in res  # arithmetic sum formula
+
+    # test integer --update --delim
+    with closing(StringIO()) as sys.stdin:
+        sys.stdin.write(IN_DATA.replace('\n', 'D'))
+
+        sys.stdin.seek(0)
+        with closing(UnicodeIO()) as fp:
+            main(argv=['--update', '--delim', 'D'], fp=fp)
+            res = fp.getvalue()
+            assert str(N // 2 * N) + "it" in res  # arithmetic sum formula
 
     # test integer --update_to
     with closing(StringIO()) as sys.stdin:
@@ -118,8 +128,19 @@ def test_main():
         with closing(UnicodeIO()) as fp:
             main(argv=['--update-to'], fp=fp)
             res = fp.getvalue()
-            assert str(N - 1) + 'it' in res
-            assert str(N) + 'it' not in res
+            assert str(N - 1) + "it" in res
+            assert str(N) + "it" not in res
+
+    # test integer --update_to --delim
+    with closing(StringIO()) as sys.stdin:
+        sys.stdin.write(IN_DATA.replace('\n', 'D'))
+
+        sys.stdin.seek(0)
+        with closing(UnicodeIO()) as fp:
+            main(argv=['--update-to', '--delim', 'D'], fp=fp)
+            res = fp.getvalue()
+            assert str(N - 1) + "it" in res
+            assert str(N) + "it" not in res
 
     # test float --update_to
     IN_DATA = '\n'.join((str(i / 2.0) for i in _range(N)))
@@ -130,8 +151,8 @@ def test_main():
         with closing(UnicodeIO()) as fp:
             main(argv=['--update-to'], fp=fp)
             res = fp.getvalue()
-            assert str((N - 1) / 2.0) + 'it' in res
-            assert str(N / 2.0) + 'it' not in res
+            assert str((N - 1) / 2.0) + "it" in res
+            assert str(N / 2.0) + "it" not in res
 
     # clean up
     sys.stdin, sys.argv = _SYS
@@ -212,6 +233,15 @@ def test_exceptions():
             raise
     else:
         raise TqdmTypeError('invalid_int_value')
+
+    sys.argv = ['', '--update', '--update_to']
+    try:
+        main(fp=NULL)
+    except TqdmKeyError as e:
+        if 'Can only have one of --' not in str(e):
+            raise
+    else:
+        raise TqdmKeyError('Cannot have both --update --update_to')
 
     # test SystemExits
     for i in ('-h', '--help', '-v', '--version'):
