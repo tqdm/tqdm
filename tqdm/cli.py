@@ -37,6 +37,15 @@ def cast(val, typ):
             raise TqdmTypeError(val + ' : ' + typ)
 
 
+def isBytes(val):
+    """Equivalent of `isinstance(val, six.binary_type)`."""
+    try:
+        val.index(b'')
+    except TypeError:
+        return False
+    return True
+
+
 def posix_pipe(fin, fout, delim=b'\\n', buf_size=256,
                callback=lambda int: None  # pragma: no cover
                ):
@@ -64,9 +73,20 @@ def posix_pipe(fin, fout, delim=b'\\n', buf_size=256,
         # return
 
     buf = b''
+    check_bytes = True
+    write_bytes = True
     # n = 0
     while True:
         tmp = fin.read(buf_size)
+
+        if check_bytes:  # first time; check encoding
+            check_bytes = False
+            if not isBytes(tmp):
+                # currently only triggered by `tests_main.py`.
+                # TODO: mock stdin/out better so that this isn't needed
+                write_bytes = False
+                delim = delim.decode()
+                buf = buf.decode()
 
         # flush at EOF
         if not tmp:
@@ -85,7 +105,7 @@ def posix_pipe(fin, fout, delim=b'\\n', buf_size=256,
             else:
                 fp_write(buf + tmp[:i + len(delim)])
                 callback(1)  # n += 1
-                buf = b''
+                buf = b'' if write_bytes else ''
                 tmp = tmp[i + len(delim):]
 
 
