@@ -3,6 +3,7 @@ Module version for monitoring CLI pipes (`... | python -m tqdm | ...`).
 """
 from .std import tqdm, TqdmTypeError, TqdmKeyError
 from ._version import __version__  # NOQA
+from ast import literal_eval as numeric
 import logging
 import re
 import sys
@@ -301,10 +302,10 @@ Options:
                 with tqdm(**tqdm_args) as t:
                     if update:
                         def callback(i):
-                            t.update(float(i))
+                            t.update(numeric(i))
                     else:  # update_to
                         def callback(i):
-                            t.update(float(i) - t.n)
+                            t.update(numeric(i) - t.n)
                     for i in stdin:
                         stdout.write(i)
                         callback(i)
@@ -317,10 +318,10 @@ Options:
                 callback_len = False
                 if update:
                     def callback(i):
-                        t.update(float(i))
+                        t.update(numeric(i))
                 elif update_to:
                     def callback(i):
-                        t.update(float(i) - t.n)
+                        t.update(numeric(i) - t.n)
                 else:
                     callback = t.update
                     callback_len = True
