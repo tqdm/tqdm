@@ -1,3 +1,8 @@
+---
+name: Pull Request
+about: Use this template for proposing change(s)
+---
+
 - [ ] I have marked all applicable categories:
     + [ ] exception-raising fix
     + [ ] visual output fix
@@ -17,6 +22,6 @@ Less important but also useful:
   print(tqdm.__version__, sys.version, sys.platform)
   ```
 
-  [source website]: https://github.com/tqdm/tqdm/
-  [known issues]: https://github.com/tqdm/tqdm/#faq-and-known-issues
-  [issue tracker]: https://github.com/tqdm/tqdm/issues?q=
+[source website]: https://github.com/tqdm/tqdm/
+[known issues]: https://github.com/tqdm/tqdm/#faq-and-known-issues
+[issue tracker]: https://github.com/tqdm/tqdm/issues?q=

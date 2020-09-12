@@ -1,3 +1,8 @@
+---
+name: Issue
+about: Use this template for reporting issue(s)
+---
+
 - [ ] I have marked all applicable categories:
     + [ ] exception-raising bug
     + [ ] visual output bug
@@ -13,7 +18,7 @@
   print(tqdm.__version__, sys.version, sys.platform)
   ```
 
-  [source website]: https://github.com/tqdm/tqdm/
-  [known issues]: https://github.com/tqdm/tqdm/#faq-and-known-issues
-  [issue tracker]: https://github.com/tqdm/tqdm/issues?q=
-  [StackOverflow#tqdm]: https://stackoverflow.com/questions/tagged/tqdm
+[source website]: https://github.com/tqdm/tqdm/
+[known issues]: https://github.com/tqdm/tqdm/#faq-and-known-issues
+[issue tracker]: https://github.com/tqdm/tqdm/issues?q=
+[StackOverflow#tqdm]: https://stackoverflow.com/questions/tagged/tqdm
