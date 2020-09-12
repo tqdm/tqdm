@@ -47,16 +47,17 @@ def test_pipes():
 def test_main():
     """Test misc CLI options"""
     _SYS = sys.stdin, sys.argv
+    N = 123
 
     # test direct import
-    sys.stdin = map(str, _range(int(123)))
+    sys.stdin = map(str, _range(N))
     sys.argv = ['', '--desc', 'Test CLI import',
                 '--ascii', 'True', '--unit_scale', 'True']
     import tqdm.__main__  # NOQA
     sys.stderr.write("Test misc CLI options ... ")
 
     # test --delim
-    IN_DATA = '\0'.join(map(str, _range(int(123))))
+    IN_DATA = '\0'.join(map(str, _range(N)))
     with closing(StringIO()) as sys.stdin:
         sys.argv = ['', '--desc', 'Test CLI delim',
                     '--ascii', 'True', '--delim', r'\0', '--buf_size', '64']
@@ -78,7 +79,7 @@ def test_main():
             assert str(len(IN_DATA)) in fp.getvalue()
 
     # test --log
-    sys.stdin = map(str, _range(int(123)))
+    sys.stdin = map(str, _range(N))
     # with closing(UnicodeIO()) as fp:
     main(argv=['--log', 'DEBUG'], fp=NULL)
     # assert "DEBUG:" in sys.stdout.getvalue()
@@ -98,6 +99,39 @@ def test_main():
             main(argv=['--tee', '--mininterval', '0', '--miniters', '1'], fp=fp)
             # spaces to clear intermediate lines could increase length
             assert len(fp.getvalue()) >= res + len(IN_DATA)
+
+    # test integer --update
+    with closing(StringIO()) as sys.stdin:
+        sys.stdin.write(IN_DATA)
+
+        sys.stdin.seek(0)
+        with closing(UnicodeIO()) as fp:
+            main(argv=['--update'], fp=fp)
+            res = fp.getvalue()
+            assert str(N // 2 * N) + 'it' in res  # arithmetic sum formula
+
+    # test integer --update_to
+    with closing(StringIO()) as sys.stdin:
+        sys.stdin.write(IN_DATA)
+
+        sys.stdin.seek(0)
+        with closing(UnicodeIO()) as fp:
+            main(argv=['--update-to'], fp=fp)
+            res = fp.getvalue()
+            assert str(N - 1) + 'it' in res
+            assert str(N) + 'it' not in res
+
+    # test float --update_to
+    IN_DATA = '\n'.join((str(i / 2.0) for i in _range(N)))
+    with closing(StringIO()) as sys.stdin:
+        sys.stdin.write(IN_DATA)
+
+        sys.stdin.seek(0)
+        with closing(UnicodeIO()) as fp:
+            main(argv=['--update-to'], fp=fp)
+            res = fp.getvalue()
+            assert str((N - 1) / 2.0) + 'it' in res
+            assert str(N / 2.0) + 'it' not in res
 
     # clean up
     sys.stdin, sys.argv = _SYS
@@ -150,7 +184,7 @@ def test_comppath():
 def test_exceptions():
     """Test CLI Exceptions"""
     _SYS = sys.stdin, sys.argv
-    sys.stdin = map(str, _range(int(123)))
+    sys.stdin = map(str, _range(123))
 
     sys.argv = ['', '-ascii', '-unit_scale', '--bad_arg_u_ment', 'foo']
     try:
