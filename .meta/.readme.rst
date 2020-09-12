@@ -272,6 +272,16 @@ Or done on a file level using 7-zip:
       | grep -v Compressing
     100%|██████████████████████████▉| 15327/15327 [01:00<00:00, 712.96files/s]
 
+Pre-existing CLI programs already outputting basic progress information will
+benefit from ``tqdm``'s ``--update`` and ``--update_to`` flags:
+
+.. code:: sh
+
+    seq 3 0.1 5 | tqdm --total 5 --update_to --null
+    100%|████████████████████████████████████| 5.0/5 [00:00<00:00, 9673.21it/s]
+    seq 10 | tqdm --update --null  # 1 + 2 + ... + 10 = 55 iterations
+    55it [00:00, 90006.52it/s]
+
 FAQ and Known Issues
 --------------------
 

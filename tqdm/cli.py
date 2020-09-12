@@ -3,14 +3,15 @@ Module version for monitoring CLI pipes (`... | python -m tqdm | ...`).
 """
 from .std import tqdm, TqdmTypeError, TqdmKeyError
 from ._version import __version__  # NOQA
-import sys
-import re
+from ast import literal_eval as numeric
 import logging
+import re
+import sys
 __all__ = ["main"]
+log = logging.getLogger(__name__)
 
 
 def cast(val, typ):
-    log = logging.getLogger(__name__)
     log.debug((val, typ))
     if " or " in typ:
         for t in typ.split(" or "):
@@ -47,14 +48,16 @@ def isBytes(val):
 
 
 def posix_pipe(fin, fout, delim=b'\\n', buf_size=256,
-               callback=lambda int: None  # pragma: no cover
-               ):
+               callback=lambda float: None,  # pragma: no cover
+               callback_len=True):
     """
     Params
     ------
     fin  : file with `read(buf_size : int)` method
     fout  : file with `write` (and optionally `flush`) methods.
-    callback  : function(int), e.g.: `tqdm.update`
+    callback  : function(float), e.g.: `tqdm.update`
+    callback_len  : If (default: True) do `callback(len(buffer))`.
+      Otherwise, do `callback(data) for data in buffer.split(delim)`.
     """
     fp_write = fout.write
 
@@ -92,7 +95,12 @@ def posix_pipe(fin, fout, delim=b'\\n', buf_size=256,
         if not tmp:
             if buf:
                 fp_write(buf)
-                callback(1 + buf.count(delim))  # n += 1 + buf.count(delim)
+                if callback_len:
+                    # n += 1 + buf.count(delim)
+                    callback(1 + buf.count(delim))
+                else:
+                    for i in buf.split(delim):
+                        callback(i)
             getattr(fout, 'flush', lambda: None)()  # pragma: no cover
             return  # n
 
@@ -104,7 +112,8 @@ def posix_pipe(fin, fout, delim=b'\\n', buf_size=256,
                 break
             else:
                 fp_write(buf + tmp[:i + len(delim)])
-                callback(1)  # n += 1
+                # n += 1
+                callback(1 if callback_len else (buf + tmp[:i]))
                 buf = b'' if write_bytes else ''
                 tmp = tmp[i + len(delim):]
 
@@ -134,6 +143,14 @@ CLI_EXTRA_DOC = r"""
             `unit_scale` to True, `unit_divisor` to 1024, and `unit` to 'B'.
         tee  : bool, optional
             If true, passes `stdin` to both `stderr` and `stdout`.
+        update  : bool, optional
+            If true, will treat input as newly elapsed iterations,
+            i.e. numbers to pass to `update()`.
+        update_to  : bool, optional
+            If true, will treat input as total elapsed iterations,
+            i.e. numbers to assign to `self.n`.
+        null  : bool, optional
+            If true, will discard input (no stdout).
         manpath  : str, optional
             Directory in which to install tqdm man pages.
         comppath  : str, optional
@@ -153,7 +170,7 @@ def main(fp=sys.stderr, argv=None):
     if argv is None:
         argv = sys.argv[1:]
     try:
-        log = argv.index('--log')
+        log_idx = argv.index('--log')
     except ValueError:
         for i in argv:
             if i.startswith('--log='):
@@ -162,13 +179,12 @@ def main(fp=sys.stderr, argv=None):
         else:
             logLevel = 'INFO'
     else:
-        # argv.pop(log)
-        # logLevel = argv.pop(log)
-        logLevel = argv[log + 1]
+        # argv.pop(log_idx)
+        # logLevel = argv.pop(log_idx)
+        logLevel = argv[log_idx + 1]
     logging.basicConfig(
         level=getattr(logging, logLevel),
         format="%(levelname)s:%(module)s:%(lineno)d:%(message)s")
-    log = logging.getLogger(__name__)
 
     d = tqdm.__init__.__doc__ + CLI_EXTRA_DOC
 
@@ -183,16 +199,17 @@ def main(fp=sys.stderr, argv=None):
     # d = RE_OPTS.sub(r'  --\1=<\1>  : \2', d)
     split = RE_OPTS.split(d)
     opt_types_desc = zip(split[1::3], split[2::3], split[3::3])
-    d = ''.join('\n  --{0}=<{0}>  : {1}{2}'.format(*otd)
+    d = ''.join(('\n  --{0}  : {2}{3}' if otd[1] == 'bool' else
+                 '\n  --{0}=<{1}>  : {2}{3}').format(
+                     otd[0].replace('_', '-'), otd[0], *otd[1:])
                 for otd in opt_types_desc if otd[0] not in UNSUPPORTED_OPTS)
 
     d = """Usage:
   tqdm [--help | options]
 
 Options:
-  -h, --help     Print this help and exit
-  -v, --version  Print version and exit
-
+  -h, --help     Print this help and exit.
+  -v, --version  Print version and exit.
 """ + d.strip('\n') + '\n'
 
     # opts = docopt(d, version=__version__)
@@ -212,11 +229,19 @@ Options:
     tqdm_args = {'file': fp}
     try:
         for (o, v) in opts.items():
+            o = o.replace('-', '_')
             try:
                 tqdm_args[o] = cast(v, opt_types[o])
             except KeyError as e:
                 raise TqdmKeyError(str(e))
         log.debug('args:' + str(tqdm_args))
+
+        delim_per_char = tqdm_args.pop('bytes', False)
+        update = tqdm_args.pop('update', False)
+        update_to = tqdm_args.pop('update_to', False)
+        if sum((delim_per_char, update, update_to)) > 1:
+            raise TqdmKeyError(
+                "Can only have one of --bytes --update --update_to")
     except:
         fp.write('\nError:\nUsage:\n  tqdm [--help | options]\n')
         for i in sys.stdin:
@@ -225,12 +250,18 @@ Options:
     else:
         buf_size = tqdm_args.pop('buf_size', 256)
         delim = tqdm_args.pop('delim', b'\\n')
-        delim_per_char = tqdm_args.pop('bytes', False)
         tee = tqdm_args.pop('tee', False)
         manpath = tqdm_args.pop('manpath', None)
         comppath = tqdm_args.pop('comppath', None)
+        if tqdm_args.pop('null', False):
+            class stdout(object):
+                @staticmethod
+                def write(_):
+                    pass
+        else:
+            stdout = sys.stdout
+            stdout = getattr(stdout, 'buffer', stdout)
         stdin = getattr(sys.stdin, 'buffer', sys.stdin)
-        stdout = getattr(sys.stdout, 'buffer', sys.stdout)
         if manpath or comppath:
             from os import path
             from shutil import copyfile
@@ -267,9 +298,32 @@ Options:
                 posix_pipe(stdin, stdout, '', buf_size, t.update)
         elif delim == b'\\n':
             log.debug(tqdm_args)
-            for i in tqdm(stdin, **tqdm_args):
-                stdout.write(i)
+            if update or update_to:
+                with tqdm(**tqdm_args) as t:
+                    if update:
+                        def callback(i):
+                            t.update(numeric(i))
+                    else:  # update_to
+                        def callback(i):
+                            t.update(numeric(i) - t.n)
+                    for i in stdin:
+                        stdout.write(i)
+                        callback(i)
+            else:
+                for i in tqdm(stdin, **tqdm_args):
+                    stdout.write(i)
         else:
             log.debug(tqdm_args)
             with tqdm(**tqdm_args) as t:
-                posix_pipe(stdin, stdout, delim, buf_size, t.update)
+                callback_len = False
+                if update:
+                    def callback(i):
+                        t.update(numeric(i))
+                elif update_to:
+                    def callback(i):
+                        t.update(numeric(i) - t.n)
+                else:
+                    callback = t.update
+                    callback_len = True
+                posix_pipe(stdin, stdout, delim, buf_size,
+                           callback, callback_len)
