@@ -272,6 +272,16 @@ Or done on a file level using 7-zip:
       | grep -v Compressing
     100%|██████████████████████████▉| 15327/15327 [01:00<00:00, 712.96files/s]
 
+Pre-existing CLI programs already outputting basic progress information will
+benefit from ``tqdm``'s ``--update`` and ``--update_to`` flags:
+
+.. code:: sh
+
+    seq 3 0.1 5 | tqdm --total 5 --update_to --null
+    100%|████████████████████████████████████| 5.0/5 [00:00<00:00, 9673.21it/s]
+    seq 10 | tqdm --update --null  # 1 + 2 + ... + 10 = 55 iterations
+    55it [00:00, 90006.52it/s]
+
 FAQ and Known Issues
 --------------------
 
@@ -298,7 +308,7 @@ of a neat one-line progress bar.
 - Unicode:
 
   * Environments which report that they support unicode will have solid smooth
-    progressbars. The fallback is an ```ascii``-only bar.
+    progressbars. The fallback is an ``ascii``-only bar.
   * Windows consoles often only partially support unicode and thus
     `often require explicit ascii=True <https://github.com/tqdm/tqdm/issues/454#issuecomment-335416815>`__
     (also `here <https://github.com/tqdm/tqdm/issues/499>`__). This is due to
@@ -463,6 +473,16 @@ Extra CLI Options
 * bytes  : bool, optional  
     If true, will count bytes, ignore ``delim``, and default
     ``unit_scale`` to True, ``unit_divisor`` to 1024, and ``unit`` to 'B'.
+* tee  : bool, optional  
+    If true, passes ``stdin`` to both ``stderr`` and ``stdout``.
+* update  : bool, optional  
+    If true, will treat input as newly elapsed iterations,
+    i.e. numbers to pass to ``update()``.
+* update_to  : bool, optional  
+    If true, will treat input as total elapsed iterations,
+    i.e. numbers to assign to ``self.n``.
+* null  : bool, optional  
+    If true, will discard input (no stdout).
 * manpath  : str, optional  
     Directory in which to install tqdm man pages.
 * comppath  : str, optional  
@@ -498,6 +518,11 @@ Returns
               Increment to add to the internal counter of iterations
               [default: 1]. If using float, consider specifying ``{n:.3f}``
               or similar in ``bar_format``, or specifying ``unit_scale``.
+
+          Returns
+          -------
+          out  : bool or None
+              True if a ``display()`` was triggered.
           """
 
       def close(self):
@@ -844,7 +869,7 @@ Here's an example with ``urllib``:
             """
             if tsize is not None:
                 self.total = tsize
-            self.update(b * bsize - self.n)  # will also set self.n = b * bsize
+            return self.update(b * bsize - self.n)  # also sets self.n = b * bsize
 
     eg_link = "https://caspersci.uk.to/matryoshka.zip"
     with TqdmUpTo(unit='B', unit_scale=True, unit_divisor=1024, miniters=1,
@@ -910,6 +935,26 @@ The ``requests`` equivalent is nearly identical, albeit with a ``total``:
                        total=int(response.headers.get('content-length', 0))) as fout:
         for chunk in response.iter_content(chunk_size=4096):
             fout.write(chunk)
+
+**Custom callback**
+
+``tqdm`` is known for intelligently skipping unnecessary displays. To make a
+custom callback take advantage of this, simply use the return value of
+``update()``. This is set to ``True`` if a ``display()`` was triggered.
+
+.. code:: python
+
+    from tqdm.auto import tqdm as std_tqdm
+
+    def external_callback(*args, **kwargs):
+        ...
+
+    class TqdmExt(std_tqdm):
+        def update(self, n=1):
+            displayed = super(TqdmExt, self).update(n):
+            if displayed:
+                external_callback(**self.format_dict)
+            return displayed
 
 Pandas Integration
 ~~~~~~~~~~~~~~~~~~
@@ -1040,10 +1085,13 @@ For further customisation,
 Consider overloading ``display()`` to use e.g.
 ``self.frontend(**self.format_dict)`` instead of ``self.sp(repr(self))``.
 
-`tqdm/notebook.py <https://github.com/tqdm/tqdm/blob/master/tqdm/notebook.py>`__
-and `tqdm/gui.py <https://github.com/tqdm/tqdm/blob/master/tqdm/gui.py>`__
-submodules are examples of inheritance which don't (yet) strictly conform to the
-above recommendation.
+Some submodule examples of inheritance which don't (yet) strictly conform to the
+above recommendation:
+
+- `tqdm/notebook.py <https://github.com/tqdm/tqdm/blob/master/tqdm/notebook.py>`__
+- `tqdm/gui.py <https://github.com/tqdm/tqdm/blob/master/tqdm/gui.py>`__
+- `tqdm/contrib/telegram.py <https://github.com/tqdm/tqdm/blob/master/tqdm/contrib/telegram.py>`__
+- `tqdm/contrib/discord.py <https://github.com/tqdm/tqdm/blob/master/tqdm/contrib/discord.py>`__
 
 Dynamic Monitor/Meter
 ~~~~~~~~~~~~~~~~~~~~~

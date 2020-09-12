@@ -55,8 +55,9 @@ def my_hook(t):
         """
         if tsize not in (None, -1):
             t.total = tsize
-        t.update((b - last_b[0]) * bsize)
+        displayed = t.update((b - last_b[0]) * bsize)
         last_b[0] = b
+        return displayed
 
     return update_to
 
@@ -81,7 +82,7 @@ class TqdmUpTo(tqdm):
         """
         if tsize is not None:
             self.total = tsize
-        self.update(b * bsize - self.n)  # will also set self.n = b * bsize
+        return self.update(b * bsize - self.n)  # also sets self.n = b * bsize
 
 
 opts = docopt(__doc__)

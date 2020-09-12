@@ -220,6 +220,7 @@ class tqdm_gui(std_tqdm):  # pragma: no cover
                 # Store old values for next call
                 self.last_print_n = self.n
                 self.last_print_t = cur_t
+                return True
 
     def close(self):
         # if not self.gui:

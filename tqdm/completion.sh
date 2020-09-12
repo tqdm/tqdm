@@ -12,7 +12,7 @@ _tqdm(){
     COMPREPLY=($(compgen -W       'CRITICAL FATAL ERROR WARN WARNING INFO DEBUG NOTSET' -- ${cur}))
     ;;
   *)
-    COMPREPLY=($(compgen -W '--ascii --bar_format --buf_size --bytes --comppath --delim --desc --disable --dynamic_ncols --help --initial --leave --lock_args --log --manpath --maxinterval --mininterval --miniters --ncols --nrows --position --postfix --smoothing --total --unit --unit_divisor --unit_scale --version --write_bytes -h -v' -- ${cur}))
+    COMPREPLY=($(compgen -W '--ascii --bar_format --buf_size --bytes --comppath --delim --desc --disable --dynamic_ncols --help --initial --leave --lock_args --log --manpath --maxinterval --mininterval --miniters --ncols --nrows --null --position --postfix --smoothing --tee --total --unit --unit_divisor --unit_scale --update --update_to --version --write_bytes -h -v' -- ${cur}))
     ;;
   esac
 }
