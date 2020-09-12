@@ -32,12 +32,12 @@ def cast(val, typ):
         return eval(typ + '("' + val + '")')
     except:
         if typ == 'chr':
-            return chr(ord(eval('"' + val + '"')))
+            return chr(ord(eval('"' + val + '"'))).encode()
         else:
             raise TqdmTypeError(val + ' : ' + typ)
 
 
-def posix_pipe(fin, fout, delim='\n', buf_size=256,
+def posix_pipe(fin, fout, delim=b'\\n', buf_size=256,
                callback=lambda int: None  # pragma: no cover
                ):
     """
@@ -49,7 +49,7 @@ def posix_pipe(fin, fout, delim='\n', buf_size=256,
     """
     fp_write = fout.write
 
-    # tmp = ''
+    # tmp = b''
     if not delim:
         while True:
             tmp = fin.read(buf_size)
@@ -63,7 +63,7 @@ def posix_pipe(fin, fout, delim='\n', buf_size=256,
             callback(len(tmp))
         # return
 
-    buf = ''
+    buf = b''
     # n = 0
     while True:
         tmp = fin.read(buf_size)
@@ -85,7 +85,7 @@ def posix_pipe(fin, fout, delim='\n', buf_size=256,
             else:
                 fp_write(buf + tmp[:i + len(delim)])
                 callback(1)  # n += 1
-                buf = ''
+                buf = b''
                 tmp = tmp[i + len(delim):]
 
 
@@ -204,7 +204,7 @@ Options:
         raise
     else:
         buf_size = tqdm_args.pop('buf_size', 256)
-        delim = tqdm_args.pop('delim', '\n')
+        delim = tqdm_args.pop('delim', b'\\n')
         delim_per_char = tqdm_args.pop('bytes', False)
         tee = tqdm_args.pop('tee', False)
         manpath = tqdm_args.pop('manpath', None)
@@ -245,7 +245,7 @@ Options:
             log.debug(tqdm_args)
             with tqdm(**tqdm_args) as t:
                 posix_pipe(stdin, stdout, '', buf_size, t.update)
-        elif delim == '\n':
+        elif delim == b'\\n':
             log.debug(tqdm_args)
             for i in tqdm(stdin, **tqdm_args):
                 stdout.write(i)
