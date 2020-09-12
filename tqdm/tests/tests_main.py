@@ -100,6 +100,31 @@ def test_main():
             # spaces to clear intermediate lines could increase length
             assert len(fp.getvalue()) >= res + len(IN_DATA)
 
+    # test --null
+    _STDOUT = sys.stdout
+    try:
+        with closing(StringIO()) as sys.stdout:
+            with closing(StringIO()) as sys.stdin:
+                sys.stdin.write(IN_DATA)
+
+                sys.stdin.seek(0)
+                with closing(UnicodeIO()) as fp:
+                    main(argv=['--null'], fp=fp)
+                    assert not sys.stdout.getvalue()
+
+            with closing(StringIO()) as sys.stdin:
+                sys.stdin.write(IN_DATA)
+
+                sys.stdin.seek(0)
+                with closing(UnicodeIO()) as fp:
+                    main(argv=[], fp=fp)
+                    assert sys.stdout.getvalue()
+    except:
+        sys.stdout = _STDOUT
+        raise
+    else:
+        sys.stdout = _STDOUT
+
     # test integer --update
     with closing(StringIO()) as sys.stdin:
         sys.stdin.write(IN_DATA)
