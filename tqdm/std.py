@@ -535,7 +535,7 @@ class tqdm(Comparable):
     @classmethod
     def _get_free_pos(cls, instance=None):
         """Skips specified instance."""
-        positions = set(abs(inst.pos) for inst in cls._instances
+        positions = set(inst.pos for inst in cls._instances
                         if inst is not instance and hasattr(inst, "pos"))
         return min(set(range(len(positions) + 1)).difference(positions))
 
@@ -567,7 +567,7 @@ class tqdm(Comparable):
                 if instances:
                     inst = min(instances, key=lambda i: i.pos)
                     inst.clear(nolock=True)
-                    inst.pos = abs(instance.pos)
+                    inst.pos = instance.pos
             # Kill monitor if no instances are left
             if not cls._instances and cls.monitor:
                 try:
@@ -1046,7 +1046,7 @@ class tqdm(Comparable):
             if position is None:
                 self.pos = self._get_free_pos(self)
             else:  # mark fixed positions as negative
-                self.pos = -position
+                self.pos = position
 
         if not gui:
             # Initialize the screen printer
@@ -1276,7 +1276,7 @@ class tqdm(Comparable):
         self.disable = True
 
         # decrement instance pos and remove from internal set
-        pos = abs(self.pos)
+        pos = self.pos
         self._decr_instances(self)
 
         # GUI mode
@@ -1300,8 +1300,9 @@ class tqdm(Comparable):
             if leave:
                 # stats for overall rate (no weighted average)
                 self.avg_time = None
-                self.display(pos=0)
-                fp_write('\n')
+                self.display(pos=pos)
+                if pos >= 0:
+                    fp_write('\n')
             else:
                 # clear previous display
                 if self.display(msg='', pos=pos) and not pos:
@@ -1314,12 +1315,12 @@ class tqdm(Comparable):
 
         if not nolock:
             self._lock.acquire()
-        pos = abs(self.pos)
-        if pos < (self.nrows or 20):
-            self.moveto(pos)
+        pos = self.pos
+        if abs(pos) < (self.nrows or 20):
+            self.moveto(-pos)
             self.sp('')
             self.fp.write('\r')  # place cursor back at the beginning of line
-            self.moveto(-pos)
+            self.moveto(pos)
         if not nolock:
             self._lock.release()
 
@@ -1464,14 +1465,15 @@ class tqdm(Comparable):
         ----------
         msg  : str, optional. What to display (default: `repr(self)`).
         pos  : int, optional. Position to `moveto`
-          (default: `abs(self.pos)`).
+          (default: `self.pos`).
         """
         if pos is None:
-            pos = abs(self.pos)
+            pos = self.pos
+        apos = abs(pos)
 
         nrows = self.nrows or 20
-        if pos >= nrows - 1:
-            if pos >= nrows:
+        if apos >= nrows - 1:
+            if apos >= nrows:
                 return False
             if msg or msg is None:  # override at `nrows - 1`
                 msg = " ... (more hidden) ..."
