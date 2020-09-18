@@ -221,7 +221,6 @@ class DisableOnWriteError(ObjectWrapper):
         """
         Quietly set `tqdm_instance.disable=True` if `func` raises `exc`.
         """
-        @wraps(func)
         def inner(*args, **kwargs):
             try:
                 return func(*args, **kwargs)
