@@ -334,7 +334,7 @@ def test_iter_overhead_simplebar_hard():
                 a += i
 
     assert_performance(
-        7.5, 'trange', time_tqdm(), 'simple_progress', time_bench())
+        8, 'trange', time_tqdm(), 'simple_progress', time_bench())
 
 
 @with_setup(pretest, posttest)
@@ -363,4 +363,4 @@ def test_manual_overhead_simplebar_hard():
                 simplebar_update(10)
 
     assert_performance(
-        7.5, 'tqdm', time_tqdm(), 'simple_progress', time_bench())
+        8, 'tqdm', time_tqdm(), 'simple_progress', time_bench())
