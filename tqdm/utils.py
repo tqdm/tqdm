@@ -217,14 +217,16 @@ class DisableOnWriteError(ObjectWrapper):
     Disable the given `tqdm_instance` upon `write()` or `flush()` errors.
     """
     @staticmethod
-    def disable_on_exception(tqdm_instance, func, exc):
+    def disable_on_exception(tqdm_instance, func):
         """
-        Quietly set `tqdm_instance.disable=True` if `func` raises `exc`.
+        Quietly set `tqdm_instance.disable=True` if `func` raises `errno=5`.
         """
         def inner(*args, **kwargs):
             try:
                 return func(*args, **kwargs)
-            except exc:
+            except (IOError, OSError) as e:
+                if e.errno != 5:
+                    raise
                 tqdm_instance.disable = True
         return inner
 
@@ -232,10 +234,10 @@ class DisableOnWriteError(ObjectWrapper):
         super(DisableOnWriteError, self).__init__(wrapped)
         if hasattr(wrapped, 'write'):
             self.wrapper_setattr('write', self.disable_on_exception(
-                tqdm_instance, wrapped.write, (IOError, OSError)))
+                tqdm_instance, wrapped.write))
         if hasattr(wrapped, 'flush'):
             self.wrapper_setattr('flush', self.disable_on_exception(
-                tqdm_instance, wrapped.flush, (IOError, OSError)))
+                tqdm_instance, wrapped.flush))
 
     def __eq__(self, other):
         return self._wrapped == getattr(other, '_wrapped', other)
