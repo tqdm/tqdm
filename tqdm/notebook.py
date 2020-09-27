@@ -184,6 +184,14 @@ class tqdm_notebook(std_tqdm):
             except AttributeError:
                 self.container.visible = False
 
+    @property
+    def colour(self):
+        return self.container.children[-2].style.bar_color
+
+    @colour.setter
+    def colour(self, bar_color):
+        self.container.children[-2].style.bar_color = bar_color
+
     def __init__(self, *args, **kwargs):
         kwargs = kwargs.copy()
         # Setup default output
@@ -198,6 +206,7 @@ class tqdm_notebook(std_tqdm):
                 '{bar}', '<bar/>')
         # convert disable = None to False
         kwargs['disable'] = bool(kwargs.get('disable', False))
+        colour = kwargs.pop('colour', None)
         super(tqdm_notebook, self).__init__(*args, **kwargs)
         if self.disable or not kwargs['gui']:
             self.sp = lambda *_, **__: None
@@ -212,6 +221,7 @@ class tqdm_notebook(std_tqdm):
         self.container = self.status_printer(
             self.fp, total, self.desc, self.ncols)
         self.sp = self.display
+        self.colour = colour
 
         # Print initial bar state
         if not self.disable:
