@@ -460,6 +460,8 @@ Parameters
     The screen height. If specified, hides nested bars outside this
     bound. If unspecified, attempts to use environment height.
     The fallback is 20.
+* colour  : str or tuple, optional  
+    Bar colour. May be RGB tuple: ``(0, 255, 0) == "GREEN"``.
 
 Extra CLI Options
 ~~~~~~~~~~~~~~~~~
