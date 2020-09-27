@@ -166,16 +166,16 @@ class Bar(object):
             self._colour = None
             return
         try:
-            if len(value) == 3:
-                self._colour = self.COLOUR_RGB % value
-            elif value.upper() in self.COLOURS:
+            if value.upper() in self.COLOURS:
                 self._colour = self.COLOURS[value.upper()]
+            elif value[0] == '#' and len(value) == 7:
+                self._colour = self.COLOUR_RGB % tuple(
+                    int(i, 16) for i in (value[1:3], value[3:5], value[5:7]))
             else:
                 raise KeyError
         except (KeyError, AttributeError):
-            warn(("Unknown colour (%s); valid choices:"
-                  " [(0-255, 0-255, 0-255), %s]") % (
-                      value, ", ".join(self.COLOURS)),
+            warn("Unknown colour (%s); valid choices: [hex (#00ff00), %s]" % (
+                 value, ", ".join(self.COLOURS)),
                  TqdmWarning, stacklevel=2)
             self._colour = None
 
@@ -399,8 +399,8 @@ class tqdm(Comparable):
             [default: 1000], ignored unless `unit_scale` is True.
         initial  : int or float, optional
             The initial counter value [default: 0].
-        colour  : str or tuple, optional
-            Bar colour. May be RGB tuple: `(0, 255, 0) == "GREEN"`.
+        colour  : str, optional
+            Bar colour (e.g. `'green'`, `'#00ff00'`).
 
         Returns
         -------
@@ -944,8 +944,8 @@ class tqdm(Comparable):
             The screen height. If specified, hides nested bars outside this
             bound. If unspecified, attempts to use environment height.
             The fallback is 20.
-        colour  : str or tuple, optional
-            Bar colour. May be RGB tuple: `(0, 255, 0) == "GREEN"`.
+        colour  : str, optional
+            Bar colour (e.g. `'green'`, `'#00ff00'`).
         gui  : bool, optional
             WARNING: internal parameter - do not use.
             Use tqdm.gui.tqdm(...) instead. If set, will attempt to use
