@@ -186,11 +186,13 @@ class tqdm_notebook(std_tqdm):
 
     @property
     def colour(self):
-        return self.container.children[-2].style.bar_color
+        if hasattr(self, 'container'):
+            return self.container.children[-2].style.bar_color
 
     @colour.setter
     def colour(self, bar_color):
-        self.container.children[-2].style.bar_color = bar_color
+        if hasattr(self, 'container'):
+            self.container.children[-2].style.bar_color = bar_color
 
     def __init__(self, *args, **kwargs):
         kwargs = kwargs.copy()
