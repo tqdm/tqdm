@@ -212,6 +212,37 @@ class SimpleTextIOWrapper(ObjectWrapper):
         return self._wrapped == getattr(other, '_wrapped', other)
 
 
+class DisableOnWriteError(ObjectWrapper):
+    """
+    Disable the given `tqdm_instance` upon `write()` or `flush()` errors.
+    """
+    @staticmethod
+    def disable_on_exception(tqdm_instance, func):
+        """
+        Quietly set `tqdm_instance.disable=True` if `func` raises `errno=5`.
+        """
+        def inner(*args, **kwargs):
+            try:
+                return func(*args, **kwargs)
+            except (IOError, OSError) as e:
+                if e.errno != 5:
+                    raise
+                tqdm_instance.disable = True
+        return inner
+
+    def __init__(self, wrapped, tqdm_instance):
+        super(DisableOnWriteError, self).__init__(wrapped)
+        if hasattr(wrapped, 'write'):
+            self.wrapper_setattr('write', self.disable_on_exception(
+                tqdm_instance, wrapped.write))
+        if hasattr(wrapped, 'flush'):
+            self.wrapper_setattr('flush', self.disable_on_exception(
+                tqdm_instance, wrapped.flush))
+
+    def __eq__(self, other):
+        return self._wrapped == getattr(other, '_wrapped', other)
+
+
 class CallbackIOWrapper(ObjectWrapper):
     def __init__(self, callback, stream, method="read"):
         """

@@ -293,13 +293,13 @@ def test_manual_overhead_hard():
     total = int(1e5)
 
     with closing(MockIO()) as our_file:
-        t = tqdm(total=total * 10, file=our_file, leave=True, miniters=1,
-                 mininterval=0, maxinterval=0)
-        a = 0
-        with relative_timer() as time_tqdm:
-            for i in _range(total):
-                a += i
-                t.update(10)
+        with tqdm(total=total * 10, file=our_file, leave=True, miniters=1,
+                  mininterval=0, maxinterval=0) as t:
+            a = 0
+            with relative_timer() as time_tqdm:
+                for i in _range(total):
+                    a += i
+                    t.update(10)
 
         a = 0
         with relative_timer() as time_bench:
@@ -334,7 +334,7 @@ def test_iter_overhead_simplebar_hard():
                 a += i
 
     assert_performance(
-        7.5, 'trange', time_tqdm(), 'simple_progress', time_bench())
+        8, 'trange', time_tqdm(), 'simple_progress', time_bench())
 
 
 @with_setup(pretest, posttest)
@@ -345,13 +345,13 @@ def test_manual_overhead_simplebar_hard():
     total = int(1e4)
 
     with closing(MockIO()) as our_file:
-        t = tqdm(total=total * 10, file=our_file, leave=True, miniters=1,
-                 mininterval=0, maxinterval=0)
-        a = 0
-        with relative_timer() as time_tqdm:
-            for i in _range(total):
-                a += i
-                t.update(10)
+        with tqdm(total=total * 10, file=our_file, leave=True, miniters=1,
+                  mininterval=0, maxinterval=0) as t:
+            a = 0
+            with relative_timer() as time_tqdm:
+                for i in _range(total):
+                    a += i
+                    t.update(10)
 
         simplebar_update = simple_progress(
             total=total * 10, file=our_file, leave=True, miniters=1,
@@ -363,4 +363,4 @@ def test_manual_overhead_simplebar_hard():
                 simplebar_update(10)
 
     assert_performance(
-        7.5, 'tqdm', time_tqdm(), 'simple_progress', time_bench())
+        8, 'tqdm', time_tqdm(), 'simple_progress', time_bench())
