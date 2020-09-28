@@ -400,7 +400,7 @@ class tqdm(Comparable):
         initial  : int or float, optional
             The initial counter value [default: 0].
         colour  : str, optional
-            Bar colour (e.g. `'green'`, `'#00ff00'`).
+            Bar colour (e.g. 'green', '#00ff00').
 
         Returns
         -------
@@ -945,7 +945,7 @@ class tqdm(Comparable):
             bound. If unspecified, attempts to use environment height.
             The fallback is 20.
         colour  : str, optional
-            Bar colour (e.g. `'green'`, `'#00ff00'`).
+            Bar colour (e.g. 'green', '#00ff00').
         gui  : bool, optional
             WARNING: internal parameter - do not use.
             Use tqdm.gui.tqdm(...) instead. If set, will attempt to use

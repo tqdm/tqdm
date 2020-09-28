@@ -461,7 +461,7 @@ Parameters
     bound. If unspecified, attempts to use environment height.
     The fallback is 20.
 * colour  : str, optional  
-    Bar colour (e.g. ``'green'``, ``'#00ff00'``).
+    Bar colour (e.g. 'green', '#00ff00').
 
 Extra CLI Options
 ~~~~~~~~~~~~~~~~~
