@@ -219,7 +219,7 @@ class DisableOnWriteError(ObjectWrapper):
     @staticmethod
     def disable_on_exception(tqdm_instance, func):
         """
-        Quietly set `tqdm_instance.disable=1` if `func` raises `errno=5`.
+        Quietly set `tqdm_instance.miniters=inf` if `func` raises `errno=5`.
         """
         def inner(*args, **kwargs):
             try:
@@ -227,11 +227,11 @@ class DisableOnWriteError(ObjectWrapper):
             except (IOError, OSError) as e:
                 if e.errno != 5:
                     raise
-                tqdm_instance.disable = 1
+                tqdm_instance.miniters = float('inf')
             except ValueError as e:
                 if 'closed' not in str(e):
                     raise
-                tqdm_instance.disable = 1
+                tqdm_instance.miniters = float('inf')
         return inner
 
     def __init__(self, wrapped, tqdm_instance):
