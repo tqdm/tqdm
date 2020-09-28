@@ -1310,7 +1310,7 @@ class tqdm(Comparable):
 
     def close(self):
         """Cleanup and (if leave=False) close the progressbar."""
-        if self.disable:
+        if self.disable is True:  # could be truthy yet non-True
             return
 
         # Prevent multiple closures

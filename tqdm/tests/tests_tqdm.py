@@ -2010,3 +2010,12 @@ def test_colour():
             pass
         out = our_file2.getvalue()
         assert '\x1b[34m' in out
+
+
+@with_setup(pretest, posttest)
+def test_closed():
+    """Test writing to closed file"""
+    with closing(StringIO()) as our_file:
+        for i in trange(9, file=our_file, miniters=1, mininterval=0):
+            if i == 5:
+                our_file.close()
