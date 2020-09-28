@@ -1322,8 +1322,8 @@ Citation information: |DOI|
    :target: https://coveralls.io/github/tqdm/tqdm
 .. |Branch-Coverage-Status| image:: https://codecov.io/gh/tqdm/tqdm/branch/master/graph/badge.svg
    :target: https://codecov.io/gh/tqdm/tqdm
-.. |Codacy-Grade| image:: https://api.codacy.com/project/badge/Grade/3f965571598f44549c7818f29cdcf177
-   :target: https://www.codacy.com/app/tqdm/tqdm/dashboard
+.. |Codacy-Grade| image:: https://app.codacy.com/project/badge/Grade/3f965571598f44549c7818f29cdcf177
+   :target: https://www.codacy.com/gh/tqdm/tqdm/dashboard
 .. |CII Best Practices| image:: https://bestpractices.coreinfrastructure.org/projects/3264/badge
    :target: https://bestpractices.coreinfrastructure.org/projects/3264
 .. |GitHub-Status| image:: https://img.shields.io/github/tag/tqdm/tqdm.svg?maxAge=86400&logo=github&logoColor=white
