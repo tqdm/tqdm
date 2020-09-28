@@ -147,7 +147,7 @@ class Bar(object):
                    CYAN='\x1b[36m', WHITE='\x1b[37m')
 
     def __init__(self, frac, default_len=10, charset=UTF, colour=None):
-        if not (0 <= frac <= 1):
+        if not 0 <= frac <= 1:
             warn("clamping frac to range [0, 1]", TqdmWarning, stacklevel=2)
             frac = max(0, min(1, frac))
         assert default_len > 0
@@ -202,16 +202,11 @@ class Bar(object):
         bar_length, frac_bar_length = divmod(
             int(self.frac * N_BARS * nsyms), nsyms)
 
-        bar = charset[-1] * bar_length
-        frac_bar = charset[frac_bar_length]
-
-        # whitespace padding
-        if bar_length < N_BARS:
-            bar = bar + frac_bar + \
+        res = charset[-1] * bar_length
+        if bar_length < N_BARS:  # whitespace padding
+            res = res + charset[frac_bar_length] + \
                 charset[0] * (N_BARS - bar_length - 1)
-        if self.colour:
-            return self.colour + bar + self.COLOUR_RESET
-        return bar
+        return self.colour + res + self.COLOUR_RESET if self.colour else res
 
 
 class tqdm(Comparable):
@@ -546,7 +541,7 @@ class tqdm(Comparable):
                 '{0}{1} [{2}, {3}{4}]'.format(
                     n_fmt, unit, elapsed_str, rate_fmt, postfix)
 
-    def __new__(cls, *args, **kwargs):
+    def __new__(cls, *args, **_):
         # Create a new instance
         instance = object.__new__(cls)
         # Construct the lock if it does not exist

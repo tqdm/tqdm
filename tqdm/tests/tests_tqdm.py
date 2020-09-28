@@ -969,14 +969,14 @@ def test_ascii():
     assert u"20%|\u2588\u2588" in res[3]
 
     # Test custom bar
-    for ascii in [" .oO0", " #"]:
+    for bars in [" .oO0", " #"]:
         with closing(StringIO()) as our_file:
-            for _ in tqdm(_range(len(ascii) - 1), file=our_file, miniters=1,
-                          mininterval=0, ascii=ascii, ncols=27):
+            for _ in tqdm(_range(len(bars) - 1), file=our_file, miniters=1,
+                          mininterval=0, ascii=bars, ncols=27):
                 pass
             res = our_file.getvalue().strip("\r").split("\r")
-        for bar, line in zip(ascii, res):
-            assert '|' + bar + '|' in line
+        for b, line in zip(bars, res):
+            assert '|' + b + '|' in line
 
 
 @with_setup(pretest, posttest)
@@ -1170,7 +1170,8 @@ Use `position` instead for manual control.""" not in our_file.getvalue():
 def test_bar_format():
     """Test custom bar formatting"""
     with closing(StringIO()) as our_file:
-        bar_format = r'{l_bar}{bar}|{n_fmt}/{total_fmt}-{n}/{total}{percentage}{rate}{rate_fmt}{elapsed}{remaining}'  # NOQA
+        bar_format = ('{l_bar}{bar}|{n_fmt}/{total_fmt}-{n}/{total}'
+                      '{percentage}{rate}{rate_fmt}{elapsed}{remaining}')
         for _ in trange(2, file=our_file, leave=True, bar_format=bar_format):
             pass
         out = our_file.getvalue()
@@ -1654,7 +1655,7 @@ def test_deprecation_exception():
                 our_file, 'write', sys.stderr.write)))
 
     def test_TqdmDeprecationWarning_nofpwrite():
-        raise (TqdmDeprecationWarning('Test!', fp_write=None))
+        raise TqdmDeprecationWarning('Test!', fp_write=None)
 
     assert_raises(TqdmDeprecationWarning, test_TqdmDeprecationWarning)
     assert_raises(Exception, test_TqdmDeprecationWarning_nofpwrite)
@@ -1878,7 +1879,7 @@ def test_wrapattr():
             res = writer.getvalue()
             assert data == res
         res = our_file.getvalue()
-        assert ('%.1fB [' % len(data)) in res
+        assert '%.1fB [' % len(data) in res
 
     with closing(StringIO()) as our_file:
         with closing(StringIO()) as writer:
@@ -1886,7 +1887,7 @@ def test_wrapattr():
                     writer, "write", file=our_file, bytes=False) as wrap:
                 wrap.write(data)
         res = our_file.getvalue()
-        assert ('%dit [' % len(data)) in res
+        assert '%dit [' % len(data) in res
 
 
 @with_setup(pretest, posttest)

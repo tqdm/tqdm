@@ -89,7 +89,7 @@ def retry_on_except(n=3):
 class MockIO(StringIO):
     """Wraps StringIO to mock a file with no I/O"""
 
-    def write(self, data):
+    def write(self, _):
         return
 
 
@@ -132,15 +132,15 @@ def simple_progress(iterable=None, total=None, file=sys.stdout, desc='',
                 eta = (total - n[0]) / rate if rate > 0 else 0
                 eta_fmt = format_interval(eta)
 
-                # bar = "#" * int(frac * width)
+                # full_bar = "#" * int(frac * width)
                 barfill = " " * int((1.0 - frac) * width)
                 bar_length, frac_bar_length = divmod(int(frac * width * 10), 10)
-                bar = '#' * bar_length
+                full_bar = '#' * bar_length
                 frac_bar = chr(48 + frac_bar_length) if frac_bar_length \
                     else ' '
 
                 file.write("\r%s %i%%|%s%s%s| %i/%i [%s<%s, %s]" %
-                           (desc, percentage, bar, frac_bar, barfill, n[0],
+                           (desc, percentage, full_bar, frac_bar, barfill, n[0],
                             total, spent_fmt, eta_fmt, rate_fmt))
 
                 if n[0] == total and leave:
