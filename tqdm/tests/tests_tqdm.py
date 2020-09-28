@@ -15,7 +15,7 @@ from warnings import catch_warnings, simplefilter
 
 from tqdm import tqdm
 from tqdm import trange
-from tqdm import TqdmDeprecationWarning
+from tqdm import TqdmDeprecationWarning, TqdmWarning
 from tqdm.std import Bar
 from tqdm.contrib import DummyTqdmFile
 
@@ -1895,7 +1895,7 @@ def test_float_progress():
     with closing(StringIO()) as our_file:
         with trange(10, total=9.6, file=our_file) as t:
             with catch_warnings(record=True) as w:
-                simplefilter("always")
+                simplefilter("always", category=TqdmWarning)
                 for i in t:
                     if i < 9:
                         assert not w
@@ -1987,3 +1987,35 @@ def test_initial():
         out = our_file.getvalue()
         assert '10/19' in out
         assert '19/19' in out
+
+
+@with_setup(pretest, posttest)
+def test_colour():
+    """Test `colour`"""
+    with closing(StringIO()) as our_file:
+        for _ in tqdm(_range(9), file=our_file, colour="#beefed"):
+            pass
+        out = our_file.getvalue()
+        assert '\x1b[38;2;%d;%d;%dm' % (0xbe, 0xef, 0xed) in out
+
+        with catch_warnings(record=True) as w:
+            simplefilter("always", category=TqdmWarning)
+            with tqdm(total=1, file=our_file, colour="charm") as t:
+                assert w
+                t.update()
+            assert "Unknown colour" in str(w[-1].message)
+
+    with closing(StringIO()) as our_file2:
+        for _ in tqdm(_range(9), file=our_file2, colour="blue"):
+            pass
+        out = our_file2.getvalue()
+        assert '\x1b[34m' in out
+
+
+@with_setup(pretest, posttest)
+def test_closed():
+    """Test writing to closed file"""
+    with closing(StringIO()) as our_file:
+        for i in trange(9, file=our_file, miniters=1, mininterval=0):
+            if i == 5:
+                our_file.close()

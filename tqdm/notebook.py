@@ -106,14 +106,11 @@ class tqdm_notebook(std_tqdm):
             if ncols is None:
                 pbar.layout.width = "20px"
 
+        ltext = HTML()
+        rtext = HTML()
         if desc:
-            pbar.description = desc
-            if IPYW >= 7:
-                pbar.style.description_width = 'initial'
-        # Prepare status text
-        ptext = HTML()
-        # Only way to place text to the right of the bar is to use a container
-        container = HBox(children=[pbar, ptext])
+            ltext.value = desc
+        container = HBox(children=[ltext, pbar, rtext])
         # Prepare layout
         if ncols is not None:  # use default style of ipywidgets
             # ncols could be 100, "100px", "100%"
@@ -151,7 +148,7 @@ class tqdm_notebook(std_tqdm):
         if not msg and not close:
             msg = self.__repr__()
 
-        pbar, ptext = self.container.children
+        ltext, pbar, rtext = self.container.children
         pbar.value = self.n
 
         if msg:
@@ -168,13 +165,10 @@ class tqdm_notebook(std_tqdm):
                 right = right[1:]
 
             # Update description
-            pbar.description = left
-            if IPYW >= 7:
-                pbar.style.description_width = 'initial'
-
+            ltext.value = left
             # never clear the bar (signal: msg='')
             if right:
-                ptext.value = right
+                rtext.value = right
 
         # Change bar style
         if bar_style:
@@ -190,6 +184,16 @@ class tqdm_notebook(std_tqdm):
             except AttributeError:
                 self.container.visible = False
 
+    @property
+    def colour(self):
+        if hasattr(self, 'container'):
+            return self.container.children[-2].style.bar_color
+
+    @colour.setter
+    def colour(self, bar_color):
+        if hasattr(self, 'container'):
+            self.container.children[-2].style.bar_color = bar_color
+
     def __init__(self, *args, **kwargs):
         kwargs = kwargs.copy()
         # Setup default output
@@ -204,6 +208,7 @@ class tqdm_notebook(std_tqdm):
                 '{bar}', '<bar/>')
         # convert disable = None to False
         kwargs['disable'] = bool(kwargs.get('disable', False))
+        colour = kwargs.pop('colour', None)
         super(tqdm_notebook, self).__init__(*args, **kwargs)
         if self.disable or not kwargs['gui']:
             self.sp = lambda *_, **__: None
@@ -218,6 +223,7 @@ class tqdm_notebook(std_tqdm):
         self.container = self.status_printer(
             self.fp, total, self.desc, self.ncols)
         self.sp = self.display
+        self.colour = colour
 
         # Print initial bar state
         if not self.disable:
@@ -273,9 +279,12 @@ class tqdm_notebook(std_tqdm):
         ----------
         total  : int or float, optional. Total to use for the new bar.
         """
+        _, pbar, _ = self.container.children
+        pbar.bar_style = ''
         if total is not None:
-            pbar, _ = self.container.children
             pbar.max = total
+            if not self.total and self.ncols is None:  # no longer unknown total
+                pbar.layout.width = None  # reset width
         return super(tqdm_notebook, self).reset(total=total)
 
 
