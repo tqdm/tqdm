@@ -1811,8 +1811,10 @@ def patch_lock(thread=True):
         raise SkipTest
 
     def outer(func):
+        """actual decorator"""
         @wraps(func)
         def inner(*args, **kwargs):
+            """set & reset lock even if exceptions occur"""
             default_lock = tqdm.get_lock()
             try:
                 tqdm.set_lock(lock)

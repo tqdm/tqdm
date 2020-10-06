@@ -546,7 +546,7 @@ class tqdm(Comparable):
                 '{0}{1} [{2}, {3}{4}]'.format(
                     n_fmt, unit, elapsed_str, rate_fmt, postfix)
 
-    def __new__(cls, *args, **_):
+    def __new__(cls, *_, **__):
         # Create a new instance
         instance = object.__new__(cls)
         # Construct the lock if it does not exist

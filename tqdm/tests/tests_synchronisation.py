@@ -15,18 +15,22 @@ class Time(object):
 
     @classmethod
     def reset(cls):
+        """zeroes internal offset"""
         cls.offset = 0
 
     @classmethod
     def time(cls):
+        """time.time() + offset"""
         return time() + cls.offset
 
     @staticmethod
     def sleep(dur):
+        """identical to time.sleep()"""
         return sleep(dur)
 
     @classmethod
     def fake_sleep(cls, dur):
+        """adds `dur` to internal offset"""
         cls.offset += dur
         sleep(0.000001)  # sleep to allow interrupt (instead of pass)
 
