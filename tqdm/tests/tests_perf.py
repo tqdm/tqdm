@@ -242,8 +242,8 @@ def test_lock_args():
     except ImportError:
         raise SkipTest
 
-    total = 8
-    subtotal = 1000
+    total = 16
+    subtotal = 10000
 
     with ThreadPoolExecutor() as pool:
         sys.stderr.write('block ... ')
@@ -257,7 +257,7 @@ def test_lock_args():
             res = list(pool.map(worker(subtotal, False), range(total)))
             assert sum(res) == sum(range(total)) + total
 
-    assert_performance(0.2, 'noblock', time_noblock(), 'tqdm', time_tqdm())
+    assert_performance(0.5, 'noblock', time_noblock(), 'tqdm', time_tqdm())
 
 
 @with_setup(pretest, posttest)
@@ -282,7 +282,7 @@ def test_iter_overhead_hard():
                 a += i
                 our_file.write(("%i" % a) * 40)
 
-    assert_performance(125, 'trange', time_tqdm(), 'range', time_bench())
+    assert_performance(130, 'trange', time_tqdm(), 'range', time_bench())
 
 
 @with_setup(pretest, posttest)
@@ -307,7 +307,7 @@ def test_manual_overhead_hard():
                 a += i
                 our_file.write(("%i" % a) * 40)
 
-    assert_performance(125, 'tqdm', time_tqdm(), 'range', time_bench())
+    assert_performance(130, 'tqdm', time_tqdm(), 'range', time_bench())
 
 
 @with_setup(pretest, posttest)
@@ -334,7 +334,7 @@ def test_iter_overhead_simplebar_hard():
                 a += i
 
     assert_performance(
-        8, 'trange', time_tqdm(), 'simple_progress', time_bench())
+        9, 'trange', time_tqdm(), 'simple_progress', time_bench())
 
 
 @with_setup(pretest, posttest)
@@ -363,4 +363,4 @@ def test_manual_overhead_simplebar_hard():
                 simplebar_update(10)
 
     assert_performance(
-        8, 'tqdm', time_tqdm(), 'simple_progress', time_bench())
+        9, 'tqdm', time_tqdm(), 'simple_progress', time_bench())
