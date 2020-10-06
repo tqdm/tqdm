@@ -3,7 +3,9 @@ from tqdm import tqdm
 from unittest import SkipTest
 from tests_tqdm import TestWithInstancesCheck, StringIO, closing
 
+
 class TestTqdmKeras(TestWithInstancesCheck):
+
     def test_keras(self):
         """Test tqdm.keras.TqdmCallback"""
         try:

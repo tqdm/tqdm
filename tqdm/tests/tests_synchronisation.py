@@ -49,6 +49,7 @@ def incr_bar(x):
             pass
     return incr(x)
 
+
 class TestTqdmSynchronisation(TestWithInstancesCheck):
     def test_monitor_thread(self):
         """Test dummy monitoring thread"""
@@ -68,14 +69,15 @@ class TestTqdmSynchronisation(TestWithInstancesCheck):
         monitor.exit()
         timer.sleep(maxinterval * 2)  # need to go out of the sleep to die
         assert not monitor.report()
-        # assert not monitor.is_alive()  # not working dunno why, thread not killed
+        # assert not monitor.is_alive()  # not working dunno why,
+        # thread not killed
         del monitor
-
 
     def test_monitoring_and_cleanup(self):
         """Test for stalled tqdm instance and monitor deletion"""
-        # Note: should fix miniters for these tests, else with dynamic_miniters
-        # it's too complicated to handle with monitoring update and maxinterval...
+        # Note: should fix miniters for these tests, else with
+        # dynamic_miniters it's too complicated to handle with
+        # monitoring update and maxinterval...
         maxinterval = 2
 
         total = 1000
@@ -101,36 +103,41 @@ class TestTqdmSynchronisation(TestWithInstancesCheck):
                 # Then do 1 it after monitor interval, so that monitor kicks in
                 timer.sleep(maxinterval * 2)
                 t.update(1)
-                # Wait for the monitor to get out of sleep's loop and update tqdm..
+                # Wait for the monitor to get out of sleep's loop and update
+                # tqdm..
                 timeend = timer.time()
                 while not (t.monitor.woken >= timeend and t.miniters == 1):
-                    timer.sleep(1)  # Force monitor to wake up if it woken too soon
-                    sleep(0.000001)  # sleep to allow interrupt (instead of pass)
+                    # Force monitor to wake up if it woken too soon
+                    timer.sleep(1)
+                    # sleep to allow interrupt (instead of pass)
+                    sleep(0.000001)
                 assert t.miniters == 1  # check that monitor corrected miniters
-                # Note: at this point, there may be a race condition: monitor saved
-                # current woken time but timer.sleep() happen just before monitor
-                # sleep. To fix that, either sleep here or increase time in a loop
-                # to ensure that monitor wakes up at some point.
+                # Note: at this point, there may be a race condition: monitor
+                # saved current woken time but timer.sleep() happen just before
+                # monitor sleep. To fix that, either sleep here or increase time
+                # in a loop to ensure that monitor wakes up at some point.
 
                 # Try again but already at miniters = 1 so nothing will be done
                 timer.sleep(maxinterval * 2)
                 t.update(2)
                 timeend = timer.time()
                 while t.monitor.woken < timeend:
-                    timer.sleep(1)  # Force monitor to wake up if it woken too soon
+                    # Force monitor to wake up if it woken too soon
+                    timer.sleep(1)
                     sleep(0.000001)
-                # Wait for the monitor to get out of sleep's loop and update tqdm..
+                # Wait for the monitor to get out of sleep's loop and
+                # update tqdm..
                 assert t.miniters == 1  # check that monitor corrected miniters
 
         # Check that class var monitor is deleted if no instance left
         tqdm.monitor_interval = 10
         assert tqdm.monitor is None
 
-
     def test_monitoring_multi(self):
         """Test on multiple bars, one not needing miniters adjustment"""
         # Note: should fix miniters for these tests, else with dynamic_miniters
-        # it's too complicated to handle with monitoring update and maxinterval...
+        # it's too complicated to handle with monitoring update
+        # and maxinterval...
         maxinterval = 2
 
         total = 1000
@@ -146,9 +153,10 @@ class TestTqdmSynchronisation(TestWithInstancesCheck):
         with closing(StringIO()) as our_file:
             with tqdm(total=total, file=our_file, miniters=500, mininterval=0.1,
                       maxinterval=maxinterval) as t1:
-                # Set high maxinterval for t2 so monitor does not need to adjust it
-                with tqdm(total=total, file=our_file, miniters=500, mininterval=0.1,
-                          maxinterval=1E5) as t2:
+                # Set high maxinterval for t2 so monitor does not need to
+                # adjust it
+                with tqdm(total=total, file=our_file, miniters=500,
+                          mininterval=0.1, maxinterval=1E5) as t2:
                     self.cpu_timify(t1, timer)
                     self.cpu_timify(t2, timer)
                     # Do a lot of iterations in a small timeframe
@@ -157,22 +165,25 @@ class TestTqdmSynchronisation(TestWithInstancesCheck):
                     t2.update(500)
                     assert t1.miniters == 500
                     assert t2.miniters == 500
-                    # Then do 1 it after monitor interval, so that monitor kicks in
+                    # Then do 1 it after monitor interval, so that monitor
+                    # kicks in
                     timer.sleep(maxinterval * 2)
                     t1.update(1)
                     t2.update(1)
                     # Wait for the monitor to get out of sleep and update tqdm
                     timeend = timer.time()
-                    while not (t1.monitor.woken >= timeend and t1.miniters == 1):
+                    while not (t1.monitor.woken >= timeend
+                               and t1.miniters == 1):
                         timer.sleep(1)
                         sleep(0.000001)
-                    assert t1.miniters == 1  # check that monitor corrected miniters
-                    assert t2.miniters == 500  # check that t2 was not adjusted
+                    # check that monitor corrected miniters
+                    assert t1.miniters == 1
+                    # check that t2 was not adjusted
+                    assert t2.miniters == 500
 
         # Check that class var monitor is deleted if no instance left
         tqdm.monitor_interval = 10
         assert tqdm.monitor is None
-
 
     def test_imap(self):
         """Test multiprocessing.Pool"""
@@ -184,7 +195,6 @@ class TestTqdmSynchronisation(TestWithInstancesCheck):
         pool = Pool()
         res = list(tqdm(pool.imap(incr, range(100)), disable=True))
         assert res[-1] == 100
-
 
     # py2: locks won't propagate to incr_bar so may cause `AttributeError`
     @retry_on_except(n=3 if sys.version_info < (3,) else 1)

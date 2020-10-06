@@ -2,7 +2,9 @@ from tqdm import tqdm
 from unittest import SkipTest
 from tests_tqdm import TestWithInstancesCheck, StringIO, closing
 
+
 class TestTqdmPandas(TestWithInstancesCheck):
+
     def test_pandas_setup(self):
         """Test tqdm.pandas()"""
         try:
@@ -17,7 +19,6 @@ class TestTqdmPandas(TestWithInstancesCheck):
             series.progress_apply(lambda x: x + 10)
             res = our_file.getvalue()
             assert '100/123' in res
-
 
     def test_pandas_rolling_expanding(self):
         """Test pandas.(Series|DataFrame).(rolling|expanding)"""
@@ -48,7 +49,6 @@ class TestTqdmPandas(TestWithInstancesCheck):
                         "\nExpected:\n{0}\nIn:\n{1}\n".format(
                             exres + " at least twice.", our_file.read()))
 
-
     def test_pandas_series(self):
         """Test pandas.Series.progress_apply and .progress_map"""
         try:
@@ -77,7 +77,6 @@ class TestTqdmPandas(TestWithInstancesCheck):
                     raise AssertionError(
                         "\nExpected:\n{0}\nIn:\n{1}\n".format(
                             exres + " at least twice.", our_file.read()))
-
 
     def test_pandas_data_frame(self):
         """Test pandas.DataFrame.progress_apply and .progress_applymap"""
@@ -125,7 +124,6 @@ class TestTqdmPandas(TestWithInstancesCheck):
                     raise AssertionError(
                         "\nExpected:\n{0}\nIn:\n {1}\n".format(
                             exres + " at least once.", our_file.read()))
-
 
     def test_pandas_groupby_apply(self):
         """Test pandas.DataFrame.groupby(...).progress_apply"""
@@ -186,7 +184,6 @@ class TestTqdmPandas(TestWithInstancesCheck):
                         "\nExpected:\n{0}\nIn:\n {1}\n".format(
                             exres + " at least once.", our_file.read()))
 
-
     def test_pandas_leave(self):
         """Test pandas with `leave=True`"""
         try:
@@ -208,7 +205,6 @@ class TestTqdmPandas(TestWithInstancesCheck):
                 raise AssertionError(
                     "\nExpected:\n{0}\nIn:{1}\n".format(exres, our_file.read()))
 
-
     def test_pandas_apply_args_deprecation(self):
         """Test warning info in
         `pandas.Dataframe(Series).progress_apply(func, *args)`"""
@@ -228,7 +224,6 @@ class TestTqdmPandas(TestWithInstancesCheck):
             assert all([i in res for i in (
                 "TqdmDeprecationWarning", "not supported",
                 "keyword arguments instead")])
-
 
     def test_pandas_deprecation(self):
         """Test bar object instance as argument deprecation"""

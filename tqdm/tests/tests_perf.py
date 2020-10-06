@@ -1,7 +1,5 @@
 from __future__ import print_function, division
-
 from unittest import SkipTest
-
 from contextlib import contextmanager
 
 import sys
@@ -11,6 +9,7 @@ from tqdm import trange
 from tqdm import tqdm
 
 from tests_tqdm import TestWithInstancesCheck, StringIO, closing, _range
+
 
 # Use relative/cpu timer to have reliable timings when there is a sudden load
 try:
@@ -90,8 +89,10 @@ class MockIO(StringIO):
 
 
 class TestTqdmPerf(TestWithInstancesCheck):
-    def simple_progress(self, iterable=None, total=None, file=sys.stdout, desc='',
-                        leave=False, miniters=1, mininterval=0.1, width=60):
+
+    def simple_progress(self, iterable=None, total=None, file=sys.stdout,
+                        desc='', leave=False, miniters=1, mininterval=0.1,
+                        width=60):
         """Simple progress bar reproducing tqdm's major features"""
         n = [0]  # use a closure
         start_t = [time()]
@@ -131,7 +132,8 @@ class TestTqdmPerf(TestWithInstancesCheck):
 
                     # bar = "#" * int(frac * width)
                     barfill = " " * int((1.0 - frac) * width)
-                    bar_length, frac_bar_length = divmod(int(frac * width * 10), 10)
+                    bar_length, frac_bar_length = divmod(int(frac * width * 10),
+                                                         10)
                     bar = '#' * bar_length
                     frac_bar = chr(48 + frac_bar_length) if frac_bar_length \
                         else ' '
@@ -155,8 +157,8 @@ class TestTqdmPerf(TestWithInstancesCheck):
         else:
             return update_and_print
 
-
-    def assert_performance(self, thresh, name_left, time_left, name_right, time_right):
+    def assert_performance(self, thresh, name_left, time_left,
+                           name_right, time_right):
         """raises if time_left > thresh * time_right"""
         if time_left > thresh * time_right:
             raise ValueError(
@@ -167,9 +169,8 @@ class TestTqdmPerf(TestWithInstancesCheck):
                     time=(time_left, time_right),
                     ratio=time_left / time_right, thresh=thresh))
 
-
     @retry_on_except()
-    def test_iter_overhead():
+    def test_iter_overhead(self):
         """Test overhead of iteration based tqdm"""
 
         total = int(1e6)
@@ -189,7 +190,6 @@ class TestTqdmPerf(TestWithInstancesCheck):
                     our_file.write(a)
 
         self.assert_performance(6, 'trange', time_tqdm(), 'range', time_bench())
-
 
     @retry_on_except()
     def test_manual_overhead(self):
@@ -213,7 +213,6 @@ class TestTqdmPerf(TestWithInstancesCheck):
 
         self.assert_performance(6, 'tqdm', time_tqdm(), 'range', time_bench())
 
-
     def worker(total, blocking=True):
         def incr_bar(x):
             with closing(StringIO()) as our_file:
@@ -224,7 +223,6 @@ class TestTqdmPerf(TestWithInstancesCheck):
                     pass
             return x + 1
         return incr_bar
-
 
     @retry_on_except()
     def test_lock_args(self):
@@ -243,16 +241,16 @@ class TestTqdmPerf(TestWithInstancesCheck):
             sys.stderr.write('block ... ')
             sys.stderr.flush()
             with relative_timer() as time_tqdm:
-                res = list(pool.map(worker(subtotal, True), range(total)))
+                res = list(pool.map(self.worker(subtotal, True), range(total)))
                 assert sum(res) == sum(range(total)) + total
             sys.stderr.write('noblock ... ')
             sys.stderr.flush()
             with relative_timer() as time_noblock:
-                res = list(pool.map(worker(subtotal, False), range(total)))
+                res = list(pool.map(self.worker(subtotal, False), range(total)))
                 assert sum(res) == sum(range(total)) + total
 
-        self.assert_performance(0.2, 'noblock', time_noblock(), 'tqdm', time_tqdm())
-
+        self.assert_performance(0.2, 'noblock', time_noblock(),
+                                'tqdm', time_tqdm())
 
     @retry_on_except()
     def test_iter_overhead_hard(self):
@@ -275,8 +273,8 @@ class TestTqdmPerf(TestWithInstancesCheck):
                     a += i
                     our_file.write(("%i" % a) * 40)
 
-        self.assert_performance(125, 'trange', time_tqdm(), 'range', time_bench())
-
+        self.assert_performance(125, 'trange', time_tqdm(),
+                                'range', time_bench())
 
     @retry_on_except()
     def test_manual_overhead_hard(self):
@@ -301,10 +299,10 @@ class TestTqdmPerf(TestWithInstancesCheck):
 
         self.assert_performance(125, 'tqdm', time_tqdm(), 'range', time_bench())
 
-
     @retry_on_except()
     def test_iter_overhead_simplebar_hard(self):
-        """Test overhead of iteration based tqdm vs simple progress bar (hard)"""
+        """Test overhead of iteration based tqdm vs simple
+           progress bar (hard)"""
 
         total = int(1e4)
 
@@ -319,14 +317,13 @@ class TestTqdmPerf(TestWithInstancesCheck):
 
             a = 0
             s = self.simple_progress(_range(total), file=our_file, leave=True,
-                                miniters=1, mininterval=0)
+                                     miniters=1, mininterval=0)
             with relative_timer() as time_bench:
                 for i in s:
                     a += i
 
         self.assert_performance(
             8, 'trange', time_tqdm(), 'simple_progress', time_bench())
-
 
     @retry_on_except()
     def test_manual_overhead_simplebar_hard(self):

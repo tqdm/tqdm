@@ -10,6 +10,7 @@ import unittest
 import pytest
 from contextlib import contextmanager
 from warnings import catch_warnings, simplefilter
+from unittest import SkipTest
 
 from tqdm import tqdm
 from tqdm import trange
@@ -80,6 +81,7 @@ class DiscreteTimer(object):
         """Get the current time"""
         return self.t
 
+
 def _rlock_creation_target():
     """Check that the RLock has not been constructed."""
     from unittest.mock import patch
@@ -100,7 +102,6 @@ def _rlock_creation_target():
             with tqdm(file=our_file) as _:  # NOQA
                 pass
         assert rlock_mock.call_count == 1
-
 
 
 class UnicodeIO(IOBase):
@@ -145,7 +146,6 @@ class TestTqdmWithoutInstancesCheck(unittest.TestCase):
         assert format_interval(6160) == '1:42:40'
         assert format_interval(238113) == '66:08:33'
 
-
     def test_format_num(self):
         """Test number format"""
         format_num = tqdm.format_num
@@ -153,7 +153,6 @@ class TestTqdmWithoutInstancesCheck(unittest.TestCase):
         assert float(format_num(1337)) == 1337
         assert format_num(int(1e6)) == '1e+6'
         assert format_num(1239876) == '1''239''876'
-
 
     def test_format_meter(self):
         """Test statistics and progress bar formatting"""
@@ -169,7 +168,8 @@ class TestTqdmWithoutInstancesCheck(unittest.TestCase):
         # If not implementing any changes to _tqdm.py, set prefix='desc'
         # or else ": : " will be in output, so assertion should change
         assert format_meter(0, 1000, 13, ncols=68, prefix='desc: ') == \
-            "desc:   0%|                                | 0/1000 [00:13<?, ?it/s]"
+            "desc:   0%|                                |" \
+            " 0/1000 [00:13<?, ?it/s]"
         assert format_meter(231, 1000, 392) == \
             " 23%|" + unich(0x2588) * 2 + unich(0x258e) + \
             "       | 231/1000 [06:32<21:44,  1.70s/it]"
@@ -204,20 +204,21 @@ class TestTqdmWithoutInstancesCheck(unittest.TestCase):
         # l_bar displays
         # bar displays
         # r_bar gets chopped
+        # all 12 stars and 10 bar parts, but only 8/10 dollar signs
         assert \
             format_meter(
                 0, 1000, 13, ncols=30,
                 bar_format="************{bar:10}$$$$$$$$$$") == \
             "************          $$$$$$$$"
-            # all 12 stars and 10 bar parts, but only 8/10 dollar signs
+
         # trim left ANSI; escape is before trim zone
+        # we only know it has ANSI codes, so we append an END code anyway
+        # trim left ANSI; escape is at trim zone
         assert \
             format_meter(
                 0, 1000, 13, ncols=10,
                 bar_format="*****\033[22m****\033[0m***{bar:10}$$$$$$$$$$") == \
             "*****\033[22m****\033[0m*\033[0m"
-            # we only know it has ANSI codes, so we append an END code anyway
-        # trim left ANSI; escape is at trim zone
         assert \
             format_meter(
                 0, 1000, 13, ncols=10,
@@ -238,10 +239,14 @@ class TestTqdmWithoutInstancesCheck(unittest.TestCase):
             " 20%|" + unich(0x258d) + " |20/100"
         # Check wide characters
         if sys.version_info >= (3,):
-            assert format_meter(0, 1000, 13, ncols=68, prefix='ｆｕｌｌｗｉｄｔｈ: ') == \
-                "ｆｕｌｌｗｉｄｔｈ:   0%|                  | 0/1000 [00:13<?, ?it/s]"
-            assert format_meter(0, 1000, 13, ncols=68, prefix='ニッポン [ﾆｯﾎﾟﾝ]: ') == \
-                "ニッポン [ﾆｯﾎﾟﾝ]:   0%|                    | 0/1000 [00:13<?, ?it/s]"
+            assert format_meter(0, 1000, 13, ncols=68,
+                                prefix='ｆｕｌｌｗｉｄｔｈ: ') == \
+                "ｆｕｌｌｗｉｄｔｈ:   0%|                  |" \
+                " 0/1000 [00:13<?, ?it/s]"
+            assert format_meter(0, 1000, 13, ncols=68,
+                                prefix='ニッポン [ﾆｯﾎﾟﾝ]: ') == \
+                "ニッポン [ﾆｯﾎﾟﾝ]:   0%|                    |" \
+                " 0/1000 [00:13<?, ?it/s]"
         # Check that bar_format can print only {bar} or just one side
         assert format_meter(20, 100, 12, ncols=2, rate=8.1,
                             bar_format=r'{bar}') == \
@@ -252,7 +257,6 @@ class TestTqdmWithoutInstancesCheck(unittest.TestCase):
         assert format_meter(20, 100, 12, ncols=6, rate=8.1,
                             bar_format=r'{bar}|test') == \
             unich(0x258f) + "|test"
-
 
     def test_ansi_escape_codes(self):
         """Test stripping of ANSI escape codes"""
@@ -270,7 +274,6 @@ class TestTqdmWithoutInstancesCheck(unittest.TestCase):
         ansi_len = len(desc) - len(desc_stripped) + len(ansi['END'])
         assert len(meter) == ncols + ansi_len
 
-
     def test_si_format(self):
         """Test SI unit prefixes"""
         format_meter = tqdm.format_meter
@@ -286,7 +289,8 @@ class TestTqdmWithoutInstancesCheck(unittest.TestCase):
         assert '1.00G ' in format_meter(1, 999999999, 1, unit_scale=True)
         assert '1.00T ' in format_meter(1, 999999999999, 1, unit_scale=True)
         assert '1.00P ' in format_meter(1, 999999999999999, 1, unit_scale=True)
-        assert '1.00E ' in format_meter(1, 999999999999999999, 1, unit_scale=True)
+        assert '1.00E ' in format_meter(1, 999999999999999999, 1,
+                                        unit_scale=True)
         assert '1.00Z ' in format_meter(1, 999999999999999999999, 1,
                                         unit_scale=True)
         assert '1.0Y ' in format_meter(1, 999999999999999999999999, 1,
@@ -297,7 +301,6 @@ class TestTqdmWithoutInstancesCheck(unittest.TestCase):
                                          unit_scale=True)
         assert '1000.0Y ' in format_meter(1, 999999999999999999999999999, 1,
                                           unit_scale=True)
-
 
     def test_bar_formatspec(self):
         """Test Bar.__format__ spec"""
@@ -349,8 +352,8 @@ class TestWithInstancesCheck(unittest.TestCase):
             if n:
                 tqdm._instances.clear()
                 raise EnvironmentError(
-                    "{0} `tqdm` instances still in existence PRE-test".format(n))
-
+                    "{0} `tqdm` instances still in existence PRE-test".
+                    format(n))
 
     def tearDown(self):
         if getattr(tqdm, "_instances", False):
@@ -358,7 +361,8 @@ class TestWithInstancesCheck(unittest.TestCase):
             if n:
                 tqdm._instances.clear()
                 raise EnvironmentError(
-                    "{0} `tqdm` instances still in existence POST-test".format(n))
+                    "{0} `tqdm` instances still in existence POST-test".
+                    format(n))
 
 
 class TestTqdm(TestWithInstancesCheck):
@@ -378,8 +382,8 @@ class TestTqdm(TestWithInstancesCheck):
                            ']',  # bar
                            '  '])  # cleared
                    or '100%' in r  # completed bar
-                   or r == '\n')  # final bar
-               or r[(-1 - pos) * len('\x1b[A'):] == '\x1b[A']  # too many moves up
+                   or r == '\n')  # final bar     # vv too many moves up
+               or r[(-1 - pos) * len('\x1b[A'):] == '\x1b[A']
         if raise_nonempty and (res or len(res_list) != len(expected_list)):
             if len(res_list) < len(expected_list):
                 res.extend([(None, e) for e in expected_list[len(res_list):]])
@@ -389,16 +393,15 @@ class TestTqdm(TestWithInstancesCheck):
                 "Got => Expected\n" + '\n'.join('%r => %r' % i for i in res))
         return res
 
-
     def cpu_timify(self, t, timer=None):
-        """Force tqdm to use the specified timer instead of system-wide time()"""
+        """Force tqdm to use the specified timer instead
+           of system-wide time()"""
         if timer is None:
             timer = DiscreteTimer()
         t._time = timer.time
         t._sleep = timer.sleep
         t.start_t = t.last_print_t = t._time()
         return timer
-
 
     def get_bar(self, all_bars, i=None):
         """Get a specific update from a whole bar traceback"""
@@ -407,10 +410,8 @@ class TestTqdm(TestWithInstancesCheck):
         bars_split = list(filter(None, bars_split))  # filter out empty splits
         return bars_split if i is None else bars_split[i]
 
-
     def progressbar_rate(self, bar_str):
         return float(RE_rate.search(bar_str).group(1))
-
 
     def squash_ctrlchars(self, s):
         """Apply control characters in a string just like a terminal display"""
@@ -452,7 +453,6 @@ class TestTqdm(TestWithInstancesCheck):
 
         return lines
 
-
     def test_all_defaults(self):
         """Test default kwargs"""
         with closing(UnicodeIO()) as our_file:
@@ -467,7 +467,6 @@ class TestTqdm(TestWithInstancesCheck):
         #     pass
         sys.stderr.write('\rTest default kwargs ... ')
 
-
     def test_native_string_io_for_default_file(self):
         """Native strings written to unspecified files"""
         stderr = sys.stderr
@@ -481,12 +480,10 @@ class TestTqdm(TestWithInstancesCheck):
         finally:
             sys.stderr = stderr
 
-
     def test_unicode_string_io_for_specified_file(self):
         """Unicode strings written to specified files"""
         for _ in tqdm(range(3), file=WriteTypeChecker(expected_type=type(u''))):
             pass
-
 
     def test_write_bytes(self):
         """Test write_bytes argument with and without `file`"""
@@ -502,7 +499,6 @@ class TestTqdm(TestWithInstancesCheck):
                 pass
         finally:
             sys.stderr = stderr
-
 
     def test_iterate_over_csv_rows(self):
         """Test csv iterator"""
@@ -520,7 +516,6 @@ class TestTqdm(TestWithInstancesCheck):
                 for _ in tqdm(reader, file=our_file):
                     pass
 
-
     def test_file_output(self):
         """Test output to arbitrary file-like objects"""
         with closing(StringIO()) as our_file:
@@ -528,7 +523,6 @@ class TestTqdm(TestWithInstancesCheck):
                 if i == 1:
                     our_file.seek(0)
                     assert '0/3' in our_file.read()
-
 
     def test_leave_option(self):
         """Test `leave=True` always prints info about the last iteration"""
@@ -544,7 +538,6 @@ class TestTqdm(TestWithInstancesCheck):
                 pass
             assert '| 3/3 ' not in our_file2.getvalue()
 
-
     def test_trange(self):
         """Test trange"""
         with closing(StringIO()) as our_file:
@@ -557,14 +550,12 @@ class TestTqdm(TestWithInstancesCheck):
                 pass
             assert '| 3/3 ' not in our_file2.getvalue()
 
-
     def test_min_interval(self):
         """Test mininterval"""
         with closing(StringIO()) as our_file:
             for _ in tqdm(_range(3), file=our_file, mininterval=1e-10):
                 pass
             assert "  0%|          | 0/3 [00:00<" in our_file.getvalue()
-
 
     def test_max_interval(self):
         """Test maxinterval"""
@@ -577,13 +568,13 @@ class TestTqdm(TestWithInstancesCheck):
         with closing(StringIO()) as our_file:
             with closing(StringIO()) as our_file2:
                 # with maxinterval but higher than loop sleep time
-                t = tqdm(total=total, file=our_file, miniters=None, mininterval=0,
-                         smoothing=1, maxinterval=1e-2)
+                t = tqdm(total=total, file=our_file, miniters=None,
+                         mininterval=0, smoothing=1, maxinterval=1e-2)
                 self.cpu_timify(t, timer)
 
                 # without maxinterval
-                t2 = tqdm(total=total, file=our_file2, miniters=None, mininterval=0,
-                          smoothing=1, maxinterval=None)
+                t2 = tqdm(total=total, file=our_file2, miniters=None,
+                          mininterval=0, smoothing=1, maxinterval=None)
                 self.cpu_timify(t2, timer)
 
                 assert t.dynamic_miniters
@@ -643,8 +634,9 @@ class TestTqdm(TestWithInstancesCheck):
         with closing(StringIO()) as our_file:
             with tqdm(total=total, file=our_file, miniters=None, smoothing=1,
                       mininterval=mininterval, maxinterval=maxinterval) as tm1:
-                with tqdm(total=total, file=our_file, miniters=None, smoothing=1,
-                          mininterval=0, maxinterval=maxinterval) as tm2:
+                with tqdm(total=total, file=our_file, miniters=None,
+                          smoothing=1, mininterval=0, maxinterval=maxinterval) \
+                     as tm2:
 
                     self.cpu_timify(tm1, timer)
                     self.cpu_timify(tm2, timer)
@@ -660,11 +652,14 @@ class TestTqdm(TestWithInstancesCheck):
                     tm1.update(total / 2)
                     tm2.update(total / 2)
                     res = [tm1.miniters, tm2.miniters]
-                    assert res == [(total / 2) * mininterval / (maxinterval * 2),
-                                   (total / 2) * maxinterval / (maxinterval * 2)]
+                    assert res == [(total / 2) * mininterval /
+                                   (maxinterval * 2),
+                                   (total / 2) * maxinterval /
+                                   (maxinterval * 2)]
 
         # Same with iterable based tqdm
-        timer1 = DiscreteTimer()  # need 2 timers for each bar because zip not work
+        # need 2 timers for each bar because zip not work
+        timer1 = DiscreteTimer()
         timer2 = DiscreteTimer()
         total = 100
         mininterval = 0.1
@@ -696,7 +691,6 @@ class TestTqdm(TestWithInstancesCheck):
             t1.close()
             t2.close()
 
-
     def test_min_iters(self):
         """Test miniters"""
         with closing(StringIO()) as our_file:
@@ -721,7 +715,6 @@ class TestTqdm(TestWithInstancesCheck):
             assert '| 2/3 ' in out
             assert '| 3/3 ' in out
 
-
     def test_dynamic_min_iters(self):
         """Test purely dynamic miniters (and manual updates and __del__)"""
         with closing(StringIO()) as our_file:
@@ -732,7 +725,8 @@ class TestTqdm(TestWithInstancesCheck):
             t.update()
             # Increase 3 iterations
             t.update(3)
-            # The next two iterations should be skipped because of dynamic_miniters
+            # The next two iterations should be skipped because
+            # of dynamic_miniters
             t.update()
             t.update()
             # The third iteration should be displayed
@@ -748,7 +742,8 @@ class TestTqdm(TestWithInstancesCheck):
         assert '60%' not in out
         assert '70%' in out
 
-        # Check with smoothing=0, miniters should be set to max update seen so far
+        # Check with smoothing=0, miniters should be set to max
+        # update seen so far
         with closing(StringIO()) as our_file:
             total = 10
             t = tqdm(total=total, file=our_file, miniters=None, mininterval=0,
@@ -789,7 +784,6 @@ class TestTqdm(TestWithInstancesCheck):
                 pass
             assert not t.dynamic_miniters
 
-
     def test_big_min_interval(self):
         """Test large mininterval"""
         with closing(StringIO()) as our_file:
@@ -802,7 +796,6 @@ class TestTqdm(TestWithInstancesCheck):
                 t.update()
                 t.update()
                 assert '50%' not in our_file.getvalue()
-
 
     def test_smoothed_dynamic_min_iters(self):
         """Test smoothed dynamic miniters"""
@@ -832,7 +825,6 @@ class TestTqdm(TestWithInstancesCheck):
         assert '30%' not in out
         assert '32%' in out
 
-
     def test_smoothed_dynamic_min_iters_with_min_interval(self):
         """Test smoothed dynamic miniters with mininterval"""
         timer = DiscreteTimer()
@@ -842,8 +834,8 @@ class TestTqdm(TestWithInstancesCheck):
 
         with closing(StringIO()) as our_file:
             # Test manual updating tqdm
-            with tqdm(total=total, file=our_file, miniters=None, mininterval=1e-3,
-                      smoothing=1, maxinterval=0) as t:
+            with tqdm(total=total, file=our_file, miniters=None,
+                      mininterval=1e-3, smoothing=1, maxinterval=0) as t:
                 self.cpu_timify(t, timer)
 
                 t.update(10)
@@ -874,7 +866,6 @@ class TestTqdm(TestWithInstancesCheck):
         assert '13%' in out and '13%' in out2
         assert '14%' in out and '14%' in out2
 
-
     def test_rlock_creation(self):
         """Test that importing tqdm does not create multiprocessing objects."""
         import multiprocessing as mp
@@ -889,7 +880,6 @@ class TestTqdm(TestWithInstancesCheck):
             # The pool will propagate the error if the target method fails
             pool.apply(_rlock_creation_target)
 
-
     def test_disable(self):
         """Test disable"""
         with closing(StringIO()) as our_file:
@@ -903,13 +893,11 @@ class TestTqdm(TestWithInstancesCheck):
             progressbar.close()
             assert our_file.getvalue() == ''
 
-
     def test_infinite_total(self):
         """Test treatment of infinite total"""
         with closing(StringIO()) as our_file:
             for _ in tqdm(_range(3), file=our_file, total=float("inf")):
                 pass
-
 
     def test_nototal(self):
         """Test unknown total length"""
@@ -924,14 +912,12 @@ class TestTqdm(TestWithInstancesCheck):
                 pass
             assert "10/?" in our_file.getvalue()
 
-
     def test_unit(self):
         """Test SI unit prefix"""
         with closing(StringIO()) as our_file:
             for _ in tqdm(_range(3), file=our_file, miniters=1, unit="bytes"):
                 pass
             assert 'bytes/s' in our_file.getvalue()
-
 
     def test_ascii(self):
         """Test ascii/unicode bar"""
@@ -970,7 +956,6 @@ class TestTqdm(TestWithInstancesCheck):
             for bar, line in zip(ascii, res):
                 assert '|' + bar + '|' in line
 
-
     def test_update(self):
         """Test manual creation and updates"""
         res = None
@@ -987,7 +972,6 @@ class TestTqdm(TestWithInstancesCheck):
             res = our_file.getvalue()
         assert '| 3/4 ' in res
         assert 'dynamically notify of 4 increments in total' in res
-
 
     def test_close(self):
         """Test manual creation and closure and n_instances"""
@@ -1037,14 +1021,14 @@ class TestTqdm(TestWithInstancesCheck):
             t.update()
         t.close()
 
-
     def test_smoothing(self):
         """Test exponential weighted average smoothing"""
         timer = DiscreteTimer()
 
         # -- Test disabling smoothing
         with closing(StringIO()) as our_file:
-            with tqdm(_range(3), file=our_file, smoothing=None, leave=True) as t:
+            with tqdm(_range(3), file=our_file, smoothing=None, leave=True) \
+                 as t:
                 self.cpu_timify(t, timer)
 
                 for _ in t:
@@ -1130,10 +1114,10 @@ class TestTqdm(TestWithInstancesCheck):
             # Get result for manually updated bar
             c2 = self.progressbar_rate(self.get_bar(our_file2.getvalue(), 3))
 
-        # Check that medium smoothing's rate is between no and max smoothing rates
+        # Check that medium smoothing's rate is between
+        # no and max smoothing rates
         assert a <= c <= b
         assert a2 <= c2 <= b2
-
 
     def test_deprecated_nested(self):
         """Test nested progress bars"""
@@ -1147,17 +1131,18 @@ class TestTqdm(TestWithInstancesCheck):
         try:
             tqdm(total=2, file=our_file, nested=True)
         except TqdmDeprecationWarning:
-            if """`nested` is deprecated and automated.""" not in our_file.getvalue():
+            if """`nested` is deprecated and automated.""" \
+               not in our_file.getvalue():
                 raise
         else:
             raise DeprecationError("Should not allow nested kwarg")
-
 
     def test_bar_format(self):
         """Test custom bar formatting"""
         with closing(StringIO()) as our_file:
             bar_format = r'{l_bar}{bar}|{n_fmt}/{total_fmt}-{n}/{total}{percentage}{rate}{rate_fmt}{elapsed}{remaining}'  # NOQA
-            for _ in trange(2, file=our_file, leave=True, bar_format=bar_format):
+            for _ in trange(2, file=our_file, leave=True,
+                            bar_format=bar_format):
                 pass
             out = our_file.getvalue()
         assert "\r  0%|          |0/2-0/20.0None?it/s00:00?\r" in out
@@ -1168,7 +1153,6 @@ class TestTqdm(TestWithInstancesCheck):
             with tqdm(ascii=False, bar_format=bar_format, file=our_file) as t:
                 assert isinstance(t.bar_format, _unicode)
 
-
     def test_custom_format(self):
         """Test adding additional derived format arguments"""
         class TqdmExtraFormat(tqdm):
@@ -1177,7 +1161,8 @@ class TestTqdm(TestWithInstancesCheck):
             def format_dict(self):
                 d = super(TqdmExtraFormat, self).format_dict
                 total_time = d["elapsed"] * (d["total"] or 0) / max(d["n"], 1)
-                d.update(total_time=self.format_interval(total_time) + " in total")
+                d.update(total_time=self.format_interval(total_time)
+                         + " in total")
                 return d
 
         with closing(StringIO()) as our_file:
@@ -1186,7 +1171,6 @@ class TestTqdm(TestWithInstancesCheck):
                     bar_format="{total_time}: {percentage:.0f}%|{bar}{r_bar}"):
                 pass
             assert "00:00 in total" in our_file.getvalue()
-
 
     def test_unpause(self):
         """Test unpause"""
@@ -1205,10 +1189,11 @@ class TestTqdm(TestWithInstancesCheck):
             timer.sleep(0.01)
             t.update()
             t.close()
-            r_before = self.progressbar_rate(self.get_bar(our_file.getvalue(), 2))
-            r_after = self.progressbar_rate(self.get_bar(our_file.getvalue(), 3))
+            r_before = self.progressbar_rate(self.get_bar(our_file.getvalue(),
+                                                          2))
+            r_after = self.progressbar_rate(self.get_bar(our_file.getvalue(),
+                                                         3))
         assert r_before == r_after
-
 
     def test_reset(self):
         """Test resetting a bar for re-use"""
@@ -1222,7 +1207,6 @@ class TestTqdm(TestWithInstancesCheck):
                 t.update(10)
             assert '| 1/10' in our_file.getvalue()
             assert '| 10/12' in our_file.getvalue()
-
 
     def test_position(self):
         """Test positioned progress bars"""
@@ -1342,7 +1326,6 @@ class TestTqdm(TestWithInstancesCheck):
             t3.close()
             t1.close()
 
-
     def test_set_description(self):
         """Test set description"""
         with closing(StringIO()) as our_file:
@@ -1371,12 +1354,12 @@ class TestTqdm(TestWithInstancesCheck):
             with tqdm(total=10, file=our_file) as t:
                 t.set_description(u"\xe1\xe9\xed\xf3\xfa")
 
-
     def test_deprecated_gui(self):
         """Test internal GUI properties"""
         # Check: StatusPrinter iff gui is disabled
         with closing(StringIO()) as our_file:
-            t = tqdm(total=2, gui=True, file=our_file, miniters=1, mininterval=0)
+            t = tqdm(total=2, gui=True, file=our_file, miniters=1,
+                     mininterval=0)
             assert not hasattr(t, "sp")
             try:
                 t.update(1)
@@ -1386,14 +1369,16 @@ class TestTqdm(TestWithInstancesCheck):
                         not in our_file.getvalue():
                     raise e
             else:
-                raise DeprecationError('Should not allow manual gui=True without'
-                                       ' overriding __iter__() and update()')
+                raise DeprecationError('Should not allow manual gui=True'
+                                       ' without overriding __iter__()'
+                                       ' and update()')
             finally:
                 t._instances.clear()
                 # t.close()
                 # len(tqdm._instances) += 1  # undo the close() decrement
 
-            t = tqdm(_range(3), gui=True, file=our_file, miniters=1, mininterval=0)
+            t = tqdm(_range(3), gui=True, file=our_file, miniters=1,
+                     mininterval=0)
             try:
                 for _ in t:
                     pass
@@ -1403,8 +1388,9 @@ class TestTqdm(TestWithInstancesCheck):
                         not in our_file.getvalue():
                     raise e
             else:
-                raise DeprecationError('Should not allow manual gui=True without'
-                                       ' overriding __iter__() and update()')
+                raise DeprecationError('Should not allow manual gui=True'
+                                       ' without overriding __iter__()'
+                                       ' and update()')
             finally:
                 t._instances.clear()
                 # t.close()
@@ -1412,7 +1398,6 @@ class TestTqdm(TestWithInstancesCheck):
 
             with tqdm(total=1, gui=False, file=our_file) as t:
                 assert hasattr(t, "sp")
-
 
     def test_cmp(self):
         """Test comparison functions"""
@@ -1441,20 +1426,19 @@ class TestTqdm(TestWithInstancesCheck):
             t1.close()
             t0.close()
 
-
     def test_repr(self):
         """Test representation"""
         with closing(StringIO()) as our_file:
             with tqdm(total=10, ascii=True, file=our_file) as t:
                 assert str(t) == '  0%|          | 0/10 [00:00<?, ?it/s]'
 
-
     def test_clear(self):
         """Test clearing bar display"""
         with closing(StringIO()) as our_file:
             t1 = tqdm(total=10, file=our_file, desc='pos0 bar',
                       bar_format='{l_bar}')
-            t2 = trange(10, file=our_file, desc='pos1 bar', bar_format='{l_bar}')
+            t2 = trange(10, file=our_file, desc='pos1 bar',
+                        bar_format='{l_bar}')
             before = self.squash_ctrlchars(our_file.getvalue())
             t2.clear()
             t1.clear()
@@ -1464,7 +1448,6 @@ class TestTqdm(TestWithInstancesCheck):
             assert before == ['pos0 bar:   0%|', 'pos1 bar:   0%|']
             assert after == ['', '']
 
-
     def test_clear_disabled(self):
         """Test clearing bar display"""
         with closing(StringIO()) as our_file:
@@ -1472,7 +1455,6 @@ class TestTqdm(TestWithInstancesCheck):
                       bar_format='{l_bar}') as t:
                 t.clear()
             assert our_file.getvalue() == ''
-
 
     def test_refresh(self):
         """Test refresh bar display"""
@@ -1490,10 +1472,10 @@ class TestTqdm(TestWithInstancesCheck):
             t1.close()
             t2.close()
 
-            # Check that refreshing indeed forced the display to use realtime state
+            # Check that refreshing indeed forced the display to
+            # use realtime state
             assert before == [u'pos0 bar:   0%|', u'pos1 bar:   0%|']
             assert after == [u'pos0 bar:  10%|', u'pos1 bar:  10%|']
-
 
     def test_disabled_refresh(self):
         """Test refresh bar display"""
@@ -1505,7 +1487,6 @@ class TestTqdm(TestWithInstancesCheck):
 
             assert our_file.getvalue() == ''
 
-
     def test_write(self):
         """Test write messages"""
         s = "Hello world"
@@ -1513,8 +1494,8 @@ class TestTqdm(TestWithInstancesCheck):
             # Change format to keep only left part w/o bar and it/s rate
             t1 = tqdm(total=10, file=our_file, desc='pos0 bar',
                       bar_format='{l_bar}', mininterval=0, miniters=1)
-            t2 = trange(10, file=our_file, desc='pos1 bar', bar_format='{l_bar}',
-                        mininterval=0, miniters=1)
+            t2 = trange(10, file=our_file, desc='pos1 bar',
+                        bar_format='{l_bar}', mininterval=0, miniters=1)
             t3 = tqdm(total=10, file=our_file, desc='pos2 bar',
                       bar_format='{l_bar}', mininterval=0, miniters=1)
             t1.update()
@@ -1587,7 +1568,6 @@ class TestTqdm(TestWithInstancesCheck):
         sys.stderr = stde
         sys.stdout = stdo
 
-
     def test_len(self):
         """Test advance len (numpy array shape)"""
         try:
@@ -1598,14 +1578,12 @@ class TestTqdm(TestWithInstancesCheck):
             with tqdm(np.zeros((3, 4)), file=f) as t:
                 assert len(t) == 3
 
-
     def test_autodisable_disable(self):
         """Test autodisable will disable on non-TTY"""
         with closing(StringIO()) as our_file:
             with tqdm(total=10, disable=None, file=our_file) as t:
                 t.update(3)
             assert our_file.getvalue() == ''
-
 
     def test_autodisable_enable(self):
         """Test autodisable will not disable on TTY"""
@@ -1614,7 +1592,6 @@ class TestTqdm(TestWithInstancesCheck):
             with tqdm(total=10, disable=None, file=our_file) as t:
                 t.update()
             assert our_file.getvalue() != ''
-
 
     def test_deprecation_exception(self):
         def test_TqdmDeprecationWarning():
@@ -1627,7 +1604,6 @@ class TestTqdm(TestWithInstancesCheck):
 
         pytest.raises(TqdmDeprecationWarning, test_TqdmDeprecationWarning)
         pytest.raises(Exception, test_TqdmDeprecationWarning_nofpwrite)
-
 
     def test_postfix(self):
         """Test postfix"""
@@ -1646,8 +1622,8 @@ class TestTqdm(TestWithInstancesCheck):
 
         # Test postfix set after init
         with closing(StringIO()) as our_file:
-            with trange(10, file=our_file, desc='pos1 bar', bar_format='{r_bar}',
-                        postfix=None) as t2:
+            with trange(10, file=our_file, desc='pos1 bar',
+                        bar_format='{r_bar}', postfix=None) as t2:
                 t2.set_postfix(**postfix)
                 t2.refresh()
                 out2 = our_file.getvalue()
@@ -1659,8 +1635,8 @@ class TestTqdm(TestWithInstancesCheck):
 
         # Test postfix (with ordered dict and no refresh) set after init
         with closing(StringIO()) as our_file:
-            with trange(10, file=our_file, desc='pos2 bar', bar_format='{r_bar}',
-                        postfix=None) as t3:
+            with trange(10, file=our_file, desc='pos2 bar',
+                        bar_format='{r_bar}', postfix=None) as t3:
                 t3.set_postfix(postfix_order, False, **postfix)
                 t3.refresh()  # explicit external refresh
                 out3 = our_file.getvalue()
@@ -1681,8 +1657,8 @@ class TestTqdm(TestWithInstancesCheck):
 
         # Test setting postfix string directly
         with closing(StringIO()) as our_file:
-            with trange(10, file=our_file, desc='pos2 bar', bar_format='{r_bar}',
-                        postfix=None) as t5:
+            with trange(10, file=our_file, desc='pos2 bar',
+                        bar_format='{r_bar}', postfix=None) as t5:
                 t5.set_postfix_str("Hello", False)
                 t5.set_postfix_str("World")
                 out5 = our_file.getvalue()
@@ -1690,7 +1666,6 @@ class TestTqdm(TestWithInstancesCheck):
         assert "Hello" not in out5
         out5 = out5[1:-1].split(', ')[3:]
         assert out5 == ["World"]
-
 
     @contextmanager
     def std_out_err_redirect_tqdm(self, tqdm_file=sys.stderr):
@@ -1705,7 +1680,6 @@ class TestTqdm(TestWithInstancesCheck):
         finally:
             sys.stdout, sys.stderr = orig_out_err
 
-
     def test_file_redirection(self):
         """Test redirection of output"""
         with closing(StringIO()) as our_file:
@@ -1717,7 +1691,6 @@ class TestTqdm(TestWithInstancesCheck):
             assert res.count("Such fun\n") == 3
             assert "0/3" in res
             assert "3/3" in res
-
 
     def test_external_write(self):
         """Test external write mode"""
@@ -1732,7 +1705,6 @@ class TestTqdm(TestWithInstancesCheck):
             assert "0/3" in res
             assert "3/3" in res
 
-
     def test_unit_scale(self):
         """Test numeric `unit_scale`"""
         with closing(StringIO()) as our_file:
@@ -1741,7 +1713,6 @@ class TestTqdm(TestWithInstancesCheck):
                 pass
             out = our_file.getvalue()
             assert '81/81' in out
-
 
     def test_threading(self):
         """Test multiprocess/thread-realted features"""
@@ -1753,7 +1724,6 @@ class TestTqdm(TestWithInstancesCheck):
         else:
             tqdm.set_lock(mp_lock)
         # TODO: test interleaved output #445
-
 
     def test_bool(self):
         """Test boolean cast"""
@@ -1788,7 +1758,6 @@ class TestTqdm(TestWithInstancesCheck):
             internal(our_file, False)
             internal(our_file, True)
 
-
     def backendCheck(self, module):
         """Test tqdm-like module fallback"""
         tn = module.tqdm
@@ -1800,13 +1769,11 @@ class TestTqdm(TestWithInstancesCheck):
             with tr(1337) as t:
                 assert len(t) == 1337
 
-
     def test_auto(self):
         """Test auto fallback"""
         from tqdm import autonotebook, auto
         self.backendCheck(autonotebook)
         self.backendCheck(auto)
-
 
     def test_wrapattr(self):
         """Test wrapping file-like objects"""
@@ -1830,7 +1797,6 @@ class TestTqdm(TestWithInstancesCheck):
             res = our_file.getvalue()
             assert ('%dit [' % len(data)) in res
 
-
     def test_float_progress(self):
         """Test float totals"""
         with closing(StringIO()) as our_file:
@@ -1842,7 +1808,6 @@ class TestTqdm(TestWithInstancesCheck):
                             assert not w
                     assert w
                     assert "clamping frac" in str(w[-1].message)
-
 
     def test_screen_shape(self):
         """Test screen shape"""
@@ -1916,7 +1881,6 @@ class TestTqdm(TestWithInstancesCheck):
             res = our_file.getvalue()
             assert "two" in res
 
-
     def test_initial(self):
         """Test `initial`"""
         with closing(StringIO()) as our_file:
@@ -1926,7 +1890,6 @@ class TestTqdm(TestWithInstancesCheck):
             out = our_file.getvalue()
             assert '10/19' in out
             assert '19/19' in out
-
 
     def test_colour(self):
         """Test `colour`"""
@@ -1948,7 +1911,6 @@ class TestTqdm(TestWithInstancesCheck):
                 pass
             out = our_file2.getvalue()
             assert '\x1b[34m' in out
-
 
     def test_closed(self):
         """Test writing to closed file"""

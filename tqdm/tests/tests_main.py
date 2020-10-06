@@ -8,7 +8,9 @@ from tqdm.utils import IS_WIN
 from io import open as io_open
 
 from unittest import SkipTest
-from tests_tqdm import TestWithInstancesCheck, _range, closing, UnicodeIO, StringIO
+from tests_tqdm import TestWithInstancesCheck, _range, closing
+from tests_tqdm import UnicodeIO, StringIO
+
 
 def _sh(*cmd, **kwargs):
     return subprocess.Popen(cmd, stdout=subprocess.PIPE,
@@ -40,7 +42,6 @@ class TestTqdmMain(TestWithInstancesCheck):
         # actual test:
 
         assert ls_out in res.replace('\r\n', '\n')
-
 
     # WARNING: this should be the last test as it messes with sys.stdin, argv
     def test_main(self):
@@ -95,7 +96,8 @@ class TestTqdmMain(TestWithInstancesCheck):
 
             sys.stdin.seek(0)
             with closing(UnicodeIO()) as fp:
-                main(argv=['--tee', '--mininterval', '0', '--miniters', '1'], fp=fp)
+                main(argv=['--tee', '--mininterval', '0', '--miniters', '1'],
+                     fp=fp)
                 # spaces to clear intermediate lines could increase length
                 assert len(fp.getvalue()) >= res + len(IN_DATA)
 
@@ -181,7 +183,6 @@ class TestTqdmMain(TestWithInstancesCheck):
         # clean up
         sys.stdin, sys.argv = _SYS
 
-
     def test_manpath(self):
         """Test CLI --manpath"""
         if IS_WIN:
@@ -197,7 +198,6 @@ class TestTqdmMain(TestWithInstancesCheck):
             raise SystemExit("Expected system exit")
         assert path.exists(man)
         rmtree(tmp, True)
-
 
     def test_comppath(self):
         """Test CLI --comppath"""
@@ -224,7 +224,6 @@ class TestTqdmMain(TestWithInstancesCheck):
         ])
         assert all(args in script for args in opts)
         rmtree(tmp, True)
-
 
     def test_exceptions(self):
         """Test CLI Exceptions"""

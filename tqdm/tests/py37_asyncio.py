@@ -16,6 +16,7 @@ def setup_sync(func):
         return asyncio.run(func(self))
     return inner
 
+
 def count(start=0, step=1):
     i = start
     while True:
@@ -48,7 +49,6 @@ class TestTqdmAsyncio(TestWithInstancesCheck):
                     break
             assert '9it' in our_file.getvalue()
 
-
     @setup_sync
     async def test_range(self):
         """Test asyncio range"""
@@ -63,7 +63,6 @@ class TestTqdmAsyncio(TestWithInstancesCheck):
                 pass
             assert '9/9' in our_file.getvalue()
 
-
     @setup_sync
     async def test_nested(self):
         """Test asyncio nested"""
@@ -73,7 +72,6 @@ class TestTqdmAsyncio(TestWithInstancesCheck):
                 pass
             assert 'inner: 100%' in our_file.getvalue()
             assert 'outer: 100%' in our_file.getvalue()
-
 
     @setup_sync
     async def test_coroutines(self):
@@ -87,7 +85,6 @@ class TestTqdmAsyncio(TestWithInstancesCheck):
                         assert i == -9
                         break
             assert '10it' in our_file.getvalue()
-
 
     @setup_sync
     async def test_as_completed(self):

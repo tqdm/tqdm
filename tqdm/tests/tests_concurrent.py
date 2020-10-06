@@ -3,7 +3,7 @@ Tests for `tqdm.contrib.concurrent`.
 """
 from warnings import catch_warnings
 from tqdm.contrib.concurrent import thread_map, process_map
-from tests_tqdm import TestTqdm, TestWithInstancesCheck, StringIO,  closing
+from tests_tqdm import TestWithInstancesCheck, StringIO, closing
 import unittest
 
 
@@ -25,7 +25,6 @@ class TestTqdmConcurrent(TestWithInstancesCheck):
                 raise unittest.SkipTest
             assert thread_map(incr, a, file=our_file) == b
 
-
     def test_process_map(self):
         """Test contrib.concurrent.process_map"""
         with closing(StringIO()) as our_file:
@@ -36,7 +35,9 @@ class TestTqdmConcurrent(TestWithInstancesCheck):
             except ImportError:
                 raise unittest.SkipTest
 
+
 class TestTqdmConcurrentWithoutInstancesCheck(unittest.TestCase):
+
     def test_chunksize_warning(self):
         """Test contrib.concurrent.process_map chunksize warnings"""
         try:
