@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 # Advice: use repr(our_file.read()) to print the full output of tqdm
 # (else '\r' will replace the previous lines and you'll see only the latest.
+"""
+Tests for `tqdm`.
+"""
 
 import sys
 import csv
@@ -138,6 +141,9 @@ class UnicodeIO(IOBase):
 
 
 class TestTqdmWithoutInstancesCheck(unittest.TestCase):
+    """
+    Testing class for `tqdm`.
+    """
     def test_format_interval(self):
         """Test time interval format"""
         format_interval = tqdm.format_interval
@@ -340,6 +346,9 @@ class WriteTypeChecker(BytesIO):
 
 
 class TestWithInstancesCheck(unittest.TestCase):
+    """
+    Testing class for `tqdm`.
+    """
     def setUp(self):
         # setcheckinterval is deprecated
         try:

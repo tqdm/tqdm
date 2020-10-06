@@ -1,3 +1,6 @@
+"""
+Tests for `tqdm.main`.
+"""
 import sys
 import subprocess
 from os import path
@@ -29,7 +32,9 @@ NULL = Null()
 
 
 class TestTqdmMain(TestWithInstancesCheck):
-
+    """
+    Testing class for `tqdm.main`.
+    """
     def test_pipes(self):
         """Test command line pipes"""
         ls_out = _sh('ls').replace('\r\n', '\n')

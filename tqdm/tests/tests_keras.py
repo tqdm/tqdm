@@ -1,3 +1,6 @@
+"""
+Tests for `tqdm.contrib`.
+"""
 from __future__ import division
 from tqdm import tqdm
 from unittest import SkipTest
@@ -5,7 +8,9 @@ from tests_tqdm import TestWithInstancesCheck, StringIO, closing
 
 
 class TestTqdmKeras(TestWithInstancesCheck):
-
+    """
+    Testing class for `tqdm.contrib`.
+    """
     def test_keras(self):
         """Test tqdm.keras.TqdmCallback"""
         try:

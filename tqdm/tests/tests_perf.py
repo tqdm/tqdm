@@ -1,3 +1,6 @@
+"""
+Performance tests.
+"""
 from __future__ import print_function, division
 from unittest import SkipTest
 from contextlib import contextmanager
@@ -89,7 +92,9 @@ class MockIO(StringIO):
 
 
 class TestTqdmPerf(TestWithInstancesCheck):
-
+    """
+    Performance testing class.
+    """
     def simple_progress(self, iterable=None, total=None, file=sys.stdout,
                         desc='', leave=False, miniters=1, mininterval=0.1,
                         width=60):

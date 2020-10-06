@@ -1,3 +1,6 @@
+"""
+Synchronisation tests.
+"""
 from __future__ import division
 from tqdm import tqdm, trange, TMonitor
 from tests_tqdm import TestWithInstancesCheck, StringIO, closing
@@ -51,6 +54,9 @@ def incr_bar(x):
 
 
 class TestTqdmSynchronisation(TestWithInstancesCheck):
+    """
+    Synchronisation testing class.
+    """
     def test_monitor_thread(self):
         """Test dummy monitoring thread"""
         maxinterval = 10

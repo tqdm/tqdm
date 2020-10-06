@@ -1,10 +1,15 @@
+"""
+Tests for `tqdm.pandas`.
+"""
 from tqdm import tqdm
 from unittest import SkipTest
 from tests_tqdm import TestWithInstancesCheck, StringIO, closing
 
 
 class TestTqdmPandas(TestWithInstancesCheck):
-
+    """
+    Testing class for `tqdm.pandas`.
+    """
     def test_pandas_setup(self):
         """Test tqdm.pandas()"""
         try:

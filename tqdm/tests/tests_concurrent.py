@@ -13,7 +13,9 @@ def incr(x):
 
 
 class TestTqdmConcurrent(TestWithInstancesCheck):
-
+    """
+    Testing class for `tqdm.contrib.concurrent`.
+    """
     def test_thread_map(self):
         """Test contrib.concurrent.thread_map"""
         with closing(StringIO()) as our_file:
@@ -37,7 +39,9 @@ class TestTqdmConcurrent(TestWithInstancesCheck):
 
 
 class TestTqdmConcurrentWithoutInstancesCheck(unittest.TestCase):
-
+    """
+    Testing class for `tqdm.contrib.concurrent`.
+    """
     def test_chunksize_warning(self):
         """Test contrib.concurrent.process_map chunksize warnings"""
         try:
