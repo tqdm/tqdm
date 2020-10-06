@@ -67,11 +67,11 @@ def relative_timer():
 
 def retry_on_except(n=3):
     def wrapper(fn):
-        def test_inner():
+        def test_inner(self):
             for i in range(1, n + 1):
                 try:
                     checkCpuTime()
-                    fn()
+                    fn(self)
                 except SkipTest:
                     if i >= n:
                         raise
@@ -257,7 +257,7 @@ class TestTqdmPerf(TestWithInstancesCheck):
         self.assert_performance(0.2, 'noblock', time_noblock(),
                                 'tqdm', time_tqdm())
 
-    @retry_on_except()
+    @retry_on_except(self)
     def test_iter_overhead_hard(self):
         """Test overhead of iteration based tqdm (hard)"""
 
