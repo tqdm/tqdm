@@ -201,6 +201,7 @@ def test_threadpool():
     except ImportError:
         raise SkipTest
 
+    default_lock = tqdm.get_lock()
     tqdm.set_lock(RLock())
     with ThreadPoolExecutor(8) as pool:
         try:
@@ -211,3 +212,4 @@ def test_threadpool():
             else:
                 raise
     assert sum(res) == sum(range(1, 101))
+    tqdm.set_lock(default_lock)

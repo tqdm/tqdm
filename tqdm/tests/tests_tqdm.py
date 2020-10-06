@@ -1807,7 +1807,9 @@ def test_threading():
     except OSError:
         pass
     else:
+        default_lock = tqdm.get_lock()
         tqdm.set_lock(mp_lock)
+        tqdm.set_lock(default_lock)
     # TODO: test interleaved output #445
 
 
