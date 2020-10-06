@@ -10,7 +10,8 @@ from time import sleep, time
 from tqdm import trange
 from tqdm import tqdm
 
-from tests_tqdm import with_setup, pretest, posttest, StringIO, closing, _range
+from tests_tqdm import with_setup, pretest, posttest, StringIO, closing, \
+    _range, patch_lock
 
 # Use relative/cpu timer to have reliable timings when there is a sudden load
 try:
@@ -231,21 +232,20 @@ def worker(total, blocking=True):
     return incr_bar
 
 
-@with_setup(pretest, posttest)
 @retry_on_except()
+@patch_lock(thread=True)
+@with_setup(pretest, posttest)
 def test_lock_args():
     """Test overhead of nonblocking threads"""
     try:
         from concurrent.futures import ThreadPoolExecutor
-        from threading import RLock
     except ImportError:
         raise SkipTest
 
     total = 8
     subtotal = 1000
 
-    tqdm.set_lock(RLock())
-    with ThreadPoolExecutor(total) as pool:
+    with ThreadPoolExecutor() as pool:
         sys.stderr.write('block ... ')
         sys.stderr.flush()
         with relative_timer() as time_tqdm:

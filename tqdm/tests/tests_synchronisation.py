@@ -1,7 +1,7 @@
 from __future__ import division
 from tqdm import tqdm, trange, TMonitor
 from tests_tqdm import with_setup, pretest, posttest, SkipTest, \
-    StringIO, closing
+    StringIO, closing, patch_lock
 from tests_perf import retry_on_except
 
 from time import sleep, time
@@ -203,17 +203,15 @@ def test_imap():
 
 # py2: locks won't propagate to incr_bar so may cause `AttributeError`
 @retry_on_except(n=3 if sys.version_info < (3,) else 1)
+@patch_lock(thread=True)
 @with_setup(pretest, posttest)
 def test_threadpool():
     """Test concurrent.futures.ThreadPoolExecutor"""
     try:
         from concurrent.futures import ThreadPoolExecutor
-        from threading import RLock
     except ImportError:
         raise SkipTest
 
-    default_lock = tqdm.get_lock()
-    tqdm.set_lock(RLock())
     with ThreadPoolExecutor(8) as pool:
         try:
             res = list(tqdm(pool.map(incr_bar, range(100)), disable=True))
@@ -223,4 +221,3 @@ def test_threadpool():
             else:
                 raise
     assert sum(res) == sum(range(1, 101))
-    tqdm.set_lock(default_lock)

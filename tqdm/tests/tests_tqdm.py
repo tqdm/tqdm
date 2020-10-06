@@ -6,6 +6,7 @@ import sys
 import csv
 import re
 import os
+from functools import wraps
 from nose import with_setup
 from nose.plugins.skip import SkipTest
 from nose.tools import assert_raises
@@ -1798,19 +1799,35 @@ def test_unit_scale():
         assert '81/81' in out
 
 
+def patch_lock(thread=True):
+    """decorator replacing tqdm's lock with vanilla threading/multiprocessing"""
+    try:
+        if thread:
+            from threading import RLock
+        else:
+            from multiprocessing import RLock
+        lock = RLock()
+    except (ImportError, OSError):
+        raise SkipTest
+
+    def outer(func):
+        @wraps(func)
+        def inner(*args, **kwargs):
+            default_lock = tqdm.get_lock()
+            try:
+                tqdm.set_lock(lock)
+                return func(*args, **kwargs)
+            finally:
+                tqdm.set_lock(default_lock)
+        return inner
+    return outer
+
+
 @with_setup(pretest, posttest)
+@patch_lock(thread=False)
 def test_threading():
     """Test multiprocess/thread-realted features"""
-    from multiprocessing import RLock
-    try:
-        mp_lock = RLock()
-    except OSError:
-        pass
-    else:
-        default_lock = tqdm.get_lock()
-        tqdm.set_lock(mp_lock)
-        tqdm.set_lock(default_lock)
-    # TODO: test interleaved output #445
+    pass  # TODO: test interleaved output #445
 
 
 @with_setup(pretest, posttest)
