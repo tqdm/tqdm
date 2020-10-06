@@ -16,10 +16,10 @@ from .utils import _supports_unicode, _screen_shape_wrapper, _range, _unich, \
 from ._monitor import TMonitor
 # native libraries
 from contextlib import contextmanager
-import sys
 from numbers import Number
 from time import time
 from warnings import warn
+import sys
 
 __author__ = "https://github.com/tqdm/tqdm#contributions"
 __all__ = ['tqdm', 'trange',
@@ -95,9 +95,9 @@ class TqdmDefaultWriteLock(object):
         if root_lock is not None:
             root_lock.acquire()
         cls.create_mp_lock()
+        self.locks = [lk for lk in [cls.mp_lock, cls.th_lock] if lk is not None]
         if root_lock is not None:
             root_lock.release()
-        self.locks = [lk for lk in [cls.mp_lock, cls.th_lock] if lk is not None]
 
     def acquire(self, *a, **k):
         for lock in self.locks:
@@ -604,15 +604,6 @@ class tqdm(Comparable):
                     inst = min(instances, key=lambda i: i.pos)
                     inst.clear(nolock=True)
                     inst.pos = abs(instance.pos)
-            # Kill monitor if no instances are left
-            if not cls._instances and cls.monitor:
-                try:
-                    cls.monitor.exit()
-                    del cls.monitor
-                except AttributeError:  # pragma: nocover
-                    pass
-                else:
-                    cls.monitor = None
 
     @classmethod
     def write(cls, s, file=None, end="\n", nolock=False):
