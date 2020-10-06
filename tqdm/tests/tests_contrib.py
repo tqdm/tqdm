@@ -8,8 +8,10 @@ from unittest import SkipTest
 
 
 class TestTqdmContrib(TestWithInstancesCheck):
-
-    def incr(x):
+    """
+    Testing class for `tqdm.contrib`.
+    """
+    def incr(self, x):
         """Dummy function"""
         return x + 1
 

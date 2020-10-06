@@ -1,3 +1,6 @@
+"""
+Tests for `tqdm.asyncio`.
+"""
 import asyncio
 from functools import partial, wraps
 from time import time
@@ -33,6 +36,9 @@ async def acount(*args, **kwargs):
 
 
 class TestTqdmAsyncio(TestWithInstancesCheck):
+    """
+    Testing class for `tqdm.asyncio`.
+    """
     @setup_sync
     async def test_generators(self):
         """Test asyncio generators"""
