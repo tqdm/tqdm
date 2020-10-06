@@ -32,7 +32,6 @@ class TMonitor(Thread):
     def __init__(self, tqdm_cls, sleep_interval):
         Thread.__init__(self)
         self.daemon = True  # kill thread when main killed (KeyboardInterrupt)
-        self.was_killed = Event()
         self.woken = 0  # last time woken up, to sync with monitor
         self.tqdm_cls = tqdm_cls
         self.sleep_interval = sleep_interval
@@ -44,6 +43,7 @@ class TMonitor(Thread):
             self._event = TMonitor._event
         else:
             self._event = Event
+        self.was_killed = self._event()
         atexit.register(self.exit)
         self.start()
 
