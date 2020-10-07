@@ -66,9 +66,9 @@ def thread_map(fn, *iterables, **tqdm_kwargs):
 
     Parameters
     ----------
-    tqdm_class : optional
+    tqdm_class  : optional
         `tqdm` class to use for bars [default: tqdm.auto.tqdm].
-    max_workers : int, optional
+    max_workers  : int, optional
         Maximum number of workers to spawn; passed to
         `concurrent.futures.ThreadPoolExecutor.__init__`.
         [default: max(32, cpu_count() + 4)].
@@ -86,11 +86,11 @@ def process_map(fn, *iterables, **tqdm_kwargs):
     ----------
     tqdm_class  : optional
         `tqdm` class to use for bars [default: tqdm.auto.tqdm].
-    max_workers : int, optional
+    max_workers  : int, optional
         Maximum number of workers to spawn; passed to
         `concurrent.futures.ProcessPoolExecutor.__init__`.
         [default: min(32, cpu_count() + 4)].
-    chunksize : int, optional
+    chunksize  : int, optional
         Size of chunks sent to worker processes; passed to
         `concurrent.futures.ProcessPoolExecutor.map`. [default: 1].
     lock_name  : str, optional
