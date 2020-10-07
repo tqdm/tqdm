@@ -257,7 +257,7 @@ class TestTqdmPerf(TestWithInstancesCheck):
         self.assert_performance(0.2, 'noblock', time_noblock(),
                                 'tqdm', time_tqdm())
 
-    @retry_on_except(self)
+    @retry_on_except()
     def test_iter_overhead_hard(self):
         """Test overhead of iteration based tqdm (hard)"""
 
