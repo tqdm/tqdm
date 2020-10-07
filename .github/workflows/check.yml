@@ -1,0 +1,23 @@
+name: Check
+on:
+- push
+jobs:
+  check:
+    name: '${{ matrix.TOXENV }}'
+    strategy:
+      matrix:
+        TOXENV: [flake8, setup.py, perf]
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+    - name: Install
+      run: |
+        pip install -U tox
+        pip install -U .
+    - name: Test
+      run: tox
+      env:
+        TOXENV: ${{ matrix.TOXENV }}

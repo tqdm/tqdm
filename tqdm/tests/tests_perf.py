@@ -10,7 +10,8 @@ from time import sleep, time
 from tqdm import trange
 from tqdm import tqdm
 
-from tests_tqdm import with_setup, pretest, posttest, StringIO, closing, _range
+from tests_tqdm import with_setup, pretest, posttest, StringIO, closing, \
+    _range, patch_lock
 
 # Use relative/cpu timer to have reliable timings when there is a sudden load
 try:
@@ -89,7 +90,7 @@ def retry_on_except(n=3):
 class MockIO(StringIO):
     """Wraps StringIO to mock a file with no I/O"""
 
-    def write(self, data):
+    def write(self, _):
         return
 
 
@@ -132,15 +133,15 @@ def simple_progress(iterable=None, total=None, file=sys.stdout, desc='',
                 eta = (total - n[0]) / rate if rate > 0 else 0
                 eta_fmt = format_interval(eta)
 
-                # bar = "#" * int(frac * width)
+                # full_bar = "#" * int(frac * width)
                 barfill = " " * int((1.0 - frac) * width)
                 bar_length, frac_bar_length = divmod(int(frac * width * 10), 10)
-                bar = '#' * bar_length
+                full_bar = '#' * bar_length
                 frac_bar = chr(48 + frac_bar_length) if frac_bar_length \
                     else ' '
 
                 file.write("\r%s %i%%|%s%s%s| %i/%i [%s<%s, %s]" %
-                           (desc, percentage, bar, frac_bar, barfill, n[0],
+                           (desc, percentage, full_bar, frac_bar, barfill, n[0],
                             total, spent_fmt, eta_fmt, rate_fmt))
 
                 if n[0] == total and leave:
@@ -233,19 +234,18 @@ def worker(total, blocking=True):
 
 @with_setup(pretest, posttest)
 @retry_on_except()
+@patch_lock(thread=True)
 def test_lock_args():
     """Test overhead of nonblocking threads"""
     try:
         from concurrent.futures import ThreadPoolExecutor
-        from threading import RLock
     except ImportError:
         raise SkipTest
 
-    total = 8
-    subtotal = 1000
+    total = 16
+    subtotal = 10000
 
-    tqdm.set_lock(RLock())
-    with ThreadPoolExecutor(total) as pool:
+    with ThreadPoolExecutor() as pool:
         sys.stderr.write('block ... ')
         sys.stderr.flush()
         with relative_timer() as time_tqdm:
@@ -257,7 +257,7 @@ def test_lock_args():
             res = list(pool.map(worker(subtotal, False), range(total)))
             assert sum(res) == sum(range(total)) + total
 
-    assert_performance(0.2, 'noblock', time_noblock(), 'tqdm', time_tqdm())
+    assert_performance(0.5, 'noblock', time_noblock(), 'tqdm', time_tqdm())
 
 
 @with_setup(pretest, posttest)
@@ -282,7 +282,7 @@ def test_iter_overhead_hard():
                 a += i
                 our_file.write(("%i" % a) * 40)
 
-    assert_performance(125, 'trange', time_tqdm(), 'range', time_bench())
+    assert_performance(130, 'trange', time_tqdm(), 'range', time_bench())
 
 
 @with_setup(pretest, posttest)
@@ -307,7 +307,7 @@ def test_manual_overhead_hard():
                 a += i
                 our_file.write(("%i" % a) * 40)
 
-    assert_performance(125, 'tqdm', time_tqdm(), 'range', time_bench())
+    assert_performance(130, 'tqdm', time_tqdm(), 'range', time_bench())
 
 
 @with_setup(pretest, posttest)
@@ -334,7 +334,7 @@ def test_iter_overhead_simplebar_hard():
                 a += i
 
     assert_performance(
-        8, 'trange', time_tqdm(), 'simple_progress', time_bench())
+        10, 'trange', time_tqdm(), 'simple_progress', time_bench())
 
 
 @with_setup(pretest, posttest)
@@ -363,4 +363,4 @@ def test_manual_overhead_simplebar_hard():
                 simplebar_update(10)
 
     assert_performance(
-        8, 'tqdm', time_tqdm(), 'simple_progress', time_bench())
+        10, 'tqdm', time_tqdm(), 'simple_progress', time_bench())

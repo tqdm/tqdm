@@ -6,6 +6,7 @@ import sys
 import csv
 import re
 import os
+from functools import wraps
 from nose import with_setup
 from nose.plugins.skip import SkipTest
 from nose.tools import assert_raises
@@ -969,14 +970,14 @@ def test_ascii():
     assert u"20%|\u2588\u2588" in res[3]
 
     # Test custom bar
-    for ascii in [" .oO0", " #"]:
+    for bars in [" .oO0", " #"]:
         with closing(StringIO()) as our_file:
-            for _ in tqdm(_range(len(ascii) - 1), file=our_file, miniters=1,
-                          mininterval=0, ascii=ascii, ncols=27):
+            for _ in tqdm(_range(len(bars) - 1), file=our_file, miniters=1,
+                          mininterval=0, ascii=bars, ncols=27):
                 pass
             res = our_file.getvalue().strip("\r").split("\r")
-        for bar, line in zip(ascii, res):
-            assert '|' + bar + '|' in line
+        for b, line in zip(bars, res):
+            assert '|' + b + '|' in line
 
 
 @with_setup(pretest, posttest)
@@ -1170,7 +1171,8 @@ Use `position` instead for manual control.""" not in our_file.getvalue():
 def test_bar_format():
     """Test custom bar formatting"""
     with closing(StringIO()) as our_file:
-        bar_format = r'{l_bar}{bar}|{n_fmt}/{total_fmt}-{n}/{total}{percentage}{rate}{rate_fmt}{elapsed}{remaining}'  # NOQA
+        bar_format = ('{l_bar}{bar}|{n_fmt}/{total_fmt}-{n}/{total}'
+                      '{percentage}{rate}{rate_fmt}{elapsed}{remaining}')
         for _ in trange(2, file=our_file, leave=True, bar_format=bar_format):
             pass
         out = our_file.getvalue()
@@ -1654,7 +1656,7 @@ def test_deprecation_exception():
                 our_file, 'write', sys.stderr.write)))
 
     def test_TqdmDeprecationWarning_nofpwrite():
-        raise (TqdmDeprecationWarning('Test!', fp_write=None))
+        raise TqdmDeprecationWarning('Test!', fp_write=None)
 
     assert_raises(TqdmDeprecationWarning, test_TqdmDeprecationWarning)
     assert_raises(Exception, test_TqdmDeprecationWarning_nofpwrite)
@@ -1797,17 +1799,37 @@ def test_unit_scale():
         assert '81/81' in out
 
 
+def patch_lock(thread=True):
+    """decorator replacing tqdm's lock with vanilla threading/multiprocessing"""
+    try:
+        if thread:
+            from threading import RLock
+        else:
+            from multiprocessing import RLock
+        lock = RLock()
+    except (ImportError, OSError):
+        raise SkipTest
+
+    def outer(func):
+        """actual decorator"""
+        @wraps(func)
+        def inner(*args, **kwargs):
+            """set & reset lock even if exceptions occur"""
+            default_lock = tqdm.get_lock()
+            try:
+                tqdm.set_lock(lock)
+                return func(*args, **kwargs)
+            finally:
+                tqdm.set_lock(default_lock)
+        return inner
+    return outer
+
+
 @with_setup(pretest, posttest)
+@patch_lock(thread=False)
 def test_threading():
     """Test multiprocess/thread-realted features"""
-    from multiprocessing import RLock
-    try:
-        mp_lock = RLock()
-    except OSError:
-        pass
-    else:
-        tqdm.set_lock(mp_lock)
-    # TODO: test interleaved output #445
+    pass  # TODO: test interleaved output #445
 
 
 @with_setup(pretest, posttest)
@@ -1878,7 +1900,7 @@ def test_wrapattr():
             res = writer.getvalue()
             assert data == res
         res = our_file.getvalue()
-        assert ('%.1fB [' % len(data)) in res
+        assert '%.1fB [' % len(data) in res
 
     with closing(StringIO()) as our_file:
         with closing(StringIO()) as writer:
@@ -1886,7 +1908,7 @@ def test_wrapattr():
                     writer, "write", file=our_file, bytes=False) as wrap:
                 wrap.write(data)
         res = our_file.getvalue()
-        assert ('%dit [' % len(data)) in res
+        assert '%dit [' % len(data) in res
 
 
 @with_setup(pretest, posttest)

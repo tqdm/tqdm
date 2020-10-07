@@ -16,12 +16,10 @@ from .utils import _supports_unicode, _screen_shape_wrapper, _range, _unich, \
 from ._monitor import TMonitor
 # native libraries
 from contextlib import contextmanager
-import sys
 from numbers import Number
 from time import time
-# For parallelism safety
-import threading as th
 from warnings import warn
+import sys
 
 __author__ = "https://github.com/tqdm/tqdm#contributions"
 __all__ = ['tqdm', 'trange',
@@ -66,6 +64,15 @@ class TqdmMonitorWarning(TqdmWarning, RuntimeWarning):
     pass
 
 
+def TRLock(*args, **kwargs):
+    """threading RLock"""
+    try:
+        from threading import RLock
+        return RLock(*args, **kwargs)
+    except (ImportError, OSError):  # pragma: no cover
+        pass
+
+
 class TqdmDefaultWriteLock(object):
     """
     Provide a default write lock for thread and multiprocessing safety.
@@ -75,13 +82,22 @@ class TqdmDefaultWriteLock(object):
     On Windows, you need to supply the lock from the parent to the children as
     an argument to joblib or the parallelism lib you use.
     """
+    # global thread lock so no setup required for multithreading.
+    # NB: Do not create multiprocessing lock as it sets the multiprocessing
+    # context, disallowing `spawn()`/`forkserver()`
+    th_lock = TRLock()
+
     def __init__(self):
         # Create global parallelism locks to avoid racing issues with parallel
         # bars works only if fork available (Linux/MacOSX, but not Windows)
-        self.create_mp_lock()
-        self.create_th_lock()
         cls = type(self)
+        root_lock = cls.th_lock
+        if root_lock is not None:
+            root_lock.acquire()
+        cls.create_mp_lock()
         self.locks = [lk for lk in [cls.mp_lock, cls.th_lock] if lk is not None]
+        if root_lock is not None:
+            root_lock.release()
 
     def acquire(self, *a, **k):
         for lock in self.locks:
@@ -102,26 +118,15 @@ class TqdmDefaultWriteLock(object):
         if not hasattr(cls, 'mp_lock'):
             try:
                 from multiprocessing import RLock
-                cls.mp_lock = RLock()  # multiprocessing lock
-            except ImportError:  # pragma: no cover
-                cls.mp_lock = None
-            except OSError:  # pragma: no cover
+                cls.mp_lock = RLock()
+            except (ImportError, OSError):  # pragma: no cover
                 cls.mp_lock = None
 
     @classmethod
     def create_th_lock(cls):
-        if not hasattr(cls, 'th_lock'):
-            try:
-                cls.th_lock = th.RLock()  # thread lock
-            except OSError:  # pragma: no cover
-                cls.th_lock = None
-
-
-# Create a thread lock before instantiation so that no setup needs to be done
-# before running in a multithreaded environment.
-# Do not create the multiprocessing lock because it sets the multiprocessing
-# context and does not allow the user to use 'spawn' or 'forkserver' methods.
-TqdmDefaultWriteLock.create_th_lock()
+        assert hasattr(cls, 'th_lock')
+        warn("create_th_lock not needed anymore", TqdmDeprecationWarning,
+             stacklevel=2)
 
 
 class Bar(object):
@@ -147,7 +152,7 @@ class Bar(object):
                    CYAN='\x1b[36m', WHITE='\x1b[37m')
 
     def __init__(self, frac, default_len=10, charset=UTF, colour=None):
-        if not (0 <= frac <= 1):
+        if not 0 <= frac <= 1:
             warn("clamping frac to range [0, 1]", TqdmWarning, stacklevel=2)
             frac = max(0, min(1, frac))
         assert default_len > 0
@@ -202,16 +207,11 @@ class Bar(object):
         bar_length, frac_bar_length = divmod(
             int(self.frac * N_BARS * nsyms), nsyms)
 
-        bar = charset[-1] * bar_length
-        frac_bar = charset[frac_bar_length]
-
-        # whitespace padding
-        if bar_length < N_BARS:
-            bar = bar + frac_bar + \
+        res = charset[-1] * bar_length
+        if bar_length < N_BARS:  # whitespace padding
+            res = res + charset[frac_bar_length] + \
                 charset[0] * (N_BARS - bar_length - 1)
-        if self.colour:
-            return self.colour + bar + self.COLOUR_RESET
-        return bar
+        return self.colour + res + self.COLOUR_RESET if self.colour else res
 
 
 class tqdm(Comparable):
@@ -400,7 +400,7 @@ class tqdm(Comparable):
         initial  : int or float, optional
             The initial counter value [default: 0].
         colour  : str, optional
-            Bar colour (e.g. `'green'`, `'#00ff00'`).
+            Bar colour (e.g. 'green', '#00ff00').
 
         Returns
         -------
@@ -546,7 +546,7 @@ class tqdm(Comparable):
                 '{0}{1} [{2}, {3}{4}]'.format(
                     n_fmt, unit, elapsed_str, rate_fmt, postfix)
 
-    def __new__(cls, *args, **kwargs):
+    def __new__(cls, *_, **__):
         # Create a new instance
         instance = object.__new__(cls)
         # Construct the lock if it does not exist
@@ -604,15 +604,6 @@ class tqdm(Comparable):
                     inst = min(instances, key=lambda i: i.pos)
                     inst.clear(nolock=True)
                     inst.pos = abs(instance.pos)
-            # Kill monitor if no instances are left
-            if not cls._instances and cls.monitor:
-                try:
-                    cls.monitor.exit()
-                    del cls.monitor
-                except AttributeError:  # pragma: nocover
-                    pass
-                else:
-                    cls.monitor = None
 
     @classmethod
     def write(cls, s, file=None, end="\n", nolock=False):
@@ -945,7 +936,7 @@ class tqdm(Comparable):
             bound. If unspecified, attempts to use environment height.
             The fallback is 20.
         colour  : str, optional
-            Bar colour (e.g. `'green'`, `'#00ff00'`).
+            Bar colour (e.g. 'green', '#00ff00').
         gui  : bool, optional
             WARNING: internal parameter - do not use.
             Use tqdm.gui.tqdm(...) instead. If set, will attempt to use
