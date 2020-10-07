@@ -2,18 +2,15 @@
 General helpers required for `tqdm.std`.
 """
 from functools import wraps
-import os
-from platform import system as _curos
-import re
-import subprocess
 from warnings import warn
+import os
+import re
+import sys
+import subprocess
 
-CUR_OS = _curos()
-IS_WIN = CUR_OS in ['Windows', 'cli']
-IS_NIX = (not IS_WIN) and any(
-    CUR_OS.startswith(i) for i in
-    ['CYGWIN', 'MSYS', 'Linux', 'Darwin', 'SunOS',
-     'FreeBSD', 'NetBSD', 'OpenBSD'])
+CUR_OS = sys.platform
+IS_WIN = any(CUR_OS.startswith(i) for i in ['win32', 'cygwin'])
+IS_NIX = any(CUR_OS.startswith(i) for i in ['aix', 'linux', 'darwin'])
 RE_ANSI = re.compile(r"\x1b\[[;\d]*[A-Za-z]")
 
 
