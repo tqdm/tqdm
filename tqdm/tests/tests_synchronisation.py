@@ -4,8 +4,9 @@ from tests_tqdm import with_setup, pretest, posttest, SkipTest, \
     StringIO, closing, patch_lock
 from tests_perf import retry_on_except
 
-from time import sleep, time
+from functools import wraps
 from threading import Event
+from time import sleep, time
 import sys
 
 
@@ -26,7 +27,7 @@ class Time(object):
     @staticmethod
     def sleep(dur):
         """identical to time.sleep()"""
-        return sleep(dur)
+        sleep(dur)
 
     @classmethod
     def fake_sleep(cls, dur):
@@ -35,14 +36,43 @@ class Time(object):
         sleep(0.000001)  # sleep to allow interrupt (instead of pass)
 
 
-def make_create_fake_sleep_event(sleep):
-    class FakeEvent(Event):
-        def wait(self, timeout=None):
-            if timeout is not None:
-                sleep(timeout)
-            return self.is_set()
+def FakeEvent():
+    """patched `threading.Event` where `wait()` uses `Time.fake_sleep()`"""
+    event = Event()  # not a class in py2 so can't inherit
 
-    return FakeEvent
+    def wait(timeout=None):
+        if timeout is not None:
+            Time.fake_sleep(timeout)
+        return event.is_set()
+
+    event.wait = wait
+    return event
+
+
+def patch_sleep(func):
+    @wraps(func)
+    def inner(*args, **kwargs):
+        TMonitor._test["time"] = Time.time
+        TMonitor._test["Event"] = FakeEvent
+        if tqdm.monitor:
+            assert not tqdm.monitor.get_instances()
+            tqdm.monitor.exit()
+            del tqdm.monitor
+            tqdm.monitor = None
+        try:
+            return func(*args, **kwargs)
+        finally:
+            # Check that class var monitor is deleted if no instance left
+            tqdm.monitor_interval = 10
+            if tqdm.monitor:
+                assert not tqdm.monitor.get_instances()
+                tqdm.monitor.exit()
+                del tqdm.monitor
+                tqdm.monitor = None
+            TMonitor._test.pop("Event")
+            TMonitor._test.pop("time")
+
+    return inner
 
 
 def cpu_timify(t, timer=Time):
@@ -54,7 +84,7 @@ def cpu_timify(t, timer=Time):
 
 
 class FakeTqdm(object):
-    _instances = []
+    _instances = set()
     get_lock = tqdm.get_lock
 
 
@@ -69,13 +99,10 @@ def incr_bar(x):
     return incr(x)
 
 
+@patch_sleep
 @with_setup(pretest, posttest)
 def test_monitor_thread():
     """Test dummy monitoring thread"""
-    # patch sleep
-    TMonitor._time = Time.time
-    TMonitor._event = make_create_fake_sleep_event(Time.fake_sleep)
-
     monitor = TMonitor(FakeTqdm, 10)
     # Test if alive, then killed
     assert monitor.report()
@@ -83,10 +110,9 @@ def test_monitor_thread():
     assert not monitor.report()
     assert not monitor.is_alive()
     del monitor
-    TMonitor._time = None
-    TMonitor._event = None
 
 
+@patch_sleep
 @with_setup(pretest, posttest)
 def test_monitoring_and_cleanup():
     """Test for stalled tqdm instance and monitor deletion"""
@@ -96,11 +122,6 @@ def test_monitoring_and_cleanup():
     assert maxinterval == 10
     total = 1000
 
-    # patch sleep
-    TMonitor._time = Time.time
-    TMonitor._event = make_create_fake_sleep_event(Time.fake_sleep)
-
-    tqdm.monitor = None
     with closing(StringIO()) as our_file:
         with tqdm(total=total, file=our_file, miniters=500, mininterval=0.1,
                   maxinterval=maxinterval) as t:
@@ -112,7 +133,7 @@ def test_monitoring_and_cleanup():
             # check that our fixed miniters is still there
             assert t.miniters == 500
             # Then do 1 it after monitor interval, so that monitor kicks in
-            Time.fake_sleep(maxinterval * 1.1)
+            Time.fake_sleep(maxinterval)
             t.update(1)
             # Wait for the monitor to get out of sleep's loop and update tqdm..
             timeend = Time.time()
@@ -125,7 +146,7 @@ def test_monitoring_and_cleanup():
             # to ensure that monitor wakes up at some point.
 
             # Try again but already at miniters = 1 so nothing will be done
-            Time.fake_sleep(maxinterval * 1.1)
+            Time.fake_sleep(maxinterval)
             t.update(2)
             timeend = Time.time()
             while t.monitor.woken < timeend:
@@ -133,16 +154,8 @@ def test_monitoring_and_cleanup():
             # Wait for the monitor to get out of sleep's loop and update tqdm
             assert t.miniters == 1  # check that monitor corrected miniters
 
-    # Check that class var monitor is deleted if no instance left
-    tqdm.monitor_interval = 10
-    assert not tqdm.monitor.get_instances()
-    tqdm.monitor.exit()
-    del tqdm.monitor
-    tqdm.monitor = None
-    TMonitor._time = None
-    TMonitor._event = None
 
-
+@patch_sleep
 @with_setup(pretest, posttest)
 def test_monitoring_multi():
     """Test on multiple bars, one not needing miniters adjustment"""
@@ -152,18 +165,13 @@ def test_monitoring_multi():
     assert maxinterval == 10
     total = 1000
 
-    # patch sleep
-    TMonitor._time = Time.time
-    TMonitor._event = make_create_fake_sleep_event(Time.fake_sleep)
-
-    tqdm.monitor = None
     with closing(StringIO()) as our_file:
         with tqdm(total=total, file=our_file, miniters=500, mininterval=0.1,
                   maxinterval=maxinterval) as t1:
-            cpu_timify(t1, Time)
             # Set high maxinterval for t2 so monitor does not need to adjust it
             with tqdm(total=total, file=our_file, miniters=500, mininterval=0.1,
                       maxinterval=1E5) as t2:
+                cpu_timify(t1, Time)
                 cpu_timify(t2, Time)
                 # Do a lot of iterations in a small timeframe
                 Time.fake_sleep(maxinterval / 2)
@@ -172,7 +180,7 @@ def test_monitoring_multi():
                 assert t1.miniters == 500
                 assert t2.miniters == 500
                 # Then do 1 it after monitor interval, so that monitor kicks in
-                Time.fake_sleep(maxinterval * 1.1)
+                Time.fake_sleep(maxinterval)
                 t1.update(1)
                 t2.update(1)
                 # Wait for the monitor to get out of sleep and update tqdm
@@ -181,15 +189,6 @@ def test_monitoring_multi():
                     Time.fake_sleep(1)
                 assert t1.miniters == 1  # check that monitor corrected miniters
                 assert t2.miniters == 500  # check that t2 was not adjusted
-
-    # Check that class var monitor is deleted if no instance left
-    tqdm.monitor_interval = 10
-    assert not tqdm.monitor.get_instances()
-    tqdm.monitor.exit()
-    del tqdm.monitor
-    tqdm.monitor = None
-    TMonitor._time = None
-    TMonitor._event = None
 
 
 @with_setup(pretest, posttest)
@@ -206,9 +205,9 @@ def test_imap():
 
 
 # py2: locks won't propagate to incr_bar so may cause `AttributeError`
+@with_setup(pretest, posttest)
 @retry_on_except(n=3 if sys.version_info < (3,) else 1)
 @patch_lock(thread=True)
-@with_setup(pretest, posttest)
 def test_threadpool():
     """Test concurrent.futures.ThreadPoolExecutor"""
     try:

@@ -24,10 +24,7 @@ class TMonitor(Thread):
     sleep_interval  : fload
         Time to sleep between monitoring checks.
     """
-
-    # internal vars for unit testing
-    _time = None
-    _event = None
+    _test = {}  # internal vars for unit testing
 
     def __init__(self, tqdm_cls, sleep_interval):
         Thread.__init__(self)
@@ -35,15 +32,8 @@ class TMonitor(Thread):
         self.woken = 0  # last time woken up, to sync with monitor
         self.tqdm_cls = tqdm_cls
         self.sleep_interval = sleep_interval
-        if TMonitor._time is not None:
-            self._time = TMonitor._time
-        else:
-            self._time = time
-        if TMonitor._event is not None:
-            self._event = TMonitor._event
-        else:
-            self._event = Event
-        self.was_killed = self._event()
+        self._time = self._test.get("time", time)
+        self.was_killed = self._test.get("Event", Event)()
         atexit.register(self.exit)
         self.start()
 

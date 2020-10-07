@@ -232,9 +232,9 @@ def worker(total, blocking=True):
     return incr_bar
 
 
+@with_setup(pretest, posttest)
 @retry_on_except()
 @patch_lock(thread=True)
-@with_setup(pretest, posttest)
 def test_lock_args():
     """Test overhead of nonblocking threads"""
     try:
