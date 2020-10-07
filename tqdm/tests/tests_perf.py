@@ -68,7 +68,7 @@ def relative_timer():
         return spent
 
 
-def retry_on_except(n=3):
+def retry_on_except(n=6):
     def wrapper(fn):
         def test_inner():
             for i in range(1, n + 1):

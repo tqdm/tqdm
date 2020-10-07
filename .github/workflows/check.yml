@@ -6,7 +6,9 @@ jobs:
     name: '${{ matrix.TOXENV }}'
     strategy:
       matrix:
-        TOXENV: [flake8, setup.py, perf]
+        TOXENV:
+          - flake8,setup.py
+          - perf
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
