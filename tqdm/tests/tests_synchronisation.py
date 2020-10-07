@@ -41,6 +41,7 @@ def FakeEvent():
     event = Event()  # not a class in py2 so can't inherit
 
     def wait(timeout=None):
+        """uses Time.fake_sleep"""
         if timeout is not None:
             Time.fake_sleep(timeout)
         return event.is_set()
@@ -50,8 +51,10 @@ def FakeEvent():
 
 
 def patch_sleep(func):
+    """Temporarily makes TMonitor use Time.fake_sleep"""
     @wraps(func)
     def inner(*args, **kwargs):
+        """restores TMonitor on completion regardless of Exceptions"""
         TMonitor._test["time"] = Time.time
         TMonitor._test["Event"] = FakeEvent
         if tqdm.monitor:
