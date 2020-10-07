@@ -218,7 +218,7 @@ class TestTqdmPerf(TestWithInstancesCheck):
 
         self.assert_performance(6, 'tqdm', time_tqdm(), 'range', time_bench())
 
-    def worker(total, blocking=True):
+    def worker(self, total, blocking=True):
         def incr_bar(x):
             with closing(StringIO()) as our_file:
                 for _ in trange(
