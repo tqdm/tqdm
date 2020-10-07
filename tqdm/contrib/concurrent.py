@@ -4,6 +4,7 @@ Thin wrappers around `concurrent.futures`.
 from __future__ import absolute_import
 from tqdm import TqdmWarning
 from tqdm.auto import tqdm as tqdm_auto
+from contextlib import contextmanager
 try:
     from operator import length_hint
 except ImportError:
@@ -26,6 +27,20 @@ __author__ = {"github.com/": ["casperdcl"]}
 __all__ = ['thread_map', 'process_map']
 
 
+@contextmanager
+def ensure_lock(tqdm_class, lock_name=""):
+    """get (create if necessary) and then restore `tqdm_class`'s lock"""
+    old_lock = getattr(tqdm_class, '_lock', None)  # don't create a new lock
+    lock = old_lock or tqdm_class.get_lock()  # maybe create a new lock
+    lock = getattr(lock, lock_name, lock)  # maybe subtype
+    tqdm_class.set_lock(lock)
+    yield lock
+    if old_lock is None:
+        del tqdm_class._lock
+    else:
+        tqdm_class.set_lock(old_lock)
+
+
 def _executor_map(PoolExecutor, fn, *iterables, **tqdm_kwargs):
     """
     Implementation of `thread_map` and `process_map`.
@@ -44,19 +59,18 @@ def _executor_map(PoolExecutor, fn, *iterables, **tqdm_kwargs):
     max_workers = kwargs.pop("max_workers", min(32, cpu_count() + 4))
     chunksize = kwargs.pop("chunksize", 1)
     lock_name = kwargs.pop("lock_name", "")
-    pool_kwargs = dict(max_workers=max_workers)
-    sys_version = sys.version_info[:2]
-    if sys_version >= (3, 7):
-        # share lock in case workers are already using `tqdm`
-        lock = tqdm_class.get_lock()
-        lock = getattr(lock, lock_name, lock)
-        pool_kwargs.update(initializer=tqdm_class.set_lock, initargs=(lock,))
-    map_args = {}
-    if not (3, 0) < sys_version < (3, 5):
-        map_args.update(chunksize=chunksize)
-    with PoolExecutor(**pool_kwargs) as ex:
-        return list(tqdm_class(
-            ex.map(fn, *iterables, **map_args), **kwargs))
+    with ensure_lock(tqdm_class, lock_name=lock_name) as lk:
+        pool_kwargs = dict(max_workers=max_workers)
+        sys_version = sys.version_info[:2]
+        if sys_version >= (3, 7):
+            # share lock in case workers are already using `tqdm`
+            pool_kwargs.update(initializer=tqdm_class.set_lock, initargs=(lk,))
+        map_args = {}
+        if not (3, 0) < sys_version < (3, 5):
+            map_args.update(chunksize=chunksize)
+        with PoolExecutor(**pool_kwargs) as ex:
+            return list(tqdm_class(
+                ex.map(fn, *iterables, **map_args), **kwargs))
 
 
 def thread_map(fn, *iterables, **tqdm_kwargs):
