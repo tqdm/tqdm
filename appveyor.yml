@@ -1,36 +1,20 @@
 build: false
 environment:
   matrix:
-    # - PYVER: 26
-    #   TOXENV: py
     - PYVER: 27
-      TOXENV: py
-    # - PYVER: 33
-    #   TOXENV: py
-    - PYVER: 34
-      TOXENV: py
-    - PYVER: 35
       TOXENV: py
     - PYVER: 36
       TOXENV: py
-    # - PYVER: 37
-    #   TOXENV: py
-    - PYVER: 27
-      TOXENV: flake8
-    - PYVER: 27
-      TOXENV: perf
-
-# matrix:
-#   fast_finish: true
-
+    - PYVER: 37
+      TOXENV: py
+    #- PYVER: 38
+    #  TOXENV: py
 install:
   - git fetch --tags
   - C:\Python%PYVER%\scripts\pip install -U tox
   - C:\Python%PYVER%\scripts\tox install .
-
 test_script:
   - C:\Python%PYVER%\scripts\tox
-
 cache:
   - '%LOCALAPPDATA%\pip\cache'
   - '%USERPROFILE%\.cache\pre-commit'
