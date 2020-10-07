@@ -583,7 +583,7 @@ However, it's best to check if `tqdm` can work without manual `position` first.
 
     from time import sleep
     from tqdm import trange, tqdm
-    from multiprocessing import Pool, freeze_support
+    from multiprocessing import Pool, RLock, freeze_support
 
     L = list(range(9))
 
@@ -596,6 +596,7 @@ However, it's best to check if `tqdm` can work without manual `position` first.
 
     if __name__ == '__main__':
         freeze_support()  # for Windows support
+        tqdm.set_lock(RLock())  # for managing output contention
         p = Pool(initializer=tqdm.set_lock, initargs=(tqdm.get_lock(),))
         p.map(progresser, L)
 

@@ -1,13 +1,14 @@
 from __future__ import print_function
+from concurrent.futures import ThreadPoolExecutor
+from functools import partial
+from multiprocessing import Pool, RLock, freeze_support
+from random import random
+from threading import RLock as TRLock
 from time import sleep
+import sys
+
 from tqdm.auto import tqdm, trange
 from tqdm.contrib.concurrent import process_map, thread_map
-from random import random
-from multiprocessing import Pool, freeze_support
-from concurrent.futures import ThreadPoolExecutor
-from threading import RLock
-from functools import partial
-import sys
 
 NUM_SUBITERS = 9
 PY2 = sys.version_info[:1] <= (2,)
@@ -47,17 +48,15 @@ if __name__ == '__main__':
             sleep(0.01)
 
     print("Multi-processing")
+    tqdm.set_lock(RLock())
     p = Pool(initializer=tqdm.set_lock, initargs=(tqdm.get_lock(),))
     p.map(partial(progresser, progress=True), L)
 
-    # unfortunately need ncols
-    # to print spaces over leftover multi-processing bars (#796)
-    with tqdm(leave=False) as t:
-        ncols = t.ncols or 80
-    print(("{msg:<{ncols}}").format(msg="Multi-threading", ncols=ncols))
-
-    # explicitly set just threading lock for nonblocking progress
-    tqdm.set_lock(RLock())
-    with ThreadPoolExecutor() as p:
+    print("Multi-threading")
+    tqdm.set_lock(TRLock())
+    pool_args = {}
+    if not PY2:
+        pool_args.update(initializer=tqdm.set_lock, initargs=(tqdm.get_lock(),))
+    with ThreadPoolExecutor(**pool_args) as p:
         p.map(partial(progresser, progress=True, write_safe=not PY2,
                       blocking=False), L)
