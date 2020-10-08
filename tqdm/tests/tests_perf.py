@@ -39,6 +39,7 @@ def checkCpuTime(sleeptime=0.2):
     t2 = process_time() - start2
 
     if abs(t1) < 0.0001 and t1 < t2 / 10:
+        checkCpuTime.passed = True
         return True
     raise SkipTest
 
@@ -61,16 +62,21 @@ def relative_timer():
         return spent
 
 
-def retry_on_except(n=6):
+def retry_on_except(n=6, check_cpu_time=True):
     """decroator for retrying `n` times before raising Exceptions"""
     def wrapper(func):
+        """actual decorator"""
         @wraps(func)
         def test_inner(*args, **kwargs):
+            """may skip if `check_cpu_time` fails"""
             for i in range(1, n + 1):
                 try:
-                    checkCpuTime()
+                    if check_cpu_time:
+                        checkCpuTime()
                     func(*args, **kwargs)
                 except SkipTest:
+                    raise
+                except Exception:
                     if i >= n:
                         raise
                 else:

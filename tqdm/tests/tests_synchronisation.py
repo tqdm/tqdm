@@ -209,7 +209,7 @@ def test_imap():
 
 # py2: locks won't propagate to incr_bar so may cause `AttributeError`
 @with_setup(pretest, posttest)
-@retry_on_except(n=3 if sys.version_info < (3,) else 1)
+@retry_on_except(n=3 if sys.version_info < (3,) else 1, check_cpu_time=False)
 @patch_lock(thread=True)
 def test_threadpool():
     """Test concurrent.futures.ThreadPoolExecutor"""
