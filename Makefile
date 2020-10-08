@@ -51,7 +51,7 @@ test:
 	tox -e perf
 
 testnose:
-	nosetests tqdm -d -v
+	nosetests -d -v tqdm
 
 testsetup:
 	@make README.rst
@@ -62,14 +62,14 @@ testsetup:
 
 testcoverage:
 	@make coverclean
-	nosetests tqdm --with-coverage --cover-package=tqdm --cover-erase --cover-min-percentage=80 --ignore-files="tests_perf\.py" -d -v
+	nosetests -d -v tqdm --ignore-files="tests_perf\.py" --with-coverage --cover-package=tqdm --cover-erase --cover-min-percentage=80
 
 testperf:
 	# do not use coverage (which is extremely slow)
-	nosetests tqdm/tests/tests_perf.py -d -v
+	nosetests -d -v tqdm/tests/tests_perf.py
 
 testtimer:
-	nosetests tqdm --with-timer -d -v
+	nosetests -d -v tqdm --with-timer
 
 # another performance test, to check evolution across commits
 testasv:
@@ -121,7 +121,8 @@ pre-commit:
 	# quick sanity checks
 	@make testsetup
 	flake8 -j 8 --count --statistics tqdm/ examples/
-	nosetests tqdm --ignore-files="tests_(perf|keras)\.py" -e "pandas|monitoring" -d
+	nosetests -d tqdm --ignore-files="tests_(perf|keras)\.py" -e "pandas|monitoring"
+	nosetests -d tqdm/tests/tests_perf.py -m basic_overhead
 prebuildclean:
 	@+python -c "import shutil; shutil.rmtree('build', True)"
 	@+python -c "import shutil; shutil.rmtree('dist', True)"

@@ -1,28 +1,20 @@
 from __future__ import print_function, division
-
-from nose.plugins.skip import SkipTest
-
 from contextlib import contextmanager
-
-import sys
+from functools import wraps
 from time import sleep, time
-
-from tqdm import trange
-from tqdm import tqdm
-
-from tests_tqdm import with_setup, pretest, posttest, StringIO, closing, \
-    _range, patch_lock
-
 # Use relative/cpu timer to have reliable timings when there is a sudden load
 try:
     from time import process_time
 except ImportError:
     from time import clock
     process_time = clock
+import sys
 
+from tqdm import tqdm, trange
+from tests_tqdm import with_setup, pretest, posttest, StringIO, closing, \
+    _range, patch_lock
 
-def get_relative_time(prevtime=0):
-    return process_time() - prevtime
+from nose.plugins.skip import SkipTest
 
 
 def cpu_sleep(t):
@@ -46,7 +38,8 @@ def checkCpuTime(sleeptime=0.2):
     cpu_sleep(sleeptime)
     t2 = process_time() - start2
 
-    if abs(t1) < 0.0001 and (t1 < t2 / 10):
+    if abs(t1) < 0.0001 and t1 < t2 / 10:
+        checkCpuTime.passed = True
         return True
     raise SkipTest
 
@@ -56,34 +49,39 @@ checkCpuTime.passed = False
 
 @contextmanager
 def relative_timer():
+    """yields a context timer function which stops ticking on exit"""
     start = process_time()
 
     def elapser():
         return process_time() - start
 
     yield lambda: elapser()
-    spent = process_time() - start
+    spent = elapser()
 
     def elapser():  # NOQA
         return spent
 
 
-def retry_on_except(n=3):
-    def wrapper(fn):
-        def test_inner():
+def retry_on_except(n=6, check_cpu_time=True):
+    """decroator for retrying `n` times before raising Exceptions"""
+    def wrapper(func):
+        """actual decorator"""
+        @wraps(func)
+        def test_inner(*args, **kwargs):
+            """may skip if `check_cpu_time` fails"""
             for i in range(1, n + 1):
                 try:
-                    checkCpuTime()
-                    fn()
+                    if check_cpu_time:
+                        checkCpuTime()
+                    func(*args, **kwargs)
                 except SkipTest:
+                    raise
+                except Exception:
                     if i >= n:
                         raise
                 else:
                     return
-
-        test_inner.__doc__ = fn.__doc__
         return test_inner
-
     return wrapper
 
 
@@ -174,7 +172,7 @@ def assert_performance(thresh, name_left, time_left, name_right, time_right):
 
 @with_setup(pretest, posttest)
 @retry_on_except()
-def test_iter_overhead():
+def test_iter_basic_overhead():
     """Test overhead of iteration based tqdm"""
 
     total = int(1e6)
@@ -193,12 +191,12 @@ def test_iter_overhead():
                 a += i
                 our_file.write(a)
 
-    assert_performance(6, 'trange', time_tqdm(), 'range', time_bench())
+    assert_performance(3, 'trange', time_tqdm(), 'range', time_bench())
 
 
 @with_setup(pretest, posttest)
 @retry_on_except()
-def test_manual_overhead():
+def test_manual_basic_overhead():
     """Test overhead of manual tqdm"""
 
     total = int(1e6)
@@ -217,7 +215,7 @@ def test_manual_overhead():
                 a += i
                 our_file.write(a)
 
-    assert_performance(6, 'tqdm', time_tqdm(), 'range', time_bench())
+    assert_performance(5, 'tqdm', time_tqdm(), 'range', time_bench())
 
 
 def worker(total, blocking=True):
