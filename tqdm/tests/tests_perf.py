@@ -172,7 +172,7 @@ def assert_performance(thresh, name_left, time_left, name_right, time_right):
 
 @with_setup(pretest, posttest)
 @retry_on_except()
-def test_iter_overhead():
+def test_iter_basic_overhead():
     """Test overhead of iteration based tqdm"""
 
     total = int(1e6)
@@ -191,12 +191,12 @@ def test_iter_overhead():
                 a += i
                 our_file.write(a)
 
-    assert_performance(6, 'trange', time_tqdm(), 'range', time_bench())
+    assert_performance(3, 'trange', time_tqdm(), 'range', time_bench())
 
 
 @with_setup(pretest, posttest)
 @retry_on_except()
-def test_manual_overhead():
+def test_manual_basic_overhead():
     """Test overhead of manual tqdm"""
 
     total = int(1e6)
@@ -215,7 +215,7 @@ def test_manual_overhead():
                 a += i
                 our_file.write(a)
 
-    assert_performance(6, 'tqdm', time_tqdm(), 'range', time_bench())
+    assert_performance(5, 'tqdm', time_tqdm(), 'range', time_bench())
 
 
 def worker(total, blocking=True):
