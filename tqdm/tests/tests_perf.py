@@ -1,28 +1,20 @@
 from __future__ import print_function, division
-
-from nose.plugins.skip import SkipTest
-
 from contextlib import contextmanager
-
-import sys
+from functools import wraps
 from time import sleep, time
-
-from tqdm import trange
-from tqdm import tqdm
-
-from tests_tqdm import with_setup, pretest, posttest, StringIO, closing, \
-    _range, patch_lock
-
 # Use relative/cpu timer to have reliable timings when there is a sudden load
 try:
     from time import process_time
 except ImportError:
     from time import clock
     process_time = clock
+import sys
 
+from tqdm import tqdm, trange
+from tests_tqdm import with_setup, pretest, posttest, StringIO, closing, \
+    _range, patch_lock
 
-def get_relative_time(prevtime=0):
-    return process_time() - prevtime
+from nose.plugins.skip import SkipTest
 
 
 def cpu_sleep(t):
@@ -46,7 +38,7 @@ def checkCpuTime(sleeptime=0.2):
     cpu_sleep(sleeptime)
     t2 = process_time() - start2
 
-    if abs(t1) < 0.0001 and (t1 < t2 / 10):
+    if abs(t1) < 0.0001 and t1 < t2 / 10:
         return True
     raise SkipTest
 
@@ -56,34 +48,34 @@ checkCpuTime.passed = False
 
 @contextmanager
 def relative_timer():
+    """yields a context timer function which stops ticking on exit"""
     start = process_time()
 
     def elapser():
         return process_time() - start
 
     yield lambda: elapser()
-    spent = process_time() - start
+    spent = elapser()
 
     def elapser():  # NOQA
         return spent
 
 
 def retry_on_except(n=6):
-    def wrapper(fn):
-        def test_inner():
+    """decroator for retrying `n` times before raising Exceptions"""
+    def wrapper(func):
+        @wraps(func)
+        def test_inner(*args, **kwargs):
             for i in range(1, n + 1):
                 try:
                     checkCpuTime()
-                    fn()
+                    func(*args, **kwargs)
                 except SkipTest:
                     if i >= n:
                         raise
                 else:
                     return
-
-        test_inner.__doc__ = fn.__doc__
         return test_inner
-
     return wrapper
 
 
