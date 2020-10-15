@@ -65,7 +65,6 @@ Python and an environment supporting ``carriage return \r`` and
    :backlinks: top
    :local:
 
-
 Installation
 ------------
 
