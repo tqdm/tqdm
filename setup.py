@@ -121,6 +121,6 @@ setup(
     ],
     keywords='progressbar progressmeter progress bar meter'
              ' rate eta console terminal time',
-    test_suite='nose.collector',
-    tests_require=['nose', 'flake8', 'coverage'],
+    test_suite='pytest',
+    tests_require=['pytest', 'flake8', 'coverage'],
 )

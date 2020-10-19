@@ -8,7 +8,7 @@
 	all
 	flake8
 	test
-	testnose
+	pytest
 	testsetup
 	testcoverage
 	testperf
@@ -50,8 +50,8 @@ test:
 	TOX_SKIP_ENV=perf tox --skip-missing-interpreters -p all
 	tox -e perf
 
-testnose:
-	nosetests -d -v tqdm
+pytest:
+	pytest tqdm -v
 
 testsetup:
 	@make README.rst
@@ -62,14 +62,14 @@ testsetup:
 
 testcoverage:
 	@make coverclean
-	nosetests -d -v tqdm --ignore-files="tests_perf\.py" --with-coverage --cover-package=tqdm --cover-erase --cover-min-percentage=80
+	pytest tqdm --cov=tqdm --cover-erase --fail-under=80 -k "not tests_perf" -v
 
 testperf:
 	# do not use coverage (which is extremely slow)
-	nosetests -d -v tqdm/tests/tests_perf.py
+	pytest tqdm/tests/tests_perf.py -v
 
 testtimer:
-	nosetests -d -v tqdm --with-timer
+	pytest tqdm -v
 
 # another performance test, to check evolution across commits
 testasv:
@@ -121,8 +121,8 @@ pre-commit:
 	# quick sanity checks
 	@make testsetup
 	flake8 -j 8 --count --statistics tqdm/ examples/
-	nosetests -d tqdm --ignore-files="tests_(perf|keras)\.py" -e "pandas|monitoring"
-	nosetests -d tqdm/tests/tests_perf.py -m basic_overhead
+	pytest tqdm -k "pandas monitoring"
+	pytest -k basic_overhead
 prebuildclean:
 	@+python -c "import shutil; shutil.rmtree('build', True)"
 	@+python -c "import shutil; shutil.rmtree('dist', True)"
