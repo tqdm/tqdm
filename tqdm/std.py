@@ -574,6 +574,19 @@ class tqdm(Comparable):
                          " (monitor_interval = 0) due to:\n" + str(e),
                          TqdmMonitorWarning, stacklevel=2)
                     cls.monitor_interval = 0
+
+            # Create simultaneous bars counters field
+            if not hasattr(cls, '_simultaneous_bars_counters'):
+                # To make multiple bars display correctly but also let
+                # user program safely print something after all the
+                # `tqdm` bars are closed, we only print terminate
+                # lines after the very last bar occupying the file
+                # closes.
+                # The following dictionary's keys are files, values
+                # are numbers of bars in the corresponding file we
+                # want to skip with `'\n'`s when the last bar closes
+                cls._simultaneous_bars_counters = {}
+
         return instance
 
     @classmethod
@@ -593,25 +606,26 @@ class tqdm(Comparable):
         order is not maintained but screen flicker/blank space is minimised.
         (tqdm<=4.44.1 moved ALL subsequent unfixed bars up.)
         """
-        with cls._lock:
-            try:
-                cls._instances.remove(instance)
-            except KeyError:
-                # if not instance.gui:  # pragma: no cover
-                #     raise
-                pass  # py2: maybe magically removed already
-            # else:
-            if not instance.gui:
-                last = (instance.nrows or 20) - 1
-                # find unfixed (`pos >= 0`) overflow (`pos >= nrows - 1`)
-                instances = list(filter(
-                    lambda i: hasattr(i, "pos") and last <= i.pos,
-                    cls._instances))
-                # set first found to current `pos`
-                if instances:
-                    inst = min(instances, key=lambda i: i.pos)
-                    inst.clear(nolock=True)
-                    inst.pos = abs(instance.pos)
+        # The lock is acquired by the caller of the method
+
+        try:
+            cls._instances.remove(instance)
+        except KeyError:
+            # if not instance.gui:  # pragma: no cover
+            #     raise
+            pass  # py2: maybe magically removed already
+        # else:
+        if not instance.gui:
+            last = (instance.nrows or 20) - 1
+            # find unfixed (`pos >= 0`) overflow (`pos >= nrows - 1`)
+            instances = list(filter(
+                lambda i: hasattr(i, "pos") and last <= i.pos,
+                cls._instances))
+            # set first found to current `pos`
+            if instances:
+                inst = min(instances, key=lambda i: i.pos)
+                inst.clear(nolock=True)
+                inst.pos = abs(instance.pos)
 
     @classmethod
     def write(cls, s, file=None, end="\n", nolock=False):
@@ -875,8 +889,8 @@ class tqdm(Comparable):
             If `None`, will leave only if `position` is `0`.
         file  : `io.TextIOWrapper` or `io.StringIO`, optional
             Specifies where to output the progress messages
-            (default: sys.stderr). Uses `file.write(str)` and `file.flush()`
-            methods.  For encoding, see `write_bytes`.
+            (default: sys.stderr). Uses `file.write(str)`, `file.flush()`
+            and `hash(file)`. For encoding, see `write_bytes`.
         ncols  : int, optional
             The width of the entire output message. If specified,
             dynamically resizes the progressbar to stay within this bound.
@@ -1107,6 +1121,12 @@ class tqdm(Comparable):
             else:  # mark fixed positions as negative
                 self.pos = -position
 
+        if leave and not disable:
+            with self._lock:
+                self._simultaneous_bars_counters[file] = \
+                    max(abs(self.pos) + 1,
+                        self._simultaneous_bars_counters.get(file, 0))
+
         if not gui:
             # Initialize the screen printer
             self.sp = self.status_printer(self.fp)
@@ -1274,9 +1294,7 @@ class tqdm(Comparable):
         # Prevent multiple closures
         self.disable = True
 
-        # decrement instance pos and remove from internal set
         pos = abs(self.pos)
-        self._decr_instances(self)
 
         if self.last_print_t < self.start_t + self.delay:
             # haven't ever displayed; nothing to clear
@@ -1300,6 +1318,9 @@ class tqdm(Comparable):
         leave = pos == 0 if self.leave is None else self.leave
 
         with self._lock:
+            # decrement instance pos and remove from internal set
+            self._decr_instances(self)
+
             if leave:
                 # stats for overall rate (no weighted average)
                 self._ema_dt = lambda: None
@@ -1307,8 +1328,24 @@ class tqdm(Comparable):
                 fp_write('\r')
             else:
                 # clear previous display
-                if self.display(msg='', pos=pos) and not pos:
+                if self.display(msg='', pos=pos):
                     fp_write('\r')
+
+            # No matter if current bar's traces should be left or not,
+            # if it's the last bar, it should print write terminators
+            if self.fp in self._simultaneous_bars_counters.keys():
+                for instance in self._instances:
+                    # If this is not the last bar, do nothing
+                    if instance.fp == self.fp:
+                        break
+                else:
+                    # Terminate lines to make further writes to the file
+                    # possible
+                    fp_write('\n' *
+                             self._simultaneous_bars_counters[self.fp])
+                    # Reset counter for current file (because the
+                    # previous bars are skipped already)
+                    del self._simultaneous_bars_counters[self.fp]
 
     def clear(self, nolock=False):
         """Clear current bar display."""
