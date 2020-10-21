@@ -865,8 +865,8 @@ class tqdm(Comparable):
                  ascii=None, disable=False, unit='it', unit_scale=False,
                  dynamic_ncols=False, smoothing=0.3, bar_format=None, initial=0,
                  position=None, postfix=None, unit_divisor=1000, write_bytes=None,
-                 lock_args=None, nrows=None, colour=None, delay=0, gui=False,
-                 **kwargs):
+                 lock_args=None, nrows=None, colour=None, delay=0,
+                 terminate_lines=True, gui=False, **kwargs):
         """
         Parameters
         ----------
@@ -975,6 +975,17 @@ class tqdm(Comparable):
             Bar colour (e.g. 'green', '#00ff00').
         delay  : float, optional
             Don't display until [default: 0] seconds have elapsed.
+        terminate_lines  : bool, optional
+            Whether to print empty lines after the bars when all of them
+            are finished.
+
+            At the moment when the current bar gets finished: if there
+            are other bars left, the value is ignored; otherwise:
+            if [default: True], there'll be empty lines printed such
+            that the cursor is put below all the left bars, so that
+            you can print something below, if `False`, the cursor is
+            put back where it was before the group of bars has started,
+            so that you can overwrite them.
         gui  : bool, optional
             WARNING: internal parameter - do not use.
             Use tqdm.gui.tqdm(...) instead. If set, will attempt to use
@@ -1102,6 +1113,7 @@ class tqdm(Comparable):
         self.bar_format = bar_format
         self.postfix = None
         self.colour = colour
+        self.terminate_lines = terminate_lines
         self._time = time
         if postfix:
             try:
@@ -1339,13 +1351,14 @@ class tqdm(Comparable):
                     if instance.fp == self.fp:
                         break
                 else:
-                    # Terminate lines to make further writes to the file
-                    # possible
-                    fp_write('\n' *
-                             self._simultaneous_bars_counters[self.fp])
-                    # Reset counter for current file (because the
-                    # previous bars are skipped already)
-                    del self._simultaneous_bars_counters[self.fp]
+                    if self.terminate_lines:
+                        # Terminate lines to make further writes to the
+                        # file possible
+                        fp_write('\n' *
+                                 self._simultaneous_bars_counters[self.fp])
+                        # Reset counter for current file (because the
+                        # previous bars are skipped already)
+                        del self._simultaneous_bars_counters[self.fp]
 
     def clear(self, nolock=False):
         """Clear current bar display."""
