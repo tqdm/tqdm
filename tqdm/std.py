@@ -8,8 +8,6 @@ Usage:
 ...     ...
 """
 from __future__ import absolute_import, division
-import datetime
-
 # compatibility functions and utilities
 from .utils import _supports_unicode, _screen_shape_wrapper, _range, _unich, \
     _term_move_up, _unicode, WeakSet, _basestring, _OrderedDict, \
@@ -18,6 +16,7 @@ from .utils import _supports_unicode, _screen_shape_wrapper, _range, _unich, \
 from ._monitor import TMonitor
 # native libraries
 from contextlib import contextmanager
+from datetime import datetime, timedelta
 from numbers import Number
 from time import time
 from warnings import warn
@@ -388,7 +387,7 @@ class tqdm(Comparable):
               percentage, elapsed, elapsed_s, ncols, nrows, desc, unit,
               rate, rate_fmt, rate_noinv, rate_noinv_fmt,
               rate_inv, rate_inv_fmt, postfix, unit_divisor,
-              remaining, remaining_s, eta_dt.
+              remaining, remaining_s, eta.
             Note that a trailing ": " is automatically removed after {desc}
             if the latter is empty.
         postfix  : *, optional
@@ -453,14 +452,11 @@ class tqdm(Comparable):
 
         remaining = (total - n) / rate if rate and total else 0
         remaining_str = tqdm.format_interval(remaining) if rate else '?'
-        if bar_format and 'eta_dt' in bar_format:
-            if remaining or total == n:
-                eta_dt = datetime.datetime.now() + \
-                    datetime.timedelta(seconds=remaining)
-            else:
-                eta_dt = datetime.datetime.utcfromtimestamp(0)
-        else:
-            eta_dt = None
+        try:
+            eta_dt = datetime.now() + timedelta(seconds=remaining) \
+                if rate and total else datetime.utcfromtimestamp(0)
+        except OverflowError:
+            eta_dt = datetime.max
 
         # format the stats displayed to the left and right sides of the bar
         if prefix:
@@ -488,7 +484,7 @@ class tqdm(Comparable):
             colour=colour,
             # plus more useful definitions
             remaining=remaining_str, remaining_s=remaining,
-            l_bar=l_bar, r_bar=r_bar, eta_dt=eta_dt,
+            l_bar=l_bar, r_bar=r_bar, eta=eta_dt,
             **extra_kwargs)
 
         # total is known: we can predict some stats
@@ -918,7 +914,7 @@ class tqdm(Comparable):
               percentage, elapsed, elapsed_s, ncols, nrows, desc, unit,
               rate, rate_fmt, rate_noinv, rate_noinv_fmt,
               rate_inv, rate_inv_fmt, postfix, unit_divisor,
-              remaining, remaining_s, eta_dt.
+              remaining, remaining_s, eta.
             Note that a trailing ": " is automatically removed after {desc}
             if the latter is empty.
         initial  : int or float, optional
