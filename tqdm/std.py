@@ -454,7 +454,7 @@ class tqdm(Comparable):
         remaining = (total - n) / rate if rate and total else 0
         remaining_str = tqdm.format_interval(remaining) if rate else '?'
         if bar_format and 'eta_dt' in bar_format:
-            if remaining:
+            if remaining or total == n:
                 eta_dt = datetime.datetime.now() + \
                     datetime.timedelta(seconds=remaining)
             else:
