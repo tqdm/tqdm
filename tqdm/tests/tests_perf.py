@@ -12,7 +12,7 @@ import sys
 
 from tqdm import tqdm, trange
 from tests_tqdm import pretest_posttest  # NOQA
-from tests_tqdm import skip, StringIO, closing, _range, patch_lock
+from tests_tqdm import importorskip, skip, StringIO, closing, _range, patch_lock
 
 
 def cpu_sleep(t):
@@ -228,10 +228,7 @@ def worker(total, blocking=True):
 @patch_lock(thread=True)
 def test_lock_args():
     """Test overhead of nonblocking threads"""
-    try:
-        from concurrent.futures import ThreadPoolExecutor
-    except ImportError as err:
-        skip(str(err))
+    ThreadPoolExecutor = importorskip('concurrent.futures').ThreadPoolExecutor
 
     total = 16
     subtotal = 10000

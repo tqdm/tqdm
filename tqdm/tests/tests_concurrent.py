@@ -4,7 +4,7 @@ Tests for `tqdm.contrib.concurrent`.
 from warnings import catch_warnings
 from tqdm.contrib.concurrent import thread_map, process_map
 from tests_tqdm import pretest_posttest  # NOQA
-from tests_tqdm import skip, StringIO, closing
+from tests_tqdm import importorskip, skip, StringIO, closing
 
 
 def incr(x):
@@ -37,10 +37,7 @@ def test_process_map():
 
 def test_chunksize_warning():
     """Test contrib.concurrent.process_map chunksize warnings"""
-    try:
-        from unittest.mock import patch
-    except ImportError as err:
-        skip(str(err))
+    patch = importorskip("unittest.mock").patch
 
     for iterables, should_warn in [
         ([], False),

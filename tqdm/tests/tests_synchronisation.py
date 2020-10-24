@@ -1,7 +1,7 @@
 from __future__ import division
 from tqdm import tqdm, trange, TMonitor
 from tests_tqdm import pretest_posttest  # NOQA
-from tests_tqdm import skip, StringIO, closing, patch_lock
+from tests_tqdm import importorskip, skip, StringIO, closing, patch_lock
 from tests_perf import retry_on_except
 
 from functools import wraps
@@ -209,10 +209,7 @@ def test_imap():
 @patch_lock(thread=True)
 def test_threadpool():
     """Test concurrent.futures.ThreadPoolExecutor"""
-    try:
-        from concurrent.futures import ThreadPoolExecutor
-    except ImportError as err:
-        skip(str(err))
+    ThreadPoolExecutor = importorskip("concurrent.futures").ThreadPoolExecutor
 
     with ThreadPoolExecutor(8) as pool:
         try:

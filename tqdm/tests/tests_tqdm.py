@@ -9,7 +9,7 @@ import os
 from functools import wraps
 from contextlib import contextmanager
 from pytest import raises as assert_raises
-from pytest import fixture, skip
+from pytest import fixture, importorskip, skip
 from warnings import catch_warnings, simplefilter
 
 from tqdm import tqdm
@@ -1570,10 +1570,7 @@ def test_write():
 
 def test_len():
     """Test advance len (numpy array shape)"""
-    try:
-        import numpy as np
-    except ImportError as err:
-        skip(str(err))
+    np = importorskip("numpy")
     with closing(StringIO()) as f:
         with tqdm(np.zeros((3, 4)), file=f) as t:
             assert len(t) == 3
