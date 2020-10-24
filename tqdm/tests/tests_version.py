@@ -1,6 +1,7 @@
 import re
 import unittest
 
+
 class TestTqdmVersion(unittest.TestCase):
     def test_version(self):
         """Test version string"""

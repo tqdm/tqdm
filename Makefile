@@ -62,14 +62,14 @@ testsetup:
 
 testcoverage:
 	@make coverclean
-	pytest tqdm --cov=tqdm --cover-erase --fail-under=80 -k "not tests_perf" -v
+	pytest -v tqdm -k "not tests_perf" --cov=tqdm --cov-fail-under=80
 
 testperf:
 	# do not use coverage (which is extremely slow)
-	pytest tqdm/tests/tests_perf.py -v
+	pytest -v tqdm/tests/tests_perf.py
 
 testtimer:
-	pytest tqdm -v
+	pytest -v tqdm --durations=10
 
 # another performance test, to check evolution across commits
 testasv:
@@ -121,8 +121,8 @@ pre-commit:
 	# quick sanity checks
 	@make testsetup
 	flake8 -j 8 --count --statistics tqdm/ examples/
-	pytest tqdm -k "pandas monitoring"
-	pytest -k basic_overhead
+	pytest -v tqdm -k "not (perf or keras or pandas or monitoring)"
+	pytest -v tqdm/tests/tests_perf.py -k basic_overhead
 prebuildclean:
 	@+python -c "import shutil; shutil.rmtree('build', True)"
 	@+python -c "import shutil; shutil.rmtree('dist', True)"

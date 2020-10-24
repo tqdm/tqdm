@@ -100,7 +100,7 @@ you can use `MiniConda` to install a minimal setup. You must also make sure
 that each distribution has an alias to call the Python interpreter:
 `python27` for Python 2.7's interpreter, `python32` for Python 3.2's, etc.
 
-### Alternative unit tests with Pytest
+### Alternative unit tests with pytest
 
 Alternatively, use `pytest` to run the tests just for the current Python version:
 
