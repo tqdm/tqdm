@@ -302,10 +302,10 @@ Options:
                 with tqdm(**tqdm_args) as t:
                     if update:
                         def callback(i):
-                            t.update(numeric(i))
+                            t.update(numeric(i.decode()))
                     else:  # update_to
                         def callback(i):
-                            t.update(numeric(i) - t.n)
+                            t.update(numeric(i.decode()) - t.n)
                     for i in stdin:
                         stdout.write(i)
                         callback(i)
@@ -318,10 +318,10 @@ Options:
                 callback_len = False
                 if update:
                     def callback(i):
-                        t.update(numeric(i))
+                        t.update(numeric(i.decode()))
                 elif update_to:
                     def callback(i):
-                        t.update(numeric(i) - t.n)
+                        t.update(numeric(i.decode()) - t.n)
                 else:
                     callback = t.update
                     callback_len = True
