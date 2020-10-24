@@ -1,5 +1,5 @@
 import re
-from tests_tqdm import pretest_posttest  # NOQA
+from .tests_tqdm import pretest_posttest  # NOQA
 
 
 def test_version():

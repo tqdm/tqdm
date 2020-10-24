@@ -1,7 +1,8 @@
 from __future__ import division
+
 from tqdm import tqdm
-from tests_tqdm import pretest_posttest  # NOQA
-from tests_tqdm import importorskip, StringIO, closing
+from .tests_tqdm import pretest_posttest  # NOQA
+from .tests_tqdm import importorskip, StringIO, closing
 
 
 def test_keras():

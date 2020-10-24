@@ -2,9 +2,10 @@
 Tests for `tqdm.contrib.concurrent`.
 """
 from warnings import catch_warnings
+
 from tqdm.contrib.concurrent import thread_map, process_map
-from tests_tqdm import pretest_posttest  # NOQA
-from tests_tqdm import importorskip, skip, StringIO, closing
+from .tests_tqdm import pretest_posttest  # NOQA
+from .tests_tqdm import importorskip, skip, StringIO, closing
 
 
 def incr(x):

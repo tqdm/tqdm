@@ -1,14 +1,14 @@
-import sys
-import subprocess
+from io import open as io_open
 from os import path
 from shutil import rmtree
 from tempfile import mkdtemp
+import sys
+import subprocess
+
 from tqdm.cli import main, TqdmKeyError, TqdmTypeError
 from tqdm.utils import IS_WIN
-from io import open as io_open
-
-from tests_tqdm import pretest_posttest  # NOQA
-from tests_tqdm import skip, _range, closing, UnicodeIO, StringIO
+from .tests_tqdm import pretest_posttest  # NOQA
+from .tests_tqdm import skip, _range, closing, UnicodeIO, StringIO
 
 
 def _sh(*cmd, **kwargs):
@@ -44,7 +44,6 @@ def test_pipes():
 # WARNING: this should be the last test as it messes with sys.stdin, argv
 def test_main():
     """Test misc CLI options"""
-    raise ValueError("TODO: fix hack in posix_pipe() for pytest")
     _SYS = sys.stdin, sys.argv
     N = 123
 

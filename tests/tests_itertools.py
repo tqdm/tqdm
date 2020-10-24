@@ -1,10 +1,11 @@
 """
 Tests for `tqdm.contrib.itertools`.
 """
-from tqdm.contrib.itertools import product
-from tests_tqdm import pretest_posttest  # NOQA
-from tests_tqdm import StringIO, closing
 import itertools
+
+from tqdm.contrib.itertools import product
+from .tests_tqdm import pretest_posttest  # NOQA
+from .tests_tqdm import StringIO, closing
 
 
 class NoLenIter(object):

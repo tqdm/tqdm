@@ -10,4 +10,4 @@ demo.yml @casperdcl @martinzugnoni
 codecov.yml @lrq3000
 setup.py @casperdcl @lrq3000
 tqdm/_tqdm_notebook.py @lrq3000 @casperdcl
-tqdm/tests/tests_pandas.py @casperdcl @chengs
+tests/tests_pandas.py @casperdcl @chengs
