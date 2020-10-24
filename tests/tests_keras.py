@@ -1,7 +1,7 @@
 from __future__ import division
 
 from tqdm import tqdm
-from .tests_tqdm import pretest_posttest  # NOQA
+from .tests_tqdm import pretest_posttest  # NOQA, pylint: disable=unused-import
 from .tests_tqdm import importorskip, StringIO, closing
 
 

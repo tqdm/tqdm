@@ -4,7 +4,7 @@ Tests for `tqdm.contrib`.
 import sys
 
 from tqdm.contrib import tenumerate, tzip, tmap
-from .tests_tqdm import pretest_posttest  # NOQA
+from .tests_tqdm import pretest_posttest  # NOQA, pylint: disable=unused-import
 from .tests_tqdm import importorskip, StringIO, closing
 
 

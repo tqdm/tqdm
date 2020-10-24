@@ -122,11 +122,11 @@ def cpu_timify(t, timer=None):
 
 @fixture(autouse=True)
 def pretest_posttest():
-    # setcheckinterval is deprecated
+    """Fixture for all tests ensuring environment cleanup"""
     try:
         sys.setswitchinterval(1)
     except AttributeError:
-        sys.setcheckinterval(100)
+        sys.setcheckinterval(100)  # deprecated
 
     if getattr(tqdm, "_instances", False):
         n = len(tqdm._instances)

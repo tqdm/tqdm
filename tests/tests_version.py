@@ -1,6 +1,6 @@
 import re
 
-from .tests_tqdm import pretest_posttest  # NOQA
+from .tests_tqdm import pretest_posttest  # NOQA, pylint: disable=unused-import
 
 
 def test_version():

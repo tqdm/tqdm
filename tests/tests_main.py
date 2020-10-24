@@ -1,3 +1,4 @@
+"""Test CLI usage."""
 from io import open as io_open
 from os import path
 from shutil import rmtree
@@ -7,7 +8,7 @@ import subprocess
 
 from tqdm.cli import main, TqdmKeyError, TqdmTypeError
 from tqdm.utils import IS_WIN
-from .tests_tqdm import pretest_posttest  # NOQA
+from .tests_tqdm import pretest_posttest  # NOQA, pylint: disable=unused-import
 from .tests_tqdm import skip, _range, closing, UnicodeIO, StringIO, BytesIO
 
 
