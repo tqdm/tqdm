@@ -1,6 +1,6 @@
-import asyncio
 from functools import partial, wraps
 from time import time
+import asyncio
 
 from tqdm.asyncio import tqdm_asyncio, tarange
 from .tests_tqdm import pretest_posttest  # NOQA
