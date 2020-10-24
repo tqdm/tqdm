@@ -1,5 +1,4 @@
 from __future__ import print_function, division
-import unittest
 from contextlib import contextmanager
 from functools import wraps
 from time import sleep, time
@@ -12,8 +11,8 @@ except ImportError:
 import sys
 
 from tqdm import tqdm, trange
-from tests_tqdm import TestWithInstancesCheck, StringIO, closing, \
-    _range, patch_lock
+from tests_tqdm import pretest_posttest  # NOQA
+from tests_tqdm import skip, StringIO, closing, _range, patch_lock
 
 
 def cpu_sleep(t):
@@ -40,7 +39,7 @@ def checkCpuTime(sleeptime=0.2):
     if abs(t1) < 0.0001 and t1 < t2 / 10:
         checkCpuTime.passed = True
         return True
-    raise unittest.SkipTest
+    skip("cpu time not reliable on this machine")
 
 
 checkCpuTime.passed = False
@@ -73,8 +72,6 @@ def retry_on_except(n=6, check_cpu_time=True):
                     if check_cpu_time:
                         checkCpuTime()
                     func(*args, **kwargs)
-                except unittest.SkipTest:
-                    raise
                 except Exception:
                     if i >= n:
                         raise
@@ -169,6 +166,52 @@ def assert_performance(thresh, name_left, time_left, name_right, time_right):
                 ratio=time_left / time_right, thresh=thresh))
 
 
+@retry_on_except()
+def test_iter_basic_overhead():
+    """Test overhead of iteration based tqdm"""
+
+    total = int(1e6)
+
+    with closing(MockIO()) as our_file:
+        a = 0
+        with trange(total, file=our_file) as t:
+            with relative_timer() as time_tqdm:
+                for i in t:
+                    a += i
+        assert a == (total * total - total) / 2.0
+
+        a = 0
+        with relative_timer() as time_bench:
+            for i in _range(total):
+                a += i
+                our_file.write(a)
+
+    assert_performance(3, 'trange', time_tqdm(), 'range', time_bench())
+
+
+@retry_on_except()
+def test_manual_basic_overhead():
+    """Test overhead of manual tqdm"""
+
+    total = int(1e6)
+
+    with closing(MockIO()) as our_file:
+        with tqdm(total=total * 10, file=our_file, leave=True) as t:
+            a = 0
+            with relative_timer() as time_tqdm:
+                for i in _range(total):
+                    a += i
+                    t.update(10)
+
+        a = 0
+        with relative_timer() as time_bench:
+            for i in _range(total):
+                a += i
+                our_file.write(a)
+
+    assert_performance(5, 'tqdm', time_tqdm(), 'range', time_bench())
+
+
 def worker(total, blocking=True):
     def incr_bar(x):
         with closing(StringIO()) as our_file:
@@ -181,172 +224,130 @@ def worker(total, blocking=True):
     return incr_bar
 
 
-class TestTqdmPerf(TestWithInstancesCheck):
-    @retry_on_except()
-    def test_iter_basic_overhead(self):
-        """Test overhead of iteration based tqdm"""
+@retry_on_except()
+@patch_lock(thread=True)
+def test_lock_args():
+    """Test overhead of nonblocking threads"""
+    try:
+        from concurrent.futures import ThreadPoolExecutor
+    except ImportError as err:
+        skip(str(err))
 
-        total = int(1e6)
+    total = 16
+    subtotal = 10000
 
-        with closing(MockIO()) as our_file:
-            a = 0
-            with trange(total, file=our_file) as t:
-                with relative_timer() as time_tqdm:
-                    for i in t:
-                        a += i
-            assert a == (total * total - total) / 2.0
+    with ThreadPoolExecutor() as pool:
+        sys.stderr.write('block ... ')
+        sys.stderr.flush()
+        with relative_timer() as time_tqdm:
+            res = list(pool.map(worker(subtotal, True), range(total)))
+            assert sum(res) == sum(range(total)) + total
+        sys.stderr.write('noblock ... ')
+        sys.stderr.flush()
+        with relative_timer() as time_noblock:
+            res = list(pool.map(worker(subtotal, False), range(total)))
+            assert sum(res) == sum(range(total)) + total
 
-            a = 0
-            with relative_timer() as time_bench:
-                for i in _range(total):
-                    a += i
-                    our_file.write(a)
+    assert_performance(0.5, 'noblock', time_noblock(), 'tqdm', time_tqdm())
 
-        assert_performance(3, 'trange', time_tqdm(), 'range', time_bench())
 
-    @retry_on_except()
-    def test_manual_basic_overhead(self):
-        """Test overhead of manual tqdm"""
+@retry_on_except()
+def test_iter_overhead_hard():
+    """Test overhead of iteration based tqdm (hard)"""
 
-        total = int(1e6)
+    total = int(1e5)
 
-        with closing(MockIO()) as our_file:
-            with tqdm(total=total * 10, file=our_file, leave=True) as t:
-                a = 0
-                with relative_timer() as time_tqdm:
-                    for i in _range(total):
-                        a += i
-                        t.update(10)
-
-            a = 0
-            with relative_timer() as time_bench:
-                for i in _range(total):
-                    a += i
-                    our_file.write(a)
-
-        assert_performance(5, 'tqdm', time_tqdm(), 'range', time_bench())
-
-    @retry_on_except()
-    @patch_lock(thread=True)
-    def test_lock_args(self):
-        """Test overhead of nonblocking threads"""
-        try:
-            from concurrent.futures import ThreadPoolExecutor
-        except ImportError:
-            raise unittest.SkipTest
-
-        total = 16
-        subtotal = 10000
-
-        with ThreadPoolExecutor() as pool:
-            sys.stderr.write('block ... ')
-            sys.stderr.flush()
+    with closing(MockIO()) as our_file:
+        a = 0
+        with trange(total, file=our_file, leave=True, miniters=1,
+                    mininterval=0, maxinterval=0) as t:
             with relative_timer() as time_tqdm:
-                res = list(pool.map(worker(subtotal, True), range(total)))
-                assert sum(res) == sum(range(total)) + total
-            sys.stderr.write('noblock ... ')
-            sys.stderr.flush()
-            with relative_timer() as time_noblock:
-                res = list(pool.map(worker(subtotal, False), range(total)))
-                assert sum(res) == sum(range(total)) + total
+                for i in t:
+                    a += i
+        assert a == (total * total - total) / 2.0
 
-        assert_performance(0.5, 'noblock', time_noblock(), 'tqdm', time_tqdm())
+        a = 0
+        with relative_timer() as time_bench:
+            for i in _range(total):
+                a += i
+                our_file.write(("%i" % a) * 40)
 
-    @retry_on_except()
-    def test_iter_overhead_hard(self):
-        """Test overhead of iteration based tqdm (hard)"""
+    assert_performance(130, 'trange', time_tqdm(), 'range', time_bench())
 
-        total = int(1e5)
 
-        with closing(MockIO()) as our_file:
+@retry_on_except()
+def test_manual_overhead_hard():
+    """Test overhead of manual tqdm (hard)"""
+
+    total = int(1e5)
+
+    with closing(MockIO()) as our_file:
+        with tqdm(total=total * 10, file=our_file, leave=True, miniters=1,
+                  mininterval=0, maxinterval=0) as t:
             a = 0
-            with trange(total, file=our_file, leave=True, miniters=1,
-                        mininterval=0, maxinterval=0) as t:
-                with relative_timer() as time_tqdm:
-                    for i in t:
-                        a += i
-            assert a == (total * total - total) / 2.0
-
-            a = 0
-            with relative_timer() as time_bench:
+            with relative_timer() as time_tqdm:
                 for i in _range(total):
                     a += i
-                    our_file.write(("%i" % a) * 40)
+                    t.update(10)
 
-        assert_performance(130, 'trange', time_tqdm(), 'range', time_bench())
+        a = 0
+        with relative_timer() as time_bench:
+            for i in _range(total):
+                a += i
+                our_file.write(("%i" % a) * 40)
 
-    @retry_on_except()
-    def test_manual_overhead_hard(self):
-        """Test overhead of manual tqdm (hard)"""
+    assert_performance(130, 'tqdm', time_tqdm(), 'range', time_bench())
 
-        total = int(1e5)
 
-        with closing(MockIO()) as our_file:
-            with tqdm(total=total * 10, file=our_file, leave=True, miniters=1,
-                      mininterval=0, maxinterval=0) as t:
-                a = 0
-                with relative_timer() as time_tqdm:
-                    for i in _range(total):
-                        a += i
-                        t.update(10)
+@retry_on_except()
+def test_iter_overhead_simplebar_hard():
+    """Test overhead of iteration based tqdm vs simple progress bar (hard)"""
 
+    total = int(1e4)
+
+    with closing(MockIO()) as our_file:
+        a = 0
+        with trange(total, file=our_file, leave=True, miniters=1,
+                    mininterval=0, maxinterval=0) as t:
+            with relative_timer() as time_tqdm:
+                for i in t:
+                    a += i
+        assert a == (total * total - total) / 2.0
+
+        a = 0
+        s = simple_progress(_range(total), file=our_file, leave=True,
+                            miniters=1, mininterval=0)
+        with relative_timer() as time_bench:
+            for i in s:
+                a += i
+
+    assert_performance(
+        10, 'trange', time_tqdm(), 'simple_progress', time_bench())
+
+
+@retry_on_except()
+def test_manual_overhead_simplebar_hard():
+    """Test overhead of manual tqdm vs simple progress bar (hard)"""
+
+    total = int(1e4)
+
+    with closing(MockIO()) as our_file:
+        with tqdm(total=total * 10, file=our_file, leave=True, miniters=1,
+                  mininterval=0, maxinterval=0) as t:
             a = 0
-            with relative_timer() as time_bench:
+            with relative_timer() as time_tqdm:
                 for i in _range(total):
                     a += i
-                    our_file.write(("%i" % a) * 40)
+                    t.update(10)
 
-        assert_performance(130, 'tqdm', time_tqdm(), 'range', time_bench())
+        simplebar_update = simple_progress(
+            total=total * 10, file=our_file, leave=True, miniters=1,
+            mininterval=0)
+        a = 0
+        with relative_timer() as time_bench:
+            for i in _range(total):
+                a += i
+                simplebar_update(10)
 
-    @retry_on_except()
-    def test_iter_overhead_simplebar_hard(self):
-        """Test overhead of iteration based tqdm vs simple
-           progress bar (hard)"""
-
-        total = int(1e4)
-
-        with closing(MockIO()) as our_file:
-            a = 0
-            with trange(total, file=our_file, leave=True, miniters=1,
-                        mininterval=0, maxinterval=0) as t:
-                with relative_timer() as time_tqdm:
-                    for i in t:
-                        a += i
-            assert a == (total * total - total) / 2.0
-
-            a = 0
-            s = simple_progress(_range(total), file=our_file, leave=True,
-                                miniters=1, mininterval=0)
-            with relative_timer() as time_bench:
-                for i in s:
-                    a += i
-
-        assert_performance(
-            10, 'trange', time_tqdm(), 'simple_progress', time_bench())
-
-    @retry_on_except()
-    def test_manual_overhead_simplebar_hard(self):
-        """Test overhead of manual tqdm vs simple progress bar (hard)"""
-
-        total = int(1e4)
-
-        with closing(MockIO()) as our_file:
-            with tqdm(total=total * 10, file=our_file, leave=True, miniters=1,
-                      mininterval=0, maxinterval=0) as t:
-                a = 0
-                with relative_timer() as time_tqdm:
-                    for i in _range(total):
-                        a += i
-                        t.update(10)
-
-            simplebar_update = simple_progress(
-                total=total * 10, file=our_file, leave=True, miniters=1,
-                mininterval=0)
-            a = 0
-            with relative_timer() as time_bench:
-                for i in _range(total):
-                    a += i
-                    simplebar_update(10)
-
-        assert_performance(
-            10, 'tqdm', time_tqdm(), 'simple_progress', time_bench())
+    assert_performance(
+        10, 'tqdm', time_tqdm(), 'simple_progress', time_bench())

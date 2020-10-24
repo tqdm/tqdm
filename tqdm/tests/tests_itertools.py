@@ -2,7 +2,8 @@
 Tests for `tqdm.contrib.itertools`.
 """
 from tqdm.contrib.itertools import product
-from tests_tqdm import TestWithInstancesCheck, StringIO, closing
+from tests_tqdm import pretest_posttest  # NOQA
+from tests_tqdm import StringIO, closing
 import itertools
 
 
@@ -15,13 +16,12 @@ class NoLenIter(object):
             yield i
 
 
-class TestTqdmItertools(TestWithInstancesCheck):
-    def test_product(self):
-        """Test contrib.itertools.product"""
-        with closing(StringIO()) as our_file:
-            a = range(9)
-            assert list(product(a, a[::-1], file=our_file)) == \
-                list(itertools.product(a, a[::-1]))
+def test_product():
+    """Test contrib.itertools.product"""
+    with closing(StringIO()) as our_file:
+        a = range(9)
+        assert list(product(a, a[::-1], file=our_file)) == \
+            list(itertools.product(a, a[::-1]))
 
-            assert list(product(a, NoLenIter(a), file=our_file)) == \
-                list(itertools.product(a, NoLenIter(a)))
+        assert list(product(a, NoLenIter(a), file=our_file)) == \
+            list(itertools.product(a, NoLenIter(a)))
