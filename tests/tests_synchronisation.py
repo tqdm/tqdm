@@ -1,13 +1,13 @@
 from __future__ import division
-from tqdm import tqdm, trange, TMonitor
-from tests_tqdm import with_setup, pretest, posttest, SkipTest, \
-    StringIO, closing, patch_lock
-from tests_perf import retry_on_except
-
 from functools import wraps
 from threading import Event
 from time import sleep, time
 import sys
+
+from tqdm import tqdm, trange, TMonitor
+from .tests_perf import retry_on_except
+from .tests_tqdm import pretest_posttest  # NOQA, pylint: disable=unused-import
+from .tests_tqdm import importorskip, skip, StringIO, closing, patch_lock
 
 
 class Time(object):
@@ -103,7 +103,6 @@ def incr_bar(x):
 
 
 @patch_sleep
-@with_setup(pretest, posttest)
 def test_monitor_thread():
     """Test dummy monitoring thread"""
     monitor = TMonitor(FakeTqdm, 10)
@@ -116,7 +115,6 @@ def test_monitor_thread():
 
 
 @patch_sleep
-@with_setup(pretest, posttest)
 def test_monitoring_and_cleanup():
     """Test for stalled tqdm instance and monitor deletion"""
     # Note: should fix miniters for these tests, else with dynamic_miniters
@@ -138,7 +136,7 @@ def test_monitoring_and_cleanup():
             # Then do 1 it after monitor interval, so that monitor kicks in
             Time.fake_sleep(maxinterval)
             t.update(1)
-            # Wait for the monitor to get out of sleep's loop and update tqdm..
+            # Wait for the monitor to get out of sleep's loop and update tqdm.
             timeend = Time.time()
             while not (t.monitor.woken >= timeend and t.miniters == 1):
                 Time.fake_sleep(1)  # Force awake up if it woken too soon
@@ -154,12 +152,12 @@ def test_monitoring_and_cleanup():
             timeend = Time.time()
             while t.monitor.woken < timeend:
                 Time.fake_sleep(1)  # Force awake if it woken too soon
-            # Wait for the monitor to get out of sleep's loop and update tqdm
+            # Wait for the monitor to get out of sleep's loop and update
+            # tqdm
             assert t.miniters == 1  # check that monitor corrected miniters
 
 
 @patch_sleep
-@with_setup(pretest, posttest)
 def test_monitoring_multi():
     """Test on multiple bars, one not needing miniters adjustment"""
     # Note: should fix miniters for these tests, else with dynamic_miniters
@@ -194,13 +192,12 @@ def test_monitoring_multi():
                 assert t2.miniters == 500  # check that t2 was not adjusted
 
 
-@with_setup(pretest, posttest)
 def test_imap():
     """Test multiprocessing.Pool"""
     try:
         from multiprocessing import Pool
-    except ImportError:
-        raise SkipTest
+    except ImportError as err:
+        skip(str(err))
 
     pool = Pool()
     res = list(tqdm(pool.imap(incr, range(100)), disable=True))
@@ -208,22 +205,18 @@ def test_imap():
 
 
 # py2: locks won't propagate to incr_bar so may cause `AttributeError`
-@with_setup(pretest, posttest)
 @retry_on_except(n=3 if sys.version_info < (3,) else 1, check_cpu_time=False)
 @patch_lock(thread=True)
 def test_threadpool():
     """Test concurrent.futures.ThreadPoolExecutor"""
-    try:
-        from concurrent.futures import ThreadPoolExecutor
-    except ImportError:
-        raise SkipTest
+    ThreadPoolExecutor = importorskip("concurrent.futures").ThreadPoolExecutor
 
     with ThreadPoolExecutor(8) as pool:
         try:
             res = list(tqdm(pool.map(incr_bar, range(100)), disable=True))
         except AttributeError:
             if sys.version_info < (3,):
-                raise SkipTest
+                skip("not supported on py2")
             else:
                 raise
     assert sum(res) == sum(range(1, 101))

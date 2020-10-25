@@ -56,7 +56,7 @@ jobs:
   - name: pypy2.7
     python: pypy2.7-7.3.1
     env: TOXENV=pypy
-  - name: pypy3.5
+  - name: pypy3.6
     python: pypy3.6-7.3.1
     env: TOXENV=pypy3
   - stage: development

@@ -1,21 +1,18 @@
 from __future__ import division
+
 from tqdm import tqdm
-from tests_tqdm import with_setup, pretest, posttest, SkipTest, StringIO, \
-    closing
+from .tests_tqdm import pretest_posttest  # NOQA, pylint: disable=unused-import
+from .tests_tqdm import importorskip, StringIO, closing
 
 
-@with_setup(pretest, posttest)
 def test_keras():
     """Test tqdm.keras.TqdmCallback"""
+    TqdmCallback = importorskip("tqdm.keras").TqdmCallback
+    np = importorskip("numpy")
     try:
-        from tqdm.keras import TqdmCallback
-        import numpy as np
-        try:
-            import keras as K
-        except ImportError:
-            from tensorflow import keras as K
+        import keras as K
     except ImportError:
-        raise SkipTest
+        K = importorskip("tensorflow.keras")
 
     # 1D autoencoder
     dtype = np.float32

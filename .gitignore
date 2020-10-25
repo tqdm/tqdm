@@ -14,8 +14,9 @@ tqdm_*_amd64.snap
 # Unit test / coverage reports
 .tox/
 .coverage
-__pycache__
-nosetests.xml
+.coverage.*
+__pycache__/
+.pytest_cache/
 
 # Translations
 *.mo

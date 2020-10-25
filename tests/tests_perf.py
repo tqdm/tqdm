@@ -11,10 +11,9 @@ except ImportError:
 import sys
 
 from tqdm import tqdm, trange
-from tests_tqdm import with_setup, pretest, posttest, StringIO, closing, \
-    _range, patch_lock
-
-from nose.plugins.skip import SkipTest
+from .tests_tqdm import pretest_posttest  # NOQA, pylint: disable=unused-import
+from .tests_tqdm import importorskip, skip, StringIO, closing, _range, \
+    patch_lock
 
 
 def cpu_sleep(t):
@@ -41,7 +40,7 @@ def checkCpuTime(sleeptime=0.2):
     if abs(t1) < 0.0001 and t1 < t2 / 10:
         checkCpuTime.passed = True
         return True
-    raise SkipTest
+    skip("cpu time not reliable on this machine")
 
 
 checkCpuTime.passed = False
@@ -74,8 +73,6 @@ def retry_on_except(n=6, check_cpu_time=True):
                     if check_cpu_time:
                         checkCpuTime()
                     func(*args, **kwargs)
-                except SkipTest:
-                    raise
                 except Exception:
                     if i >= n:
                         raise
@@ -170,7 +167,6 @@ def assert_performance(thresh, name_left, time_left, name_right, time_right):
                 ratio=time_left / time_right, thresh=thresh))
 
 
-@with_setup(pretest, posttest)
 @retry_on_except()
 def test_iter_basic_overhead():
     """Test overhead of iteration based tqdm"""
@@ -194,7 +190,6 @@ def test_iter_basic_overhead():
     assert_performance(3, 'trange', time_tqdm(), 'range', time_bench())
 
 
-@with_setup(pretest, posttest)
 @retry_on_except()
 def test_manual_basic_overhead():
     """Test overhead of manual tqdm"""
@@ -230,15 +225,11 @@ def worker(total, blocking=True):
     return incr_bar
 
 
-@with_setup(pretest, posttest)
 @retry_on_except()
 @patch_lock(thread=True)
 def test_lock_args():
     """Test overhead of nonblocking threads"""
-    try:
-        from concurrent.futures import ThreadPoolExecutor
-    except ImportError:
-        raise SkipTest
+    ThreadPoolExecutor = importorskip('concurrent.futures').ThreadPoolExecutor
 
     total = 16
     subtotal = 10000
@@ -258,7 +249,6 @@ def test_lock_args():
     assert_performance(0.5, 'noblock', time_noblock(), 'tqdm', time_tqdm())
 
 
-@with_setup(pretest, posttest)
 @retry_on_except()
 def test_iter_overhead_hard():
     """Test overhead of iteration based tqdm (hard)"""
@@ -283,7 +273,6 @@ def test_iter_overhead_hard():
     assert_performance(130, 'trange', time_tqdm(), 'range', time_bench())
 
 
-@with_setup(pretest, posttest)
 @retry_on_except()
 def test_manual_overhead_hard():
     """Test overhead of manual tqdm (hard)"""
@@ -308,7 +297,6 @@ def test_manual_overhead_hard():
     assert_performance(130, 'tqdm', time_tqdm(), 'range', time_bench())
 
 
-@with_setup(pretest, posttest)
 @retry_on_except()
 def test_iter_overhead_simplebar_hard():
     """Test overhead of iteration based tqdm vs simple progress bar (hard)"""
@@ -335,7 +323,6 @@ def test_iter_overhead_simplebar_hard():
         10, 'trange', time_tqdm(), 'simple_progress', time_bench())
 
 
-@with_setup(pretest, posttest)
 @retry_on_except()
 def test_manual_overhead_simplebar_hard():
     """Test overhead of manual tqdm vs simple progress bar (hard)"""

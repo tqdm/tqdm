@@ -11,7 +11,7 @@ include tox.ini
 recursive-include tqdm/contrib *.py
 
 # Test suite
-recursive-include tqdm/tests *.py
+recursive-include tests *.py
 include requirements-dev.txt
 
 # Examples/Documentation

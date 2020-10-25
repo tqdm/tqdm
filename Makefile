@@ -8,7 +8,7 @@
 	all
 	flake8
 	test
-	testnose
+	pytest
 	testsetup
 	testcoverage
 	testperf
@@ -50,8 +50,8 @@ test:
 	TOX_SKIP_ENV=perf tox --skip-missing-interpreters -p all
 	tox -e perf
 
-testnose:
-	nosetests -d -v tqdm
+pytest:
+	pytest
 
 testsetup:
 	@make README.rst
@@ -62,14 +62,14 @@ testsetup:
 
 testcoverage:
 	@make coverclean
-	nosetests -d -v tqdm --ignore-files="tests_perf\.py" --with-coverage --cover-package=tqdm --cover-erase --cover-min-percentage=80
+	pytest -k "not tests_perf" --cov=tqdm --cov-fail-under=80
 
 testperf:
 	# do not use coverage (which is extremely slow)
-	nosetests -d -v tqdm/tests/tests_perf.py
+	pytest -k tests_perf
 
 testtimer:
-	nosetests -d -v tqdm --with-timer
+	pytest --durations=10
 
 # another performance test, to check evolution across commits
 testasv:
@@ -119,24 +119,25 @@ distclean:
 	@+make clean
 pre-commit:
 	# quick sanity checks
-	@make testsetup
-	flake8 -j 8 --count --statistics tqdm/ examples/
-	nosetests -d tqdm --ignore-files="tests_(perf|keras)\.py" -e "pandas|monitoring"
-	nosetests -d tqdm/tests/tests_perf.py -m basic_overhead
+	@make --no-print-directory testsetup
+	flake8 -j 8 --count --statistics tqdm/ tests/ examples/
+	pytest -qq -k "basic_overhead or not (perf or keras or pandas or monitoring)"
 prebuildclean:
 	@+python -c "import shutil; shutil.rmtree('build', True)"
 	@+python -c "import shutil; shutil.rmtree('dist', True)"
 	@+python -c "import shutil; shutil.rmtree('tqdm.egg-info', True)"
 coverclean:
 	@+python -c "import os; os.remove('.coverage') if os.path.exists('.coverage') else None"
+	@+python -c "import os, glob; [os.remove(i) for i in glob.glob('.coverage.*')]"
+	@+python -c "import shutil; shutil.rmtree('tests/__pycache__', True)"
 	@+python -c "import shutil; shutil.rmtree('tqdm/__pycache__', True)"
 	@+python -c "import shutil; shutil.rmtree('tqdm/contrib/__pycache__', True)"
-	@+python -c "import shutil; shutil.rmtree('tqdm/tests/__pycache__', True)"
+	@+python -c "import shutil; shutil.rmtree('tqdm/examples/__pycache__', True)"
 clean:
 	@+python -c "import os, glob; [os.remove(i) for i in glob.glob('*.py[co]')]"
+	@+python -c "import os, glob; [os.remove(i) for i in glob.glob('tests/*.py[co]')]"
 	@+python -c "import os, glob; [os.remove(i) for i in glob.glob('tqdm/*.py[co]')]"
 	@+python -c "import os, glob; [os.remove(i) for i in glob.glob('tqdm/contrib/*.py[co]')]"
-	@+python -c "import os, glob; [os.remove(i) for i in glob.glob('tqdm/tests/*.py[co]')]"
 	@+python -c "import os, glob; [os.remove(i) for i in glob.glob('tqdm/examples/*.py[co]')]"
 toxclean:
 	@+python -c "import shutil; shutil.rmtree('.tox', True)"

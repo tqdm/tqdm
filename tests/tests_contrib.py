@@ -2,9 +2,10 @@
 Tests for `tqdm.contrib`.
 """
 import sys
+
 from tqdm.contrib import tenumerate, tzip, tmap
-from tests_tqdm import with_setup, pretest, posttest, SkipTest, StringIO, \
-    closing
+from .tests_tqdm import pretest_posttest  # NOQA, pylint: disable=unused-import
+from .tests_tqdm import importorskip, StringIO, closing
 
 
 def incr(x):
@@ -12,7 +13,6 @@ def incr(x):
     return x + 1
 
 
-@with_setup(pretest, posttest)
 def test_enumerate():
     """Test contrib.tenumerate"""
     with closing(StringIO()) as our_file:
@@ -27,19 +27,14 @@ def test_enumerate():
         assert "100%" in our_file.getvalue()
 
 
-@with_setup(pretest, posttest)
 def test_enumerate_numpy():
     """Test contrib.tenumerate(numpy.ndarray)"""
-    try:
-        import numpy as np
-    except ImportError:
-        raise SkipTest
+    np = importorskip("numpy")
     with closing(StringIO()) as our_file:
         a = np.random.random((42, 1337))
         assert list(tenumerate(a, file=our_file)) == list(np.ndenumerate(a))
 
 
-@with_setup(pretest, posttest)
 def test_zip():
     """Test contrib.tzip"""
     with closing(StringIO()) as our_file:
@@ -53,7 +48,6 @@ def test_zip():
             assert list(gen) == list(zip(a, b))
 
 
-@with_setup(pretest, posttest)
 def test_map():
     """Test contrib.tmap"""
     with closing(StringIO()) as our_file:

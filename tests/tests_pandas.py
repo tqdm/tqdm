@@ -1,17 +1,15 @@
 from tqdm import tqdm
-from tests_tqdm import with_setup, pretest, posttest, SkipTest, \
-    StringIO, closing
+from .tests_tqdm import pretest_posttest  # NOQA, pylint: disable=unused-import
+from .tests_tqdm import importorskip, skip, StringIO, closing
+
+random = importorskip("numpy.random")
+rand = random.rand
+randint = random.randint
+pd = importorskip("pandas")
 
 
-@with_setup(pretest, posttest)
 def test_pandas_setup():
     """Test tqdm.pandas()"""
-    try:
-        from numpy.random import randint
-        import pandas as pd
-    except ImportError:
-        raise SkipTest
-
     with closing(StringIO()) as our_file:
         tqdm.pandas(file=our_file, leave=True, ascii=True, total=123)
         series = pd.Series(randint(0, 50, (100,)))
@@ -20,15 +18,8 @@ def test_pandas_setup():
         assert '100/123' in res
 
 
-@with_setup(pretest, posttest)
 def test_pandas_rolling_expanding():
     """Test pandas.(Series|DataFrame).(rolling|expanding)"""
-    try:
-        from numpy.random import randint
-        import pandas as pd
-    except ImportError:
-        raise SkipTest
-
     with closing(StringIO()) as our_file:
         tqdm.pandas(file=our_file, leave=True, ascii=True)
 
@@ -51,15 +42,8 @@ def test_pandas_rolling_expanding():
                         exres + " at least twice.", our_file.read()))
 
 
-@with_setup(pretest, posttest)
 def test_pandas_series():
     """Test pandas.Series.progress_apply and .progress_map"""
-    try:
-        from numpy.random import randint
-        import pandas as pd
-    except ImportError:
-        raise SkipTest
-
     with closing(StringIO()) as our_file:
         tqdm.pandas(file=our_file, leave=True, ascii=True)
 
@@ -82,15 +66,8 @@ def test_pandas_series():
                         exres + " at least twice.", our_file.read()))
 
 
-@with_setup(pretest, posttest)
 def test_pandas_data_frame():
     """Test pandas.DataFrame.progress_apply and .progress_applymap"""
-    try:
-        from numpy.random import randint
-        import pandas as pd
-    except ImportError:
-        raise SkipTest
-
     with closing(StringIO()) as our_file:
         tqdm.pandas(file=our_file, leave=True, ascii=True)
         df = pd.DataFrame(randint(0, 50, (100, 200)))
@@ -131,15 +108,8 @@ def test_pandas_data_frame():
                         exres + " at least once.", our_file.read()))
 
 
-@with_setup(pretest, posttest)
 def test_pandas_groupby_apply():
     """Test pandas.DataFrame.groupby(...).progress_apply"""
-    try:
-        from numpy.random import randint, rand
-        import pandas as pd
-    except ImportError:
-        raise SkipTest
-
     with closing(StringIO()) as our_file:
         tqdm.pandas(file=our_file, leave=False, ascii=True)
 
@@ -192,15 +162,8 @@ def test_pandas_groupby_apply():
                         exres + " at least once.", our_file.read()))
 
 
-@with_setup(pretest, posttest)
 def test_pandas_leave():
     """Test pandas with `leave=True`"""
-    try:
-        from numpy.random import randint
-        import pandas as pd
-    except ImportError:
-        raise SkipTest
-
     with closing(StringIO()) as our_file:
         df = pd.DataFrame(randint(0, 100, (1000, 6)))
         tqdm.pandas(file=our_file, leave=True, ascii=True)
@@ -215,16 +178,13 @@ def test_pandas_leave():
                 "\nExpected:\n{0}\nIn:{1}\n".format(exres, our_file.read()))
 
 
-@with_setup(pretest, posttest)
 def test_pandas_apply_args_deprecation():
     """Test warning info in
     `pandas.Dataframe(Series).progress_apply(func, *args)`"""
     try:
-        from numpy.random import randint
         from tqdm import tqdm_pandas
-        import pandas as pd
-    except ImportError:
-        raise SkipTest
+    except ImportError as err:
+        skip(str(err))
 
     with closing(StringIO()) as our_file:
         tqdm_pandas(tqdm(file=our_file, leave=False, ascii=True, ncols=20))
@@ -237,15 +197,12 @@ def test_pandas_apply_args_deprecation():
             "keyword arguments instead")])
 
 
-@with_setup(pretest, posttest)
 def test_pandas_deprecation():
     """Test bar object instance as argument deprecation"""
     try:
-        from numpy.random import randint
         from tqdm import tqdm_pandas
-        import pandas as pd
-    except ImportError:
-        raise SkipTest
+    except ImportError as err:
+        skip(str(err))
 
     with closing(StringIO()) as our_file:
         tqdm_pandas(tqdm(file=our_file, leave=False, ascii=True, ncols=20))
