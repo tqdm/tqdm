@@ -14,7 +14,7 @@ from __future__ import absolute_import, division
 from warnings import warn
 
 # to inherit from the tqdm class
-from .std import TqdmExperimentalWarning
+from .std import TqdmExperimentalWarning, TqdmWarning
 from .std import tqdm as std_tqdm
 # import compatibility functions and utilities
 from .utils import _range
@@ -195,7 +195,7 @@ class tqdm_tk(std_tqdm):  # pragma: no cover
 
     Note: Window interactivity suffers if `tqdm_tk` is not running within
     a Tkinter mainloop and values are generated infrequently. In this case,
-    consider calling `tqdm_tk.update(0)` frequently in the Tk thread.
+    consider calling `tqdm_tk.refresh()` frequently in the Tk thread.
     """
 
     def __init__(self, *args, **kwargs):
@@ -213,6 +213,8 @@ class tqdm_tk(std_tqdm):  # pragma: no cover
             Create a cancel button and set cancel_callback to be called
             when the cancel or window close button is clicked.
         """
+        # only meaningful to set this warning if someone sets the flag
+        self._warn_leave = "leave" in kwargs
         try:
             grab = kwargs.pop("grab")
         except KeyError:
@@ -230,8 +232,6 @@ class tqdm_tk(std_tqdm):  # pragma: no cover
         except KeyError:
             bar_format = None
 
-        kwargs["gui"] = True
-
         # Tkinter specific default bar format
         if bar_format is None:
             kwargs["bar_format"] = (
@@ -243,6 +243,7 @@ class tqdm_tk(std_tqdm):  # pragma: no cover
         # This signals std_tqdm that it's a GUI but no need to crash
         # Maybe there is a better way?
         self.sp = object()
+        kwargs["gui"] = True
 
         super(tqdm_tk, self).__init__(*args, **kwargs)
 
@@ -276,7 +277,6 @@ class tqdm_tk(std_tqdm):  # pragma: no cover
              )
         self._tk_dispatching = self._tk_dispatching_helper()
         if not self._tk_dispatching:
-            # leave is problematic if the mainloop is not running
             self.leave = False
 
         self._tk_window.protocol("WM_DELETE_WINDOW", self.cancel)
@@ -335,7 +335,7 @@ class tqdm_tk(std_tqdm):  # pragma: no cover
         Parameters
         ----------
         nolock  : bool, optional
-            Ignored, behaves as if always set true
+            Ignored, behaves as if always set True
         lock_args  : tuple, optional
             Ignored
         """
@@ -397,22 +397,24 @@ class tqdm_tk(std_tqdm):  # pragma: no cover
             self._instances.remove(self)
 
         def _close():
-            self._tk_window.after(0, self._tk_window.destroy)
+            self._tk_window.after('idle', self._tk_window.destroy)
             if not self._tk_dispatching:
                 self._tk_window.update()
 
         self._tk_window.protocol("WM_DELETE_WINDOW", _close)
+
+        # if leave is set but we are self-dispatching, the left window is
+        # totally unresponsive unless the user manually dispatches
         if not self.leave:
+            _close()
+        elif not self._tk_dispatching:
+            if self._warn_leave:
+                warn('leave flag ignored if not in tkinter mainloop',
+                     TqdmWarning, stacklevel=2)
             _close()
 
     def _tk_dispatching_helper(self):
         """determine if Tkinter mainloop is dispatching events"""
-        try:
-            # Landing in CPython 3.10
-            return self._tk_window.dispatching()
-        except AttributeError:
-            pass
-
         try:
             import tkinter
         except ImportError:
