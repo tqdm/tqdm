@@ -92,6 +92,17 @@ class TqdmCallback(keras.callbacks.Callback):
             self.batch_bar.close()
         self.epoch_bar.close()
 
+    def display(self):
+        """displays in the current cell in Notebooks"""
+        container = getattr(self.epoch_bar, 'container', None)
+        if container is None:
+            return
+        from .notebook import display
+        display(container)
+        batch_bar = getattr(self, 'batch_bar', None)
+        if batch_bar is not None:
+            display(batch_bar.container)
+
     @staticmethod
     def _implements_train_batch_hooks():
         return True
