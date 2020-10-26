@@ -413,7 +413,8 @@ class tqdm_tk(std_tqdm):  # pragma: no cover
                      TqdmWarning, stacklevel=2)
             _close()
 
-    def _tk_dispatching_helper(self):
+    @staticmethod
+    def _tk_dispatching_helper():
         """determine if Tkinter mainloop is dispatching events"""
         try:
             import tkinter
