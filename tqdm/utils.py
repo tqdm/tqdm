@@ -273,9 +273,9 @@ class CallbackIOWrapper(ObjectWrapper):
 def _is_utf(encoding):
     try:
         u'\u2588\u2589'.encode(encoding)
-    except UnicodeEncodeError:  # pragma: no cover
+    except UnicodeEncodeError:
         return False
-    except Exception:  # pragma: no cover
+    except Exception:
         try:
             return encoding.lower().startswith('utf-') or ('U8' == encoding)
         except:

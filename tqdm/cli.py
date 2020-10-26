@@ -48,8 +48,7 @@ def isBytes(val):
 
 
 def posix_pipe(fin, fout, delim=b'\\n', buf_size=256,
-               callback=lambda float: None,  # pragma: no cover
-               callback_len=True):
+               callback=lambda float: None, callback_len=True):
     """
     Params
     ------
@@ -68,7 +67,7 @@ def posix_pipe(fin, fout, delim=b'\\n', buf_size=256,
 
             # flush at EOF
             if not tmp:
-                getattr(fout, 'flush', lambda: None)()  # pragma: no cover
+                getattr(fout, 'flush', lambda: None)()
                 return
 
             fp_write(tmp)
@@ -101,7 +100,7 @@ def posix_pipe(fin, fout, delim=b'\\n', buf_size=256,
                 else:
                     for i in buf.split(delim):
                         callback(i)
-            getattr(fout, 'flush', lambda: None)()  # pragma: no cover
+            getattr(fout, 'flush', lambda: None)()
             return  # n
 
         while True:

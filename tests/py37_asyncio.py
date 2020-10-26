@@ -99,5 +99,5 @@ async def test_as_completed():
         for i in as_completed([asyncio.sleep(0.01 * i)
                                for i in range(30, 0, -1)], file=our_file):
             await i
-        assert 0.29 < time() - t - 2 * skew < 0.31
+        assert 0.28 < time() - t - 2 * skew < 0.32
         assert '30/30' in our_file.getvalue()
