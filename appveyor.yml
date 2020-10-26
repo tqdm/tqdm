@@ -1,18 +1,15 @@
 build: false
 environment:
+  global:
+    TOXENV: py
   matrix:
     - PYVER: 27
-      TOXENV: py
     - PYVER: 36
-      TOXENV: py
     - PYVER: 37
-      TOXENV: py
     #- PYVER: 38
-    #  TOXENV: py
 install:
   - git fetch --tags
   - C:\Python%PYVER%\scripts\pip install -U tox
-  - C:\Python%PYVER%\scripts\tox install .
 test_script:
   - C:\Python%PYVER%\scripts\tox
 cache:
