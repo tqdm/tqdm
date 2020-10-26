@@ -1171,7 +1171,8 @@ def test_custom_format():
 def test_eta(capsys):
     """Test eta bar_format"""
     from datetime import datetime as dt
-    for _ in trange(2, leave=True, bar_format='{l_bar}{eta:%Y-%m-%d}'):
+    for _ in trange(999, miniters=1, mininterval=0, leave=True,
+                    bar_format='{l_bar}{eta:%Y-%m-%d}'):
         pass
     _, err = capsys.readouterr()
     assert "\r100%|{eta:%Y-%m-%d}\n".format(eta=dt.now()) in err
