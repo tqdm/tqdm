@@ -276,8 +276,6 @@ class tqdm_tk(std_tqdm):  # pragma: no cover
         warn('GUI is experimental/alpha', TqdmExperimentalWarning, stacklevel=2
              )
         self._tk_dispatching = self._tk_dispatching_helper()
-        if not self._tk_dispatching:
-            self.leave = False
 
         self._tk_window.protocol("WM_DELETE_WINDOW", self.cancel)
         self._tk_window.wm_title(self.desc)
