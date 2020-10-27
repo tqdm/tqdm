@@ -882,6 +882,40 @@ def test_disable():
         assert our_file.getvalue() == ''
 
 
+def test_disable_environ(monkeypatch):
+    """ Test that disable can be done with environment variable"""
+
+    # Sets a os.environ flag during this test. This should silence the logging
+    monkeypatch.setenv('TQDM_DISABLE', '1')
+
+    with closing(StringIO()) as our_file:
+        instance = tqdm(_range(3), file=our_file)
+        assert instance.disable is True
+
+        for _ in instance:
+            pass
+
+        assert our_file.getvalue() == ''
+
+    with closing(StringIO()) as our_file:
+        instance = tqdm(_range(3), file=our_file, disable=False)
+        assert instance.disable is True
+
+        for _ in instance:
+            pass
+
+        assert our_file.getvalue() == ''
+
+    with closing(StringIO()) as our_file:
+        instance = tqdm(_range(3), file=our_file, disable=True)
+        assert instance.disable is True
+
+        for _ in instance:
+            pass
+
+        assert our_file.getvalue() == ''
+
+
 def test_infinite_total():
     """Test treatment of infinite total"""
     with closing(StringIO()) as our_file:

@@ -21,6 +21,7 @@ from numbers import Number
 from time import time
 from warnings import warn
 import sys
+import os
 
 __author__ = "https://github.com/tqdm/tqdm#contributions"
 __all__ = ['tqdm', 'trange',
@@ -886,7 +887,9 @@ class tqdm(Comparable):
             If unspecified or False, use unicode (smooth blocks) to fill
             the meter. The fallback is to use ASCII characters " 123456789#".
         disable  : bool, optional
-            Whether to disable the entire progressbar wrapper
+            Whether to disable the entire progressbar wrapper.
+            Setting os.environ['TQDM_DISABLE'] = 1 will disable the entire
+            progressbar wrapper. It overwrites this flag.
             [default: False]. If set to None, disable on non-TTY.
         unit  : str, optional
             String that will be used to define the unit of each iteration
@@ -965,6 +968,9 @@ class tqdm(Comparable):
                 file, encoding=getattr(file, 'encoding', None) or 'utf-8')
 
         file = DisableOnWriteError(file, tqdm_instance=self)
+
+        if 'TQDM_DISABLE' in os.environ:
+            disable = True
 
         if disable is None and hasattr(file, "isatty") and not file.isatty():
             disable = True

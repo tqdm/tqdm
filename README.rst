@@ -406,6 +406,8 @@ Parameters
     the meter. The fallback is to use ASCII characters " 123456789#".
 * disable  : bool, optional  
     Whether to disable the entire progressbar wrapper
+    Setting os.environ['TQDM_DISABLE'] = 1 will disable the entire
+    progressbar wrapper. It overwrites this flag.
     [default: False]. If set to None, disable on non-TTY.
 * unit  : str, optional  
     String that will be used to define the unit of each iteration
