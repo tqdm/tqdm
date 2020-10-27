@@ -124,22 +124,6 @@ If set to None, disable on non\-TTY.
 .RS
 .RE
 .TP
-.B \-\-unit=\f[I]unit\f[]
-str, optional.
-String that will be used to define the unit of each iteration [default:
-it].
-.RS
-.RE
-.TP
-.B \-\-unit\-scale=\f[I]unit_scale\f[]
-bool or int or float, optional.
-If 1 or True, the number of iterations will be reduced/scaled
-automatically and a metric prefix following the International System of
-Units standard will be added (kilo, mega, etc.) [default: False].
-If any other non\-zero number, will scale \f[C]total\f[] and \f[C]n\f[].
-.RS
-.RE
-.TP
 .B \-\-dynamic\-ncols
 bool, optional.
 If set, constantly alters \f[C]ncols\f[] and \f[C]nrows\f[] to the
@@ -196,9 +180,41 @@ Calls \f[C]set_postfix(**postfix)\f[] if possible (dict).
 .RS
 .RE
 .TP
+.B \-\-unit=\f[I]unit\f[]
+str, optional.
+String that will be used to define the unit of each iteration [default:
+it].
+.RS
+.RE
+.TP
+.B \-\-unit\-scale=\f[I]unit_scale\f[]
+bool or int or float, optional.
+If 1 or True, the number of iterations will be reduced/scaled
+automatically and a metric prefix following the International System of
+Units standard will be added (kilo, mega, etc.) [default: False].
+If any other non\-zero number, will scale \f[C]total\f[] and \f[C]n\f[].
+.RS
+.RE
+.TP
 .B \-\-unit\-divisor=\f[I]unit_divisor\f[]
 float, optional.
 [default: 1000], ignored unless \f[C]unit_scale\f[] is True.
+.RS
+.RE
+.TP
+.B \-\-unit\-pre=\f[I]unit_pre\f[]
+str, optional.
+Pre\-prefix [default: \[aq]\[aq]].
+.RS
+.RE
+.TP
+.B \-\-unit\-prefixes=\f[I]unit_prefixes\f[]
+list or str, optional.
+Prefixes (default: [\[aq]\[aq]] + list(\[aq]kMGTPEZY\[aq])).
+Use \f[C]"IEEE1541"\f[] or \f[C]"bytes"\f[] as a shortcut to override:
+unit=\[aq]B\[aq], unit_scale=True, unit_divisor=1024, unit_pre=\[aq]
+\[aq], unit_prefixes=[\[aq]\[aq]] + [i + \[aq]i\[aq] for i in
+\[aq]KMGTPEZY\[aq]].
 .RS
 .RE
 .TP
@@ -253,8 +269,7 @@ specified.
 .B \-\-bytes
 bool, optional.
 If true, will count bytes, ignore \f[C]delim\f[], and default
-\f[C]unit_scale\f[] to True, \f[C]unit_divisor\f[] to 1024, and
-\f[C]unit\f[] to \[aq]B\[aq].
+\f[C]unit_prefixes\f[] to \f[C]"IEEE1541"\f[].
 .RS
 .RE
 .TP

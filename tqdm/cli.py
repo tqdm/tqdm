@@ -127,7 +127,7 @@ CLI_EXTRA_DOC = r"""
             used when `delim` is specified.
         bytes  : bool, optional
             If true, will count bytes, ignore `delim`, and default
-            `unit_scale` to True, `unit_divisor` to 1024, and `unit` to 'B'.
+            `unit_prefixes` to `"IEEE1541"`.
         tee  : bool, optional
             If true, passes `stdin` to both `stderr` and `stdout`.
         update  : bool, optional
@@ -279,9 +279,7 @@ Options:
                         fp_write(x)
                     stdout_write(x)
         if delim_per_char:
-            tqdm_args.setdefault('unit', 'B')
-            tqdm_args.setdefault('unit_scale', True)
-            tqdm_args.setdefault('unit_divisor', 1024)
+            tqdm_args.setdefault('unit_prefixes', 'IEEE1541')
             log.debug(tqdm_args)
             with tqdm(**tqdm_args) as t:
                 posix_pipe(stdin, stdout, '', buf_size, t.update)

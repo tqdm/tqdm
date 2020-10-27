@@ -17,6 +17,7 @@ from ._monitor import TMonitor
 # native libraries
 from contextlib import contextmanager
 from datetime import datetime, timedelta
+from functools import partial
 from numbers import Number
 from time import time
 from warnings import warn
@@ -226,7 +227,7 @@ class tqdm(Comparable):
     monitor = None
 
     @staticmethod
-    def format_sizeof(num, suffix='', divisor=1000):
+    def format_sizeof(num, divisor=1000, pre='', prefixes=None):
         """
         Formats a number (greater than unity) with SI Order of Magnitude
         prefixes.
@@ -235,25 +236,30 @@ class tqdm(Comparable):
         ----------
         num  : float
             Number ( >= 1) to format.
-        suffix  : str, optional
-            Post-postfix [default: ''].
         divisor  : float, optional
-            Divisor between prefixes [default: 1000].
+            Divisor between postfixes [default: 1000].
+        pre  : str, optional
+            Pre-prefix [default: ''].
+        prefixes  : list, optional
+            Prefixes (default: [''] + list('kMGTPEZY')).
 
         Returns
         -------
         out  : str
             Number with Order of Magnitude SI unit postfix.
         """
-        for unit in ['', 'k', 'M', 'G', 'T', 'P', 'E', 'Z']:
+        prefixes = prefixes or [''] + list('kMGTPEZY')
+        p = ''
+        for unit in prefixes[:-1]:
             if abs(num) < 999.5:
                 if abs(num) < 99.95:
                     if abs(num) < 9.995:
-                        return '{0:1.2f}'.format(num) + unit + suffix
-                    return '{0:2.1f}'.format(num) + unit + suffix
-                return '{0:3.0f}'.format(num) + unit + suffix
+                        return '{0:1.2f}'.format(num) + p + unit
+                    return '{0:2.1f}'.format(num) + p + unit
+                return '{0:3.0f}'.format(num) + p + unit
             num /= divisor
-        return '{0:3.1f}Y'.format(num) + suffix
+            p = pre
+        return '{0:3.1f}'.format(num) + pre + prefixes[-1]
 
     @staticmethod
     def format_interval(t):
@@ -342,6 +348,7 @@ class tqdm(Comparable):
     def format_meter(n, total, elapsed, ncols=None, prefix='', ascii=False,
                      unit='it', unit_scale=False, rate=None, bar_format=None,
                      postfix=None, unit_divisor=1000, initial=0, colour=None,
+                     unit_pre='', unit_prefixes=None,
                      **extra_kwargs):
         """
         Return a string-based progress bar given some parameters
@@ -367,13 +374,6 @@ class tqdm(Comparable):
             If not set, use unicode (smooth blocks) to fill the meter
             [default: False]. The fallback is to use ASCII characters
             " 123456789#".
-        unit  : str, optional
-            The iteration unit [default: 'it'].
-        unit_scale  : bool or int or float, optional
-            If 1 or True, the number of iterations will be printed with an
-            appropriate SI metric prefix (k = 10^3, M = 10^6, etc.)
-            [default: False]. If any other non-zero number, will scale
-            `total` and `n`.
         rate  : float, optional
             Manual override for iteration rate.
             If [default: None], uses n/elapsed.
@@ -396,12 +396,23 @@ class tqdm(Comparable):
             Note: postfix is usually a string (not a dict) for this method,
             and will if possible be set to postfix = ', ' + postfix.
             However other types are supported (#382).
-        unit_divisor  : float, optional
-            [default: 1000], ignored unless `unit_scale` is True.
         initial  : int or float, optional
             The initial counter value [default: 0].
         colour  : str, optional
             Bar colour (e.g. 'green', '#00ff00').
+        unit  : str, optional
+            The iteration unit [default: 'it'].
+        unit_scale  : bool or int or float, optional
+            If 1 or True, the number of iterations will be printed with an
+            appropriate SI metric prefix (k = 10^3, M = 10^6, etc.)
+            [default: False]. If any other non-zero number, will scale
+            `total` and `n`.
+        unit_divisor  : float, optional
+            [default: 1000], ignored unless `unit_scale` is True.
+        unit_pre  : str, optional
+            Pre-prefix [default: ''].
+        unit_prefixes  : list, optional
+            Prefixes (default: [''] + list('kMGTPEZY')).
 
         Returns
         -------
@@ -428,7 +439,8 @@ class tqdm(Comparable):
         if rate is None and elapsed:
             rate = (n - initial) / elapsed
         inv_rate = 1 / rate if rate else None
-        format_sizeof = tqdm.format_sizeof
+        format_sizeof = partial(tqdm.format_sizeof, divisor=unit_divisor,
+                                pre=unit_pre, prefixes=unit_prefixes)
         rate_noinv_fmt = ((format_sizeof(rate) if unit_scale else
                            '{0:5.2f}'.format(rate))
                           if rate else '?') + unit + '/s'
@@ -438,9 +450,8 @@ class tqdm(Comparable):
         rate_fmt = rate_inv_fmt if inv_rate and inv_rate > 1 else rate_noinv_fmt
 
         if unit_scale:
-            n_fmt = format_sizeof(n, divisor=unit_divisor)
-            total_fmt = format_sizeof(total, divisor=unit_divisor) \
-                if total is not None else '?'
+            n_fmt = format_sizeof(n)
+            total_fmt = format_sizeof(total) if total is not None else '?'
         else:
             n_fmt = str(n)
             total_fmt = str(total) if total is not None else '?'
@@ -475,7 +486,7 @@ class tqdm(Comparable):
             # slight extension of self.format_dict
             n=n, n_fmt=n_fmt, total=total, total_fmt=total_fmt,
             elapsed=elapsed_str, elapsed_s=elapsed,
-            ncols=ncols, desc=prefix or '', unit=unit,
+            ncols=ncols, desc=prefix or '', unit=unit, unit_pre=unit_pre,
             rate=inv_rate if inv_rate and inv_rate > 1 else rate,
             rate_fmt=rate_fmt, rate_noinv=rate,
             rate_noinv_fmt=rate_noinv_fmt, rate_inv=inv_rate,
@@ -835,7 +846,7 @@ class tqdm(Comparable):
                  unit_scale=False, dynamic_ncols=False, smoothing=0.3,
                  bar_format=None, initial=0, position=None, postfix=None,
                  unit_divisor=1000, write_bytes=None, lock_args=None,
-                 nrows=None, colour=None,
+                 nrows=None, colour=None, unit_pre='', unit_prefixes=None,
                  gui=False, **kwargs):
         """
         Parameters
@@ -888,15 +899,6 @@ class tqdm(Comparable):
         disable  : bool, optional
             Whether to disable the entire progressbar wrapper
             [default: False]. If set to None, disable on non-TTY.
-        unit  : str, optional
-            String that will be used to define the unit of each iteration
-            [default: it].
-        unit_scale  : bool or int or float, optional
-            If 1 or True, the number of iterations will be reduced/scaled
-            automatically and a metric prefix following the
-            International System of Units standard will be added
-            (kilo, mega, etc.) [default: False]. If any other non-zero
-            number, will scale `total` and `n`.
         dynamic_ncols  : bool, optional
             If set, constantly alters `ncols` and `nrows` to the
             environment (allowing for window resizes) [default: False].
@@ -928,8 +930,24 @@ class tqdm(Comparable):
         postfix  : dict or *, optional
             Specify additional stats to display at the end of the bar.
             Calls `set_postfix(**postfix)` if possible (dict).
+        unit  : str, optional
+            String that will be used to define the unit of each iteration
+            [default: it].
+        unit_scale  : bool or int or float, optional
+            If 1 or True, the number of iterations will be reduced/scaled
+            automatically and a metric prefix following the
+            International System of Units standard will be added
+            (kilo, mega, etc.) [default: False]. If any other non-zero
+            number, will scale `total` and `n`.
         unit_divisor  : float, optional
             [default: 1000], ignored unless `unit_scale` is True.
+        unit_pre  : str, optional
+            Pre-prefix [default: ''].
+        unit_prefixes  : list or str, optional
+            Prefixes (default: [''] + list('kMGTPEZY')).
+            Use `"IEEE1541"` or `"bytes"` as a shortcut to override:
+            unit='B', unit_scale=True, unit_divisor=1024, unit_pre=' ',
+            unit_prefixes=[''] + [i + 'i' for i in 'KMGTPEZY'].
         write_bytes  : bool, optional
             If (default: None) and `file` is unspecified,
             bytes will be written in Python 2. If `True` will also write
@@ -1055,9 +1073,19 @@ class tqdm(Comparable):
         self.dynamic_miniters = dynamic_miniters
         self.ascii = ascii
         self.disable = disable
-        self.unit = unit
-        self.unit_scale = unit_scale
-        self.unit_divisor = unit_divisor
+        if hasattr(unit_prefixes, "upper") and unit_prefixes.upper() in \
+                ["BYTES", "IEEE1541"]:
+            self.unit = 'B'
+            self.unit_scale = True
+            self.unit_divisor = 1024
+            self.unit_pre = ' '
+            self.unit_prefixes = [''] + [i + 'i' for i in 'KMGTPEZY']
+        else:
+            self.unit = unit
+            self.unit_scale = unit_scale
+            self.unit_divisor = unit_divisor
+            self.unit_pre = unit_pre
+            self.unit_prefixes = unit_prefixes
         self.initial = initial
         self.lock_args = lock_args
         self.gui = gui
@@ -1486,7 +1514,8 @@ class tqdm(Comparable):
             if hasattr(self, 'start_t') else 0,
             ncols=ncols, nrows=nrows,
             prefix=self.desc, ascii=self.ascii, unit=self.unit,
-            unit_scale=self.unit_scale,
+            unit_scale=self.unit_scale, unit_pre=self.unit_pre,
+            unit_prefixes=self.unit_prefixes,
             rate=1 / self.avg_time if self.avg_time else None,
             bar_format=self.bar_format, postfix=self.postfix,
             unit_divisor=self.unit_divisor, initial=self.initial,

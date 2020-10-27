@@ -407,15 +407,6 @@ Parameters
 * disable  : bool, optional  
     Whether to disable the entire progressbar wrapper
     [default: False]. If set to None, disable on non-TTY.
-* unit  : str, optional  
-    String that will be used to define the unit of each iteration
-    [default: it].
-* unit_scale  : bool or int or float, optional  
-    If 1 or True, the number of iterations will be reduced/scaled
-    automatically and a metric prefix following the
-    International System of Units standard will be added
-    (kilo, mega, etc.) [default: False]. If any other non-zero
-    number, will scale ``total`` and ``n``.
 * dynamic_ncols  : bool, optional  
     If set, constantly alters ``ncols`` and ``nrows`` to the
     environment (allowing for window resizes) [default: False].
@@ -447,8 +438,24 @@ Parameters
 * postfix  : dict or ``*``, optional  
     Specify additional stats to display at the end of the bar.
     Calls ``set_postfix(**postfix)`` if possible (dict).
+* unit  : str, optional  
+    String that will be used to define the unit of each iteration
+    [default: it].
+* unit_scale  : bool or int or float, optional  
+    If 1 or True, the number of iterations will be reduced/scaled
+    automatically and a metric prefix following the
+    International System of Units standard will be added
+    (kilo, mega, etc.) [default: False]. If any other non-zero
+    number, will scale ``total`` and ``n``.
 * unit_divisor  : float, optional  
     [default: 1000], ignored unless ``unit_scale`` is True.
+* unit_pre  : str, optional  
+    Pre-prefix [default: ''].
+* unit_prefixes  : list or str, optional  
+    Prefixes (default: [''] + list('kMGTPEZY')).
+    Use ``"IEEE1541"`` or ``"bytes"`` as a shortcut to override:
+    unit='B', unit_scale=True, unit_divisor=1024, unit_pre=' ',
+    unit_prefixes=[''] + [i + 'i' for i in 'KMGTPEZY'].
 * write_bytes  : bool, optional  
     If (default: None) and ``file`` is unspecified,
     bytes will be written in Python 2. If ``True`` will also write
@@ -474,7 +481,7 @@ Extra CLI Options
     used when ``delim`` is specified.
 * bytes  : bool, optional  
     If true, will count bytes, ignore ``delim``, and default
-    ``unit_scale`` to True, ``unit_divisor`` to 1024, and ``unit`` to 'B'.
+    ``unit_prefixes`` to ``"IEEE1541"``.
 * tee  : bool, optional  
     If true, passes ``stdin`` to both ``stderr`` and ``stdout``.
 * update  : bool, optional  
