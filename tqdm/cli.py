@@ -144,10 +144,12 @@ CLI_EXTRA_DOC = r"""
             If true, passes `stdin` to both `stderr` and `stdout`.
         update  : bool, optional
             If true, will treat input as newly elapsed iterations,
-            i.e. numbers to pass to `update()`.
+            i.e. numbers to pass to `update()`. Note that this is slow
+            (~2e5 it/s) since every input must be decoded as a number.
         update_to  : bool, optional
             If true, will treat input as total elapsed iterations,
-            i.e. numbers to assign to `self.n`.
+            i.e. numbers to assign to `self.n`. Note that this is slow
+            (~2e5 it/s) since every input must be decoded as a number.
         null  : bool, optional
             If true, will discard input (no stdout).
         manpath  : str, optional

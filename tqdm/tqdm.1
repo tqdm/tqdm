@@ -269,6 +269,8 @@ If true, passes \f[C]stdin\f[] to both \f[C]stderr\f[] and
 bool, optional.
 If true, will treat input as newly elapsed iterations, i.e.
 numbers to pass to \f[C]update()\f[].
+Note that this is slow (~2e5 it/s) since every input must be decoded as
+a number.
 .RS
 .RE
 .TP
@@ -276,6 +278,8 @@ numbers to pass to \f[C]update()\f[].
 bool, optional.
 If true, will treat input as total elapsed iterations, i.e.
 numbers to assign to \f[C]self.n\f[].
+Note that this is slow (~2e5 it/s) since every input must be decoded as
+a number.
 .RS
 .RE
 .TP
