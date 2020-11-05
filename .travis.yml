@@ -55,7 +55,7 @@ jobs:
     env: TOXENV=tf-no-keras
   - name: pypy2.7
     python: pypy2.7-7.3.1
-    env: TOXENV=pypy
+    env: TOXENV=pypy CRYPTOGRAPHY_ALLOW_OPENSSL_102=1
   - name: pypy3.6
     python: pypy3.6-7.3.1
     env: TOXENV=pypy3
