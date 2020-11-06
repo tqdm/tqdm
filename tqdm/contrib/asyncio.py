@@ -4,14 +4,14 @@ Thin wrappers around `asyncio`.
 import asyncio
 
 from tqdm.auto import tqdm as tqdm_auto
-from tqdm.contrib.concurrent import ensure_lock, length_hint
+from tqdm.contrib.concurrent import ensure_lock
 __author__ = {"github.com/": ["casperdcl"]}
 __all__ = ['map_async']
 
 
 async def map_async(fn, *iterables, **tqdm_kwargs):
     """
-    Equivalent of `list(map(asyncio.run, map(fn, *iterables)))`.
+    Equivalent of `[(await i) for i in map(fn, *iterables)]`.
 
     Parameters
     ----------
@@ -23,13 +23,9 @@ async def map_async(fn, *iterables, **tqdm_kwargs):
         [default: "":str].
     """
     kwargs = tqdm_kwargs.copy()
-    if "total" not in kwargs:
-        kwargs["total"] = length_hint(iterables[0])
     tqdm_class = kwargs.pop("tqdm_class", tqdm_auto)
-    loop = kwargs.pop("loop", None)
     lock_name = kwargs.pop("lock_name", "")
     with ensure_lock(tqdm_class, lock_name=lock_name):
         tasks = [asyncio.create_task(i) for i in map(fn, *iterables)]
-        _ = [await i for i in tqdm_class(
-             asyncio.as_completed(tasks, loop=loop), **kwargs)]
+        _ = [await i for i in tqdm_class.as_completed(tasks, **kwargs)]
     return [i.result() for i in tasks]
