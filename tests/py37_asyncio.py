@@ -3,6 +3,7 @@ from time import time
 import asyncio
 
 from tqdm.asyncio import tqdm_asyncio, tarange
+from tqdm.contrib.asyncio import map_async
 from .tests_tqdm import pretest_posttest  # NOQA, pylint: disable=unused-import
 from .tests_tqdm import StringIO, closing
 from .tests_perf import retry_on_except
@@ -14,8 +15,8 @@ as_completed = partial(tqdm_asyncio.as_completed, miniters=0, mininterval=0)
 
 def with_setup_sync(func):
     @wraps(func)
-    def inner():
-        return asyncio.run(func())
+    def inner(*args, **kwargs):
+        return asyncio.run(func(*args, **kwargs))
     return inner
 
 
@@ -32,6 +33,11 @@ def count(start=0, step=1):
 async def acount(*args, **kwargs):
     for i in count(*args, **kwargs):
         yield i
+
+
+async def square(x):
+    await asyncio.sleep(0.1)
+    return x ** 2
 
 
 @with_setup_sync
@@ -104,3 +110,10 @@ async def test_as_completed():
         t = time() - t - 2 * skew
         assert 0.27 < t < 0.33, t
         assert '30/30' in our_file.getvalue()
+
+
+@with_setup_sync
+async def test_map_async(capsys):
+    await map_async(square, range(9))
+    _, err = capsys.readouterr()
+    assert '9/9' in err
