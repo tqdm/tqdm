@@ -7,9 +7,9 @@ Usage:
 >>> async for i in trange(10):
 ...     ...
 """
+import asyncio
 from .std import tqdm as std_tqdm
 from .utils import ensure_lock
-import asyncio
 __author__ = {"github.com/": ["casperdcl"]}
 __all__ = ['tqdm_asyncio', 'tarange', 'tqdm', 'trange']
 
@@ -76,7 +76,8 @@ class tqdm_asyncio(std_tqdm):
         """
         with ensure_lock(cls, lock_name=kwargs.get('lock_name', "")):
             tasks = [asyncio.create_task(i) for i in map(fn, *iterables)]
-            _ = [await i for i in cls.as_completed(tasks, **kwargs)]
+            for i in cls.as_completed(tasks, **kwargs):
+                await i
         return [i.result() for i in tasks]
 
 
