@@ -114,6 +114,7 @@ async def test_as_completed():
 
 @with_setup_sync
 async def test_map_async(capsys):
+    """Test asyncio map_async"""
     await map_async(square, range(99))
     _, err = capsys.readouterr()
     assert '99/99' in err
