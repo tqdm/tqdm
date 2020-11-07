@@ -54,28 +54,27 @@ class tqdm_asyncio(std_tqdm):
 
     @classmethod
     def as_completed(cls, fs, *, loop=None, timeout=None, total=None,
-                     **tqdm_kwargs):
+                     lock_name="", **tqdm_kwargs):
         """
         Wrapper for `asyncio.as_completed`.
         """
         if total is None:
             total = len(fs)
-        yield from cls(asyncio.as_completed(fs, loop=loop, timeout=timeout),
-                       total=total, **tqdm_kwargs)
+        with ensure_lock(cls, lock_name=lock_name):
+            yield from cls(asyncio.as_completed(fs, loop=loop, timeout=timeout),
+                           total=total, **tqdm_kwargs)
 
     @classmethod
-    async def map_async(cls, fn, *iterables, lock_name="", **kwargs):
+    async def map_async(cls, fn, *iterables, **kwargs):
         """
         Equivalent of `[(await i) for i in map(fn, *iterables)]`.
 
         Parameters
         ----------
-        lock_name  : optional
-            [default: "":str].
         kwargs  : optional
-            Passed to `cls.as_completed`
+            Passed to `cls.as_completed`.
         """
-        with ensure_lock(cls, lock_name=lock_name):
+        with ensure_lock(cls, lock_name=kwargs.get('lock_name', "")):
             tasks = [asyncio.create_task(i) for i in map(fn, *iterables)]
             _ = [await i for i in cls.as_completed(tasks, **kwargs)]
         return [i.result() for i in tasks]
