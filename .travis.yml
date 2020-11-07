@@ -14,10 +14,8 @@ before_cache:
 - rm -f $HOME/.cache/pip/log/debug.log
 notifications:
   email: false
-# branches:  # remove travis double-check on pull requests in main repo
-#   only:
-#     - master
-#     - /^\d\.\d+$/
+# skip local branches (assumed built via PR)
+if: type != push OR tag IS NOT blank OR branch = master OR branch = devel OR repo != tqdm/tqdm
 stages:
 - test
 - name: deploy
