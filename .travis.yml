@@ -22,11 +22,7 @@ stages:
 - test
 - name: deploy
   if: repo = tqdm/tqdm AND NOT type = pull_request
-- name: development
-  if: false
 jobs:
-  allow_failures:
-  - stage: development
   include:
   - stage: test
     name: py2.6
@@ -55,14 +51,16 @@ jobs:
   - name: pypy3.6
     python: pypy3.6-7.3.1
     env: TOXENV=pypy3
-  - stage: development
-    name: py2.7-osx
+  - name: py2.7-osx
     os: osx
     language: shell
   - name: py3.7-osx
     os: osx
-    osx_image: xcode11.2  # py3.7
+    osx_image: xcode11.2
     language: shell
+    install:
+    - pip3 install tox
+    - pip3 install .
   - stage: deploy
     name: PyPI and GitHub
     python: 3.7
