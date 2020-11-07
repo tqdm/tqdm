@@ -114,6 +114,7 @@ async def test_as_completed():
 
 @with_setup_sync
 async def test_map_async(capsys):
-    await map_async(square, range(9))
+    await map_async(square, range(99))
     _, err = capsys.readouterr()
-    assert '9/9' in err
+    assert '99/99' in err
+    assert '00:00<00:00' in err, "async so should be << 1 sec"
