@@ -4,7 +4,7 @@ Thin wrappers around `concurrent.futures`.
 from __future__ import absolute_import
 from tqdm import TqdmWarning
 from tqdm.auto import tqdm as tqdm_auto
-from contextlib import contextmanager
+from tqdm.utils import ensure_lock
 try:
     from operator import length_hint
 except ImportError:
@@ -25,20 +25,6 @@ except ImportError:
 import sys
 __author__ = {"github.com/": ["casperdcl"]}
 __all__ = ['thread_map', 'process_map']
-
-
-@contextmanager
-def ensure_lock(tqdm_class, lock_name=""):
-    """get (create if necessary) and then restore `tqdm_class`'s lock"""
-    old_lock = getattr(tqdm_class, '_lock', None)  # don't create a new lock
-    lock = old_lock or tqdm_class.get_lock()  # maybe create a new lock
-    lock = getattr(lock, lock_name, lock)  # maybe subtype
-    tqdm_class.set_lock(lock)
-    yield lock
-    if old_lock is None:
-        del tqdm_class._lock
-    else:
-        tqdm_class.set_lock(old_lock)
 
 
 def _executor_map(PoolExecutor, fn, *iterables, **tqdm_kwargs):

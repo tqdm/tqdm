@@ -3,7 +3,6 @@ from time import time
 import asyncio
 
 from tqdm.asyncio import tqdm_asyncio, tarange
-from tqdm.contrib.asyncio import map_async
 from .tests_tqdm import pretest_posttest  # NOQA, pylint: disable=unused-import
 from .tests_tqdm import StringIO, closing
 from .tests_perf import retry_on_except
@@ -11,6 +10,7 @@ from .tests_perf import retry_on_except
 tqdm = partial(tqdm_asyncio, miniters=0, mininterval=0)
 trange = partial(tarange, miniters=0, mininterval=0)
 as_completed = partial(tqdm_asyncio.as_completed, miniters=0, mininterval=0)
+map_async = partial(tqdm_asyncio.map_async, miniters=0, mininterval=0)
 
 
 def with_setup_sync(func):

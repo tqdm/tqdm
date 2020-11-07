@@ -8,6 +8,7 @@ Usage:
 ...     ...
 """
 from .std import tqdm as std_tqdm
+from .utils import ensure_lock
 import asyncio
 __author__ = {"github.com/": ["casperdcl"]}
 __all__ = ['tqdm_asyncio', 'tarange', 'tqdm', 'trange']
@@ -61,6 +62,23 @@ class tqdm_asyncio(std_tqdm):
             total = len(fs)
         yield from cls(asyncio.as_completed(fs, loop=loop, timeout=timeout),
                        total=total, **tqdm_kwargs)
+
+    @classmethod
+    async def map_async(cls, fn, *iterables, lock_name="", **kwargs):
+        """
+        Equivalent of `[(await i) for i in map(fn, *iterables)]`.
+
+        Parameters
+        ----------
+        lock_name  : optional
+            [default: "":str].
+        kwargs  : optional
+            Passed to `cls.as_completed`
+        """
+        with ensure_lock(cls, lock_name=lock_name):
+            tasks = [asyncio.create_task(i) for i in map(fn, *iterables)]
+            _ = [await i for i in cls.as_completed(tasks, **kwargs)]
+        return [i.result() for i in tasks]
 
 
 def tarange(*args, **kwargs):
