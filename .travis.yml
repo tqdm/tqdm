@@ -50,6 +50,9 @@ jobs:
   - name: py3.8
     python: 3.8
     env: TOXENV=py38
+  - name: py3.9
+    python: 3.9
+    env: TOXENV=py39
   - name: tf-no-keras
     python: 3.7
     env: TOXENV=tf-no-keras
