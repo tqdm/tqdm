@@ -40,3 +40,6 @@ benchmarks/*.py[co]
 /wiki/
 /docs/
 /feedstock/
+
+# version file
+/tqdm/_version.py
