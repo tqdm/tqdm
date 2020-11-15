@@ -6,7 +6,7 @@ on:
   - cron: '2 1 * * 6'  # M H d m w (Saturdays at 1:02)
 jobs:
   check:
-    name: Install
+    name: install
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -14,10 +14,28 @@ jobs:
       with:
         python-version: '3.x'
     - run: pip install .
+  test-os:
+    strategy:
+      matrix:
+        python: [2.7, 3.7]
+        os: [macos-latest, windows-latest]
+    name: py${{ matrix.python }}-${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python }}
+    - run: pip install -U tox
+    - run: tox -e py${PYVER/./}
+      env:
+        PYVER: ${{ matrix.python }}
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
   test:
     strategy:
       matrix:
-        python: [2.7, 3.5, 3.6, 3.7, 3.8]
+        python: [2.7, 3.5, 3.6, 3.7, 3.8, pypy2, pypy3]
     name: py${{ matrix.python }}
     runs-on: ubuntu-latest
     steps:
@@ -28,9 +46,12 @@ jobs:
     - run: pip install -U tox
     - name: tox
       run: |
-        tox -e py${PYVER/./}
-        if [[ "$PYVER" == "3.7" ]]; then
+        if [[ "$PYVER" == py* ]]; then
+          tox -e $PYVER
+        elif [[ "$PYVER" == "3.7" ]]; then
           tox -e tf-no-keras
+        else
+          tox -e py${PYVER/./}
         fi
       env:
         PYVER: ${{ matrix.python }}
@@ -41,8 +62,8 @@ jobs:
       with:
         parallel: true
   finish:
-    name: Coverage
-    needs: test
+    name: pytest cov
+    needs: [test, test-os]
     runs-on: ubuntu-latest
     steps:
     - name: Coveralls Finished
@@ -50,8 +71,7 @@ jobs:
       with:
         parallel-finished: true
   deploy:
-    name: Deploy
-    needs: [check, test]
+    needs: [check, test, test-os]
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
