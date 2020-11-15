@@ -29,7 +29,7 @@ jobs:
   test:
     strategy:
       matrix:
-        python: [2.6, 2.7, 3.4, 3.5, 3.6, 3.7, 3.8]
+        python: [2.7, 3.5, 3.6, 3.7, 3.8]
     name: py${{ matrix.python }}
     runs-on: ubuntu-latest
     steps:
