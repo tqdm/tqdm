@@ -1,12 +1,32 @@
-name: Benchmark
+name: Check
 on:
   push:
+  pull_request:
   schedule:
   - cron: '36 1 * * SUN'  # M H d m w (Sundays at 01:36)
 jobs:
+  check:
+    name: '${{ matrix.TOXENV }}'
+    strategy:
+      matrix:
+        TOXENV:
+        - flake8,setup.py
+        - perf
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+    - name: Install
+      run: pip install -U tox
+    - name: Test
+      run: tox
+      env:
+        TOXENV: ${{ matrix.TOXENV }}
   asvfull:
     if: (github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')) || github.event_name == 'schedule'
-    name: Full
+    name: Benchmark (Full)
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -42,8 +62,8 @@ jobs:
         GIT_AUTHOR_NAME: ${{ github.actor }}
         GIT_AUTHOR_EMAIL: ${{ github.actor }}@users.noreply.github.com
   testasv:
-    if: github.event_name == 'push' && ! startsWith(github.event.ref, 'refs/tags') && github.event.ref != 'refs/heads/master'
-    name: Branch
+    if: github.event.ref != 'refs/heads/master' && ! startsWith(github.event.ref, 'refs/tags')
+    name: Benchmark (Branch)
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -70,7 +90,3 @@ jobs:
         CHANGES="$(asv compare --only-changed -f 1.25 master HEAD)"
         echo "$CHANGES"
         [ -z "$CHANGES" ] || exit 1
-  always:
-    runs-on: ubuntu-latest
-    steps:
-    - run: echo prevent failure when other jobs are skipped

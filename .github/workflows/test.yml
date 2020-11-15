@@ -6,26 +6,14 @@ on:
   - cron: '2 1 * * 6'  # M H d m w (Saturdays at 1:02)
 jobs:
   check:
-    name: '${{ matrix.TOXENV }}'
-    strategy:
-      matrix:
-        TOXENV:
-          - flake8,setup.py
-          - perf
+    name: Install
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
     - uses: actions/setup-python@v2
       with:
         python-version: '3.x'
-    - name: Install
-      run: |
-        pip install -U tox
-        pip install -U .  # test installability
-    - name: Test
-      run: tox
-      env:
-        TOXENV: ${{ matrix.TOXENV }}
+    - run: pip install .
   test:
     strategy:
       matrix:
