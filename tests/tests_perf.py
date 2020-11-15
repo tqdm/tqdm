@@ -61,7 +61,7 @@ def relative_timer():
         return spent
 
 
-def retry_on_except(n=6, check_cpu_time=True):
+def retry_on_except(n=3, check_cpu_time=True):
     """decroator for retrying `n` times before raising Exceptions"""
     def wrapper(func):
         """actual decorator"""
@@ -249,7 +249,7 @@ def test_lock_args():
     assert_performance(0.5, 'noblock', time_noblock(), 'tqdm', time_tqdm())
 
 
-@retry_on_except()
+@retry_on_except(10)
 def test_iter_overhead_hard():
     """Test overhead of iteration based tqdm (hard)"""
 
@@ -273,7 +273,7 @@ def test_iter_overhead_hard():
     assert_performance(130, 'trange', time_tqdm(), 'range', time_bench())
 
 
-@retry_on_except()
+@retry_on_except(10)
 def test_manual_overhead_hard():
     """Test overhead of manual tqdm (hard)"""
 
@@ -297,7 +297,7 @@ def test_manual_overhead_hard():
     assert_performance(130, 'tqdm', time_tqdm(), 'range', time_bench())
 
 
-@retry_on_except()
+@retry_on_except(10)
 def test_iter_overhead_simplebar_hard():
     """Test overhead of iteration based tqdm vs simple progress bar (hard)"""
 
@@ -323,7 +323,7 @@ def test_iter_overhead_simplebar_hard():
         10, 'trange', time_tqdm(), 'simple_progress', time_bench())
 
 
-@retry_on_except()
+@retry_on_except(10)
 def test_manual_overhead_simplebar_hard():
     """Test overhead of manual tqdm vs simple progress bar (hard)"""
 

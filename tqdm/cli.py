@@ -38,15 +38,6 @@ def cast(val, typ):
             raise TqdmTypeError(val + ' : ' + typ)
 
 
-def isBytes(val):
-    """Equivalent of `isinstance(val, six.binary_type)`."""
-    try:
-        val.index(b'')
-    except TypeError:
-        return False
-    return True
-
-
 def posix_pipe(fin, fout, delim=b'\\n', buf_size=256,
                callback=lambda float: None, callback_len=True):
     """

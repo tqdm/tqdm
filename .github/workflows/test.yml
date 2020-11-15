@@ -35,7 +35,7 @@ jobs:
   test:
     strategy:
       matrix:
-        python: [2.7, 3.5, 3.6, 3.7, 3.8, pypy2, pypy3]
+        python: [2.7, 3.4, 3.5, 3.6, 3.7, 3.8, pypy2, pypy3]
     name: py${{ matrix.python }}
     runs-on: ubuntu-latest
     steps:
@@ -49,15 +49,17 @@ jobs:
         if [[ "$PYVER" == py* ]]; then
           tox -e $PYVER
         elif [[ "$PYVER" == "3.7" ]]; then
-          tox -e tf-no-keras
+          tox -e py${PYVER/./}-linux,tf-no-keras
         else
-          tox -e py${PYVER/./}
+          [[ "$PYVER" == *3.4 ]] && sed -i '/relative_files/d' .coveragerc
+          tox -e py${PYVER/./}-linux
         fi
       env:
         PYVER: ${{ matrix.python }}
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
-    - name: Coveralls Parallel
+    - if: ${{ matrix.python != 3.4 }}
+      name: Coveralls Parallel
       uses: AndreMiras/coveralls-python-action@develop
       with:
         parallel: true

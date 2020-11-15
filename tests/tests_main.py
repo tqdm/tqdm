@@ -82,6 +82,7 @@ def test_main():
     sys.stdin = [str(i).encode() for i in _range(N)]
     # with closing(UnicodeIO()) as fp:
     main(argv=['--log', 'DEBUG'], fp=NULL)
+    main(argv=['--log=DEBUG'], fp=NULL)
     # assert "DEBUG:" in sys.stdout.getvalue()
 
     try:
