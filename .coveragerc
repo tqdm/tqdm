@@ -6,5 +6,6 @@ omit =
     tqdm/contrib/discord.py
     tqdm/contrib/telegram.py
     tqdm/contrib/utils_worker.py
+relative_files = True
 [report]
 show_missing = True

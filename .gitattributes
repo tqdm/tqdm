@@ -6,7 +6,6 @@
 images/        export-ignore
 benchmarks/    export-ignore
 MANIFEST.in    export-ignore
-.travis.yml    export-ignore
 codecov.yml    export-ignore
 asv.conf.json  export-ignore
 .style.yapf    export-ignore
