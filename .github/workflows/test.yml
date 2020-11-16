@@ -35,7 +35,7 @@ jobs:
   test:
     strategy:
       matrix:
-        python: [2.7, 3.4, 3.5, 3.6, 3.7, 3.8, pypy2, pypy3]
+        python: [2.7, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9, pypy2, pypy3]
     name: py${{ matrix.python }}
     runs-on: ubuntu-latest
     steps:
@@ -47,12 +47,14 @@ jobs:
     - name: tox
       run: |
         if [[ "$PYVER" == py* ]]; then
-          tox -e $PYVER
-        elif [[ "$PYVER" == "3.7" ]]; then
-          tox -e py${PYVER/./}-linux,tf-no-keras
-        else
+          tox -e $PYVER                                             # basic:pypy
+        elif [[ "$PYVER" == *3.4 || "$PYVER" == *3.9 ]]; then
           [[ "$PYVER" == *3.4 ]] && sed -i '/relative_files/d' .coveragerc
-          tox -e py${PYVER/./}-linux
+          tox -e py${PYVER/./}                                      # basic
+        elif [[ "$PYVER" == "3.7" ]]; then
+          tox -e py${PYVER/./}-tf,py${PYVER/./}-tf-keras            # full
+        else
+          tox -e py${PYVER/./}-tf-keras                             # normal
         fi
       env:
         PYVER: ${{ matrix.python }}
