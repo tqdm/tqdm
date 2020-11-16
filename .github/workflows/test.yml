@@ -67,6 +67,7 @@ jobs:
         parallel: true
   finish:
     name: pytest cov
+    continue-on-error: ${{ github.event_name != 'push' }}
     needs: [test, test-os]
     runs-on: ubuntu-latest
     steps:
