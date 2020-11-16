@@ -1319,8 +1319,8 @@ Citation information: |DOI|
    :target: https://tqdm.github.io/video
 .. |Slides| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/slides.jpg
    :target: https://tqdm.github.io/PyData2019/slides.html
-.. |Build-Status| image:: https://img.shields.io/travis/tqdm/tqdm/master.svg?logo=travis
-   :target: https://travis-ci.org/tqdm/tqdm
+.. |Build-Status| image:: https://img.shields.io/github/workflow/status/tqdm/tqdm/Test/master?logo=GitHub
+   :target: https://github.com/tqdm/tqdm/actions?query=workflow%3ATest
 .. |Coverage-Status| image:: https://coveralls.io/repos/tqdm/tqdm/badge.svg?branch=master
    :target: https://coveralls.io/github/tqdm/tqdm
 .. |Branch-Coverage-Status| image:: https://codecov.io/gh/tqdm/tqdm/branch/master/graph/badge.svg

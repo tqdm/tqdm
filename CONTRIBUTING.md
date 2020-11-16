@@ -245,7 +245,7 @@ display as `v{major}.{minor}.{patch}-{commit_hash}`.
 
 ### Upload
 
-Travis CI should automatically do this after pushing tags.
+GitHub Actions (GHA) CI should automatically do this after pushing tags.
 Manual instructions are given below in case of failure.
 
 Build `tqdm` into a distributable python package:
@@ -358,31 +358,31 @@ Much is automated so really it's steps 1-6, then 12(a).
 5. wait for tests to pass
     a) in case of failure, fix and go back to (2)
 6. `git tag vM.m.p && git push --tags` or comment `/tag vM.m.p commit_hash`
-7. **`[AUTO:TravisCI]`** `[python setup.py] make distclean`
-8. **`[AUTO:TravisCI]`** `[python setup.py] make build`
-9. **`[AUTO:TravisCI]`** upload to PyPI. either:
+7. **`[AUTO:GHA]`** `[python setup.py] make distclean`
+8. **`[AUTO:GHA]`** `[python setup.py] make build`
+9. **`[AUTO:GHA]`** upload to PyPI. either:
     a) `[python setup.py] make pypi`, or
     b) `twine upload -s -i $(git config user.signingkey) dist/tqdm-*`
-10. **`[AUTO:TravisCI]`** upload to docker hub:
+10. **`[AUTO:GHA]`** upload to docker hub:
     a) `make -B docker`
     b) `docker push tqdm/tqdm:latest`
     c) `docker push tqdm/tqdm:$(docker run -i --rm tqdm/tqdm -v)`
-11. **`[AUTO:TravisCI]`** upload to snapcraft:
+11. **`[AUTO:GHA]`** upload to snapcraft:
     a) `make snap`, and
     b) `snapcraft push tqdm*.snap --release stable`
-12. Wait for travis to draft a new release on <https://github.com/tqdm/tqdm/releases>
+12. Wait for GHA to draft a new release on <https://github.com/tqdm/tqdm/releases>
     a) replace the commit history with helpful release notes, and click publish
-    b) **`[AUTO:TravisCI]`** attach `dist/tqdm-*` binaries
+    b) **`[AUTO:GHA]`** attach `dist/tqdm-*` binaries
        (usually only `*.whl*`)
-13. **`[SUB][AUTO:GHActions]`** run `make` in the `wiki` submodule to update release notes
-14. **`[SUB][AUTO:GHActions]`** run `make deploy` in the `docs` submodule to update website
-15. **`[SUB][AUTO:GHActions]`** accept the automated PR in the `feedstock` submodule to update conda
-16. **`[AUTO:GHActions]`** update the [gh-pages project] benchmarks
+13. **`[SUB][AUTO:GHA-rel]`** run `make` in the `wiki` submodule to update release notes
+14. **`[SUB][AUTO:GHA-rel]`** run `make deploy` in the `docs` submodule to update website
+15. **`[SUB][AUTO:GHA-rel]`** accept the automated PR in the `feedstock` submodule to update conda
+16. **`[AUTO:GHA-rel]`** update the [gh-pages project] benchmarks
     a) `[python setup.py] make testasvfull`
     b) `asv gh-pages`
 
 Key:
 
-- **`[AUTO:TravisCI]`**: Travis CI should automatically do this after `git push --tags` (6)
-- **`[AUTO:GHActions]`**: GitHub Actions CI should automatically do this after release (12a)
+- **`[AUTO:GHA]`**: GitHub Actions CI should automatically do this after `git push --tags` (6)
+- **`[AUTO:GHA-rel]`**: GitHub Actions CI should automatically do this after release (12a)
 - **`[SUB]`**:  Requires one-time `make submodules` to clone `docs`, `wiki`, and `feedstock`
