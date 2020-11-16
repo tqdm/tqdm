@@ -1,0 +1,3 @@
+[build-system]
+requires = ["setuptools>=38.6.0"]
+build-backend = "setuptools.build_meta"

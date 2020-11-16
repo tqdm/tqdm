@@ -8,19 +8,20 @@ Usage:
 ...     ...
 """
 from __future__ import absolute_import, division
-# compatibility functions and utilities
-from .utils import _supports_unicode, _screen_shape_wrapper, _range, _unich, \
-    _term_move_up, _unicode, WeakSet, _basestring, _OrderedDict, \
-    Comparable, _is_ascii, FormatReplace, disp_len, disp_trim, \
-    SimpleTextIOWrapper, DisableOnWriteError, CallbackIOWrapper
-from ._monitor import TMonitor
-# native libraries
+from collections import OrderedDict
 from contextlib import contextmanager
 from datetime import datetime, timedelta
 from numbers import Number
 from time import time
 from warnings import warn
+from weakref import WeakSet
 import sys
+
+from .utils import _supports_unicode, _screen_shape_wrapper, _range, _unich, \
+    _term_move_up, _unicode, _basestring, \
+    Comparable, _is_ascii, FormatReplace, disp_len, disp_trim, \
+    SimpleTextIOWrapper, DisableOnWriteError, CallbackIOWrapper
+from ._monitor import TMonitor
 
 __author__ = "https://github.com/tqdm/tqdm#contributions"
 __all__ = ['tqdm', 'trange',
@@ -1443,7 +1444,7 @@ class tqdm(Comparable):
         kwargs  : dict, optional
         """
         # Sort in alphabetical order to be more deterministic
-        postfix = _OrderedDict([] if ordered_dict is None else ordered_dict)
+        postfix = OrderedDict([] if ordered_dict is None else ordered_dict)
         for key in sorted(kwargs.keys()):
             postfix[key] = kwargs[key]
         # Preprocess stats according to datatype
