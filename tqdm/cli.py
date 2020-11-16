@@ -38,37 +38,26 @@ def cast(val, typ):
             raise TqdmTypeError(val + ' : ' + typ)
 
 
-def isBytes(val):
-    """Equivalent of `isinstance(val, six.binary_type)`."""
-    try:
-        val.index(b'')
-    except TypeError:
-        return False
-    return True
-
-
 def posix_pipe(fin, fout, delim=b'\\n', buf_size=256,
-               callback=lambda float: None,  # pragma: no cover
-               callback_len=True):
+               callback=lambda float: None, callback_len=True):
     """
     Params
     ------
-    fin  : file with `read(buf_size : int)` method
-    fout  : file with `write` (and optionally `flush`) methods.
+    fin  : binary file with `read(buf_size : int)` method
+    fout  : binary file with `write` (and optionally `flush`) methods.
     callback  : function(float), e.g.: `tqdm.update`
     callback_len  : If (default: True) do `callback(len(buffer))`.
       Otherwise, do `callback(data) for data in buffer.split(delim)`.
     """
     fp_write = fout.write
 
-    # tmp = b''
     if not delim:
         while True:
             tmp = fin.read(buf_size)
 
             # flush at EOF
             if not tmp:
-                getattr(fout, 'flush', lambda: None)()  # pragma: no cover
+                getattr(fout, 'flush', lambda: None)()
                 return
 
             fp_write(tmp)
@@ -76,20 +65,9 @@ def posix_pipe(fin, fout, delim=b'\\n', buf_size=256,
         # return
 
     buf = b''
-    check_bytes = True
-    write_bytes = True
     # n = 0
     while True:
         tmp = fin.read(buf_size)
-
-        if check_bytes:  # first time; check encoding
-            check_bytes = False
-            if not isBytes(tmp):
-                # currently only triggered by `tests_main.py`.
-                # TODO: mock stdin/out better so that this isn't needed
-                write_bytes = False
-                delim = delim.decode()
-                buf = buf.decode()
 
         # flush at EOF
         if not tmp:
@@ -101,7 +79,7 @@ def posix_pipe(fin, fout, delim=b'\\n', buf_size=256,
                 else:
                     for i in buf.split(delim):
                         callback(i)
-            getattr(fout, 'flush', lambda: None)()  # pragma: no cover
+            getattr(fout, 'flush', lambda: None)()
             return  # n
 
         while True:
@@ -114,7 +92,7 @@ def posix_pipe(fin, fout, delim=b'\\n', buf_size=256,
                 fp_write(buf + tmp[:i + len(delim)])
                 # n += 1
                 callback(1 if callback_len else (buf + tmp[:i]))
-                buf = b'' if write_bytes else ''
+                buf = b''
                 tmp = tmp[i + len(delim):]
 
 
@@ -145,10 +123,12 @@ CLI_EXTRA_DOC = r"""
             If true, passes `stdin` to both `stderr` and `stdout`.
         update  : bool, optional
             If true, will treat input as newly elapsed iterations,
-            i.e. numbers to pass to `update()`.
+            i.e. numbers to pass to `update()`. Note that this is slow
+            (~2e5 it/s) since every input must be decoded as a number.
         update_to  : bool, optional
             If true, will treat input as total elapsed iterations,
-            i.e. numbers to assign to `self.n`.
+            i.e. numbers to assign to `self.n`. Note that this is slow
+            (~2e5 it/s) since every input must be decoded as a number.
         null  : bool, optional
             If true, will discard input (no stdout).
         manpath  : str, optional

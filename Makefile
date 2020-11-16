@@ -109,9 +109,8 @@ snapcraft.yaml: .meta/.snapcraft.yml
     -e 's/{description}/https:\/\/tqdm.github.io/g' > "$@"
 
 .dockerignore: .gitignore
-	cat $^ > "$@"
-	echo ".git" > "$@"
-	git clean -xdn | sed -nr 's/^Would remove (.*)$$/\1/p' >> "$@"
+	echo '*' > $@
+	echo '!dist/*.whl' >> $@
 
 distclean:
 	@+make coverclean

@@ -1,7 +1,4 @@
 FROM python:3.7-alpine
-COPY setup.py tqdm/
-COPY requirements-dev.txt tqdm/
-COPY README.rst tqdm/
-COPY tqdm tqdm/tqdm
-RUN pip install -U ./tqdm
+COPY dist/*.whl .
+RUN pip install -U $(ls ./*.whl) && rm ./*.whl
 ENTRYPOINT ["tqdm"]

@@ -99,11 +99,11 @@ class tqdm_telegram(tqdm_auto):
     def display(self, **kwargs):
         super(tqdm_telegram, self).display(**kwargs)
         fmt = self.format_dict
-        if 'bar_format' in fmt and fmt['bar_format']:
-            fmt['bar_format'] = fmt['bar_format'].replace('<bar/>', '{bar}')
+        if fmt.get('bar_format', None):
+            fmt['bar_format'] = fmt['bar_format'].replace(
+                '<bar/>', '{bar:10u}').replace('{bar}', '{bar:10u}')
         else:
-            fmt['bar_format'] = '{l_bar}{bar}{r_bar}'
-        fmt['bar_format'] = fmt['bar_format'].replace('{bar}', '{bar:10u}')
+            fmt['bar_format'] = '{l_bar}{bar:10u}{r_bar}'
         self.tgio.write(self.format_meter(**fmt))
 
     def __new__(cls, *args, **kwargs):

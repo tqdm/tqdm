@@ -124,7 +124,6 @@ class tqdm_notebook(std_tqdm):
             container.layout.width = ncols
             container.layout.display = 'inline-flex'
             container.layout.flex_flow = 'row wrap'
-        display(container)
 
         return container
 
@@ -195,6 +194,14 @@ class tqdm_notebook(std_tqdm):
             self.container.children[-2].style.bar_color = bar_color
 
     def __init__(self, *args, **kwargs):
+        """
+        Supports the usual `tqdm.tqdm` parameters as well as those listed below.
+
+        Parameters
+        ----------
+        display  : Whether to call `display(self.container)` immediately
+            [default: True].
+        """
         kwargs = kwargs.copy()
         # Setup default output
         file_kwarg = kwargs.get('file', sys.stderr)
@@ -209,6 +216,7 @@ class tqdm_notebook(std_tqdm):
         # convert disable = None to False
         kwargs['disable'] = bool(kwargs.get('disable', False))
         colour = kwargs.pop('colour', None)
+        display_here = kwargs.pop('display', True)
         super(tqdm_notebook, self).__init__(*args, **kwargs)
         if self.disable or not kwargs['gui']:
             self.sp = lambda *_, **__: None
@@ -222,6 +230,8 @@ class tqdm_notebook(std_tqdm):
         total = self.total * unit_scale if self.total else self.total
         self.container = self.status_printer(
             self.fp, total, self.desc, self.ncols)
+        if display_here:
+            display(self.container)
         self.sp = self.display
         self.colour = colour
 

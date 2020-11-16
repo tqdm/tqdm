@@ -479,10 +479,12 @@ Extra CLI Options
     If true, passes ``stdin`` to both ``stderr`` and ``stdout``.
 * update  : bool, optional  
     If true, will treat input as newly elapsed iterations,
-    i.e. numbers to pass to ``update()``.
+    i.e. numbers to pass to ``update()``. Note that this is slow
+    (~2e5 it/s) since every input must be decoded as a number.
 * update_to  : bool, optional  
     If true, will treat input as total elapsed iterations,
-    i.e. numbers to assign to ``self.n``.
+    i.e. numbers to assign to ``self.n``. Note that this is slow
+    (~2e5 it/s) since every input must be decoded as a number.
 * null  : bool, optional  
     If true, will discard input (no stdout).
 * manpath  : str, optional  
@@ -1042,8 +1044,34 @@ this warning.
 
 Note that notebooks will display the bar in the cell where it was created.
 This may be a different cell from the one where it is used.
-If this is not desired, the creation of the bar must be delayed/moved to the
-cell where it is desired to be displayed.
+If this is not desired, either
+
+- delay the creation of the bar to the cell where it must be displayed, or
+- create the bar with ``display=False``, and in a later cell call
+  ``display(bar.container)``:
+
+.. code:: python
+
+    from tqdm.notebook import tqdm
+    pbar = tqdm(..., display=False)
+
+.. code:: python
+
+    # different cell
+    display(pbar.container)
+
+The ``keras`` callback has a ``display()`` method which can be used likewise:
+
+.. code:: python
+
+    from tqdm.keras import TqdmCallback
+    cbk = TqdmCallback(display=False)
+
+.. code:: python
+
+    # different cell
+    cbk.display()
+    model.fit(..., verbose=0, callbacks=[cbk])
 
 Another possibility is to have a single bar (near the top of the notebook)
 which is constantly re-used (using ``reset()`` rather than ``close()``).
@@ -1317,9 +1345,9 @@ Citation information: |DOI|
    :target: https://tqdm.github.io/video
 .. |Slides| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/slides.jpg
    :target: https://tqdm.github.io/PyData2019/slides.html
-.. |Build-Status| image:: https://img.shields.io/travis/tqdm/tqdm/master.svg?logo=travis
-   :target: https://travis-ci.org/tqdm/tqdm
-.. |Coverage-Status| image:: https://coveralls.io/repos/tqdm/tqdm/badge.svg?branch=master
+.. |Build-Status| image:: https://img.shields.io/github/workflow/status/tqdm/tqdm/Test/master?logo=GitHub
+   :target: https://github.com/tqdm/tqdm/actions?query=workflow%3ATest
+.. |Coverage-Status| image:: https://img.shields.io/coveralls/github/tqdm/tqdm/master?logo=coveralls
    :target: https://coveralls.io/github/tqdm/tqdm
 .. |Branch-Coverage-Status| image:: https://codecov.io/gh/tqdm/tqdm/branch/master/graph/badge.svg
    :target: https://codecov.io/gh/tqdm/tqdm

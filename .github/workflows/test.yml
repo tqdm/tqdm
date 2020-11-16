@@ -1,0 +1,188 @@
+name: Test
+on:
+  push:
+  pull_request:
+  schedule:
+  - cron: '2 1 * * 6'  # M H d m w (Saturdays at 1:02)
+jobs:
+  check:
+    name: install
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+    - run: pip install .
+  test-os:
+    strategy:
+      matrix:
+        python: [2.7, 3.7]
+        os: [macos-latest, windows-latest]
+    name: py${{ matrix.python }}-${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python }}
+    - run: pip install -U tox
+    - run: tox -e py${PYVER/./}
+      env:
+        PYVER: ${{ matrix.python }}
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
+  test:
+    strategy:
+      matrix:
+        python: [2.7, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9, pypy3]
+    name: py${{ matrix.python }}
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python }}
+    - run: pip install -U tox
+    - name: tox
+      run: |
+        if [[ "$PYVER" == py* ]]; then
+          tox -e $PYVER                                             # basic:pypy
+        elif [[ "$PYVER" == *3.4 || "$PYVER" == *3.9 ]]; then
+          [[ "$PYVER" == *3.4 ]] && sed -i '/relative_files/d' .coveragerc
+          tox -e py${PYVER/./}                                      # basic
+        elif [[ "$PYVER" == "3.7" ]]; then
+          tox -e py${PYVER/./}-tf,py${PYVER/./}-tf-keras            # full
+        else
+          tox -e py${PYVER/./}-tf-keras                             # normal
+        fi
+      env:
+        PYVER: ${{ matrix.python }}
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
+    - if: ${{ matrix.python != 3.4 }}
+      name: Coveralls Parallel
+      uses: AndreMiras/coveralls-python-action@develop
+      with:
+        parallel: true
+  finish:
+    name: pytest cov
+    continue-on-error: ${{ github.event_name != 'push' }}
+    needs: [test, test-os]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Coveralls Finished
+      uses: AndreMiras/coveralls-python-action@develop
+      with:
+        parallel-finished: true
+  deploy:
+    needs: [check, test, test-os]
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+    - name: Install
+      run: |
+        sudo apt-get install -yqq pandoc
+        pip install setuptools_scm
+        git fetch --unshallow --tags
+        pip install .[dev]
+        make build .dockerignore snapcraft.yaml
+    - if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
+      uses: casperdcl/deploy-pypi@v1
+      with:
+        password: ${{ secrets.PYPI_TOKEN }}
+        gpg_key: ${{ secrets.GPG_KEY }}
+        skip_existing: true
+    - id: collect_assets
+      name: Collect assets
+      shell: bash
+      run: |
+        echo "::set-output name=asset_path::$(ls dist/*.whl)"
+        echo "::set-output name=asset_name::$(basename dist/*.whl)"
+        echo "::set-output name=asset_path_sig::$(ls dist/*.whl.asc 2>/dev/null)"
+        echo "::set-output name=asset_name_sig::$(basename dist/*.whl.asc 2>/dev/null)"
+        if [[ $GITHUB_REF == refs/tags/v* ]]; then
+          echo ::set-output name=docker_tags::latest,${GITHUB_REF/refs\/tags\/v/}
+          echo ::set-output name=snap_channel::stable
+        elif [[ $GITHUB_REF == refs/heads/master ]]; then
+          echo ::set-output name=docker_tags::master
+          echo ::set-output name=snap_channel::candidate
+        elif [[ $GITHUB_REF == refs/heads/devel ]]; then
+          echo ::set-output name=docker_tags::devel
+          echo ::set-output name=snap_channel::edge
+        fi
+        git log --pretty='format:%d%n- %s%n%b---' $(git tag --sort=v:refname | tail -n2 | head -n1)..HEAD > _CHANGES.md
+    - if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: tqdm ${{ github.ref }} stable
+        body_path: _CHANGES.md
+        draft: true
+    - if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ${{ steps.collect_assets.outputs.asset_path }}
+        asset_name: ${{ steps.collect_assets.outputs.asset_name }}
+        asset_content_type: application/zip
+    - if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ${{ steps.collect_assets.outputs.asset_path_sig }}
+        asset_name: ${{ steps.collect_assets.outputs.asset_name_sig }}
+        asset_content_type: text/plain
+    - name: Snap install
+      uses: samuelmeuli/action-snapcraft@v1
+      with:
+        use_lxd: true
+    - name: Snap build
+      shell: bash
+      run: |
+        export SNAPCRAFT_IMAGE_INFO='{"build_url": "https://github.com/tqdm/tqdm/actions/runs/'$GITHUB_RUN_ID'"}'
+        sg lxd -c 'snapcraft --use-lxd'
+      env:
+        SNAPCRAFT_BUILD_INFO: 1  # https://snapcraft.io/blog/introducing-developer-notifications-for-snap-security-updates
+    - if: github.event_name == 'push' && steps.collect_assets.outputs.snap_channel
+      name: Snap login
+      uses: samuelmeuli/action-snapcraft@v1
+      with:
+        skip_install: true
+        snapcraft_token: ${{ secrets.SNAP_TOKEN }}
+    - if: github.event_name == 'push' && steps.collect_assets.outputs.snap_channel
+      name: Snap deploy
+      shell: bash
+      run: |
+        if [ -n "$(ls tqdm*.snap 2>/dev/null)" ]; then
+          sudo snapcraft upload tqdm*.snap --release $CHANNEL
+        fi
+      env:
+        CHANNEL: ${{ steps.collect_assets.outputs.snap_channel }}
+    - name: Docker build push
+      uses: elgohr/Publish-Docker-Github-Action@master
+      with:
+        name: ${{ github.repository }}
+        tags: ${{ steps.collect_assets.outputs.docker_tags }}
+        password: ${{ secrets.DOCKER_PWD }}
+        username: ${{ secrets.DOCKER_USR }}
+        no_push: ${{ steps.collect_assets.outputs.docker_tags == '' }}
+    - name: Docker push GitHub
+      uses: elgohr/Publish-Docker-Github-Action@master
+      with:
+        name: ${{ github.repository }}/tqdm
+        tags: ${{ steps.collect_assets.outputs.docker_tags }}
+        password: ${{ github.token }}
+        username: ${{ github.actor }}
+        registry: docker.pkg.github.com
+        no_push: ${{ steps.collect_assets.outputs.docker_tags == '' }}

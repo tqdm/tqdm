@@ -5,6 +5,7 @@ import asyncio
 from tqdm.asyncio import tqdm_asyncio, tarange
 from .tests_tqdm import pretest_posttest  # NOQA, pylint: disable=unused-import
 from .tests_tqdm import StringIO, closing
+from .tests_perf import retry_on_except
 
 tqdm = partial(tqdm_asyncio, miniters=0, mininterval=0)
 trange = partial(tarange, miniters=0, mininterval=0)
@@ -90,6 +91,7 @@ async def test_coroutines():
         assert '10it' in our_file.getvalue()
 
 
+@retry_on_except(check_cpu_time=False)
 @with_setup_sync
 async def test_as_completed():
     """Test asyncio as_completed"""
@@ -99,5 +101,6 @@ async def test_as_completed():
         for i in as_completed([asyncio.sleep(0.01 * i)
                                for i in range(30, 0, -1)], file=our_file):
             await i
-        assert 0.29 < time() - t - 2 * skew < 0.31
+        t = time() - t - 2 * skew
+        assert 0.27 < t < 0.33, t
         assert '30/30' in our_file.getvalue()
