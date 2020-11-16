@@ -1,3 +1,7 @@
 [build-system]
-requires = ["setuptools>=38.6.0"]
+requires = ["setuptools>=38.6.0", "setuptools_scm"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools_scm]
+write_to = "tqdm/_dist_ver.py"
+write_to_template = "__version__ = '{version}'\n"

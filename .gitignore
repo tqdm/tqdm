@@ -4,12 +4,14 @@
 *.so
 
 # Packages
-tqdm.egg-info
-build/
-dist/
-snapcraft.yaml
-tqdm_*_amd64.snap
-.dockerignore
+/tqdm/_dist_ver.py
+/.eggs/
+/tqdm.egg-info
+/build/
+/dist/
+/snapcraft.yaml
+/tqdm_*_amd64.snap
+/.dockerignore
 
 # Unit test / coverage reports
 .tox/

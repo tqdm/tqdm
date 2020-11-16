@@ -102,15 +102,11 @@ tqdm/completion.sh: .meta/mkcompletion.py tqdm/std.py tqdm/cli.py
 README.rst: .meta/.readme.rst tqdm/std.py tqdm/cli.py
 	@python .meta/mkdocs.py
 
-snapcraft.yaml: .meta/.snapcraft.yml
-	cat "$<" | sed -e 's/{version}/'"`python -m tqdm --version`"'/g' \
-    -e 's/{commit}/'"`git describe --always`"'/g' \
-    -e 's/{source}/./g' -e 's/{icon}/logo.png/g' \
-    -e 's/{description}/https:\/\/tqdm.github.io/g' > "$@"
+snapcraft.yaml: .meta/mksnap.py
+	@python .meta/mksnap.py
 
-.dockerignore: .gitignore
-	echo '*' > $@
-	echo '!dist/*.whl' >> $@
+.dockerignore:
+	@+python -c "fd=open('.dockerignore', 'w'); fd.write('*\n!dist/*.whl\n')"
 
 distclean:
 	@+make coverclean
@@ -125,16 +121,19 @@ prebuildclean:
 	@+python -c "import shutil; shutil.rmtree('build', True)"
 	@+python -c "import shutil; shutil.rmtree('dist', True)"
 	@+python -c "import shutil; shutil.rmtree('tqdm.egg-info', True)"
+	@+python -c "import shutil; shutil.rmtree('.eggs', True)"
 coverclean:
 	@+python -c "import os; os.remove('.coverage') if os.path.exists('.coverage') else None"
 	@+python -c "import os, glob; [os.remove(i) for i in glob.glob('.coverage.*')]"
 	@+python -c "import shutil; shutil.rmtree('tests/__pycache__', True)"
+	@+python -c "import shutil; shutil.rmtree('benchmarks/__pycache__', True)"
 	@+python -c "import shutil; shutil.rmtree('tqdm/__pycache__', True)"
 	@+python -c "import shutil; shutil.rmtree('tqdm/contrib/__pycache__', True)"
 	@+python -c "import shutil; shutil.rmtree('tqdm/examples/__pycache__', True)"
 clean:
 	@+python -c "import os, glob; [os.remove(i) for i in glob.glob('*.py[co]')]"
 	@+python -c "import os, glob; [os.remove(i) for i in glob.glob('tests/*.py[co]')]"
+	@+python -c "import os, glob; [os.remove(i) for i in glob.glob('benchmarks/*.py[co]')]"
 	@+python -c "import os, glob; [os.remove(i) for i in glob.glob('tqdm/*.py[co]')]"
 	@+python -c "import os, glob; [os.remove(i) for i in glob.glob('tqdm/contrib/*.py[co]')]"
 	@+python -c "import os, glob; [os.remove(i) for i in glob.glob('tqdm/examples/*.py[co]')]"

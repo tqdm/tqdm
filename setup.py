@@ -5,17 +5,9 @@ from setuptools import setup
 import os
 import sys
 
-# Get version from tqdm/_version.py
-__version__ = None
 src_dir = os.path.abspath(os.path.dirname(__file__))
-version_file = os.path.join(src_dir, 'tqdm', '_version.py')
-with io_open(version_file, mode='r') as fd:
-    exec(fd.read())
-
-# Executing makefile commands if specified
-if sys.argv[1].lower().strip() == 'make':
+if sys.argv[1].lower().strip() == 'make':  # exec Makefile commands
     import pymake
-    # Filename of the makefile
     fpath = os.path.join(src_dir, 'Makefile')
     pymake.main(['-f', fpath] + sys.argv[2:])
     # Stop to avoid setup.py raising non-standard command error
@@ -27,4 +19,4 @@ with io_open(requirements_dev, mode='r') as fd:
     extras_require['dev'] = [i.strip().split('#', 1)[0].strip()
                              for i in fd.read().strip().split('\n')]
 
-setup(version=__version__, extras_require=extras_require)
+setup(use_scm_version=True, extras_require=extras_require)
