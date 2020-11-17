@@ -30,8 +30,16 @@ jobs:
     - uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python }}
-    - run: pip install -U tox
+    - name: install
+      shell: bash
+      run: |
+        pip install -U tox
+        mkdir -p "$HOME/bin"
+        curl -sfL https://coverage.codacy.com/get.sh > "$HOME/bin/codacy"
+        chmod +x "$HOME/bin/codacy"
+        echo "$HOME/bin" >> $GITHUB_PATH
     - run: tox -e py${PYVER/./}
+      shell: bash
       env:
         PYVER: ${{ matrix.python }}
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
@@ -49,7 +57,13 @@ jobs:
     - uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python }}
-    - run: pip install -U tox
+    - name: install
+      run: |
+        pip install -U tox
+        mkdir -p "$HOME/bin"
+        curl -sfL https://coverage.codacy.com/get.sh > "$HOME/bin/codacy"
+        chmod +x "$HOME/bin/codacy"
+        echo "$HOME/bin" >> $GITHUB_PATH
     - name: tox
       run: |
         if [[ "$PYVER" == py* ]]; then
@@ -104,7 +118,6 @@ jobs:
         skip_existing: true
     - id: collect_assets
       name: Collect assets
-      shell: bash
       run: |
         echo "::set-output name=asset_path::$(ls dist/*.whl)"
         echo "::set-output name=asset_name::$(basename dist/*.whl)"
@@ -154,7 +167,6 @@ jobs:
       with:
         use_lxd: true
     - name: Snap build
-      shell: bash
       run: |
         export SNAPCRAFT_IMAGE_INFO='{"build_url": "https://github.com/tqdm/tqdm/actions/runs/'$GITHUB_RUN_ID'"}'
         sg lxd -c 'snapcraft --use-lxd'
@@ -168,7 +180,6 @@ jobs:
         snapcraft_token: ${{ secrets.SNAP_TOKEN }}
     - if: github.event_name == 'push' && steps.collect_assets.outputs.snap_channel
       name: Snap deploy
-      shell: bash
       run: |
         if [ -n "$(ls tqdm*.snap 2>/dev/null)" ]; then
           sudo snapcraft upload tqdm*.snap --release $CHANNEL
