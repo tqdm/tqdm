@@ -115,7 +115,7 @@ distclean:
 pre-commit:
 	# quick sanity checks
 	@make --no-print-directory testsetup
-	flake8 -j 8 --count --statistics tqdm/ tests/ examples/
+	flake8 -j 8 --count --statistics setup.py tqdm/ tests/ examples/
 	pytest -qq -k "basic_overhead or not (perf or keras or pandas or monitoring)"
 prebuildclean:
 	@+python -c "import shutil; shutil.rmtree('build', True)"
