@@ -6,6 +6,7 @@ on:
   - cron: '36 1 * * SUN'  # M H d m w (Sundays at 01:36)
 jobs:
   check:
+    if: github.event_name != 'pull_request' || github.head_ref != 'devel'
     name: ${{ matrix.TOXENV }}
     strategy:
       matrix:
@@ -25,6 +26,7 @@ jobs:
       env:
         TOXENV: ${{ matrix.TOXENV }}
   lint:
+    if: github.event_name != 'pull_request' || github.head_ref != 'devel'
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
