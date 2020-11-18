@@ -3,4 +3,3 @@ twine           # pymake pypi
 argopt          # cd wiki && pymake
 pydoc-markdown  # cd docs && pymake
 wheel           # setup.py bdist_wheel
-setuptools_scm  # version
