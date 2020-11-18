@@ -2,22 +2,14 @@
 """
 Auto-generate snapcraft.yaml.
 """
-from __future__ import print_function
-from configparser import ConfigParser
 from io import open as io_open
 from os import path
-from subprocess import check_output
-import re
 import sys
 
 sys.path.insert(1, path.dirname(path.dirname(__file__)))
 import tqdm  # NOQA
 
 src_dir = path.abspath(path.dirname(__file__))
-cfg = ConfigParser()
-cfg.read(path.join(path.dirname(src_dir), 'setup.cfg'))
-setup_requires = re.split(
-    r"[;\s]+", str(cfg["options"].get("setup_requires")), flags=re.M)
 snap_yml = r"""name: tqdm
 summary: A fast, extensible CLI progress bar
 description: |
@@ -60,8 +52,7 @@ license: MPL-2.0
 parts:
   tqdm:
     plugin: python
-    python-packages: {setup_requires}
-    python-version: python3
+    python-packages: [disco-py]
     source: .
     source-commit: '{commit}'
     build-packages: [git]
@@ -74,7 +65,6 @@ apps:
     completer: completion.sh
 """.format(
     version=tqdm.__version__,
-    setup_requires=repr(setup_requires),
     commit=check_output(['git', 'describe', '--always']).decode('U8').strip())
 fname = path.join(path.dirname(src_dir), 'snapcraft.yaml')
 

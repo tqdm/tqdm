@@ -6,6 +6,7 @@ on:
   - cron: '2 1 * * 6'  # M H d m w (Saturdays at 1:02)
 jobs:
   check:
+    if: github.event_name != 'pull_request' || github.head_ref != 'devel'
     name: install
     runs-on: ubuntu-latest
     steps:
