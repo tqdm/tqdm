@@ -14,8 +14,8 @@ as_completed = partial(tqdm_asyncio.as_completed, miniters=0, mininterval=0)
 
 def with_setup_sync(func):
     @wraps(func)
-    def inner():
-        return asyncio.run(func())
+    def inner(*args, **kwargs):
+        return asyncio.run(func(*args, **kwargs))
     return inner
 
 
@@ -35,20 +35,21 @@ async def acount(*args, **kwargs):
 
 
 @with_setup_sync
-async def test_generators():
+async def test_generators(capsys):
     """Test asyncio generators"""
-    with closing(StringIO()) as our_file:
-        async for i in tqdm(count(), desc="counter", file=our_file):
+    with tqdm(count(), desc="counter") as pbar:
+        async for i in pbar:
             if i >= 8:
                 break
-        assert '9it' in our_file.getvalue()
-        our_file.seek(0)
-        our_file.truncate()
+    _, err = capsys.readouterr()
+    assert '9it' in err
 
-        async for i in tqdm(acount(), desc="async_counter", file=our_file):
+    with tqdm(acount(), desc="async_counter") as pbar:
+        async for i in pbar:
             if i >= 8:
                 break
-        assert '9it' in our_file.getvalue()
+    _, err = capsys.readouterr()
+    assert '9it' in err
 
 
 @with_setup_sync
