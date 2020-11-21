@@ -10,6 +10,7 @@ from .tests_perf import retry_on_except
 tqdm = partial(tqdm_asyncio, miniters=0, mininterval=0)
 trange = partial(tarange, miniters=0, mininterval=0)
 as_completed = partial(tqdm_asyncio.as_completed, miniters=0, mininterval=0)
+map_async = partial(tqdm_asyncio.map_async, miniters=0, mininterval=0)
 
 
 def with_setup_sync(func):
@@ -32,6 +33,11 @@ def count(start=0, step=1):
 async def acount(*args, **kwargs):
     for i in count(*args, **kwargs):
         yield i
+
+
+async def square(x):
+    await asyncio.sleep(0.1)
+    return x ** 2
 
 
 @with_setup_sync
@@ -105,3 +111,12 @@ async def test_as_completed():
         t = time() - t - 2 * skew
         assert 0.27 < t < 0.33, t
         assert '30/30' in our_file.getvalue()
+
+
+@with_setup_sync
+async def test_map_async(capsys):
+    """Test asyncio map_async"""
+    await map_async(square, range(99))
+    _, err = capsys.readouterr()
+    assert '99/99' in err
+    assert '00:00<00:00' in err, "async so should be << 1 sec"

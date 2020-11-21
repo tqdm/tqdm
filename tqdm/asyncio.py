@@ -7,8 +7,9 @@ Usage:
 >>> async for i in trange(10):
 ...     ...
 """
-from .std import tqdm as std_tqdm
 import asyncio
+from .std import tqdm as std_tqdm
+from .utils import ensure_lock
 __author__ = {"github.com/": ["casperdcl"]}
 __all__ = ['tqdm_asyncio', 'tarange', 'tqdm', 'trange']
 
@@ -53,14 +54,31 @@ class tqdm_asyncio(std_tqdm):
 
     @classmethod
     def as_completed(cls, fs, *, loop=None, timeout=None, total=None,
-                     **tqdm_kwargs):
+                     lock_name="", **tqdm_kwargs):
         """
         Wrapper for `asyncio.as_completed`.
         """
         if total is None:
             total = len(fs)
-        yield from cls(asyncio.as_completed(fs, loop=loop, timeout=timeout),
-                       total=total, **tqdm_kwargs)
+        with ensure_lock(cls, lock_name=lock_name):
+            yield from cls(asyncio.as_completed(fs, loop=loop, timeout=timeout),
+                           total=total, **tqdm_kwargs)
+
+    @classmethod
+    async def map_async(cls, fn, *iterables, **kwargs):
+        """
+        Equivalent of `[(await i) for i in map(fn, *iterables)]`.
+
+        Parameters
+        ----------
+        kwargs  : optional
+            Passed to `cls.as_completed`.
+        """
+        with ensure_lock(cls, lock_name=kwargs.get('lock_name', "")):
+            tasks = [asyncio.create_task(i) for i in map(fn, *iterables)]
+            for i in cls.as_completed(tasks, **kwargs):
+                await i
+        return [i.result() for i in tasks]
 
     def __new__(cls, *args, **kwargs):
         """
