@@ -111,7 +111,7 @@ There are 3 channels to choose from:
     snap install tqdm  --candidate  # master branch
     snap install tqdm  --edge  # devel branch
 
-Note than ``snap`` binaries are purely for CLI use (not ``import``-able), and
+Note that ``snap`` binaries are purely for CLI use (not ``import``-able), and
 automatically set up ``bash`` tab-completion.
 
 Latest Docker release
@@ -794,7 +794,8 @@ available to keep nested bars on their respective lines.
 For manual control over positioning (e.g. for multi-processing use),
 you may specify ``position=n`` where ``n=0`` for the outermost bar,
 ``n=1`` for the next, and so on.
-However, it's best to check if `tqdm` can work without manual `position` first.
+However, it's best to check if ``tqdm`` can work without manual ``position``
+first.
 
 .. code:: python
 
