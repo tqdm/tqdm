@@ -1,12 +1,13 @@
 """
 Module version for monitoring CLI pipes (`... | python -m tqdm | ...`).
 """
-from .std import tqdm, TqdmTypeError, TqdmKeyError
-from ._version import __version__  # NOQA
 from ast import literal_eval as numeric
 import logging
 import re
 import sys
+
+from .std import tqdm, TqdmTypeError, TqdmKeyError
+from .version import __version__
 __all__ = ["main"]
 log = logging.getLogger(__name__)
 

@@ -6,24 +6,42 @@ on:
   - cron: '36 1 * * SUN'  # M H d m w (Sundays at 01:36)
 jobs:
   check:
-    name: '${{ matrix.TOXENV }}'
+    if: github.event_name != 'pull_request' || github.head_ref != 'devel'
+    name: ${{ matrix.TOXENV }}
     strategy:
       matrix:
         TOXENV:
-        - flake8,setup.py
+        - setup.py
         - perf
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+    - run: pip install -U tox
+    - run: tox
+      env:
+        TOXENV: ${{ matrix.TOXENV }}
+  lint:
+    if: github.event_name != 'pull_request' || github.head_ref != 'devel'
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
     - uses: actions/setup-python@v2
       with:
         python-version: '3.x'
-    - name: Install
-      run: pip install -U tox
-    - name: Test
-      run: tox
+    - uses: reviewdog/action-setup@v1
+    - run: pip install -U flake8
+    - name: flake8
+      run: |
+        set -o pipefail
+        flake8 -j8 --count --statistics . | \
+          reviewdog -f=pep8 -name=flake8 -tee -reporter=github-check -filter-mode nofilter
       env:
-        TOXENV: ${{ matrix.TOXENV }}
+        REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   asvfull:
     if: (github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')) || github.event_name == 'schedule'
     name: Benchmark (Full)

@@ -6,15 +6,19 @@ on:
   - cron: '2 1 * * 6'  # M H d m w (Saturdays at 1:02)
 jobs:
   check:
+    if: github.event_name != 'pull_request' || github.head_ref != 'devel'
     name: install
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
     - uses: actions/setup-python@v2
       with:
         python-version: '3.x'
     - run: pip install .
   test-os:
+    if: github.event_name != 'pull_request' || github.head_ref != 'devel'
     strategy:
       matrix:
         python: [2.7, 3.7]
@@ -23,16 +27,27 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
     - uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python }}
-    - run: pip install -U tox
+    - name: install
+      shell: bash
+      run: |
+        pip install -U tox
+        mkdir -p "$HOME/bin"
+        curl -sfL https://coverage.codacy.com/get.sh > "$HOME/bin/codacy"
+        chmod +x "$HOME/bin/codacy"
+        echo "$HOME/bin" >> $GITHUB_PATH
     - run: tox -e py${PYVER/./}
+      shell: bash
       env:
         PYVER: ${{ matrix.python }}
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
   test:
+    if: github.event_name != 'pull_request' || github.head_ref != 'devel'
     strategy:
       matrix:
         python: [2.7, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9, pypy3]
@@ -40,10 +55,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
     - uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python }}
-    - run: pip install -U tox
+    - name: install
+      run: |
+        pip install -U tox
+        mkdir -p "$HOME/bin"
+        curl -sfL https://coverage.codacy.com/get.sh > "$HOME/bin/codacy"
+        chmod +x "$HOME/bin/codacy"
+        echo "$HOME/bin" >> $GITHUB_PATH
     - name: tox
       run: |
         if [[ "$PYVER" == py* ]]; then
@@ -66,6 +89,7 @@ jobs:
       with:
         parallel: true
   finish:
+    if: github.event_name != 'pull_request' || github.head_ref != 'devel'
     name: pytest cov
     continue-on-error: ${{ github.event_name != 'push' }}
     needs: [test, test-os]
@@ -76,18 +100,19 @@ jobs:
       with:
         parallel-finished: true
   deploy:
+    if: github.event_name != 'pull_request' || github.head_ref != 'devel'
     needs: [check, test, test-os]
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
     - uses: actions/setup-python@v2
       with:
         python-version: '3.x'
     - name: Install
       run: |
         sudo apt-get install -yqq pandoc
-        pip install setuptools_scm
-        git fetch --unshallow --tags
         pip install .[dev]
         make build .dockerignore snapcraft.yaml
     - if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
@@ -98,7 +123,6 @@ jobs:
         skip_existing: true
     - id: collect_assets
       name: Collect assets
-      shell: bash
       run: |
         echo "::set-output name=asset_path::$(ls dist/*.whl)"
         echo "::set-output name=asset_name::$(basename dist/*.whl)"
@@ -148,7 +172,6 @@ jobs:
       with:
         use_lxd: true
     - name: Snap build
-      shell: bash
       run: |
         export SNAPCRAFT_IMAGE_INFO='{"build_url": "https://github.com/tqdm/tqdm/actions/runs/'$GITHUB_RUN_ID'"}'
         sg lxd -c 'snapcraft --use-lxd'
@@ -162,7 +185,6 @@ jobs:
         snapcraft_token: ${{ secrets.SNAP_TOKEN }}
     - if: github.event_name == 'push' && steps.collect_assets.outputs.snap_channel
       name: Snap deploy
-      shell: bash
       run: |
         if [ -n "$(ls tqdm*.snap 2>/dev/null)" ]; then
           sudo snapcraft upload tqdm*.snap --release $CHANNEL

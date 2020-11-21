@@ -132,8 +132,6 @@ It's probably a good idea to add `[python setup.py] make pre-commit` to
 
 The tqdm repository managers should:
 
-- regularly bump the version number in the file
-[_version.py](https://raw.githubusercontent.com/tqdm/tqdm/master/tqdm/_version.py)
 - follow the [Semantic Versioning](https://semver.org/) convention
 - take care of this (instead of users) to avoid PR conflicts
 solely due to the version file bumping
@@ -208,16 +206,7 @@ git merge --no-ff pr-branch-name
 [python setup.py] make alltests
 ```
 
-### 5 Version
-
-Modify `tqdm/_version.py` and amend the last (merge) commit:
-
-```
-git add tqdm/_version.py
-git commit --amend  # Add "+ bump version" in the commit message
-```
-
-### 6 Push to master
+### 5 Push to master
 
 ```
 git push origin master
@@ -349,35 +338,34 @@ to assist with maintenance.
 ## QUICK DEV SUMMARY
 
 For experienced devs, once happy with local master, follow the steps below.
-Much is automated so really it's steps 1-6, then 12(a).
+Much is automated so really it's steps 1-5, then 11(a).
 
-1. bump version in `tqdm/_version.py`
-2. test (`[python setup.py] make alltests`)
-3. `git commit [--amend]  # -m "bump version"`
-4. `git push`
-5. wait for tests to pass
-    a) in case of failure, fix and go back to (2)
-6. `git tag vM.m.p && git push --tags` or comment `/tag vM.m.p commit_hash`
-7. **`[AUTO:GHA]`** `[python setup.py] make distclean`
-8. **`[AUTO:GHA]`** `[python setup.py] make build`
-9. **`[AUTO:GHA]`** upload to PyPI. either:
+1. test (`[python setup.py] make alltests`)
+2. `git commit [--amend]  # -m "bump version"`
+3. `git push`
+4. wait for tests to pass
+    a) in case of failure, fix and go back to (1)
+5. `git tag vM.m.p && git push --tags` or comment `/tag vM.m.p commit_hash`
+6. **`[AUTO:GHA]`** `[python setup.py] make distclean`
+7. **`[AUTO:GHA]`** `[python setup.py] make build`
+8. **`[AUTO:GHA]`** upload to PyPI. either:
     a) `[python setup.py] make pypi`, or
     b) `twine upload -s -i $(git config user.signingkey) dist/tqdm-*`
-10. **`[AUTO:GHA]`** upload to docker hub:
+9. **`[AUTO:GHA]`** upload to docker hub:
     a) `make -B docker`
     b) `docker push tqdm/tqdm:latest`
     c) `docker push tqdm/tqdm:$(docker run -i --rm tqdm/tqdm -v)`
-11. **`[AUTO:GHA]`** upload to snapcraft:
+10. **`[AUTO:GHA]`** upload to snapcraft:
     a) `make snap`, and
     b) `snapcraft push tqdm*.snap --release stable`
-12. Wait for GHA to draft a new release on <https://github.com/tqdm/tqdm/releases>
+11. Wait for GHA to draft a new release on <https://github.com/tqdm/tqdm/releases>
     a) replace the commit history with helpful release notes, and click publish
     b) **`[AUTO:GHA]`** attach `dist/tqdm-*` binaries
        (usually only `*.whl*`)
-13. **`[SUB][AUTO:GHA-rel]`** run `make` in the `wiki` submodule to update release notes
-14. **`[SUB][AUTO:GHA-rel]`** run `make deploy` in the `docs` submodule to update website
-15. **`[SUB][AUTO:GHA-rel]`** accept the automated PR in the `feedstock` submodule to update conda
-16. **`[AUTO:GHA-rel]`** update the [gh-pages project] benchmarks
+12. **`[SUB][AUTO:GHA-rel]`** run `make` in the `wiki` submodule to update release notes
+13. **`[SUB][AUTO:GHA-rel]`** run `make deploy` in the `docs` submodule to update website
+14. **`[SUB][AUTO:GHA-rel]`** accept the automated PR in the `feedstock` submodule to update conda
+15. **`[AUTO:GHA-rel]`** update the [gh-pages project] benchmarks
     a) `[python setup.py] make testasvfull`
     b) `asv gh-pages`
 

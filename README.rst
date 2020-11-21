@@ -111,7 +111,7 @@ There are 3 channels to choose from:
     snap install tqdm  --candidate  # master branch
     snap install tqdm  --edge  # devel branch
 
-Note than ``snap`` binaries are purely for CLI use (not ``import``-able), and
+Note that ``snap`` binaries are purely for CLI use (not ``import``-able), and
 automatically set up ``bash`` tab-completion.
 
 Latest Docker release
@@ -794,7 +794,8 @@ available to keep nested bars on their respective lines.
 For manual control over positioning (e.g. for multi-processing use),
 you may specify ``position=n`` where ``n=0`` for the outermost bar,
 ``n=1`` for the next, and so on.
-However, it's best to check if `tqdm` can work without manual `position` first.
+However, it's best to check if ``tqdm`` can work without manual ``position``
+first.
 
 .. code:: python
 
@@ -961,6 +962,31 @@ custom callback take advantage of this, simply use the return value of
                 external_callback(**self.format_dict)
             return displayed
 
+``asyncio``
+~~~~~~~~~~~
+
+Note that ``break`` isn't currently caught by asynchronous iterators.
+This means that ``tqdm`` cannot clean up after itself in this case:
+
+.. code:: python
+
+    from tqdm.asyncio import tqdm
+
+    async for i in tqdm(range(9)):
+        if i == 2:
+            break
+
+Instead, either call ``pbar.close()`` manually or use the context manager syntax:
+
+.. code:: python
+
+    from tqdm.asyncio import tqdm
+
+    with tqdm(range(9)) as pbar:
+        async for i in pbar:
+            if i == 2:
+                break
+
 Pandas Integration
 ~~~~~~~~~~~~~~~~~~
 
@@ -1110,7 +1136,9 @@ For further customisation,
 (e.g. GUIs such as notebook or plotting packages). In the latter case:
 
 1. ``def __init__()`` to call ``super().__init__(..., gui=True)`` to disable
-   terminal ``status_printer`` creation.
+   terminal ``status_printer`` creation. Otherwise (if terminal is required),
+   ``def __new__()`` to call ``cls.get_new()`` (see below) to ensure correct
+   nested positioning.
 2. Redefine: ``close()``, ``clear()``, ``display()``.
 
 Consider overloading ``display()`` to use e.g.
@@ -1123,6 +1151,23 @@ above recommendation:
 - `tqdm/gui.py <https://github.com/tqdm/tqdm/blob/master/tqdm/gui.py>`__
 - `tqdm/contrib/telegram.py <https://github.com/tqdm/tqdm/blob/master/tqdm/contrib/telegram.py>`__
 - `tqdm/contrib/discord.py <https://github.com/tqdm/tqdm/blob/master/tqdm/contrib/discord.py>`__
+
+Note that multiple different ``tqdm`` subclasses which all write to the terminal
+(``gui=False``) can cause positioning issues when used simultaneously (in nested
+mode). To fix this, custom subclasses which expect to write to the terminal
+should define a ``__new__()`` method as follows:
+
+.. code:: python
+
+    from tqdm import tqdm as std_tqdm
+
+    class TqdmExt(std_tqdm):
+        def __new__(cls, *args, **kwargs):
+            return cls.get_new(super(TqdmExt, cls), std_tqdm, *args, **kwargs)
+
+This approach is used ``tqdm.asyncio`` and ``tqdm.contrib.telegram/discord``.
+However it is not necessary for ``tqdm.notebook/gui`` since they don't use the
+terminal.
 
 Dynamic Monitor/Meter
 ~~~~~~~~~~~~~~~~~~~~~

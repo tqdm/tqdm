@@ -1,22 +1,16 @@
-from functools import partial, wraps
+from functools import partial
 from time import time
 import asyncio
+
+from pytest import mark
 
 from tqdm.asyncio import tqdm_asyncio, tarange
 from .tests_tqdm import pretest_posttest  # NOQA, pylint: disable=unused-import
 from .tests_tqdm import StringIO, closing
-from .tests_perf import retry_on_except
 
 tqdm = partial(tqdm_asyncio, miniters=0, mininterval=0)
 trange = partial(tarange, miniters=0, mininterval=0)
 as_completed = partial(tqdm_asyncio.as_completed, miniters=0, mininterval=0)
-
-
-def with_setup_sync(func):
-    @wraps(func)
-    def inner():
-        return asyncio.run(func())
-    return inner
 
 
 def count(start=0, step=1):
@@ -34,24 +28,34 @@ async def acount(*args, **kwargs):
         yield i
 
 
-@with_setup_sync
-async def test_generators():
+@mark.asyncio
+async def test_break():
+    """Test asyncio break"""
+    pbar = tqdm(count())
+    async for _ in pbar:
+        break
+    pbar.close()
+
+
+@mark.asyncio
+async def test_generators(capsys):
     """Test asyncio generators"""
-    with closing(StringIO()) as our_file:
-        async for i in tqdm(count(), desc="counter", file=our_file):
+    with tqdm(count(), desc="counter") as pbar:
+        async for i in pbar:
             if i >= 8:
                 break
-        assert '9it' in our_file.getvalue()
-        our_file.seek(0)
-        our_file.truncate()
+    _, err = capsys.readouterr()
+    assert '9it' in err
 
-        async for i in tqdm(acount(), desc="async_counter", file=our_file):
+    with tqdm(acount(), desc="async_counter") as pbar:
+        async for i in pbar:
             if i >= 8:
                 break
-        assert '9it' in our_file.getvalue()
+    _, err = capsys.readouterr()
+    assert '9it' in err
 
 
-@with_setup_sync
+@mark.asyncio
 async def test_range():
     """Test asyncio range"""
     with closing(StringIO()) as our_file:
@@ -66,7 +70,7 @@ async def test_range():
         assert '9/9' in our_file.getvalue()
 
 
-@with_setup_sync
+@mark.asyncio
 async def test_nested():
     """Test asyncio nested"""
     with closing(StringIO()) as our_file:
@@ -77,7 +81,7 @@ async def test_nested():
         assert 'outer: 100%' in our_file.getvalue()
 
 
-@with_setup_sync
+@mark.asyncio
 async def test_coroutines():
     """Test asyncio coroutine.send"""
     with closing(StringIO()) as our_file:
@@ -91,16 +95,20 @@ async def test_coroutines():
         assert '10it' in our_file.getvalue()
 
 
-@retry_on_except(check_cpu_time=False)
-@with_setup_sync
-async def test_as_completed():
+@mark.asyncio
+async def test_as_completed(capsys):
     """Test asyncio as_completed"""
-    with closing(StringIO()) as our_file:
+    for retry in range(3):
         t = time()
         skew = time() - t
         for i in as_completed([asyncio.sleep(0.01 * i)
-                               for i in range(30, 0, -1)], file=our_file):
+                               for i in range(30, 0, -1)]):
             await i
         t = time() - t - 2 * skew
-        assert 0.27 < t < 0.33, t
-        assert '30/30' in our_file.getvalue()
+        try:
+            assert 0.27 < t < 0.33, t
+            _, err = capsys.readouterr()
+            assert '30/30' in err
+        except AssertionError:
+            if retry == 2:
+                raise

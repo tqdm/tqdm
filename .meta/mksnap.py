@@ -1,4 +1,17 @@
-name: tqdm
+# -*- encoding: utf-8 -*-
+"""
+Auto-generate snapcraft.yaml.
+"""
+from io import open as io_open
+from os import path
+from subprocess import check_output
+import sys
+
+sys.path.insert(1, path.dirname(path.dirname(__file__)))
+import tqdm  # NOQA
+
+src_dir = path.abspath(path.dirname(__file__))
+snap_yml = r"""name: tqdm
 summary: A fast, extensible CLI progress bar
 description: |
  https://tqdm.github.io
@@ -31,19 +44,19 @@ description: |
  `tqdm` does not require any dependencies, just
  an environment supporting `carriage return \r` and
  `line feed \n` control characters.
-adopt-info: tqdm
 grade: stable
 confinement: strict
 base: core18
-icon: {icon}
+icon: logo.png
+version: '{version}'
 license: MPL-2.0
 parts:
   tqdm:
     plugin: python
-    python-version: python3
-    source: {source}
+    python-packages: [disco-py]
+    source: .
     source-commit: '{commit}'
-    parse-info: [setup.py]
+    build-packages: [git]
     override-build: |
         snapcraftctl build
         cp $SNAPCRAFT_PART_BUILD/tqdm/completion.sh $SNAPCRAFT_PART_INSTALL/
@@ -51,3 +64,12 @@ apps:
   tqdm:
     command: bin/tqdm
     completer: completion.sh
+""".format(
+    version=tqdm.__version__,
+    commit=check_output(['git', 'describe', '--always']).decode('U8').strip())
+fname = path.join(path.dirname(src_dir), 'snapcraft.yaml')
+
+if __name__ == "__main__":
+    with io_open(fname, mode='w', encoding='utf-8') as fd:
+        fd.write(snap_yml.decode('U8') if hasattr(snap_yml, 'decode')
+                 else snap_yml)
