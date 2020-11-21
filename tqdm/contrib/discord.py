@@ -103,24 +103,7 @@ class tqdm_discord(tqdm_auto):
         self.dio.write(self.format_meter(**fmt))
 
     def __new__(cls, *args, **kwargs):
-        """
-        Workaround for mixed-class same-stream nested progressbars.
-        See [#509](https://github.com/tqdm/tqdm/issues/509)
-        """
-        with cls.get_lock():
-            try:
-                cls._instances = tqdm_auto._instances
-            except AttributeError:
-                pass
-        instance = super(tqdm_discord, cls).__new__(cls, *args, **kwargs)
-        with cls.get_lock():
-            try:
-                # `tqdm_auto` may have been changed so update
-                cls._instances.update(tqdm_auto._instances)
-            except AttributeError:
-                pass
-            tqdm_auto._instances = cls._instances
-        return instance
+        return cls.get_new(super(tqdm_discord, cls), tqdm_auto, *args, **kwargs)
 
 
 def tdrange(*args, **kwargs):

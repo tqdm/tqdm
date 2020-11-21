@@ -63,24 +63,7 @@ class tqdm_asyncio(std_tqdm):
                        total=total, **tqdm_kwargs)
 
     def __new__(cls, *args, **kwargs):
-        """
-        Workaround for mixed-class same-stream nested progressbars.
-        See [#509](https://github.com/tqdm/tqdm/issues/509)
-        """
-        with cls.get_lock():
-            try:
-                cls._instances = std_tqdm._instances
-            except AttributeError:
-                pass
-        instance = super(tqdm_asyncio, cls).__new__(cls, *args, **kwargs)
-        with cls.get_lock():
-            try:
-                # `std_tqdm` may have been changed so update
-                cls._instances.update(std_tqdm._instances)
-            except AttributeError:
-                pass
-            std_tqdm._instances = cls._instances
-        return instance
+        return cls.get_new(super(tqdm_asyncio, cls), std_tqdm, *args, **kwargs)
 
 
 def tarange(*args, **kwargs):

@@ -576,6 +576,27 @@ class tqdm(Comparable):
         return instance
 
     @classmethod
+    def get_new(cls, super_cls, base_cls, *args, **kwargs):
+        """
+        Workaround for mixed-class same-stream nested progressbars.
+        See [#509](https://github.com/tqdm/tqdm/issues/509)
+        """
+        with cls.get_lock():
+            try:
+                cls._instances = base_cls._instances
+            except AttributeError:
+                pass
+        instance = super_cls.__new__(cls, *args, **kwargs)
+        with cls.get_lock():
+            try:
+                # `base_cls` may have been changed so update
+                cls._instances.update(base_cls._instances)
+            except AttributeError:
+                pass
+            base_cls._instances = cls._instances
+        return instance
+
+    @classmethod
     def _get_free_pos(cls, instance=None):
         """Skips specified instance."""
         positions = set(abs(inst.pos) for inst in cls._instances
