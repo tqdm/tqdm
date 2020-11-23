@@ -35,7 +35,8 @@ jobs:
         python-version: '3.x'
     - uses: reviewdog/action-setup@v1
     - run: pip install -U flake8
-    - name: flake8
+    - if: github.event_name != 'schedule'
+      name: flake8
       run: |
         set -o pipefail
         flake8 -j8 --count --statistics . | \
@@ -57,9 +58,8 @@ jobs:
       run: |
         pip install -U wheel
         pip install -U virtualenv asv
+        git checkout master && git checkout -
         asv machine --machine github-actions --yes
-        git fetch --tags
-        git fetch origin master:master
     - name: Restore previous results
       uses: actions/cache@v2
       with:
@@ -85,6 +85,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
     - uses: actions/setup-python@v2
       with:
         python-version: '3.x'
@@ -92,9 +94,8 @@ jobs:
       run: |
         pip install -U wheel
         pip install -U virtualenv asv
+        git checkout master && git checkout -
         asv machine --machine github-actions --yes
-        git fetch --tags
-        git fetch origin master:master
     - name: Restore previous results
       uses: actions/cache@v2
       with:
