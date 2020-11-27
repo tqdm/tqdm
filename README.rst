@@ -1136,9 +1136,7 @@ For further customisation,
 (e.g. GUIs such as notebook or plotting packages). In the latter case:
 
 1. ``def __init__()`` to call ``super().__init__(..., gui=True)`` to disable
-   terminal ``status_printer`` creation. Otherwise (if terminal is required),
-   ``def __new__()`` to call ``cls.get_new()`` (see below) to ensure correct
-   nested positioning.
+   terminal ``status_printer`` creation.
 2. Redefine: ``close()``, ``clear()``, ``display()``.
 
 Consider overloading ``display()`` to use e.g.
@@ -1151,23 +1149,6 @@ above recommendation:
 - `tqdm/gui.py <https://github.com/tqdm/tqdm/blob/master/tqdm/gui.py>`__
 - `tqdm/contrib/telegram.py <https://github.com/tqdm/tqdm/blob/master/tqdm/contrib/telegram.py>`__
 - `tqdm/contrib/discord.py <https://github.com/tqdm/tqdm/blob/master/tqdm/contrib/discord.py>`__
-
-Note that multiple different ``tqdm`` subclasses which all write to the terminal
-(``gui=False``) can cause positioning issues when used simultaneously (in nested
-mode). To fix this, custom subclasses which expect to write to the terminal
-should define a ``__new__()`` method as follows:
-
-.. code:: python
-
-    from tqdm import tqdm as std_tqdm
-
-    class TqdmExt(std_tqdm):
-        def __new__(cls, *args, **kwargs):
-            return cls.get_new(super(TqdmExt, cls), std_tqdm, *args, **kwargs)
-
-This approach is used ``tqdm.asyncio`` and ``tqdm.contrib.telegram/discord``.
-However it is not necessary for ``tqdm.notebook/gui`` since they don't use the
-terminal.
 
 Dynamic Monitor/Meter
 ~~~~~~~~~~~~~~~~~~~~~
