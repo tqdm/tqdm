@@ -1,10 +1,9 @@
 name: Comment Bot
 on:
   issue_comment:
-    types: [created, edited]
+    types: [created]
   pull_request_review_comment:
-    types: [created, edited]
-
+    types: [created]
 jobs:
   tag:  # /tag <tagname> <commit>
     if: startsWith(github.event.comment.body, '/tag ')
@@ -21,7 +20,6 @@ jobs:
           post = (context.eventName == "issue_comment"
             ? github.reactions.createForIssueComment
             : github.reactions.createForPullRequestReviewComment)
-
           if (!["admin", "write"].includes(perm.data.permission)){
             post({
               owner: context.repo.owner, repo: context.repo.repo,
@@ -50,7 +48,3 @@ jobs:
           post({
             owner: context.repo.owner, repo: context.repo.repo,
             comment_id: context.payload.comment.id, content: "rocket"})
-  always:
-    runs-on: ubuntu-latest
-    steps:
-    - run: echo prevent failure when other jobs are skipped
