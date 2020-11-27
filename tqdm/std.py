@@ -225,6 +225,7 @@ class tqdm(Comparable):
 
     monitor_interval = 10  # set to 0 to disable the thread
     monitor = None
+    _instances = WeakSet()
 
     @staticmethod
     def format_sizeof(num, suffix='', divisor=1000):
@@ -554,15 +555,10 @@ class tqdm(Comparable):
                     n_fmt, unit, elapsed_str, rate_fmt, postfix)
 
     def __new__(cls, *_, **__):
-        # Create a new instance
         instance = object.__new__(cls)
-        # Construct the lock if it does not exist
-        with cls.get_lock():
-            # Add to the list of instances
-            if not hasattr(cls, '_instances'):
-                cls._instances = WeakSet()
+        with cls.get_lock():  # also constructs lock if non-existent
             cls._instances.add(instance)
-            # Create the monitoring thread
+            # create monitoring thread
             if cls.monitor_interval and (cls.monitor is None or not
                                          cls.monitor.report()):
                 try:
@@ -572,28 +568,6 @@ class tqdm(Comparable):
                          " (monitor_interval = 0) due to:\n" + str(e),
                          TqdmMonitorWarning, stacklevel=2)
                     cls.monitor_interval = 0
-        # Return the instance
-        return instance
-
-    @classmethod
-    def get_new(cls, super_cls, base_cls, *args, **kwargs):
-        """
-        Workaround for mixed-class same-stream nested progressbars.
-        See [#509](https://github.com/tqdm/tqdm/issues/509)
-        """
-        with cls.get_lock():
-            try:
-                cls._instances = base_cls._instances
-            except AttributeError:
-                pass
-        instance = super_cls.__new__(cls, *args, **kwargs)
-        with cls.get_lock():
-            try:
-                # `base_cls` may have been changed so update
-                cls._instances.update(base_cls._instances)
-            except AttributeError:
-                pass
-            base_cls._instances = cls._instances
         return instance
 
     @classmethod

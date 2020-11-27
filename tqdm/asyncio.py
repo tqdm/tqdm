@@ -62,9 +62,6 @@ class tqdm_asyncio(std_tqdm):
         yield from cls(asyncio.as_completed(fs, loop=loop, timeout=timeout),
                        total=total, **tqdm_kwargs)
 
-    def __new__(cls, *args, **kwargs):
-        return cls.get_new(super(tqdm_asyncio, cls), std_tqdm, *args, **kwargs)
-
 
 def tarange(*args, **kwargs):
     """

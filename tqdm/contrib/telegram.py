@@ -106,10 +106,6 @@ class tqdm_telegram(tqdm_auto):
             fmt['bar_format'] = '{l_bar}{bar:10u}{r_bar}'
         self.tgio.write(self.format_meter(**fmt))
 
-    def __new__(cls, *args, **kwargs):
-        return cls.get_new(
-            super(tqdm_telegram, cls), tqdm_auto, *args, **kwargs)
-
 
 def ttgrange(*args, **kwargs):
     """

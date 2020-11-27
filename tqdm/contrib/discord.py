@@ -102,9 +102,6 @@ class tqdm_discord(tqdm_auto):
             fmt['bar_format'] = '{l_bar}{bar:10u}{r_bar}'
         self.dio.write(self.format_meter(**fmt))
 
-    def __new__(cls, *args, **kwargs):
-        return cls.get_new(super(tqdm_discord, cls), tqdm_auto, *args, **kwargs)
-
 
 def tdrange(*args, **kwargs):
     """
