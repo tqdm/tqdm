@@ -165,30 +165,14 @@ jobs:
         asset_path: ${{ steps.collect_assets.outputs.asset_path_sig }}
         asset_name: ${{ steps.collect_assets.outputs.asset_name_sig }}
         asset_content_type: text/plain
-    - name: Snap install
-      uses: samuelmeuli/action-snapcraft@v1
-      with:
-        use_lxd: true
-    - name: Snap build
-      run: |
-        export SNAPCRAFT_IMAGE_INFO='{"build_url": "https://github.com/tqdm/tqdm/actions/runs/'$GITHUB_RUN_ID'"}'
-        sg lxd -c 'snapcraft --use-lxd'
-      env:
-        SNAPCRAFT_BUILD_INFO: 1  # https://snapcraft.io/blog/introducing-developer-notifications-for-snap-security-updates
+    - uses: snapcore/action-build@v1
+      id: snap_build
     - if: github.event_name == 'push' && steps.collect_assets.outputs.snap_channel
-      name: Snap login
-      uses: samuelmeuli/action-snapcraft@v1
+      uses: snapcore/action-publish@v1
       with:
-        skip_install: true
-        snapcraft_token: ${{ secrets.SNAP_TOKEN }}
-    - if: github.event_name == 'push' && steps.collect_assets.outputs.snap_channel
-      name: Snap deploy
-      run: |
-        if [ -n "$(ls tqdm*.snap 2>/dev/null)" ]; then
-          sudo snapcraft upload tqdm*.snap --release $CHANNEL
-        fi
-      env:
-        CHANNEL: ${{ steps.collect_assets.outputs.snap_channel }}
+        store_login: ${{ secrets.SNAP_TOKEN }}
+        snap: ${{ steps.snap_build.outputs.snap }}
+        release: ${{ steps.collect_assets.outputs.snap_channel }}
     - name: Docker build push
       uses: elgohr/Publish-Docker-Github-Action@master
       with:
