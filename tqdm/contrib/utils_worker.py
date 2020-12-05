@@ -16,6 +16,7 @@ class MonoWorker(object):
     Supports one running task and one waiting task.
     The waiting task is the most recent submitted (others are discarded).
     """
+
     def __init__(self):
         self.pool = ThreadPoolExecutor(max_workers=1)
         self.futures = deque([], 2)

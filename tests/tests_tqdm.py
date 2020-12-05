@@ -417,6 +417,7 @@ def test_all_defaults():
 
 class WriteTypeChecker(BytesIO):
     """File-like to assert the expected type is written"""
+
     def __init__(self, expected_type):
         super(WriteTypeChecker, self).__init__()
         self.expected_type = expected_type

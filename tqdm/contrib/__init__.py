@@ -14,6 +14,7 @@ __all__ = ['tenumerate', 'tzip', 'tmap']
 
 class DummyTqdmFile(ObjectWrapper):
     """Dummy file-like that will write to tqdm"""
+
     def write(self, x, nolock=False):
         # Avoid print() second call (useless \n)
         if len(x.rstrip()) > 0:

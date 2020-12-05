@@ -6,6 +6,7 @@ from functools import partial
 
 class Comparison:
     """Running time of wrapped empty loops"""
+
     def __init__(self, length):
         try:
             from time import process_time

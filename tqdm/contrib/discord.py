@@ -27,6 +27,7 @@ __all__ = ['DiscordIO', 'tqdm_discord', 'tdrange', 'tqdm', 'trange']
 
 class DiscordIO(MonoWorker):
     """Non-blocking file-like IO using a Discord Bot."""
+
     def __init__(self, token, channel_id):
         """Creates a new message in the given `channel_id`."""
         super(DiscordIO, self).__init__()
@@ -70,6 +71,7 @@ class tqdm_discord(tqdm_auto):
     >>> for i in tqdm(iterable, token='{token}', channel_id='{channel_id}'):
     ...     ...
     """
+
     def __init__(self, *args, **kwargs):
         """
         Parameters

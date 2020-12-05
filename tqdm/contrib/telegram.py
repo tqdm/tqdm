@@ -79,6 +79,7 @@ class tqdm_telegram(tqdm_auto):
     >>> for i in tqdm(iterable, token='{token}', chat_id='{chat_id}'):
     ...     ...
     """
+
     def __init__(self, *args, **kwargs):
         """
         Parameters

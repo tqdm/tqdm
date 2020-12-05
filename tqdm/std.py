@@ -43,6 +43,7 @@ class TqdmWarning(Warning):
 
     Used for non-external-code-breaking errors, such as garbled printing.
     """
+
     def __init__(self, msg, fp_write=None, *a, **k):
         if fp_write is not None:
             fp_write("\n" + self.__class__.__name__ + ": " +

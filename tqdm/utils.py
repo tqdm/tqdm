@@ -54,6 +54,7 @@ class FormatReplace(object):
     >>> "{:5d}".format(a)
     'something'
     """
+
     def __init__(self, replace=''):
         self.replace = replace
         self.format_called = 0
@@ -65,6 +66,7 @@ class FormatReplace(object):
 
 class Comparable(object):
     """Assumes child has self._comparable attr/@property"""
+
     def __lt__(self, other):
         return self._comparable < other._comparable
 
@@ -115,6 +117,7 @@ class SimpleTextIOWrapper(ObjectWrapper):
     value and passing the result to the wrapped object's `.write()` method.
     """
     # pylint: disable=too-few-public-methods
+
     def __init__(self, wrapped, encoding):
         super(SimpleTextIOWrapper, self).__init__(wrapped)
         self.wrapper_setattr('encoding', encoding)
