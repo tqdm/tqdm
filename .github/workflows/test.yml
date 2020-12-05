@@ -50,7 +50,7 @@ jobs:
     if: github.event_name != 'pull_request' || github.head_ref != 'devel'
     strategy:
       matrix:
-        python: [2.7, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9, pypy3]
+        python: [2.7, 3.5, 3.6, 3.7, 3.8, 3.9, pypy3]
     name: py${{ matrix.python }}
     runs-on: ubuntu-latest
     steps:
@@ -71,8 +71,7 @@ jobs:
       run: |
         if [[ "$PYVER" == py* ]]; then
           tox -e $PYVER                                             # basic:pypy
-        elif [[ "$PYVER" == *3.4 || "$PYVER" == *3.9 ]]; then
-          [[ "$PYVER" == *3.4 ]] && sed -i '/relative_files/d' .coveragerc
+        elif [[ "$PYVER" == *3.9 ]]; then
           tox -e py${PYVER/./}                                      # basic
         elif [[ "$PYVER" == "3.7" ]]; then
           tox -e py${PYVER/./}-tf,py${PYVER/./}-tf-keras            # full
@@ -83,8 +82,7 @@ jobs:
         PYVER: ${{ matrix.python }}
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
-    - if: ${{ matrix.python != 3.4 }}
-      name: Coveralls Parallel
+    - name: Coveralls Parallel
       uses: AndreMiras/coveralls-python-action@develop
       with:
         parallel: true
