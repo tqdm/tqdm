@@ -128,10 +128,10 @@ jobs:
         echo "::set-output name=asset_name_sig::$(basename dist/*.whl.asc 2>/dev/null)"
         if [[ $GITHUB_REF == refs/tags/v* ]]; then
           echo ::set-output name=docker_tags::latest,${GITHUB_REF/refs\/tags\/v/}
-          echo ::set-output name=snap_channel::stable
+          echo ::set-output name=snap_channel::stable,candidate,edge
         elif [[ $GITHUB_REF == refs/heads/master ]]; then
           echo ::set-output name=docker_tags::master
-          echo ::set-output name=snap_channel::candidate
+          echo ::set-output name=snap_channel::candidate,edge
         elif [[ $GITHUB_REF == refs/heads/devel ]]; then
           echo ::set-output name=docker_tags::devel
           echo ::set-output name=snap_channel::edge
