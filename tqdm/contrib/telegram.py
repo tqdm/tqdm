@@ -52,11 +52,9 @@ class TelegramIO(MonoWorker):
         self.text = s
         try:
             future = self.submit(
-                self.session.post,
-                self.API + '%s/editMessageText' % self.token,
-                data=dict(
-                    text='`' + s + '`', chat_id=self.chat_id,
-                    message_id=self.message_id, parse_mode='MarkdownV2'))
+                self.session.post, self.API + '%s/editMessageText' % self.token,
+                data=dict(text='`' + s + '`', chat_id=self.chat_id,
+                          message_id=self.message_id, parse_mode='MarkdownV2'))
         except Exception as e:
             tqdm_auto.write(str(e))
         else:
@@ -91,9 +89,8 @@ class tqdm_telegram(tqdm_auto):
         See `tqdm.auto.tqdm.__init__` for other parameters.
         """
         kwargs = kwargs.copy()
-        self.tgio = TelegramIO(
-            kwargs.pop('token', getenv('TQDM_TELEGRAM_TOKEN')),
-            kwargs.pop('chat_id', getenv('TQDM_TELEGRAM_CHAT_ID')))
+        self.tgio = TelegramIO(kwargs.pop('token', getenv('TQDM_TELEGRAM_TOKEN')),
+                               kwargs.pop('chat_id', getenv('TQDM_TELEGRAM_CHAT_ID')))
         super(tqdm_telegram, self).__init__(*args, **kwargs)
 
     def display(self, **kwargs):

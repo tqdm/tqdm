@@ -12,8 +12,7 @@ import tqdm  # NOQA
 import tqdm.cli  # NOQA
 
 RE_OPT = re.compile(r'(\w+)  :', flags=re.M)
-RE_OPT_INPUT = re.compile(
-    r'(\w+)  : (?:str|int|float|chr|dict|tuple)', flags=re.M)
+RE_OPT_INPUT = re.compile(r'(\w+)  : (?:str|int|float|chr|dict|tuple)', flags=re.M)
 
 
 def doc2opt(doc, user_input=True):
@@ -32,8 +31,7 @@ options_input = set()
 for doc in (tqdm.tqdm.__init__.__doc__, tqdm.cli.CLI_EXTRA_DOC):
     options.update(doc2opt(doc, user_input=False))
     options_input.update(doc2opt(doc, user_input=True))
-options.difference_update(
-    '--' + i for i in ('name',) + tqdm.cli.UNSUPPORTED_OPTS)
+options.difference_update('--' + i for i in ('name',) + tqdm.cli.UNSUPPORTED_OPTS)
 options_input &= options
 options_input -= {"--log"}  # manually dealt with
 src_dir = path.abspath(path.dirname(__file__))
@@ -58,9 +56,7 @@ _tqdm(){{
   esac
 }}
 complete -F _tqdm tqdm
-""".format(
-    opts=' '.join(sorted(options)),
-    opts_manual='|'.join(sorted(options_input)))
+""".format(opts=' '.join(sorted(options)), opts_manual='|'.join(sorted(options_input)))
 
 if __name__ == "__main__":
     fncompletion = path.join(path.dirname(src_dir), 'tqdm', 'completion.sh')

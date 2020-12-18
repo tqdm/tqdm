@@ -12,7 +12,6 @@ __all__ = ['tqdm', 'trange']
 from os import getenv
 import warnings
 
-
 if getenv("TQDM_TELEGRAM_TOKEN") and getenv("TQDM_TELEGRAM_CHAT_ID"):
     from tqdm.contrib.telegram import tqdm, trange
 elif getenv("TQDM_DISCORD_TOKEN") and getenv("TQDM_DISCORD_CHANNEL_ID"):

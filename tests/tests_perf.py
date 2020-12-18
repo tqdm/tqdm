@@ -84,7 +84,6 @@ def retry_on_except(n=3, check_cpu_time=True):
 
 class MockIO(StringIO):
     """Wraps StringIO to mock a file with no I/O"""
-
     def write(self, _):
         return
 
@@ -216,10 +215,8 @@ def test_manual_basic_overhead():
 def worker(total, blocking=True):
     def incr_bar(x):
         with closing(StringIO()) as our_file:
-            for _ in trange(
-                    total, file=our_file,
-                    lock_args=None if blocking else (False,),
-                    miniters=1, mininterval=0, maxinterval=0):
+            for _ in trange(total, file=our_file, lock_args=None if blocking else
+                            (False,), miniters=1, mininterval=0, maxinterval=0):
                 pass
         return x + 1
     return incr_bar
@@ -319,8 +316,7 @@ def test_iter_overhead_simplebar_hard():
             for i in s:
                 a += i
 
-    assert_performance(
-        10, 'trange', time_tqdm(), 'simple_progress', time_bench())
+    assert_performance(10, 'trange', time_tqdm(), 'simple_progress', time_bench())
 
 
 @retry_on_except(10)
@@ -338,14 +334,12 @@ def test_manual_overhead_simplebar_hard():
                     a += i
                     t.update(10)
 
-        simplebar_update = simple_progress(
-            total=total * 10, file=our_file, leave=True, miniters=1,
-            mininterval=0)
+        simplebar_update = simple_progress(total=total * 10, file=our_file, leave=True,
+                                           miniters=1, mininterval=0)
         a = 0
         with relative_timer() as time_bench:
             for i in _range(total):
                 a += i
                 simplebar_update(10)
 
-    assert_performance(
-        10, 'tqdm', time_tqdm(), 'simple_progress', time_bench())
+    assert_performance(10, 'tqdm', time_tqdm(), 'simple_progress', time_bench())

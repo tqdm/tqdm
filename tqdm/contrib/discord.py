@@ -35,8 +35,7 @@ class DiscordIO(MonoWorker):
         client = Client(config)
         self.text = self.__class__.__name__
         try:
-            self.message = client.api.channels_messages_create(
-                channel_id, self.text)
+            self.message = client.api.channels_messages_create(channel_id, self.text)
         except Exception as e:
             tqdm_auto.write(str(e))
 

@@ -45,8 +45,7 @@ class TqdmWarning(Warning):
     """
     def __init__(self, msg, fp_write=None, *a, **k):
         if fp_write is not None:
-            fp_write("\n" + self.__class__.__name__ + ": " +
-                     str(msg).rstrip() + '\n')
+            fp_write("\n" + self.__class__.__name__ + ": " + str(msg).rstrip() + '\n')
         else:
             super(TqdmWarning, self).__init__(msg, *a, **k)
 
@@ -127,8 +126,7 @@ class TqdmDefaultWriteLock(object):
     @classmethod
     def create_th_lock(cls):
         assert hasattr(cls, 'th_lock')
-        warn("create_th_lock not needed anymore", TqdmDeprecationWarning,
-             stacklevel=2)
+        warn("create_th_lock not needed anymore", TqdmDeprecationWarning, stacklevel=2)
 
 
 class Bar(object):
@@ -206,8 +204,7 @@ class Bar(object):
             N_BARS = self.default_len
 
         nsyms = len(charset) - 1
-        bar_length, frac_bar_length = divmod(
-            int(self.frac * N_BARS * nsyms), nsyms)
+        bar_length, frac_bar_length = divmod(int(self.frac * N_BARS * nsyms), nsyms)
 
         res = charset[-1] * bar_length
         if bar_length < N_BARS:  # whitespace padding
@@ -341,10 +338,9 @@ class tqdm(Comparable):
         return print_status
 
     @staticmethod
-    def format_meter(n, total, elapsed, ncols=None, prefix='', ascii=False,
-                     unit='it', unit_scale=False, rate=None, bar_format=None,
-                     postfix=None, unit_divisor=1000, initial=0, colour=None,
-                     **extra_kwargs):
+    def format_meter(n, total, elapsed, ncols=None, prefix='', ascii=False, unit='it',
+                     unit_scale=False, rate=None, bar_format=None, postfix=None,
+                     unit_divisor=1000, initial=0, colour=None, **extra_kwargs):
         """
         Return a string-based progress bar given some parameters
 
@@ -432,11 +428,10 @@ class tqdm(Comparable):
         inv_rate = 1 / rate if rate else None
         format_sizeof = tqdm.format_sizeof
         rate_noinv_fmt = ((format_sizeof(rate) if unit_scale else
-                           '{0:5.2f}'.format(rate))
-                          if rate else '?') + unit + '/s'
-        rate_inv_fmt = ((format_sizeof(inv_rate) if unit_scale else
-                         '{0:5.2f}'.format(inv_rate))
-                        if inv_rate else '?') + 's/' + unit
+                           '{0:5.2f}'.format(rate)) if rate else '?') + unit + '/s'
+        rate_inv_fmt = (
+            (format_sizeof(inv_rate) if unit_scale else '{0:5.2f}'.format(inv_rate))
+            if inv_rate else '?') + 's/' + unit
         rate_fmt = rate_inv_fmt if inv_rate and inv_rate > 1 else rate_noinv_fmt
 
         if unit_scale:
@@ -521,12 +516,10 @@ class tqdm(Comparable):
                 return nobar
 
             # Formatting progress bar space available for bar's display
-            full_bar = Bar(
-                frac,
-                max(1, ncols - disp_len(nobar))
-                if ncols else 10,
-                charset=Bar.ASCII if ascii is True else ascii or Bar.UTF,
-                colour=colour)
+            full_bar = Bar(frac,
+                           max(1, ncols - disp_len(nobar)) if ncols else 10,
+                           charset=Bar.ASCII if ascii is True else ascii or Bar.UTF,
+                           colour=colour)
             if not _is_ascii(full_bar.charset) and _is_ascii(bar_format):
                 bar_format = _unicode(bar_format)
             res = bar_format.format(bar=full_bar, **format_dict)
@@ -540,12 +533,9 @@ class tqdm(Comparable):
             nobar = bar_format.format(bar=full_bar, **format_dict)
             if not full_bar.format_called:
                 return nobar
-            full_bar = Bar(
-                0,
-                max(1, ncols - disp_len(nobar))
-                if ncols else 10,
-                charset=Bar.BLANK,
-                colour=colour)
+            full_bar = Bar(0,
+                           max(1, ncols - disp_len(nobar)) if ncols else 10,
+                           charset=Bar.BLANK, colour=colour)
             res = bar_format.format(bar=full_bar, **format_dict)
             return disp_trim(res, ncols) if ncols else res
         else:
@@ -559,8 +549,8 @@ class tqdm(Comparable):
         with cls.get_lock():  # also constructs lock if non-existent
             cls._instances.add(instance)
             # create monitoring thread
-            if cls.monitor_interval and (cls.monitor is None or not
-                                         cls.monitor.report()):
+            if cls.monitor_interval and (cls.monitor is None
+                                         or not cls.monitor.report()):
                 try:
                     cls.monitor = TMonitor(cls, cls.monitor_interval)
                 except Exception as e:  # pragma: nocover
@@ -825,14 +815,12 @@ class tqdm(Comparable):
         if _Rolling_and_Expanding is not None:  # pragma: no cover
             _Rolling_and_Expanding.progress_apply = inner_generator()
 
-    def __init__(self, iterable=None, desc=None, total=None, leave=True,
-                 file=None, ncols=None, mininterval=0.1, maxinterval=10.0,
-                 miniters=None, ascii=None, disable=False, unit='it',
-                 unit_scale=False, dynamic_ncols=False, smoothing=0.3,
-                 bar_format=None, initial=0, position=None, postfix=None,
-                 unit_divisor=1000, write_bytes=None, lock_args=None,
-                 nrows=None, colour=None,
-                 gui=False, **kwargs):
+    def __init__(self, iterable=None, desc=None, total=None, leave=True, file=None,
+                 ncols=None, mininterval=0.1, maxinterval=10.0, miniters=None,
+                 ascii=None, disable=False, unit='it', unit_scale=False,
+                 dynamic_ncols=False, smoothing=0.3, bar_format=None, initial=0,
+                 position=None, postfix=None, unit_divisor=1000, write_bytes=None,
+                 lock_args=None, nrows=None, colour=None, gui=False, **kwargs):
         """
         Parameters
         ----------
@@ -1263,8 +1251,7 @@ class tqdm(Comparable):
                 # EMA (not just overall average)
                 if self.smoothing and delta_t and delta_it:
                     rate = delta_t / delta_it
-                    self.avg_time = self.ema(
-                        rate, self.avg_time, self.smoothing)
+                    self.avg_time = self.ema(rate, self.avg_time, self.smoothing)
 
                 if not hasattr(self, "sp"):
                     raise TqdmDeprecationWarning(
@@ -1478,15 +1465,12 @@ class tqdm(Comparable):
         ncols, nrows = self.ncols, self.nrows
         return dict(
             n=self.n, total=self.total,
-            elapsed=self._time() - self.start_t
-            if hasattr(self, 'start_t') else 0,
-            ncols=ncols, nrows=nrows,
-            prefix=self.desc, ascii=self.ascii, unit=self.unit,
-            unit_scale=self.unit_scale,
+            elapsed=self._time() - self.start_t if hasattr(self, 'start_t') else 0,
+            ncols=ncols, nrows=nrows, prefix=self.desc, ascii=self.ascii,
+            unit=self.unit, unit_scale=self.unit_scale,
             rate=1 / self.avg_time if self.avg_time else None,
             bar_format=self.bar_format, postfix=self.postfix,
-            unit_divisor=self.unit_divisor, initial=self.initial,
-            colour=self.colour)
+            unit_divisor=self.unit_divisor, initial=self.initial, colour=self.colour)
 
     def display(self, msg=None, pos=None):
         """

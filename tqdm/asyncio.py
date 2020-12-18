@@ -52,8 +52,7 @@ class tqdm_asyncio(std_tqdm):
         return self.iterable.send(*args, **kwargs)
 
     @classmethod
-    def as_completed(cls, fs, *, loop=None, timeout=None, total=None,
-                     **tqdm_kwargs):
+    def as_completed(cls, fs, *, loop=None, timeout=None, total=None, **tqdm_kwargs):
         """
         Wrapper for `asyncio.as_completed`.
         """

@@ -101,8 +101,7 @@ async def test_as_completed(capsys):
     for retry in range(3):
         t = time()
         skew = time() - t
-        for i in as_completed([asyncio.sleep(0.01 * i)
-                               for i in range(30, 0, -1)]):
+        for i in as_completed([asyncio.sleep(0.01 * i) for i in range(30, 0, -1)]):
             await i
         t = time() - t - 2 * skew
         try:

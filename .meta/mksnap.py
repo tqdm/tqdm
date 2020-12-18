@@ -64,12 +64,10 @@ apps:
   tqdm:
     command: bin/tqdm
     completer: completion.sh
-""".format(
-    version=tqdm.__version__,
-    commit=check_output(['git', 'describe', '--always']).decode('U8').strip())
+""".format(version=tqdm.__version__, commit=check_output([
+    'git', 'describe', '--always']).decode('U8').strip())
 fname = path.join(path.dirname(src_dir), 'snapcraft.yaml')
 
 if __name__ == "__main__":
     with io_open(fname, mode='w', encoding='utf-8') as fd:
-        fd.write(snap_yml.decode('U8') if hasattr(snap_yml, 'decode')
-                 else snap_yml)
+        fd.write(snap_yml.decode('U8') if hasattr(snap_yml, 'decode') else snap_yml)

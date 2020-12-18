@@ -3,6 +3,8 @@ Tests for `tqdm.contrib.concurrent`.
 """
 from warnings import catch_warnings
 
+from pytest import mark
+
 from tqdm.contrib.concurrent import thread_map, process_map
 from .tests_tqdm import pretest_posttest  # NOQA, pylint: disable=unused-import
 from .tests_tqdm import importorskip, skip, StringIO, closing
@@ -36,19 +38,13 @@ def test_process_map():
             skip(str(err))
 
 
-def test_chunksize_warning():
+@mark.parametrize("iterables,should_warn", [([], False), (['x'], False), ([()], False),
+                                            (['x', ()], False), (['x' * 1001], True),
+                                            (['x' * 100, ('x',) * 1001], True)])
+def test_chunksize_warning(iterables, should_warn):
     """Test contrib.concurrent.process_map chunksize warnings"""
     patch = importorskip("unittest.mock").patch
-
-    for iterables, should_warn in [
-        ([], False),
-        (['x'], False),
-        ([()], False),
-        (['x', ()], False),
-        (['x' * 1001], True),
-        (['x' * 100, ('x',) * 1001], True),
-    ]:
-        with patch('tqdm.contrib.concurrent._executor_map'):
-            with catch_warnings(record=True) as w:
-                process_map(incr, *iterables)
-                assert should_warn == bool(w)
+    with patch('tqdm.contrib.concurrent._executor_map'):
+        with catch_warnings(record=True) as w:
+            process_map(incr, *iterables)
+            assert should_warn == bool(w)

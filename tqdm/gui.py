@@ -17,7 +17,6 @@ from .std import tqdm as std_tqdm
 from .std import TqdmExperimentalWarning
 from warnings import warn
 
-
 __author__ = {"github.com/": ["casperdcl", "lrq3000"]}
 __all__ = ['tqdm_gui', 'tgrange', 'tqdm', 'trange']
 
@@ -71,8 +70,7 @@ class tqdm_gui(std_tqdm):  # pragma: no cover
             self.fig.legend((self.line1, self.line2), ('cur', 'est'),
                             loc='center right')
             # progressbar
-            self.hspan = plt.axhspan(0, 0.001,
-                                     xmin=0, xmax=0, color='g')
+            self.hspan = plt.axhspan(0, 0.001, xmin=0, xmax=0, color='g')
         else:
             # ax.set_xlim(-60, 0)
             ax.set_xlim(0, 60)
@@ -83,8 +81,7 @@ class tqdm_gui(std_tqdm):  # pragma: no cover
         # ax.set_xlabel('seconds')
         ax.set_ylabel((self.unit if self.unit else 'it') + '/s')
         if self.unit_scale:
-            plt.ticklabel_format(style='sci', axis='y',
-                                 scilimits=(0, 0))
+            plt.ticklabel_format(style='sci', axis='y', scilimits=(0, 0))
             ax.yaxis.get_offset_text().set_x(-0.15)
 
         # Remember if external environment is interactive
@@ -190,8 +187,7 @@ class tqdm_gui(std_tqdm):  # pragma: no cover
                 # EMA (not just overall average)
                 if self.smoothing and delta_t and delta_it:
                     rate = delta_t / delta_it
-                    self.avg_time = self.ema(
-                        rate, self.avg_time, self.smoothing)
+                    self.avg_time = self.ema(rate, self.avg_time, self.smoothing)
 
                 self.display()
 
@@ -285,8 +281,7 @@ class tqdm_gui(std_tqdm):  # pragma: no cover
             try:
                 poly_lims = self.hspan.get_xy()
             except AttributeError:
-                self.hspan = self.plt.axhspan(
-                    0, 0.001, xmin=0, xmax=0, color='g')
+                self.hspan = self.plt.axhspan(0, 0.001, xmin=0, xmax=0, color='g')
                 poly_lims = self.hspan.get_xy()
             poly_lims[0, 1] = ymin
             poly_lims[1, 1] = ymax

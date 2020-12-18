@@ -154,11 +154,11 @@ class DisableOnWriteError(ObjectWrapper):
     def __init__(self, wrapped, tqdm_instance):
         super(DisableOnWriteError, self).__init__(wrapped)
         if hasattr(wrapped, 'write'):
-            self.wrapper_setattr('write', self.disable_on_exception(
-                tqdm_instance, wrapped.write))
+            self.wrapper_setattr(
+                'write', self.disable_on_exception(tqdm_instance, wrapped.write))
         if hasattr(wrapped, 'flush'):
-            self.wrapper_setattr('flush', self.disable_on_exception(
-                tqdm_instance, wrapped.flush))
+            self.wrapper_setattr(
+                'flush', self.disable_on_exception(tqdm_instance, wrapped.flush))
 
     def __eq__(self, other):
         return self._wrapped == getattr(other, '_wrapped', other)
@@ -318,8 +318,7 @@ except ImportError:
     _text_width = len
 else:
     def _text_width(s):
-        return sum(
-            2 if east_asian_width(ch) in 'FW' else 1 for ch in _unicode(s))
+        return sum(2 if east_asian_width(ch) in 'FW' else 1 for ch in _unicode(s))
 
 
 def disp_len(data):

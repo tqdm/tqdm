@@ -37,9 +37,8 @@ def test_pandas_rolling_expanding():
             our_file.seek(0)
             if our_file.getvalue().count(exres) < 2:
                 our_file.seek(0)
-                raise AssertionError(
-                    "\nExpected:\n{0}\nIn:\n{1}\n".format(
-                        exres + " at least twice.", our_file.read()))
+                raise AssertionError("\nExpected:\n{0}\nIn:\n{1}\n".format(
+                    exres + " at least twice.", our_file.read()))
 
 
 def test_pandas_series():
@@ -61,9 +60,8 @@ def test_pandas_series():
             our_file.seek(0)
             if our_file.getvalue().count(exres) < 2:
                 our_file.seek(0)
-                raise AssertionError(
-                    "\nExpected:\n{0}\nIn:\n{1}\n".format(
-                        exres + " at least twice.", our_file.read()))
+                raise AssertionError("\nExpected:\n{0}\nIn:\n{1}\n".format(
+                    exres + " at least twice.", our_file.read()))
 
 
 def test_pandas_data_frame():
@@ -103,9 +101,8 @@ def test_pandas_data_frame():
             our_file.seek(0)
             if our_file.getvalue().count(exres) < 1:
                 our_file.seek(0)
-                raise AssertionError(
-                    "\nExpected:\n{0}\nIn:\n {1}\n".format(
-                        exres + " at least once.", our_file.read()))
+                raise AssertionError("\nExpected:\n{0}\nIn:\n {1}\n".format(
+                    exres + " at least once.", our_file.read()))
 
 
 def test_pandas_groupby_apply():
@@ -157,9 +154,8 @@ def test_pandas_groupby_apply():
             our_file.seek(0)
             if our_file.getvalue().count(exres) < 1:
                 our_file.seek(0)
-                raise AssertionError(
-                    "\nExpected:\n{0}\nIn:\n {1}\n".format(
-                        exres + " at least once.", our_file.read()))
+                raise AssertionError("\nExpected:\n{0}\nIn:\n {1}\n".format(
+                    exres + " at least once.", our_file.read()))
 
 
 def test_pandas_leave():
@@ -174,8 +170,8 @@ def test_pandas_leave():
         exres = '100%|##########| 100/100'
         if exres not in our_file.read():
             our_file.seek(0)
-            raise AssertionError(
-                "\nExpected:\n{0}\nIn:{1}\n".format(exres, our_file.read()))
+            raise AssertionError("\nExpected:\n{0}\nIn:{1}\n".format(
+                exres, our_file.read()))
 
 
 def test_pandas_apply_args_deprecation():

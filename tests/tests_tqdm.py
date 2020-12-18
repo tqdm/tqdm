@@ -63,8 +63,7 @@ CTRLCHR = [r'\r', r'\n', r'\x1b\[A']  # Need to escape [ for regex
 RE_rate = re.compile(r'(\d+\.\d+)it/s')
 RE_ctrlchr = re.compile("(%s)" % '|'.join(CTRLCHR))  # Match control chars
 RE_ctrlchr_excl = re.compile('|'.join(CTRLCHR))  # Match and exclude ctrl chars
-RE_pos = re.compile(
-    r'([\r\n]+((pos\d+) bar:\s+\d+%|\s{3,6})?[^\r\n]*)')
+RE_pos = re.compile(r'([\r\n]+((pos\d+) bar:\s+\d+%|\s{3,6})?[^\r\n]*)')
 
 
 def pos_line_diff(res_list, expected_list, raise_nonempty=True):
@@ -97,7 +96,6 @@ def pos_line_diff(res_list, expected_list, raise_nonempty=True):
 
 class DiscreteTimer(object):
     """Virtual discrete time manager, to precisely control time for tests"""
-
     def __init__(self):
         self.t = 0.0
 
@@ -145,7 +143,6 @@ def pretest_posttest():
 
 class UnicodeIO(IOBase):
     """Unicode version of StringIO"""
-
     def __init__(self, *args, **kwargs):
         super(UnicodeIO, self).__init__(*args, **kwargs)
         self.encoding = 'U8'  # io.StringIO supports unicode, but no encoding
@@ -244,7 +241,7 @@ def test_format_num():
 
     assert float(format_num(1337)) == 1337
     assert format_num(int(1e6)) == '1e+6'
-    assert format_num(1239876) == '1''239''876'
+    assert format_num(1239876) == '1' '239' '876'
 
 
 def test_format_meter():
@@ -379,14 +376,10 @@ def test_si_format():
     assert '1.00T ' in format_meter(1, 999999999999, 1, unit_scale=True)
     assert '1.00P ' in format_meter(1, 999999999999999, 1, unit_scale=True)
     assert '1.00E ' in format_meter(1, 999999999999999999, 1, unit_scale=True)
-    assert '1.00Z ' in format_meter(1, 999999999999999999999, 1,
-                                    unit_scale=True)
-    assert '1.0Y ' in format_meter(1, 999999999999999999999999, 1,
-                                   unit_scale=True)
-    assert '10.0Y ' in format_meter(1, 9999999999999999999999999, 1,
-                                    unit_scale=True)
-    assert '100.0Y ' in format_meter(1, 99999999999999999999999999, 1,
-                                     unit_scale=True)
+    assert '1.00Z ' in format_meter(1, 999999999999999999999, 1, unit_scale=True)
+    assert '1.0Y ' in format_meter(1, 999999999999999999999999, 1, unit_scale=True)
+    assert '10.0Y ' in format_meter(1, 9999999999999999999999999, 1, unit_scale=True)
+    assert '100.0Y ' in format_meter(1, 99999999999999999999999999, 1, unit_scale=True)
     assert '1000.0Y ' in format_meter(1, 999999999999999999999999999, 1,
                                       unit_scale=True)
 
@@ -471,8 +464,7 @@ def test_iterate_over_csv_rows():
         test_csv_file.seek(0)
 
         # Test that nothing fails if we iterate over rows
-        reader = csv.DictReader(test_csv_file,
-                                fieldnames=('row1', 'row2', 'row3'))
+        reader = csv.DictReader(test_csv_file, fieldnames=('row1', 'row2', 'row3'))
         with closing(StringIO()) as our_file:
             for _ in tqdm(reader, file=our_file):
                 pass
@@ -657,8 +649,7 @@ def test_max_interval():
 def test_min_iters():
     """Test miniters"""
     with closing(StringIO()) as our_file:
-        for _ in tqdm(_range(3), file=our_file, leave=True, mininterval=0,
-                      miniters=2):
+        for _ in tqdm(_range(3), file=our_file, leave=True, mininterval=0, miniters=2):
             pass
 
         out = our_file.getvalue()
@@ -668,8 +659,7 @@ def test_min_iters():
         assert '| 3/3 ' in out
 
     with closing(StringIO()) as our_file:
-        for _ in tqdm(_range(3), file=our_file, leave=True, mininterval=0,
-                      miniters=1):
+        for _ in tqdm(_range(3), file=our_file, leave=True, mininterval=0, miniters=1):
             pass
 
         out = our_file.getvalue()
@@ -683,8 +673,7 @@ def test_dynamic_min_iters():
     """Test purely dynamic miniters (and manual updates and __del__)"""
     with closing(StringIO()) as our_file:
         total = 10
-        t = tqdm(total=total, file=our_file, miniters=None, mininterval=0,
-                 smoothing=1)
+        t = tqdm(total=total, file=our_file, miniters=None, mininterval=0, smoothing=1)
 
         t.update()
         # Increase 3 iterations
@@ -708,8 +697,7 @@ def test_dynamic_min_iters():
     # Check with smoothing=0, miniters should be set to max update seen so far
     with closing(StringIO()) as our_file:
         total = 10
-        t = tqdm(total=total, file=our_file, miniters=None, mininterval=0,
-                 smoothing=0)
+        t = tqdm(total=total, file=our_file, miniters=None, mininterval=0, smoothing=0)
 
         t.update()
         t.update(2)
@@ -1004,9 +992,8 @@ def test_close():
         res = our_file.getvalue()
         assert res[-1] == '\n'
         if not res.startswith(exres):
-            raise AssertionError(
-                "\n<<< Expected:\n{0}\n>>> Got:\n{1}\n===".format(
-                    exres + ', ...it/s]\n', our_file.getvalue()))
+            raise AssertionError("\n<<< Expected:\n{0}\n>>> Got:\n{1}\n===".format(
+                exres + ', ...it/s]\n', our_file.getvalue()))
 
     # Closing after the output stream has closed
     with closing(StringIO()) as our_file:
@@ -1442,8 +1429,7 @@ def test_repr():
 def test_clear():
     """Test clearing bar display"""
     with closing(StringIO()) as our_file:
-        t1 = tqdm(total=10, file=our_file, desc='pos0 bar',
-                  bar_format='{l_bar}')
+        t1 = tqdm(total=10, file=our_file, desc='pos0 bar', bar_format='{l_bar}')
         t2 = trange(10, file=our_file, desc='pos1 bar', bar_format='{l_bar}')
         before = squash_ctrlchars(our_file.getvalue())
         t2.clear()
@@ -1621,8 +1607,7 @@ def test_postfix():
     postfix = {'float': 0.321034, 'gen': 543, 'str': 'h', 'lst': [2]}
     postfix_order = (('w', 'w'), ('a', 0))  # no need for OrderedDict
     expected = ['float=0.321', 'gen=543', 'lst=[2]', 'str=h']
-    expected_order = ['w=w', 'a=0', 'float=0.321', 'gen=543', 'lst=[2]',
-                      'str=h']
+    expected_order = ['w=w', 'a=0', 'float=0.321', 'gen=543', 'lst=[2]', 'str=h']
 
     # Test postfix set at init
     with closing(StringIO()) as our_file:
@@ -1840,8 +1825,7 @@ def test_wrapattr():
 
     with closing(StringIO()) as our_file:
         with closing(StringIO()) as writer:
-            with tqdm.wrapattr(
-                    writer, "write", file=our_file, bytes=True) as wrap:
+            with tqdm.wrapattr(writer, "write", file=our_file, bytes=True) as wrap:
                 wrap.write(data)
             res = writer.getvalue()
             assert data == res
@@ -1850,8 +1834,7 @@ def test_wrapattr():
 
     with closing(StringIO()) as our_file:
         with closing(StringIO()) as writer:
-            with tqdm.wrapattr(
-                    writer, "write", file=our_file, bytes=False) as wrap:
+            with tqdm.wrapattr(writer, "write", file=our_file, bytes=False) as wrap:
                 wrap.write(data)
         res = our_file.getvalue()
         assert '%dit [' % len(data) in res
@@ -1903,8 +1886,7 @@ def test_screen_shape():
 
     # all bars, leave=True
     with closing(StringIO()) as our_file:
-        kwargs = dict(file=our_file, ncols=50, nrows=2, miniters=0,
-                      mininterval=0)
+        kwargs = dict(file=our_file, ncols=50, nrows=2, miniters=0, mininterval=0)
         with trange(10, desc="one", **kwargs) as t1:
             with trange(10, desc="two", **kwargs) as t2:
                 assert "two" not in our_file.getvalue()

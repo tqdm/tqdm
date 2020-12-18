@@ -58,11 +58,9 @@ class TqdmCallback(keras.callbacks.Callback):
             self.batches = batches = None
         self.verbose = verbose
         if verbose == 1:
-            self.batch_bar = tqdm_class(total=batches, unit='batch',
-                                        leave=False)
+            self.batch_bar = tqdm_class(total=batches, unit='batch', leave=False)
             self.on_batch_end = self.bar2callback(
-                self.batch_bar,
-                pop=['batch', 'size'],
+                self.batch_bar, pop=['batch', 'size'],
                 delta=lambda logs: logs.get('size', 1))
 
     def on_train_begin(self, *_, **__):
@@ -83,8 +81,7 @@ class TqdmCallback(keras.callbacks.Callback):
                     total=total, unit='batch', leave=True,
                     unit_scale=1 / (params('batch_size', 1) or 1))
                 self.on_batch_end = self.bar2callback(
-                    self.batch_bar,
-                    pop=['batch', 'size'],
+                    self.batch_bar, pop=['batch', 'size'],
                     delta=lambda logs: logs.get('size', 1))
             elif self.verbose == 1:
                 self.batch_bar.unit_scale = 1 / (params('batch_size', 1) or 1)

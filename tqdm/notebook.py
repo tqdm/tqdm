@@ -16,7 +16,6 @@ from .utils import _range
 # to inherit from the tqdm class
 from .std import tqdm as std_tqdm
 
-
 if True:  # pragma: no cover
     # import IPython/Jupyter base widget and display utilities
     IPY = 0
@@ -33,8 +32,7 @@ if True:  # pragma: no cover
         import warnings
         with warnings.catch_warnings():
             warnings.filterwarnings(
-                'ignore',
-                message=".*The `IPython.html` package has been deprecated.*")
+                'ignore', message=".*The `IPython.html` package has been deprecated.*")
             try:
                 import IPython.html.widgets as ipywidgets
             except ImportError:
@@ -70,7 +68,6 @@ if True:  # pragma: no cover
     except ImportError:  # Py2
         from cgi import escape
 
-
 __author__ = {"github.com/": ["lrq3000", "casperdcl", "alexanderkuk"]}
 __all__ = ['tqdm_notebook', 'tnrange', 'tqdm', 'trange']
 
@@ -80,18 +77,15 @@ class TqdmHBox(HBox):
         if not hasattr(self, "pbar"):
             return super(TqdmHBox, self).__repr__()
         return self.pbar.format_meter(**dict(
-            self.pbar.format_dict,
-            bar_format=(
+            self.pbar.format_dict, bar_format=(
                 self.pbar.format_dict['bar_format'] or "{l_bar}{bar}{r_bar}"
-            ).replace("<bar/>", "{bar}"),
-            ascii=True))
+            ).replace("<bar/>", "{bar}"), ascii=True))
 
 
 class tqdm_notebook(std_tqdm):
     """
     Experimental IPython/Jupyter Notebook widget using tqdm!
     """
-
     @staticmethod
     def status_printer(_, total=None, desc=None, ncols=None):
         """
@@ -224,8 +218,7 @@ class tqdm_notebook(std_tqdm):
         # Initialize parent class + avoid printing by using gui=True
         kwargs['gui'] = True
         if 'bar_format' in kwargs:
-            kwargs['bar_format'] = kwargs['bar_format'].replace(
-                '{bar}', '<bar/>')
+            kwargs['bar_format'] = kwargs['bar_format'].replace('{bar}', '<bar/>')
         # convert disable = None to False
         kwargs['disable'] = bool(kwargs.get('disable', False))
         colour = kwargs.pop('colour', None)
