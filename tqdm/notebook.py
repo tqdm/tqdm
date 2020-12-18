@@ -57,6 +57,7 @@ if True:  # pragma: no cover
         except ImportError:
             IPY = 0
             IProgress = None
+            HBox = object
 
     try:
         from IPython.display import display  # , clear_output
@@ -72,6 +73,18 @@ if True:  # pragma: no cover
 
 __author__ = {"github.com/": ["lrq3000", "casperdcl", "alexanderkuk"]}
 __all__ = ['tqdm_notebook', 'tnrange', 'tqdm', 'trange']
+
+
+class TqdmHBox(HBox):
+    def __repr__(self):
+        if not hasattr(self, "pbar"):
+            return super(TqdmHBox, self).__repr__()
+        return self.pbar.format_meter(**dict(
+            self.pbar.format_dict,
+            bar_format=(
+                self.pbar.format_dict['bar_format'] or "{l_bar}{bar}{r_bar}"
+            ).replace("<bar/>", "{bar}"),
+            ascii=True))
 
 
 class tqdm_notebook(std_tqdm):
@@ -110,7 +123,7 @@ class tqdm_notebook(std_tqdm):
         rtext = HTML()
         if desc:
             ltext.value = desc
-        container = HBox(children=[ltext, pbar, rtext])
+        container = TqdmHBox(children=[ltext, pbar, rtext])
         # Prepare layout
         if ncols is not None:  # use default style of ipywidgets
             # ncols could be 100, "100px", "100%"
@@ -228,8 +241,8 @@ class tqdm_notebook(std_tqdm):
         # Replace with IPython progress bar display (with correct total)
         unit_scale = 1 if self.unit_scale is True else self.unit_scale or 1
         total = self.total * unit_scale if self.total else self.total
-        self.container = self.status_printer(
-            self.fp, total, self.desc, self.ncols)
+        self.container = self.status_printer(self.fp, total, self.desc, self.ncols)
+        self.container.pbar = self
         if display_here:
             display(self.container)
         self.sp = self.display
