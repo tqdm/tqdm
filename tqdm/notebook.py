@@ -73,13 +73,23 @@ __all__ = ['tqdm_notebook', 'tnrange', 'tqdm', 'trange']
 
 
 class TqdmHBox(HBox):
-    def __repr__(self):
+    def _repr_json_(self, pretty=None):
+        if not hasattr(self, "pbar"):
+            return {}
+        d = dict(self.pbar.format_dict,
+                 bar_format=(self.pbar.format_dict['bar_format']
+                             or "{l_bar}{bar}{r_bar}").replace("<bar/>", "{bar}"))
+        if pretty is not None:
+            d["ascii"] = not pretty
+        return d
+
+    def __repr__(self, pretty=False):
         if not hasattr(self, "pbar"):
             return super(TqdmHBox, self).__repr__()
-        return self.pbar.format_meter(**dict(
-            self.pbar.format_dict, bar_format=(
-                self.pbar.format_dict['bar_format'] or "{l_bar}{bar}{r_bar}"
-            ).replace("<bar/>", "{bar}"), ascii=True))
+        return self.pbar.format_meter(**self._repr_json_(pretty))
+
+    def _repr_pretty_(self, pp, cycle):
+        pp.text(self.__repr__(True))
 
 
 class tqdm_notebook(std_tqdm):
