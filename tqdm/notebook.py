@@ -235,7 +235,7 @@ class tqdm_notebook(std_tqdm):
         display_here = kwargs.pop('display', True)
         super(tqdm_notebook, self).__init__(*args, **kwargs)
         if self.disable or not kwargs['gui']:
-            self.sp = lambda *_, **__: None
+            self.disp = lambda *_, **__: None
             return
 
         # Get bar width
@@ -248,7 +248,7 @@ class tqdm_notebook(std_tqdm):
         self.container.pbar = self
         if display_here:
             display(self.container)
-        self.sp = self.display
+        self.disp = self.display
         self.colour = colour
 
         # Print initial bar state
@@ -262,7 +262,7 @@ class tqdm_notebook(std_tqdm):
                 yield obj
         # NB: except ... [ as ...] breaks IPython async KeyboardInterrupt
         except:  # NOQA
-            self.sp(bar_style='danger')
+            self.disp(bar_style='danger')
             raise
         # NB: don't `finally: close()`
         # since this could be a shared bar which the user will `reset()`
@@ -274,7 +274,7 @@ class tqdm_notebook(std_tqdm):
         except:  # NOQA
             # cannot catch KeyboardInterrupt when using manual tqdm
             # as the interrupt will most likely happen on another statement
-            self.sp(bar_style='danger')
+            self.disp(bar_style='danger')
             raise
         # NB: don't `finally: close()`
         # since this could be a shared bar which the user will `reset()`
@@ -284,12 +284,12 @@ class tqdm_notebook(std_tqdm):
         # Try to detect if there was an error or KeyboardInterrupt
         # in manual mode: if n < total, things probably got wrong
         if self.total and self.n < self.total:
-            self.sp(bar_style='danger')
+            self.disp(bar_style='danger')
         else:
             if self.leave:
-                self.sp(bar_style='success')
+                self.disp(bar_style='success')
             else:
-                self.sp(close=True)
+                self.disp(close=True)
 
     def moveto(self, *_, **__):
         # void -> avoid extraneous `\n` in IPython output cell

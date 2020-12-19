@@ -1145,7 +1145,7 @@ class tqdm(Comparable):
         avg_time = self.avg_time
         time = self._time
 
-        if not hasattr(self, 'sp'):
+        if getattr(self, 'sp', None) is None:
             raise TqdmDeprecationWarning(
                 "Please use `tqdm.gui.tqdm(...)` instead of"
                 " `tqdm(..., gui=True)`\n",
@@ -1301,7 +1301,7 @@ class tqdm(Comparable):
         self._decr_instances(self)
 
         # GUI mode
-        if not hasattr(self, "sp"):
+        if getattr(self, 'sp', None) is None:
             return
 
         # annoyingly, _supports_unicode isn't good enough

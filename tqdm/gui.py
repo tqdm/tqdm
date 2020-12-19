@@ -32,6 +32,7 @@ class tqdm_gui(std_tqdm):  # pragma: no cover
         import matplotlib as mpl
         import matplotlib.pyplot as plt
         from collections import deque
+        kwargs = kwargs.copy()
         kwargs['gui'] = True
 
         super(tqdm_gui, self).__init__(*args, **kwargs)
