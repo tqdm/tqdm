@@ -1145,12 +1145,6 @@ class tqdm(Comparable):
         avg_time = self.avg_time
         time = self._time
 
-        if getattr(self, 'sp', None) is None:
-            raise TqdmDeprecationWarning(
-                "Please use `tqdm.gui.tqdm(...)` instead of"
-                " `tqdm(..., gui=True)`\n",
-                fp_write=getattr(self.fp, 'write', sys.stderr.write))
-
         try:
             for obj in iterable:
                 yield obj
@@ -1252,12 +1246,6 @@ class tqdm(Comparable):
                 if self.smoothing and delta_t and delta_it:
                     rate = delta_t / delta_it
                     self.avg_time = self.ema(rate, self.avg_time, self.smoothing)
-
-                if not hasattr(self, "sp"):
-                    raise TqdmDeprecationWarning(
-                        "Please use `tqdm.gui.tqdm(...)`"
-                        " instead of `tqdm(..., gui=True)`\n",
-                        fp_write=getattr(self.fp, 'write', sys.stderr.write))
 
                 self.refresh(lock_args=self.lock_args)
 
@@ -1494,6 +1482,12 @@ class tqdm(Comparable):
                 return False
             if msg or msg is None:  # override at `nrows - 1`
                 msg = " ... (more hidden) ..."
+
+        if not hasattr(self, "sp"):
+            raise TqdmDeprecationWarning(
+                "Please use `tqdm.gui.tqdm(...)`"
+                " instead of `tqdm(..., gui=True)`\n",
+                fp_write=getattr(self.fp, 'write', sys.stderr.write))
 
         if pos:
             self.moveto(pos)
