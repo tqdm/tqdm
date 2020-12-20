@@ -1,4 +1,5 @@
 from functools import partial
+from sys import platform
 from time import time
 import asyncio
 
@@ -96,7 +97,8 @@ async def test_coroutines():
 
 
 @mark.asyncio
-async def test_as_completed(capsys):
+@mark.parametrize("tol", [0.2 if platform.startswith("darwin") else 0.1])
+async def test_as_completed(capsys, tol):
     """Test asyncio as_completed"""
     for retry in range(3):
         t = time()
@@ -105,7 +107,7 @@ async def test_as_completed(capsys):
             await i
         t = time() - t - 2 * skew
         try:
-            assert 0.27 < t < 0.33, t
+            assert 0.3 * (1 - tol) < t < 0.3 * (1 + tol), t
             _, err = capsys.readouterr()
             assert '30/30' in err
         except AssertionError:
