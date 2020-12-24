@@ -2,8 +2,6 @@
 from ast import literal_eval
 import re
 
-from .tests_tqdm import pretest_posttest  # NOQA, pylint: disable=unused-import
-
 
 def test_version():
     """Test version string"""

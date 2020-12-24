@@ -9,7 +9,7 @@ import os
 from functools import wraps
 from contextlib import contextmanager
 from pytest import raises as assert_raises
-from pytest import fixture, importorskip, skip
+from pytest import importorskip, skip
 from warnings import catch_warnings, simplefilter
 
 from tqdm import tqdm
@@ -116,29 +116,6 @@ def cpu_timify(t, timer=None):
     t._sleep = timer.sleep
     t.start_t = t.last_print_t = t._time()
     return timer
-
-
-@fixture(autouse=True)
-def pretest_posttest():
-    """Fixture for all tests ensuring environment cleanup"""
-    try:
-        sys.setswitchinterval(1)
-    except AttributeError:
-        sys.setcheckinterval(100)  # deprecated
-
-    if getattr(tqdm, "_instances", False):
-        n = len(tqdm._instances)
-        if n:
-            tqdm._instances.clear()
-            raise EnvironmentError(
-                "{0} `tqdm` instances still in existence PRE-test".format(n))
-    yield
-    if getattr(tqdm, "_instances", False):
-        n = len(tqdm._instances)
-        if n:
-            tqdm._instances.clear()
-            raise EnvironmentError(
-                "{0} `tqdm` instances still in existence POST-test".format(n))
 
 
 class UnicodeIO(IOBase):

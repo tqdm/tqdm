@@ -6,7 +6,6 @@ from warnings import catch_warnings
 from pytest import mark
 
 from tqdm.contrib.concurrent import thread_map, process_map
-from .tests_tqdm import pretest_posttest  # NOQA, pylint: disable=unused-import
 from .tests_tqdm import importorskip, skip, StringIO, closing
 
 

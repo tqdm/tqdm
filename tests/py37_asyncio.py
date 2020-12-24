@@ -6,7 +6,6 @@ import asyncio
 from pytest import mark
 
 from tqdm.asyncio import tqdm_asyncio, tarange
-from .tests_tqdm import pretest_posttest  # NOQA, pylint: disable=unused-import
 from .tests_tqdm import StringIO, closing
 
 tqdm = partial(tqdm_asyncio, miniters=0, mininterval=0)

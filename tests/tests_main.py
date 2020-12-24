@@ -8,7 +8,6 @@ import subprocess
 
 from tqdm.cli import main, TqdmKeyError, TqdmTypeError
 from tqdm.utils import IS_WIN
-from .tests_tqdm import pretest_posttest  # NOQA, pylint: disable=unused-import
 from .tests_tqdm import skip, _range, closing, UnicodeIO, StringIO, BytesIO
 
 

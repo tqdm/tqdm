@@ -1,5 +1,4 @@
 from tqdm import tqdm
-from .tests_tqdm import pretest_posttest  # NOQA, pylint: disable=unused-import
 from .tests_tqdm import importorskip, skip, StringIO, closing
 
 random = importorskip("numpy.random")
