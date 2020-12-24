@@ -60,7 +60,7 @@ if os.name == 'nt':
 # List of control characters
 CTRLCHR = [r'\r', r'\n', r'\x1b\[A']  # Need to escape [ for regex
 # Regular expressions compilation
-RE_rate = re.compile(r'(\d+\.\d+)it/s')
+RE_rate = re.compile(r'[^\d](\d[.\d]+)it/s')
 RE_ctrlchr = re.compile("(%s)" % '|'.join(CTRLCHR))  # Match control chars
 RE_ctrlchr_excl = re.compile('|'.join(CTRLCHR))  # Match and exclude ctrl chars
 RE_pos = re.compile(r'([\r\n]+((pos\d+) bar:\s+\d+%|\s{3,6})?[^\r\n]*)')
@@ -1017,7 +1017,6 @@ def test_smoothing():
         assert '| 3/3 ' in our_file.getvalue()
 
     # -- Test smoothing
-    # Compile the regex to find the rate
     # 1st case: no smoothing (only use average)
     with closing(StringIO()) as our_file2:
         with closing(StringIO()) as our_file:
@@ -1074,11 +1073,11 @@ def test_smoothing():
     # 3rd case: use medium smoothing
     with closing(StringIO()) as our_file2:
         with closing(StringIO()) as our_file:
-            t = tqdm(_range(3), file=our_file2, smoothing=0.5, leave=True,
+            t = tqdm(_range(3), file=our_file2, smoothing=0.8, leave=True,
                      miniters=1, mininterval=0)
             cpu_timify(t, timer)
 
-            t2 = tqdm(_range(3), file=our_file, smoothing=0.5, leave=True,
+            t2 = tqdm(_range(3), file=our_file, smoothing=0.8, leave=True,
                       miniters=1, mininterval=0)
             cpu_timify(t2, timer)
 
