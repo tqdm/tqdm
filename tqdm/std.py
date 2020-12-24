@@ -417,7 +417,7 @@ class tqdm(Comparable):
                 total *= unit_scale
             n *= unit_scale
             if rate:
-                rate *= unit_scale  # by default rate = 1 / self.avg_time
+                rate *= unit_scale  # by default rate = self.avg_dn / self.avg_dt
             unit_scale = False
 
         elapsed_str = tqdm.format_interval(elapsed)
@@ -1048,7 +1048,8 @@ class tqdm(Comparable):
         self.gui = gui
         self.dynamic_ncols = dynamic_ncols
         self.smoothing = smoothing
-        self.avg_time = 0
+        self.avg_dn = 0
+        self.avg_dt = 0
         self.bar_format = bar_format
         self.postfix = None
         self.colour = colour
@@ -1161,7 +1162,8 @@ class tqdm(Comparable):
                         self.n = n
                         # EMA (not just overall average)
                         if smoothing and dt and dn:
-                            self.avg_time = self.ema(dt / dn, self.avg_time, smoothing)
+                            self.avg_dn = self.ema(dn, self.avg_dn, smoothing)
+                            self.avg_dt = self.ema(dt, self.avg_dt, smoothing)
 
                         self.refresh(lock_args=self.lock_args)
 
@@ -1242,7 +1244,8 @@ class tqdm(Comparable):
                 # elapsed = cur_t - self.start_t
                 # EMA (not just overall average)
                 if self.smoothing and dt and dn:
-                    self.avg_time = self.ema(dt / dn, self.avg_time, self.smoothing)
+                    self.avg_dn = self.ema(dn, self.avg_dn, self.smoothing)
+                    self.avg_dt = self.ema(dt, self.avg_dt, self.smoothing)
 
                 self.refresh(lock_args=self.lock_args)
 
@@ -1301,7 +1304,7 @@ class tqdm(Comparable):
         with self._lock:
             if leave:
                 # stats for overall rate (no weighted average)
-                self.avg_time = None
+                self.avg_dt = None
                 self.display(pos=0)
                 fp_write('\n')
             else:
@@ -1449,7 +1452,7 @@ class tqdm(Comparable):
             elapsed=self._time() - self.start_t if hasattr(self, 'start_t') else 0,
             ncols=ncols, nrows=nrows, prefix=self.desc, ascii=self.ascii,
             unit=self.unit, unit_scale=self.unit_scale,
-            rate=1 / self.avg_time if self.avg_time else None,
+            rate=self.avg_dn / self.avg_dt if self.avg_dt else None,
             bar_format=self.bar_format, postfix=self.postfix,
             unit_divisor=self.unit_divisor, initial=self.initial, colour=self.colour)
 
