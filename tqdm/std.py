@@ -1149,16 +1149,9 @@ class tqdm(Comparable):
             return
 
         mininterval = self.mininterval
-        maxinterval = self.maxinterval
-        miniters = self.miniters
-        dynamic_miniters = self.dynamic_miniters
         last_print_t = self.last_print_t
         last_print_n = self.last_print_n
         n = self.n
-        smoothing = self.smoothing
-        _ema_dn = self._ema_dn
-        _ema_dt = self._ema_dt
-        _ema_miniters = self._ema_miniters
         time = self._time
 
         try:
@@ -1169,36 +1162,13 @@ class tqdm(Comparable):
                 n += 1
 
                 if n - last_print_n >= self.miniters:
-                    miniters = self.miniters  # watch monitoring thread changes
                     dt = time() - last_print_t
                     if dt >= mininterval:
-                        cur_t = time()
-                        dn = n - last_print_n
-                        if smoothing and dt and dn:
-                            _ema_dn(dn)
-                            _ema_dt(dt)
-                        self.n = n
-                        self.refresh(lock_args=self.lock_args)
-                        if dynamic_miniters:
-                            if maxinterval and dt >= maxinterval:
-                                miniters = dn * (mininterval or maxinterval) / dt
-                            elif smoothing:
-                                miniters = _ema_miniters(
-                                    dn * (mininterval / dt
-                                          if mininterval and dt else 1))
-                            else:
-                                miniters = max(miniters, dn)
-
-                        # Store old values for next call
-                        self.last_print_n = last_print_n = n
-                        self.last_print_t = last_print_t = cur_t
-                        self.miniters = miniters
+                        self.update(n - last_print_n)
+                        last_print_n = self.last_print_n
+                        last_print_t = self.last_print_t
         finally:
-            # Closing the progress bar.
-            # Update some internal variables for close().
-            self.last_print_n = last_print_n
             self.n = n
-            self.miniters = miniters
             self.close()
 
     def update(self, n=1):
@@ -1227,7 +1197,6 @@ class tqdm(Comparable):
         out  : bool or None
             True if a `display()` was triggered.
         """
-        # N.B.: see __iter__() for more comments.
         if self.disable:
             return
 
