@@ -1269,7 +1269,7 @@ class tqdm(Comparable):
         with self._lock:
             if leave:
                 # stats for overall rate (no weighted average)
-                self.avg_dt = None
+                self._ema_dt = lambda: None
                 self.display(pos=0)
                 fp_write('\n')
             else:
@@ -1338,6 +1338,9 @@ class tqdm(Comparable):
         """
         self.last_print_n = self.n = 0
         self.last_print_t = self.start_t = self._time()
+        self._ema_dn = EMA(self.smoothing)
+        self._ema_dt = EMA(self.smoothing)
+        self._ema_miniters = EMA(self.smoothing)
         if total is not None:
             self.total = total
         self.refresh()
