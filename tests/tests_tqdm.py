@@ -754,28 +754,29 @@ def test_smoothed_dynamic_min_iters():
     timer = DiscreteTimer()
 
     with closing(StringIO()) as our_file:
-        with tqdm(total=100, file=our_file, miniters=None, mininterval=0,
+        with tqdm(total=100, file=our_file, miniters=None, mininterval=1,
                   smoothing=0.5, maxinterval=0) as t:
             cpu_timify(t, timer)
 
             # Increase 10 iterations at once
+            timer.sleep(1)
             t.update(10)
             # The next iterations should be partially skipped
             for _ in _range(2):
+                timer.sleep(1)
                 t.update(4)
             for _ in _range(20):
+                timer.sleep(1)
                 t.update()
 
-            out = our_file.getvalue()
             assert t.dynamic_miniters
+        out = our_file.getvalue()
     assert '  0%|          | 0/100 [00:00<' in out
-    assert '10%' in out
-    assert '14%' not in out
-    assert '18%' in out
-    assert '20%' not in out
+    assert '20%' in out
+    assert '23%' not in out
     assert '25%' in out
-    assert '30%' not in out
-    assert '32%' in out
+    assert '26%' not in out
+    assert '28%' in out
 
 
 def test_smoothed_dynamic_min_iters_with_min_interval():
