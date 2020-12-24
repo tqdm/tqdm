@@ -1167,43 +1167,30 @@ class tqdm(Comparable):
                 # Update and possibly print the progressbar.
                 # Note: does not call self.update(1) for speed optimisation.
                 n += 1
-                # check counter first to avoid calls to time()
+
                 if n - last_print_n >= self.miniters:
                     miniters = self.miniters  # watch monitoring thread changes
                     dt = time() - last_print_t
                     if dt >= mininterval:
                         cur_t = time()
                         dn = n - last_print_n
-                        # EMA (not just overall average)
                         if smoothing and dt and dn:
                             _ema_dn(dn)
                             _ema_dt(dt)
                         self.n = n
                         self.refresh(lock_args=self.lock_args)
-
-                        # If no `miniters` was specified, adjust automatically
-                        # to the max iteration rate seen so far between 2 prints
                         if dynamic_miniters:
                             if maxinterval and dt >= maxinterval:
-                                # Adjust miniters to time interval by rule of 3
-                                if mininterval:
-                                    # Set miniters to correspond to mininterval
-                                    miniters = dn * mininterval / dt
-                                else:
-                                    # Set miniters to correspond to maxinterval
-                                    miniters = dn * maxinterval / dt
+                                miniters = dn * (mininterval or maxinterval) / dt
                             elif smoothing:
-                                # EMA-weight miniters to converge
-                                # towards the timeframe of mininterval
                                 miniters = _ema_miniters(
                                     dn * (mininterval / dt
                                           if mininterval and dt else 1))
                             else:
-                                # Maximum nb of iterations between 2 prints
                                 miniters = max(miniters, dn)
 
                         # Store old values for next call
-                        self.n = self.last_print_n = last_print_n = n
+                        self.last_print_n = last_print_n = n
                         self.last_print_t = last_print_t = cur_t
                         self.miniters = miniters
         finally:
@@ -1254,28 +1241,26 @@ class tqdm(Comparable):
             if dt >= self.mininterval:
                 cur_t = self._time()
                 dn = self.n - self.last_print_n  # >= n
-                # elapsed = cur_t - self.start_t
                 if self.smoothing and dt and dn:
+                    # EMA (not just overall average)
                     self._ema_dn(dn)
                     self._ema_dt(dt)
                 self.refresh(lock_args=self.lock_args)
-
-                # If no `miniters` was specified, adjust automatically to the
-                # maximum iteration rate seen so far between two prints.
-                # e.g.: After running `tqdm.update(5)`, subsequent
-                # calls to `tqdm.update()` will only cause an update after
-                # at least 5 more iterations.
                 if self.dynamic_miniters:
+                    # If no `miniters` was specified, adjust automatically to the
+                    # maximum iteration rate seen so far between two prints.
+                    # e.g.: After running `tqdm.update(5)`, subsequent
+                    # calls to `tqdm.update()` will only cause an update after
+                    # at least 5 more iterations.
                     if self.maxinterval and dt >= self.maxinterval:
-                        if self.mininterval:
-                            self.miniters = dn * self.mininterval / dt
-                        else:
-                            self.miniters = dn * self.maxinterval / dt
+                        self.miniters = dn * (self.mininterval or self.maxinterval) / dt
                     elif self.smoothing:
+                        # EMA miniters update
                         self.miniters = self._ema_miniters(
                             dn * (self.mininterval / dt if self.mininterval and dt
                                   else 1))
                     else:
+                        # max iters between two prints
                         self.miniters = max(self.miniters, dn)
 
                 # Store old values for next call
