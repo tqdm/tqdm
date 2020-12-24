@@ -1,8 +1,8 @@
 comment:
-  layout: header, changes, diff
+  layout: diff
 coverage:
   status:
     patch:
       default:
-        target: '80'
+        threshold: 80%
     project: false
