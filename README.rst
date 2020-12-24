@@ -7,7 +7,7 @@ tqdm
 
 |Build-Status| |Coverage-Status| |Branch-Coverage-Status| |Codacy-Grade| |Libraries-Rank| |PyPI-Downloads|
 
-|LICENCE| |OpenHub-Status| |binder-demo| |notebook-demo| |awesome-python|
+|LICENCE| |OpenHub-Status| |binder-demo| |awesome-python|
 
 ``tqdm`` derives from the Arabic word *taqaddum* (تقدّم) which can mean "progress,"
 and is an abbreviation for "I love you so much" in Spanish (*te quiero demasiado*).
@@ -692,7 +692,7 @@ Examples and Advanced Usage
     on how to make a **great** progressbar;
 
 - check out the `slides from PyData London <https://tqdm.github.io/PyData2019/slides.html>`__, or
-- run the |notebook-demo| or |binder-demo|.
+- run the |binder-demo|.
 
 Description and additional stats
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1423,8 +1423,6 @@ Citation information: |DOI|
    :target: https://raw.githubusercontent.com/tqdm/tqdm/master/LICENCE
 .. |DOI| image:: https://img.shields.io/badge/DOI-10.5281/zenodo.595120-blue.svg
    :target: https://doi.org/10.5281/zenodo.595120
-.. |notebook-demo| image:: https://img.shields.io/badge/launch-notebook-orange.svg?logo=jupyter
-   :target: https://notebooks.ai/demo/gh/tqdm/tqdm
 .. |binder-demo| image:: https://mybinder.org/badge_logo.svg
    :target: https://mybinder.org/v2/gh/tqdm/tqdm/master?filepath=DEMO.ipynb
 .. |Screenshot-Jupyter1| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/tqdm-jupyter-1.gif
