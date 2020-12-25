@@ -8,7 +8,6 @@ import subprocess
 
 from tqdm.cli import main, TqdmKeyError, TqdmTypeError
 from tqdm.utils import IS_WIN
-from .tests_tqdm import pretest_posttest  # NOQA, pylint: disable=unused-import
 from .tests_tqdm import skip, _range, closing, UnicodeIO, StringIO, BytesIO
 
 
@@ -31,8 +30,7 @@ NULL = Null()
 def test_pipes():
     """Test command line pipes"""
     ls_out = _sh('ls').replace('\r\n', '\n')
-    ls = subprocess.Popen('ls', stdout=subprocess.PIPE,
-                          stderr=subprocess.STDOUT)
+    ls = subprocess.Popen('ls', stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     res = _sh(sys.executable, '-c', 'from tqdm.cli import main; main()',
               stdin=ls.stdout, stderr=subprocess.STDOUT)
     ls.wait()
@@ -100,8 +98,7 @@ def test_main():
 
                 sys.stdin.seek(0)
                 with closing(UnicodeIO()) as fp:
-                    main(argv=['--tee', '--mininterval', '0',
-                               '--miniters', '1'], fp=fp)
+                    main(argv=['--tee', '--mininterval', '0', '--miniters', '1'], fp=fp)
                     # spaces to clear intermediate lines could increase length
                     assert len(fp.getvalue()) >= res + len(IN_DATA)
 
@@ -221,9 +218,8 @@ def test_comppath():
         script = fd.read()
     opts = set([
         '--help', '--desc', '--total', '--leave', '--ncols', '--ascii',
-        '--dynamic_ncols', '--position', '--bytes', '--nrows', '--delim',
-        '--manpath', '--comppath'
-    ])
+        '--dynamic_ncols', '--position', '--bytes', '--nrows', '--delim', '--manpath',
+        '--comppath'])
     assert all(args in script for args in opts)
     rmtree(tmp, True)
 

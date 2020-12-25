@@ -45,18 +45,16 @@ class TelegramIO(MonoWorker):
     def write(self, s):
         """Replaces internal `message_id`'s text with `s`."""
         if not s:
-            return
+            s = "..."
         s = s.replace('\r', '').strip()
         if s == self.text:
             return  # avoid duplicate message Bot error
         self.text = s
         try:
             future = self.submit(
-                self.session.post,
-                self.API + '%s/editMessageText' % self.token,
-                data=dict(
-                    text='`' + s + '`', chat_id=self.chat_id,
-                    message_id=self.message_id, parse_mode='MarkdownV2'))
+                self.session.post, self.API + '%s/editMessageText' % self.token,
+                data=dict(text='`' + s + '`', chat_id=self.chat_id,
+                          message_id=self.message_id, parse_mode='MarkdownV2'))
         except Exception as e:
             tqdm_auto.write(str(e))
         else:
@@ -91,9 +89,8 @@ class tqdm_telegram(tqdm_auto):
         See `tqdm.auto.tqdm.__init__` for other parameters.
         """
         kwargs = kwargs.copy()
-        self.tgio = TelegramIO(
-            kwargs.pop('token', getenv('TQDM_TELEGRAM_TOKEN')),
-            kwargs.pop('chat_id', getenv('TQDM_TELEGRAM_CHAT_ID')))
+        self.tgio = TelegramIO(kwargs.pop('token', getenv('TQDM_TELEGRAM_TOKEN')),
+                               kwargs.pop('chat_id', getenv('TQDM_TELEGRAM_CHAT_ID')))
         super(tqdm_telegram, self).__init__(*args, **kwargs)
 
     def display(self, **kwargs):
@@ -105,6 +102,10 @@ class tqdm_telegram(tqdm_auto):
         else:
             fmt['bar_format'] = '{l_bar}{bar:10u}{r_bar}'
         self.tgio.write(self.format_meter(**fmt))
+
+    def clear(self, *args, **kwargs):
+        super(tqdm_telegram, self).clear(*args, **kwargs)
+        self.tgio.write("")
 
 
 def ttgrange(*args, **kwargs):

@@ -69,8 +69,7 @@ def _executor_map(PoolExecutor, fn, *iterables, **tqdm_kwargs):
         if not (3, 0) < sys_version < (3, 5):
             map_args.update(chunksize=chunksize)
         with PoolExecutor(**pool_kwargs) as ex:
-            return list(tqdm_class(
-                ex.map(fn, *iterables, **map_args), **kwargs))
+            return list(tqdm_class(ex.map(fn, *iterables, **map_args), **kwargs))
 
 
 def thread_map(fn, *iterables, **tqdm_kwargs):

@@ -119,7 +119,7 @@ This section is intended for the project's maintainers and describes
 how to build and upload a new release. Once again,
 `[python setup.py] make [<alias>]` will help.
 Also consider `pip install`ing development utilities:
-`-r requirements-dev.txt` or `tqdm[dev]`.
+`pip install tqdm[dev]` at a minimum, or a more thorough `conda env create`.
 
 
 ## Pre-commit Hook

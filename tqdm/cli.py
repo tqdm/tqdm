@@ -163,9 +163,8 @@ def main(fp=sys.stderr, argv=None):
         # argv.pop(log_idx)
         # logLevel = argv.pop(log_idx)
         logLevel = argv[log_idx + 1]
-    logging.basicConfig(
-        level=getattr(logging, logLevel),
-        format="%(levelname)s:%(module)s:%(lineno)d:%(message)s")
+    logging.basicConfig(level=getattr(logging, logLevel),
+                        format="%(levelname)s:%(module)s:%(lineno)d:%(message)s")
 
     d = tqdm.__init__.__doc__ + CLI_EXTRA_DOC
 
@@ -221,8 +220,7 @@ Options:
         update = tqdm_args.pop('update', False)
         update_to = tqdm_args.pop('update_to', False)
         if sum((delim_per_char, update, update_to)) > 1:
-            raise TqdmKeyError(
-                "Can only have one of --bytes --update --update_to")
+            raise TqdmKeyError("Can only have one of --bytes --update --update_to")
     except:
         fp.write('\nError:\nUsage:\n  tqdm [--help | options]\n')
         for i in sys.stdin:
@@ -256,8 +254,7 @@ Options:
                 cp(resource_filename(Requirement.parse('tqdm'), 'tqdm/tqdm.1'),
                    path.join(manpath, 'tqdm.1'))
             if comppath is not None:
-                cp(resource_filename(Requirement.parse('tqdm'),
-                                     'tqdm/completion.sh'),
+                cp(resource_filename(Requirement.parse('tqdm'), 'tqdm/completion.sh'),
                    path.join(comppath, 'tqdm_completion.sh'))
             sys.exit(0)
         if tee:
@@ -306,5 +303,4 @@ Options:
                 else:
                     callback = t.update
                     callback_len = True
-                posix_pipe(stdin, stdout, delim, buf_size,
-                           callback, callback_len)
+                posix_pipe(stdin, stdout, delim, buf_size, callback, callback_len)

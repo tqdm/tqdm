@@ -1,0 +1,34 @@
+# development environment
+name: tqdm
+channels:
+- conda-forge
+- defaults
+dependencies:
+# base
+- python=3
+- pip
+- ipykernel
+- setuptools
+- setuptools_scm
+- toml
+# test env managers
+- tox
+- asv
+# tests (native)
+- pytest
+- pytest-cov
+- pytest-asyncio  # [py>=3.7]
+- flake8
+- coverage
+# extras
+- matplotlib         # gui
+- numpy              # pandas, keras, contrib.tenumerate
+- pandas
+- tensorflow         # keras
+- requests           # contrib.telegram
+- twine              # `pymake pypi`
+- argopt             # `cd wiki && pymake`
+- wheel              # `setup.py bdist_wheel`
+- pip:
+  - py-make >=0.1.0  # `setup.py make/pymake`
+  - pydoc-markdown   # `cd docs && pymake`

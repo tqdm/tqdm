@@ -6,7 +6,6 @@ import sys
 
 from tqdm import tqdm, trange, TMonitor
 from .tests_perf import retry_on_except
-from .tests_tqdm import pretest_posttest  # NOQA, pylint: disable=unused-import
 from .tests_tqdm import importorskip, skip, StringIO, closing, patch_lock
 
 

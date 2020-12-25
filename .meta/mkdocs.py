@@ -11,7 +11,6 @@ sys.path.insert(0, path.dirname(path.dirname(__file__)))
 import tqdm  # NOQA
 import tqdm.cli  # NOQA
 
-
 HEAD_ARGS = """
 Parameters
 ----------

@@ -57,10 +57,9 @@ def main():
         for s in range(2):  # size|compressed totals
             totals_s = sum(map(int, (inf[s] for inf in finfo[:-1])))
             if totals_s != totals[s]:
-                log.warn("%s: individual total %d != 7z total %d" % (
-                    fn, totals_s, totals[s]))
-        fcomp = {n: int(c if args.compressed else u)
-                 for (u, c, n) in finfo[:-1]}
+                log.warn("%s: individual total %d != 7z total %d" %
+                         (fn, totals_s, totals[s]))
+        fcomp = {n: int(c if args.compressed else u) for (u, c, n) in finfo[:-1]}
         # log.debug(fcomp)
         # zips  : {'zipname' : {'filename' : int(size)}}
         zips[fn] = fcomp
@@ -101,8 +100,7 @@ def main():
                                     ln.startswith(i)
                                     for i in ("7-Zip ", "p7zip Version ",
                                               "Everything is Ok", "Folders: ",
-                                              "Files: ", "Size: ",
-                                              "Compressed: ")):
+                                              "Files: ", "Size: ", "Compressed: ")):
                                 if ln.startswith("Processing archive: "):
                                     if not args.silent:
                                         t.write(t.format_interval(

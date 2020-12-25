@@ -35,15 +35,14 @@ class DiscordIO(MonoWorker):
         client = Client(config)
         self.text = self.__class__.__name__
         try:
-            self.message = client.api.channels_messages_create(
-                channel_id, self.text)
+            self.message = client.api.channels_messages_create(channel_id, self.text)
         except Exception as e:
             tqdm_auto.write(str(e))
 
     def write(self, s):
         """Replaces internal `message`'s text with `s`."""
         if not s:
-            return
+            s = "..."
         s = s.replace('\r', '').strip()
         if s == self.text:
             return  # skip duplicate message
@@ -101,6 +100,10 @@ class tqdm_discord(tqdm_auto):
         else:
             fmt['bar_format'] = '{l_bar}{bar:10u}{r_bar}'
         self.dio.write(self.format_meter(**fmt))
+
+    def clear(self, *args, **kwargs):
+        super(tqdm_discord, self).clear(*args, **kwargs)
+        self.dio.write("")
 
 
 def tdrange(*args, **kwargs):

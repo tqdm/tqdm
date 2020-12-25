@@ -1,7 +1,6 @@
 from __future__ import division
 
 from tqdm import tqdm
-from .tests_tqdm import pretest_posttest  # NOQA, pylint: disable=unused-import
 from .tests_tqdm import importorskip, StringIO, closing
 
 
@@ -16,9 +15,8 @@ def test_keras():
 
     # 1D autoencoder
     dtype = np.float32
-    model = K.models.Sequential(
-        [K.layers.InputLayer((1, 1), dtype=dtype), K.layers.Conv1D(1, 1)]
-    )
+    model = K.models.Sequential([
+        K.layers.InputLayer((1, 1), dtype=dtype), K.layers.Conv1D(1, 1)])
     model.compile("adam", "mse")
     x = np.random.rand(100, 1, 1).astype(dtype)
     batch_size = 10
@@ -29,7 +27,6 @@ def test_keras():
 
         class Tqdm(tqdm):
             """redirected I/O class"""
-
             def __init__(self, *a, **k):
                 k.setdefault("file", our_file)
                 super(Tqdm, self).__init__(*a, **k)
@@ -48,8 +45,7 @@ def test_keras():
                     batch_size=batch_size,
                     verbose=0,
                     tqdm_class=Tqdm,
-                )
-            ],
+                )],
         )
         res = our_file.getvalue()
         assert "{epochs}/{epochs}".format(epochs=epochs) in res
@@ -71,8 +67,7 @@ def test_keras():
                     batch_size=batch_size,
                     verbose=2,
                     tqdm_class=Tqdm,
-                )
-            ],
+                )],
         )
         res = our_file.getvalue()
         assert "{epochs}/{epochs}".format(epochs=epochs) in res
