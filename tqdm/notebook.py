@@ -73,6 +73,7 @@ __all__ = ['tqdm_notebook', 'tnrange', 'tqdm', 'trange']
 
 
 class TqdmHBox(HBox):
+    """`ipywidgets.HBox` with a pretty representation"""
     def _repr_json_(self, pretty=None):
         if not hasattr(self, "pbar"):
             return {}
@@ -88,7 +89,7 @@ class TqdmHBox(HBox):
             return super(TqdmHBox, self).__repr__()
         return self.pbar.format_meter(**self._repr_json_(pretty))
 
-    def _repr_pretty_(self, pp, cycle):
+    def _repr_pretty_(self, pp, *_, **__):
         pp.text(self.__repr__(True))
 
 

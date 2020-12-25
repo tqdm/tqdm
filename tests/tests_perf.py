@@ -159,7 +159,7 @@ def assert_performance(thresh, name_left, time_left, name_right, time_right):
 
 
 @retry_on_except()
-def test_iter_basic_overhead(capsys):
+def test_iter_basic_overhead():
     """Test overhead of iteration based tqdm"""
     total = int(1e6)
 
@@ -180,7 +180,7 @@ def test_iter_basic_overhead(capsys):
 
 
 @retry_on_except()
-def test_manual_basic_overhead(capsys):
+def test_manual_basic_overhead():
     """Test overhead of manual tqdm"""
     total = int(1e6)
 
@@ -211,7 +211,7 @@ def worker(total, blocking=True):
 
 @retry_on_except()
 @patch_lock(thread=True)
-def test_lock_args(capsys):
+def test_lock_args():
     """Test overhead of nonblocking threads"""
     ThreadPoolExecutor = importorskip('concurrent.futures').ThreadPoolExecutor
 
@@ -234,7 +234,7 @@ def test_lock_args(capsys):
 
 
 @retry_on_except(10)
-def test_iter_overhead_hard(capsys):
+def test_iter_overhead_hard():
     """Test overhead of iteration based tqdm (hard)"""
     total = int(1e5)
 
@@ -256,7 +256,7 @@ def test_iter_overhead_hard(capsys):
 
 
 @retry_on_except(10)
-def test_manual_overhead_hard(capsys):
+def test_manual_overhead_hard():
     """Test overhead of manual tqdm (hard)"""
     total = int(1e5)
 
@@ -278,7 +278,7 @@ def test_manual_overhead_hard(capsys):
 
 
 @retry_on_except(10)
-def test_iter_overhead_simplebar_hard(capsys):
+def test_iter_overhead_simplebar_hard():
     """Test overhead of iteration based tqdm vs simple progress bar (hard)"""
     total = int(1e4)
 
@@ -301,7 +301,7 @@ def test_iter_overhead_simplebar_hard(capsys):
 
 
 @retry_on_except(10)
-def test_manual_overhead_simplebar_hard(capsys):
+def test_manual_overhead_simplebar_hard():
     """Test overhead of manual tqdm vs simple progress bar (hard)"""
     total = int(1e4)
 
