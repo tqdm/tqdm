@@ -42,7 +42,7 @@ class DiscordIO(MonoWorker):
     def write(self, s):
         """Replaces internal `message`'s text with `s`."""
         if not s:
-            return
+            s = "..."
         s = s.replace('\r', '').strip()
         if s == self.text:
             return  # skip duplicate message
@@ -100,6 +100,10 @@ class tqdm_discord(tqdm_auto):
         else:
             fmt['bar_format'] = '{l_bar}{bar:10u}{r_bar}'
         self.dio.write(self.format_meter(**fmt))
+
+    def clear(self, *args, **kwargs):
+        super(tqdm_discord, self).clear(*args, **kwargs)
+        self.dio.write("")
 
 
 def tdrange(*args, **kwargs):

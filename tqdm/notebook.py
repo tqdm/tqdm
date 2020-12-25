@@ -291,9 +291,8 @@ class tqdm_notebook(std_tqdm):
             else:
                 self.disp(close=True)
 
-    def moveto(self, *_, **__):
-        # void -> avoid extraneous `\n` in IPython output cell
-        return
+    def clear(self, *_, **__):
+        pass
 
     def reset(self, total=None):
         """

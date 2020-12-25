@@ -21,13 +21,14 @@ dependencies:
 - flake8
 - coverage
 # extras
-- matplotlib
-- numpy
+- matplotlib         # gui
+- numpy              # pandas, keras, contrib.tenumerate
 - pandas
-- tensorflow
-- twine              # pymake pypi
-- argopt             # cd wiki && pymake
-- wheel              # setup.py bdist_wheel
+- tensorflow         # keras
+- requests           # contrib.telegram
+- twine              # `pymake pypi`
+- argopt             # `cd wiki && pymake`
+- wheel              # `setup.py bdist_wheel`
 - pip:
-  - py-make >=0.1.0  # setup.py make/pymake
-  - pydoc-markdown   # cd docs && pymake
+  - py-make >=0.1.0  # `setup.py make/pymake`
+  - pydoc-markdown   # `cd docs && pymake`

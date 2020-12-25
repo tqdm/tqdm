@@ -110,6 +110,9 @@ class tqdm_gui(std_tqdm):  # pragma: no cover
         else:
             self.plt.close(self.fig)
 
+    def clear(self, *_, **__):
+        pass
+
     def display(self):
         n = self.n
         cur_t = self._time()

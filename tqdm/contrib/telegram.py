@@ -45,7 +45,7 @@ class TelegramIO(MonoWorker):
     def write(self, s):
         """Replaces internal `message_id`'s text with `s`."""
         if not s:
-            return
+            s = "..."
         s = s.replace('\r', '').strip()
         if s == self.text:
             return  # avoid duplicate message Bot error
@@ -102,6 +102,10 @@ class tqdm_telegram(tqdm_auto):
         else:
             fmt['bar_format'] = '{l_bar}{bar:10u}{r_bar}'
         self.tgio.write(self.format_meter(**fmt))
+
+    def clear(self, *args, **kwargs):
+        super(tqdm_telegram, self).clear(*args, **kwargs)
+        self.tgio.write("")
 
 
 def ttgrange(*args, **kwargs):
