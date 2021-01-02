@@ -54,7 +54,6 @@ However it would be helpful to bear in mind:
     + remember, with millions of downloads per month, `tqdm` must be extremely fast and reliable
 - Any other kind of change may be included in a (possibly new) submodule
     + submodules are likely single python files under the main [tqdm/](tqdm/) directory
-        * large submodules requiring a sub-folder should be included in [`MANIFEST.in`](MANIFEST.in)
     + submodules extending `tqdm.std.tqdm` or any other module (e.g. [`tqdm.notebook.tqdm`](tqdm/notebook.py), [`tqdm.gui.tqdm`](tqdm/gui.py))
     + CLI wrapper `tqdm.cli`
         * if a newly added `tqdm.std.tqdm` option is not supported by the CLI, append to `tqdm.cli.UNSUPPORTED_OPTS`
@@ -64,7 +63,7 @@ However it would be helpful to bear in mind:
         * beta: well-used; commented, perhaps still missing tests
         * stable: >10 users; commented, 80% coverage
 - `.meta/`
-    + A "hidden" folder containing helper utilities not strictly part of `tqdm` distribution itself
+    + A "hidden" folder containing helper utilities not strictly part of the `tqdm` distribution itself
 
 
 ## TESTING
@@ -143,8 +142,8 @@ Note: tools can be used to automate this process, such as
 
 ## Checking setup.py
 
-To check that the `setup.py` file is compliant with PyPI requirements (e.g.
-version number; reStructuredText in `README.rst`) use:
+To check that the `setup.py`/`setup.cfg` file is compliant with PyPI
+requirements (e.g. version number; reStructuredText in `README.rst`) use:
 
 ```
 [python setup.py] make testsetup
@@ -220,7 +219,7 @@ Formally publishing requires additional steps: testing and tagging.
 ### Test
 
 - ensure that all online CI tests have passed
-- check `setup.py` and `MANIFEST.in` - which define the packaging
+- check `setup.py` and `setup.cfg` - which define the packaging
 process and info that will be uploaded to [PyPI](https://pypi.org) -
 using `[python setup.py] make installdev`
 
@@ -371,6 +370,6 @@ Much is automated so really it's steps 1-5, then 11(a).
 
 Key:
 
-- **`[AUTO:GHA]`**: GitHub Actions CI should automatically do this after `git push --tags` (6)
-- **`[AUTO:GHA-rel]`**: GitHub Actions CI should automatically do this after release (12a)
+- **`[AUTO:GHA]`**: GitHub Actions CI should automatically do this after `git push --tags` (5)
+- **`[AUTO:GHA-rel]`**: GitHub Actions CI should automatically do this after release (11a)
 - **`[SUB]`**:  Requires one-time `make submodules` to clone `docs`, `wiki`, and `feedstock`

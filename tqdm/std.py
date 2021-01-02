@@ -701,13 +701,19 @@ class tqdm(Comparable):
             from pandas import Panel
         except ImportError:  # TODO: pandas>0.25.2
             Panel = None
+        Rolling, Expanding = None, None
         try:  # pandas>=1.0.0
             from pandas.core.window.rolling import _Rolling_and_Expanding
         except ImportError:
             try:  # pandas>=0.18.0
                 from pandas.core.window import _Rolling_and_Expanding
-            except ImportError:  # pragma: no cover
-                _Rolling_and_Expanding = None
+            except ImportError:  # pandas>=1.2.0
+                try:  # pandas>=1.2.0
+                    from pandas.core.window.rolling import Rolling
+                    from pandas.core.window.expanding import Expanding
+                    _Rolling_and_Expanding = Rolling, Expanding
+                except ImportError:
+                    _Rolling_and_Expanding = None
         try:  # pandas>=0.25.0
             from pandas.core.groupby.generic import DataFrameGroupBy, \
                 SeriesGroupBy  # , NDFrameGroupBy
@@ -824,7 +830,10 @@ class tqdm(Comparable):
         GroupBy.progress_aggregate = inner_generator('aggregate')
         GroupBy.progress_transform = inner_generator('transform')
 
-        if _Rolling_and_Expanding is not None:  # pragma: no cover
+        if Rolling is not None and Expanding is not None:
+            Rolling.progress_apply = inner_generator()
+            Expanding.progress_apply = inner_generator()
+        elif _Rolling_and_Expanding is not None:
             _Rolling_and_Expanding.progress_apply = inner_generator()
 
     def __init__(self, iterable=None, desc=None, total=None, leave=True, file=None,
