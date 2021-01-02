@@ -49,7 +49,7 @@ for i in trange(int(1e8), miniters=4500000, mininterval=0.1, smoothing=0):
 
 from time import sleep
 from timeit import timeit
-import re
+import re # this is for regular expressions....
 
 # Simple demo
 from tqdm import trange
