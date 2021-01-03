@@ -1,12 +1,10 @@
 """
 Tests for `tqdm.contrib.concurrent`.
 """
-from warnings import catch_warnings
-
-from pytest import mark
+from pytest import mark, warns
 
 from tqdm.contrib.concurrent import thread_map, process_map
-from .tests_tqdm import importorskip, skip, StringIO, closing
+from .tests_tqdm import importorskip, skip, StringIO, closing, TqdmWarning
 
 
 def incr(x):
@@ -44,6 +42,7 @@ def test_chunksize_warning(iterables, should_warn):
     """Test contrib.concurrent.process_map chunksize warnings"""
     patch = importorskip("unittest.mock").patch
     with patch('tqdm.contrib.concurrent._executor_map'):
-        with catch_warnings(record=True) as w:
+        if should_warn:
+            warns(TqdmWarning, process_map, incr, *iterables)
+        else:
             process_map(incr, *iterables)
-            assert should_warn == bool(w)

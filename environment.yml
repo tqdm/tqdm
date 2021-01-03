@@ -17,6 +17,7 @@ dependencies:
 # tests (native)
 - pytest
 - pytest-cov
+- pytest-timeout
 - pytest-asyncio  # [py>=3.7]
 - flake8
 - coverage

@@ -712,7 +712,7 @@ class tqdm(Comparable):
                     from pandas.core.window.rolling import Rolling
                     from pandas.core.window.expanding import Expanding
                     _Rolling_and_Expanding = Rolling, Expanding
-                except ImportError:
+                except ImportError:  # pragma: no cover
                     _Rolling_and_Expanding = None
         try:  # pandas>=0.25.0
             from pandas.core.groupby.generic import DataFrameGroupBy, \

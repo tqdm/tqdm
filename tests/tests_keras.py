@@ -1,9 +1,12 @@
 from __future__ import division
 
+from pytest import mark
+
 from tqdm import tqdm
 from .tests_tqdm import importorskip, StringIO, closing
 
 
+@mark.filterwarnings("ignore:.*:DeprecationWarning")
 def test_keras():
     """Test tqdm.keras.TqdmCallback"""
     TqdmCallback = importorskip("tqdm.keras").TqdmCallback
