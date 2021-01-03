@@ -200,6 +200,7 @@ def test_imap():
 
     pool = Pool()
     res = list(tqdm(pool.imap(incr, range(100)), disable=True))
+    pool.close()
     assert res[-1] == 100
 
 

@@ -6,14 +6,11 @@ from tempfile import mkdtemp
 import sys
 import subprocess
 
+from pytest import mark
+
 from tqdm.cli import main, TqdmKeyError, TqdmTypeError
 from tqdm.utils import IS_WIN
 from .tests_tqdm import skip, _range, closing, UnicodeIO, StringIO, BytesIO
-
-
-def _sh(*cmd, **kwargs):
-    return subprocess.Popen(cmd, stdout=subprocess.PIPE,
-                            **kwargs).communicate()[0].decode('utf-8')
 
 
 class Null(object):
@@ -29,15 +26,22 @@ NULL = Null()
 
 def test_pipes():
     """Test command line pipes"""
-    ls_out = _sh('ls').replace('\r\n', '\n')
-    ls = subprocess.Popen('ls', stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    res = _sh(sys.executable, '-c', 'from tqdm.cli import main; main()',
-              stdin=ls.stdout, stderr=subprocess.STDOUT)
-    ls.wait()
+    ls_out = subprocess.check_output(['ls'])
+    ls = subprocess.Popen(['ls'], stdout=subprocess.PIPE)
+    res = subprocess.Popen(
+        [sys.executable, '-c', 'from tqdm.cli import main; main()'],
+        stdin=ls.stdout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    out, err = res.communicate()[:2]
+    assert ls.poll() == 0
 
     # actual test:
+    assert ls_out.replace(b"\r\n", b"\n") == out.replace(b"\r\n", b"\n")
+    assert b"it/s" in err
 
-    assert ls_out in res.replace('\r\n', '\n')
+
+if sys.version_info[:2] >= (3, 8):
+    test_pipes = mark.filterwarnings("ignore:unclosed file:ResourceWarning")(
+        test_pipes)
 
 
 # WARNING: this should be the last test as it messes with sys.stdin, argv
