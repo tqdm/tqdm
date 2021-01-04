@@ -13,18 +13,16 @@ from .tests_tqdm import _range, closing, BytesIO
 
 
 def restore_sys(func):
-    """Decorates `func(capsysbin)` to save & restore `sys.stdin, sys.argv`."""
+    """Decorates `func(capsysbin)` to save & restore `sys.(stdin|argv)`."""
     @wraps(func)
     def inner(capsysbin):
+        """function requiring capsysbin which may alter `sys.(stdin|argv)`"""
         _SYS = sys.stdin, sys.argv
         try:
             res = func(capsysbin)
-        except:
-            pass
-        else:
-            return res
         finally:
             sys.stdin, sys.argv = _SYS
+        return res
 
     return inner
 

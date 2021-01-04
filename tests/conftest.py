@@ -30,8 +30,10 @@ def pretest_posttest():
 if sys.version_info[0] > 2:
     @fixture
     def capsysbin(capsysbinary):
+        """alias for capsysbinary (py3)"""
         return capsysbinary
 else:
     @fixture
     def capsysbin(capsys):
+        """alias for capsys (py2)"""
         return capsys
