@@ -1,27 +1,19 @@
 """Test CLI usage."""
-from io import open as io_open
-from os import path
-from shutil import rmtree
-from tempfile import mkdtemp
+from os import linesep
+import logging
 import sys
 import subprocess
 
-from pytest import mark
+from pytest import mark, raises
 
 from tqdm.cli import main, TqdmKeyError, TqdmTypeError
 from tqdm.utils import IS_WIN
-from .tests_tqdm import skip, _range, closing, UnicodeIO, StringIO, BytesIO
+from .tests_tqdm import _range, closing, BytesIO
 
 
-class Null(object):
-    def __call__(self, *_, **__):
-        return self
-
-    def __getattr__(self, _):
-        return self
-
-
-NULL = Null()
+def norm(bytestr):
+    """Normalise line endings."""
+    return bytestr if linesep == "\n" else bytestr.replace(linesep.encode(), b"\n")
 
 
 def test_pipes():
@@ -31,11 +23,11 @@ def test_pipes():
     res = subprocess.Popen(
         [sys.executable, '-c', 'from tqdm.cli import main; main()'],
         stdin=ls.stdout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    out, err = res.communicate()[:2]
+    out, err = res.communicate()
     assert ls.poll() == 0
 
     # actual test:
-    assert ls_out.replace(b"\r\n", b"\n") == out.replace(b"\r\n", b"\n")
+    assert norm(ls_out) == norm(out)
     assert b"it/s" in err
 
 
@@ -44,11 +36,9 @@ if sys.version_info[:2] >= (3, 8):
         test_pipes)
 
 
-# WARNING: this should be the last test as it messes with sys.stdin, argv
-def test_main():
-    """Test misc CLI options"""
+def test_main_import():
+    """Test main CLI import"""
     _SYS = sys.stdin, sys.argv
-    _STDOUT = sys.stdout
     N = 123
 
     # test direct import
@@ -56,228 +46,179 @@ def test_main():
     sys.argv = ['', '--desc', 'Test CLI import',
                 '--ascii', 'True', '--unit_scale', 'True']
     import tqdm.__main__  # NOQA
-    sys.stderr.write("Test misc CLI options ... ")
+
+    sys.stdin, sys.argv = _SYS
+
+
+def test_main_bytes(capsysbinary):
+    """Test CLI --bytes"""
+    _SYS = sys.stdin
+    N = 123
 
     # test --delim
     IN_DATA = '\0'.join(map(str, _range(N))).encode()
     with closing(BytesIO()) as sys.stdin:
-        sys.argv = ['', '--desc', 'Test CLI delim',
-                    '--ascii', 'True', '--delim', r'\0', '--buf_size', '64']
         sys.stdin.write(IN_DATA)
         # sys.stdin.write(b'\xff')  # TODO
         sys.stdin.seek(0)
-        with closing(UnicodeIO()) as fp:
-            main(fp=fp)
-            assert str(N) + "it" in fp.getvalue()
+        main(sys.stderr, ['--desc', 'Test CLI delim', '--ascii', 'True',
+                          '--delim', r'\0', '--buf_size', '64'])
+        out, err = capsysbinary.readouterr()
+        assert out == IN_DATA
+        assert str(N) + "it" in err.decode("U8")
 
     # test --bytes
     IN_DATA = IN_DATA.replace(b'\0', b'\n')
     with closing(BytesIO()) as sys.stdin:
         sys.stdin.write(IN_DATA)
         sys.stdin.seek(0)
-        sys.argv = ['', '--ascii', '--bytes=True', '--unit_scale', 'False']
-        with closing(UnicodeIO()) as fp:
-            main(fp=fp)
-            assert str(len(IN_DATA)) in fp.getvalue()
+        main(sys.stderr, ['--ascii', '--bytes=True', '--unit_scale', 'False'])
+        out, err = capsysbinary.readouterr()
+        assert out == IN_DATA
+        assert str(len(IN_DATA)) + "B" in err.decode("U8")
+
+    sys.stdin = _SYS
+
+
+def test_main(capsysbinary, caplog):
+    """Test misc CLI options"""
+    _SYS = sys.stdin
+    N = 123
+    sys.stdin = [(str(i) + '\n').encode() for i in _range(N)]
+    IN_DATA = b''.join(sys.stdin)
 
     # test --log
-    sys.stdin = [str(i).encode() for i in _range(N)]
-    # with closing(UnicodeIO()) as fp:
-    main(argv=['--log', 'DEBUG'], fp=NULL)
-    main(argv=['--log=DEBUG'], fp=NULL)
-    # assert "DEBUG:" in sys.stdout.getvalue()
+    with caplog.at_level(logging.INFO):
+        main(sys.stderr, ['--log', 'INFO'])
+        out, err = capsysbinary.readouterr()
+        assert norm(out) == IN_DATA and b"123/123" in err
+        assert not caplog.record_tuples
+    with caplog.at_level(logging.DEBUG):
+        main(sys.stderr, ['--log', 'DEBUG'])
+        out, err = capsysbinary.readouterr()
+        assert norm(out) == IN_DATA and b"123/123" in err
+        assert caplog.record_tuples
 
-    try:
-        # test --tee
-        IN_DATA = IN_DATA.decode()
-        with closing(StringIO()) as sys.stdout:
-            with closing(StringIO()) as sys.stdin:
-                sys.stdin.write(IN_DATA)
+    # test --tee
+    main(sys.stderr, ['--mininterval', '0', '--miniters', '1'])
+    out, err = capsysbinary.readouterr()
+    assert norm(out) == IN_DATA and b"123/123" in err
+    assert N <= len(err.split(b"\r")) < N + 5
 
-                sys.stdin.seek(0)
-                with closing(UnicodeIO()) as fp:
-                    main(argv=['--mininterval', '0', '--miniters', '1'], fp=fp)
-                    res = len(fp.getvalue())
-                    # assert len(fp.getvalue()) < len(sys.stdout.getvalue())
+    len_err = len(err)
+    main(sys.stderr, ['--tee', '--mininterval', '0', '--miniters', '1'])
+    out, err = capsysbinary.readouterr()
+    assert norm(out) == IN_DATA and b"123/123" in err
+    # spaces to clear intermediate lines could increase length
+    assert len_err + len(norm(out)) <= len(err)
 
-                sys.stdin.seek(0)
-                with closing(UnicodeIO()) as fp:
-                    main(argv=['--tee', '--mininterval', '0', '--miniters', '1'], fp=fp)
-                    # spaces to clear intermediate lines could increase length
-                    assert len(fp.getvalue()) >= res + len(IN_DATA)
-
-        # test --null
-        with closing(StringIO()) as sys.stdout:
-            with closing(StringIO()) as sys.stdin:
-                sys.stdin.write(IN_DATA)
-
-                sys.stdin.seek(0)
-                with closing(UnicodeIO()) as fp:
-                    main(argv=['--null'], fp=fp)
-                    assert not sys.stdout.getvalue()
-
-            with closing(StringIO()) as sys.stdin:
-                sys.stdin.write(IN_DATA)
-
-                sys.stdin.seek(0)
-                with closing(UnicodeIO()) as fp:
-                    main(argv=[], fp=fp)
-                    assert sys.stdout.getvalue()
-    finally:
-        sys.stdout = _STDOUT
+    # test --null
+    main(sys.stderr, ['--null'])
+    out, err = capsysbinary.readouterr()
+    assert not out and b"123/123" in err
 
     # test integer --update
-    IN_DATA = IN_DATA.encode()
-    with closing(BytesIO()) as sys.stdin:
-        sys.stdin.write(IN_DATA)
-
-        sys.stdin.seek(0)
-        with closing(UnicodeIO()) as fp:
-            main(argv=['--update'], fp=fp)
-            res = fp.getvalue()
-            assert str(N // 2 * N) + "it" in res  # arithmetic sum formula
-
-    # test integer --update --delim
-    with closing(BytesIO()) as sys.stdin:
-        sys.stdin.write(IN_DATA.replace(b'\n', b'D'))
-
-        sys.stdin.seek(0)
-        with closing(UnicodeIO()) as fp:
-            main(argv=['--update', '--delim', 'D'], fp=fp)
-            res = fp.getvalue()
-            assert str(N // 2 * N) + "it" in res  # arithmetic sum formula
+    main(sys.stderr, ['--update'])
+    out, err = capsysbinary.readouterr()
+    assert norm(out) == IN_DATA
+    assert (str(N // 2 * N) + "it").encode() in err, "expected arithmetic sum formula"
 
     # test integer --update_to
-    with closing(BytesIO()) as sys.stdin:
-        sys.stdin.write(IN_DATA)
+    main(sys.stderr, ['--update-to'])
+    out, err = capsysbinary.readouterr()
+    assert norm(out) == IN_DATA
+    assert (str(N - 1) + "it").encode() in err
+    assert (str(N) + "it").encode() not in err
 
-        sys.stdin.seek(0)
-        with closing(UnicodeIO()) as fp:
-            main(argv=['--update-to'], fp=fp)
-            res = fp.getvalue()
-            assert str(N - 1) + "it" in res
-            assert str(N) + "it" not in res
-
-    # test integer --update_to --delim
     with closing(BytesIO()) as sys.stdin:
         sys.stdin.write(IN_DATA.replace(b'\n', b'D'))
 
+        # test integer --update --delim
         sys.stdin.seek(0)
-        with closing(UnicodeIO()) as fp:
-            main(argv=['--update-to', '--delim', 'D'], fp=fp)
-            res = fp.getvalue()
-            assert str(N - 1) + "it" in res
-            assert str(N) + "it" not in res
+        main(sys.stderr, ['--update', '--delim', 'D'])
+        out, err = capsysbinary.readouterr()
+        assert out == IN_DATA.replace(b'\n', b'D')
+        assert (str(N // 2 * N) + "it").encode() in err, "expected arithmetic sum"
+
+        # test integer --update_to --delim
+        sys.stdin.seek(0)
+        main(sys.stderr, ['--update-to', '--delim', 'D'])
+        out, err = capsysbinary.readouterr()
+        assert out == IN_DATA.replace(b'\n', b'D')
+        assert (str(N - 1) + "it").encode() in err
+        assert (str(N) + "it").encode() not in err
 
     # test float --update_to
-    IN_DATA = '\n'.join((str(i / 2.0) for i in _range(N))).encode()
-    with closing(BytesIO()) as sys.stdin:
-        sys.stdin.write(IN_DATA)
-
-        sys.stdin.seek(0)
-        with closing(UnicodeIO()) as fp:
-            main(argv=['--update-to'], fp=fp)
-            res = fp.getvalue()
-            assert str((N - 1) / 2.0) + "it" in res
-            assert str(N / 2.0) + "it" not in res
+    sys.stdin = [(str(i / 2.0) + '\n').encode() for i in _range(N)]
+    IN_DATA = b''.join(sys.stdin)
+    main(sys.stderr, ['--update-to'])
+    out, err = capsysbinary.readouterr()
+    assert norm(out) == IN_DATA
+    assert (str((N - 1) / 2.0) + "it").encode() in err
+    assert (str(N / 2.0) + "it").encode() not in err
 
     # clean up
-    sys.stdin, sys.argv = _SYS
+    sys.stdin = _SYS
 
 
-def test_manpath():
+@mark.skipif(IS_WIN, reason="no manpages on windows")
+def test_manpath(tmp_path):
     """Test CLI --manpath"""
-    if IS_WIN:
-        skip("no manpages on windows")
-    tmp = mkdtemp()
-    man = path.join(tmp, "tqdm.1")
-    assert not path.exists(man)
-    try:
-        main(argv=['--manpath', tmp], fp=NULL)
-    except SystemExit:
-        pass
-    else:
-        raise SystemExit("Expected system exit")
-    assert path.exists(man)
-    rmtree(tmp, True)
+    man = tmp_path / "tqdm.1"
+    assert not man.exists()
+    with raises(SystemExit):
+        main(argv=['--manpath', str(tmp_path)])
+    assert man.is_file()
 
 
-def test_comppath():
+@mark.skipif(IS_WIN, reason="no completion on windows")
+def test_comppath(tmp_path):
     """Test CLI --comppath"""
-    if IS_WIN:
-        skip("no manpages on windows")
-    tmp = mkdtemp()
-    man = path.join(tmp, "tqdm_completion.sh")
-    assert not path.exists(man)
-    try:
-        main(argv=['--comppath', tmp], fp=NULL)
-    except SystemExit:
-        pass
-    else:
-        raise SystemExit("Expected system exit")
-    assert path.exists(man)
+    man = tmp_path / "tqdm_completion.sh"
+    assert not man.exists()
+    with raises(SystemExit):
+        main(argv=['--comppath', str(tmp_path)])
+    assert man.is_file()
 
     # check most important options appear
-    with io_open(man, mode='r', encoding='utf-8') as fd:
-        script = fd.read()
-    opts = set([
-        '--help', '--desc', '--total', '--leave', '--ncols', '--ascii',
-        '--dynamic_ncols', '--position', '--bytes', '--nrows', '--delim', '--manpath',
-        '--comppath'])
+    script = man.read_text()
+    opts = {'--help', '--desc', '--total', '--leave', '--ncols', '--ascii',
+            '--dynamic_ncols', '--position', '--bytes', '--nrows', '--delim',
+            '--manpath', '--comppath'}
     assert all(args in script for args in opts)
-    rmtree(tmp, True)
 
 
-def test_exceptions():
+def test_exceptions(capsysbinary):
     """Test CLI Exceptions"""
-    _SYS = sys.stdin, sys.argv
-    sys.stdin = map(str, _range(123))
+    _SYS = sys.stdin
+    N = 123
+    sys.stdin = [str(i) + '\n' for i in _range(N)]
+    IN_DATA = ''.join(sys.stdin).encode()
 
-    sys.argv = ['', '-ascii', '-unit_scale', '--bad_arg_u_ment', 'foo']
-    try:
-        main(fp=NULL)
-    except TqdmKeyError as e:
-        if 'bad_arg_u_ment' not in str(e):
-            raise
-    else:
-        raise TqdmKeyError('bad_arg_u_ment')
+    with raises(TqdmKeyError, match="bad_arg_u_ment"):
+        main(sys.stderr, argv=['-ascii', '-unit_scale', '--bad_arg_u_ment', 'foo'])
+    out, _ = capsysbinary.readouterr()
+    assert norm(out) == IN_DATA
 
-    sys.argv = ['', '-ascii', '-unit_scale', 'invalid_bool_value']
-    try:
-        main(fp=NULL)
-    except TqdmTypeError as e:
-        if 'invalid_bool_value' not in str(e):
-            raise
-    else:
-        raise TqdmTypeError('invalid_bool_value')
+    with raises(TqdmTypeError, match="invalid_bool_value"):
+        main(sys.stderr, argv=['-ascii', '-unit_scale', 'invalid_bool_value'])
+    out, _ = capsysbinary.readouterr()
+    assert norm(out) == IN_DATA
 
-    sys.argv = ['', '-ascii', '--total', 'invalid_int_value']
-    try:
-        main(fp=NULL)
-    except TqdmTypeError as e:
-        if 'invalid_int_value' not in str(e):
-            raise
-    else:
-        raise TqdmTypeError('invalid_int_value')
+    with raises(TqdmTypeError, match="invalid_int_value"):
+        main(sys.stderr, argv=['-ascii', '--total', 'invalid_int_value'])
+    out, _ = capsysbinary.readouterr()
+    assert norm(out) == IN_DATA
 
-    sys.argv = ['', '--update', '--update_to']
-    try:
-        main(fp=NULL)
-    except TqdmKeyError as e:
-        if 'Can only have one of --' not in str(e):
-            raise
-    else:
-        raise TqdmKeyError('Cannot have both --update --update_to')
+    with raises(TqdmKeyError, match="Can only have one of --"):
+        main(sys.stderr, argv=['--update', '--update_to'])
+    out, _ = capsysbinary.readouterr()
+    assert norm(out) == IN_DATA
 
     # test SystemExits
     for i in ('-h', '--help', '-v', '--version'):
-        sys.argv = ['', i]
-        try:
-            main(fp=NULL)
-        except SystemExit:
-            pass
-        else:
-            raise ValueError('expected SystemExit')
+        with raises(SystemExit):
+            main(argv=[i])
 
     # clean up
-    sys.stdin, sys.argv = _SYS
+    sys.stdin = _SYS
