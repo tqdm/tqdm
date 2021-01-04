@@ -95,6 +95,7 @@ async def test_coroutines():
         assert '10it' in our_file.getvalue()
 
 
+@mark.slow
 @mark.asyncio
 @mark.parametrize("tol", [0.2 if platform.startswith("darwin") else 0.1])
 async def test_as_completed(capsys, tol):

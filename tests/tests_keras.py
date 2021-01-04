@@ -4,6 +4,7 @@ from pytest import mark
 
 from tqdm import tqdm
 from .tests_tqdm import importorskip, StringIO, closing
+pytestmark = mark.slow
 
 
 @mark.filterwarnings("ignore:.*:DeprecationWarning")

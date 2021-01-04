@@ -1,6 +1,9 @@
 from tqdm import tqdm
 from .tests_tqdm import importorskip, skip, StringIO, closing
 
+from pytest import mark
+pytestmark = mark.slow
+
 random = importorskip("numpy.random")
 rand = random.rand
 randint = random.randint

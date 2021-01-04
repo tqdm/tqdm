@@ -32,6 +32,7 @@ def norm(bytestr):
     return bytestr if linesep == "\n" else bytestr.replace(linesep.encode(), b"\n")
 
 
+@mark.slow
 def test_pipes():
     """Test command line pipes"""
     ls_out = subprocess.check_output(['ls'])
@@ -182,6 +183,7 @@ def test_main(capsysbin):
     assert (str(N / 2.0) + "it").encode() not in err
 
 
+@mark.slow
 @mark.skipif(IS_WIN, reason="no manpages on windows")
 def test_manpath(tmp_path):
     """Test CLI --manpath"""
@@ -192,6 +194,7 @@ def test_manpath(tmp_path):
     assert man.is_file()
 
 
+@mark.slow
 @mark.skipif(IS_WIN, reason="no completion on windows")
 def test_comppath(tmp_path):
     """Test CLI --comppath"""
