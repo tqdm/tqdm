@@ -209,7 +209,7 @@ def test_imap():
 @patch_lock(thread=True)
 def test_threadpool():
     """Test concurrent.futures.ThreadPoolExecutor"""
-    ThreadPoolExecutor = importorskip("concurrent.futures").ThreadPoolExecutor
+    ThreadPoolExecutor = importorskip('concurrent.futures').ThreadPoolExecutor
 
     with ThreadPoolExecutor(8) as pool:
         try:

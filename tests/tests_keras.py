@@ -1,21 +1,19 @@
 from __future__ import division
 
-from pytest import mark
-
 from tqdm import tqdm
-from .tests_tqdm import importorskip, StringIO, closing
+from .tests_tqdm import StringIO, closing, importorskip, mark
 pytestmark = mark.slow
 
 
 @mark.filterwarnings("ignore:.*:DeprecationWarning")
 def test_keras():
     """Test tqdm.keras.TqdmCallback"""
-    TqdmCallback = importorskip("tqdm.keras").TqdmCallback
-    np = importorskip("numpy")
+    TqdmCallback = importorskip('tqdm.keras').TqdmCallback
+    np = importorskip('numpy')
     try:
         import keras as K
     except ImportError:
-        K = importorskip("tensorflow.keras")
+        K = importorskip('tensorflow.keras')
 
     # 1D autoencoder
     dtype = np.float32

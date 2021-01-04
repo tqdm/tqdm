@@ -1,13 +1,11 @@
 from tqdm import tqdm
-from .tests_tqdm import importorskip, skip, StringIO, closing
-
-from pytest import mark
+from .tests_tqdm import StringIO, closing, importorskip, mark, skip
 pytestmark = mark.slow
 
-random = importorskip("numpy.random")
+random = importorskip('numpy.random')
 rand = random.rand
 randint = random.randint
-pd = importorskip("pandas")
+pd = importorskip('pandas')
 
 
 def test_pandas_setup():

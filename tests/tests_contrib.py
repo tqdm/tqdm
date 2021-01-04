@@ -28,7 +28,7 @@ def test_enumerate():
 
 def test_enumerate_numpy():
     """Test contrib.tenumerate(numpy.ndarray)"""
-    np = importorskip("numpy")
+    np = importorskip('numpy')
     with closing(StringIO()) as our_file:
         a = np.random.random((42, 7))
         assert list(tenumerate(a, file=our_file)) == list(np.ndenumerate(a))

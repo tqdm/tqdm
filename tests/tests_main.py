@@ -5,11 +5,9 @@ import logging
 import sys
 import subprocess
 
-from pytest import mark, raises
-
 from tqdm.cli import main, TqdmKeyError, TqdmTypeError
 from tqdm.utils import IS_WIN
-from .tests_tqdm import _range, closing, BytesIO
+from .tests_tqdm import _range, BytesIO, closing, mark, raises
 
 
 def restore_sys(func):

@@ -3,10 +3,8 @@ from sys import platform
 from time import time
 import asyncio
 
-from pytest import mark
-
 from tqdm.asyncio import tqdm_asyncio, tarange
-from .tests_tqdm import StringIO, closing
+from .tests_tqdm import StringIO, closing, mark
 
 tqdm = partial(tqdm_asyncio, miniters=0, mininterval=0)
 trange = partial(tarange, miniters=0, mininterval=0)

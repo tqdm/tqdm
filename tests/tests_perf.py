@@ -10,10 +10,8 @@ except ImportError:
     from time import clock
     process_time = clock
 
-from pytest import mark
-
 from tqdm import tqdm, trange
-from .tests_tqdm import importorskip, skip, _range, patch_lock
+from .tests_tqdm import _range, importorskip, mark, patch_lock, skip
 pytestmark = mark.slow
 
 

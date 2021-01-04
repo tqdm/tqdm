@@ -8,8 +8,7 @@ import re
 import os
 from functools import wraps
 from contextlib import contextmanager
-from pytest import raises as assert_raises
-from pytest import importorskip, skip
+from pytest import importorskip, mark, raises, skip
 from warnings import catch_warnings, simplefilter
 
 from tqdm import tqdm
@@ -798,15 +797,15 @@ def test_smoothed_dynamic_min_iters_with_min_interval():
     assert '14%' in out and '14%' in out2
 
 
+@mark.slow
 def test_rlock_creation():
     """Test that importing tqdm does not create multiprocessing objects."""
-    import multiprocessing as mp
-    if sys.version_info < (3, 3):
-        skip("unittest.mock is a 3.3+ feature")
+    importorskip('multiprocessing')
+    from multiprocessing import get_context
 
     # Use 'spawn' instead of 'fork' so that the process does not inherit any
     # globals that have been constructed by running other tests
-    ctx = mp.get_context('spawn')
+    ctx = get_context('spawn')
     with ctx.Pool(1) as pool:
         # The pool will propagate the error if the target method fails
         pool.apply(_rlock_creation_target)
@@ -814,8 +813,8 @@ def test_rlock_creation():
 
 def _rlock_creation_target():
     """Check that the RLock has not been constructed."""
-    from unittest.mock import patch
     import multiprocessing as mp
+    patch = importorskip('unittest.mock').patch
 
     # Patch the RLock class/method but use the original implementation
     with patch('multiprocessing.RLock', wraps=mp.RLock) as rlock_mock:
@@ -1087,10 +1086,9 @@ def test_smoothing():
     assert a2 <= c2 <= b2
 
 
+@mark.skipif(nt_and_no_colorama, reason="Windows without colorama")
 def test_deprecated_nested():
     """Test nested progress bars"""
-    if nt_and_no_colorama:
-        skip("Windows without colorama")
     # TODO: test degradation on windows without colorama?
 
     # Artificially test nested loop printing
@@ -1188,11 +1186,9 @@ def test_reset():
         assert '| 10/12' in our_file.getvalue()
 
 
+@mark.skipif(nt_and_no_colorama, reason="Windows without colorama")
 def test_position():
     """Test positioned progress bars"""
-    if nt_and_no_colorama:
-        skip("Windows without colorama")
-
     # Artificially test nested loop printing
     # Without leave
     our_file = StringIO()
@@ -1553,7 +1549,7 @@ def test_write():
 
 def test_len():
     """Test advance len (numpy array shape)"""
-    np = importorskip("numpy")
+    np = importorskip('numpy')
     with closing(StringIO()) as f:
         with tqdm(np.zeros((3, 4)), file=f) as t:
             assert len(t) == 3
@@ -1585,8 +1581,8 @@ def test_deprecation_exception():
     def test_TqdmDeprecationWarning_nofpwrite():
         raise TqdmDeprecationWarning('Test!', fp_write=None)
 
-    assert_raises(TqdmDeprecationWarning, test_TqdmDeprecationWarning)
-    assert_raises(Exception, test_TqdmDeprecationWarning_nofpwrite)
+    raises(TqdmDeprecationWarning, test_TqdmDeprecationWarning)
+    raises(Exception, test_TqdmDeprecationWarning_nofpwrite)
 
 
 def test_postfix():
