@@ -25,3 +25,13 @@ def pretest_posttest():
             tqdm._instances.clear()
             raise EnvironmentError(
                 "{0} `tqdm` instances still in existence POST-test".format(n))
+
+
+if sys.version_info[0] > 2:
+    @fixture
+    def capsysbin(capsysbinary):
+        return capsysbinary
+else:
+    @fixture
+    def capsysbin(capsys):
+        return capsys
