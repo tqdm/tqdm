@@ -103,7 +103,7 @@ that each distribution has an alias to call the Python interpreter:
 
 Alternatively, use `pytest` to run the tests just for the current Python version:
 
-- install `pytest` and `flake8`
+- install `pytest`, `coverage`, `pytest-cov` and `flake8`
 - run the following command:
 
 ```
