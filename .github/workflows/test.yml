@@ -19,7 +19,9 @@ jobs:
         path: ~/.cache/pre-commit
         key: pre-commit|${{ env.PYSHA }}|${{ hashFiles('.pre-commit-config.yaml') }}
     - name: dependencies
-      run: pip install -U pre-commit
+      run: |
+        pip install -U pre-commit
+        sudo apt-get install -yqq pandoc
     - uses: reviewdog/action-setup@v1
     - if: github.event_name != 'schedule'
       name: comment
