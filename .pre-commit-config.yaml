@@ -19,6 +19,13 @@ repos:
     exclude: ^README.rst$
 - repo: local
   hooks:
+  - id: todo
+    name: Check TODO
+    language: pygrep
+    entry: WIP
+    types: [text]
+    exclude: ^(.pre-commit-config.yaml|.github/workflows/test.yml)$
+    args: [-i]
   - id: metadata
     name: Check metadata
     language: system
