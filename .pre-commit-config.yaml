@@ -45,3 +45,7 @@ repos:
     - flake8-comprehensions
     - flake8-debugger
     - flake8-string-format
+- repo: https://github.com/PyCQA/isort
+  rev: 5.7.0
+  hooks:
+  - id: isort
