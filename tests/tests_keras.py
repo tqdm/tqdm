@@ -1,7 +1,9 @@
 from __future__ import division
 
 from tqdm import tqdm
+
 from .tests_tqdm import StringIO, closing, importorskip, mark
+
 pytestmark = mark.slow
 
 

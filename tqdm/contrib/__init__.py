@@ -3,11 +3,13 @@ Thin wrappers around common functions.
 
 Subpackages contain potentially unstable extensions.
 """
+import sys
+from functools import wraps
+
 from tqdm import tqdm
 from tqdm.auto import tqdm as tqdm_auto
 from tqdm.utils import ObjectWrapper
-from functools import wraps
-import sys
+
 __author__ = {"github.com/": ["casperdcl"]}
 __all__ = ['tenumerate', 'tzip', 'tmap']
 

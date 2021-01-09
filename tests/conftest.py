@@ -1,7 +1,9 @@
 """Shared pytest config."""
 import sys
-from tqdm import tqdm
+
 from pytest import fixture
+
+from tqdm import tqdm
 
 
 @fixture(autouse=True)

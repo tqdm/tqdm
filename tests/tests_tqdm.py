@@ -2,28 +2,27 @@
 # Advice: use repr(our_file.read()) to print the full output of tqdm
 # (else '\r' will replace the previous lines and you'll see only the latest.
 
-import sys
 import csv
-import re
 import os
-from functools import wraps
+import re
+import sys
 from contextlib import contextmanager
-from pytest import importorskip, mark, raises, skip
+from functools import wraps
 from warnings import catch_warnings, simplefilter
 
-from tqdm import tqdm
-from tqdm import trange
-from tqdm import TqdmDeprecationWarning, TqdmWarning
-from tqdm.std import Bar, EMA
+from pytest import importorskip, mark, raises, skip
+
+from tqdm import TqdmDeprecationWarning, TqdmWarning, tqdm, trange
 from tqdm.contrib import DummyTqdmFile
+from tqdm.std import EMA, Bar
 
 try:
     from StringIO import StringIO
 except ImportError:
     from io import StringIO
 
-from io import BytesIO
 from io import IOBase  # to support unicode strings
+from io import BytesIO
 
 
 class DeprecationError(Exception):
@@ -1798,7 +1797,7 @@ def backendCheck(module):
 
 def test_auto():
     """Test auto fallback"""
-    from tqdm import autonotebook, auto
+    from tqdm import auto, autonotebook
     backendCheck(autonotebook)
     backendCheck(auto)
 

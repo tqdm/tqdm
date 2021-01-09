@@ -1,9 +1,10 @@
+import asyncio
 from functools import partial
 from sys import platform
 from time import time
-import asyncio
 
-from tqdm.asyncio import tqdm_asyncio, tarange
+from tqdm.asyncio import tarange, tqdm_asyncio
+
 from .tests_tqdm import StringIO, closing, mark
 
 tqdm = partial(tqdm_asyncio, miniters=0, mininterval=0)

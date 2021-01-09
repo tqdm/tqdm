@@ -3,8 +3,9 @@ Tests for `tqdm.contrib.concurrent`.
 """
 from pytest import warns
 
-from tqdm.contrib.concurrent import thread_map, process_map
-from .tests_tqdm import StringIO, closing, TqdmWarning, importorskip, mark, skip
+from tqdm.contrib.concurrent import process_map, thread_map
+
+from .tests_tqdm import StringIO, TqdmWarning, closing, importorskip, mark, skip
 
 
 def incr(x):

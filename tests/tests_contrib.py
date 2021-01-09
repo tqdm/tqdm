@@ -3,8 +3,9 @@ Tests for `tqdm.contrib`.
 """
 import sys
 
-from tqdm.contrib import tenumerate, tzip, tmap
-from .tests_tqdm import importorskip, StringIO, closing
+from tqdm.contrib import tenumerate, tmap, tzip
+
+from .tests_tqdm import StringIO, closing, importorskip
 
 
 def incr(x):

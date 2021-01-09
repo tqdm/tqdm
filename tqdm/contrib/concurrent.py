@@ -2,9 +2,12 @@
 Thin wrappers around `concurrent.futures`.
 """
 from __future__ import absolute_import
+
+from contextlib import contextmanager
+
 from tqdm import TqdmWarning
 from tqdm.auto import tqdm as tqdm_auto
-from contextlib import contextmanager
+
 try:
     from operator import length_hint
 except ImportError:
@@ -23,6 +26,7 @@ except ImportError:
         def cpu_count():
             return 4
 import sys
+
 __author__ = {"github.com/": ["casperdcl"]}
 __all__ = ['thread_map', 'process_map']
 

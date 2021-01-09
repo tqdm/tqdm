@@ -1,6 +1,6 @@
 """Test `tqdm.__version__`."""
-from ast import literal_eval
 import re
+from ast import literal_eval
 
 
 def test_version():

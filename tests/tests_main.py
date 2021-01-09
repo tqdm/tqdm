@@ -1,13 +1,14 @@
 """Test CLI usage."""
+import logging
+import subprocess
+import sys
 from functools import wraps
 from os import linesep
-import logging
-import sys
-import subprocess
 
-from tqdm.cli import main, TqdmKeyError, TqdmTypeError
+from tqdm.cli import TqdmKeyError, TqdmTypeError, main
 from tqdm.utils import IS_WIN
-from .tests_tqdm import _range, BytesIO, closing, mark, raises
+
+from .tests_tqdm import BytesIO, _range, closing, mark, raises
 
 
 def restore_sys(func):

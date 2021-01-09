@@ -1,7 +1,8 @@
+import atexit
 from threading import Event, Thread, current_thread
 from time import time
 from warnings import warn
-import atexit
+
 __all__ = ["TMonitor", "TqdmSynchronisationWarning"]
 
 

@@ -4,6 +4,7 @@ Tests for `tqdm.contrib.itertools`.
 import itertools
 
 from tqdm.contrib.itertools import product
+
 from .tests_tqdm import StringIO, closing
 
 

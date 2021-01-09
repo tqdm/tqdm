@@ -1,12 +1,14 @@
 from __future__ import division
+
+import sys
 from functools import wraps
 from threading import Event
 from time import sleep, time
-import sys
 
-from tqdm import tqdm, trange, TMonitor
+from tqdm import TMonitor, tqdm, trange
+
 from .tests_perf import retry_on_except
-from .tests_tqdm import importorskip, skip, StringIO, closing, patch_lock
+from .tests_tqdm import StringIO, closing, importorskip, patch_lock, skip
 
 
 class Time(object):

@@ -1,12 +1,12 @@
 """
 General helpers required for `tqdm.std`.
 """
-from functools import wraps
-from warnings import warn
 import os
 import re
 import subprocess
 import sys
+from functools import wraps
+from warnings import warn
 
 # py2/3 compat
 try:
@@ -237,8 +237,8 @@ def _screen_shape_wrapper():  # pragma: no cover
 
 def _screen_shape_windows(fp):  # pragma: no cover
     try:
-        from ctypes import windll, create_string_buffer
         import struct
+        from ctypes import create_string_buffer, windll
         from sys import stdin, stdout
 
         io_handle = -12  # assume stderr
@@ -273,9 +273,9 @@ def _screen_shape_tput(*_):  # pragma: no cover
 def _screen_shape_linux(fp):  # pragma: no cover
 
     try:
-        from termios import TIOCGWINSZ
-        from fcntl import ioctl
         from array import array
+        from fcntl import ioctl
+        from termios import TIOCGWINSZ
     except ImportError:
         return None
     else:

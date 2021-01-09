@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from setuptools import setup
 import os
 import sys
+
+from setuptools import setup
 
 src_dir = os.path.abspath(os.path.dirname(__file__))
 if sys.argv[1].lower().strip() == 'make':  # exec Makefile commands

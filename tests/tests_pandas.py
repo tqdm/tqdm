@@ -1,5 +1,7 @@
 from tqdm import tqdm
+
 from .tests_tqdm import StringIO, closing, importorskip, mark, skip
+
 pytestmark = mark.slow
 
 random = importorskip('numpy.random')

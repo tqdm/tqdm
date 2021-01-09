@@ -10,13 +10,16 @@ Usage:
 https://raw.githubusercontent.com/tqdm/img/src/screenshot-telegram.gif)
 """
 from __future__ import absolute_import
+
 from os import getenv
 
 from requests import Session
 
 from tqdm.auto import tqdm as tqdm_auto
 from tqdm.utils import _range
+
 from .utils_worker import MonoWorker
+
 __author__ = {"github.com/": ["casperdcl"]}
 __all__ = ['TelegramIO', 'tqdm_telegram', 'ttgrange', 'tqdm', 'trange']
 

@@ -3,10 +3,11 @@ IO/concurrency helpers for `tqdm.contrib`.
 """
 from __future__ import absolute_import
 
-from concurrent.futures import ThreadPoolExecutor
 from collections import deque
+from concurrent.futures import ThreadPoolExecutor
 
 from tqdm.auto import tqdm as tqdm_auto
+
 __author__ = {"github.com/": ["casperdcl"]}
 __all__ = ['MonoWorker']
 

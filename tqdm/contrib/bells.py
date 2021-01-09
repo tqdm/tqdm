@@ -9,8 +9,8 @@ Even more features than `tqdm.auto` (all the bells & whistles):
     + uses `${TQDM_DISCORD_TOKEN}` and `${TQDM_DISCORD_CHANNEL_ID}`
 """
 __all__ = ['tqdm', 'trange']
-from os import getenv
 import warnings
+from os import getenv
 
 if getenv("TQDM_TELEGRAM_TOKEN") and getenv("TQDM_TELEGRAM_CHAT_ID"):
     from tqdm.contrib.telegram import tqdm, trange
