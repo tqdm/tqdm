@@ -40,3 +40,8 @@ repos:
   rev: 3.8.4
   hooks:
   - id: flake8
+    additional_dependencies:
+    - flake8-bugbear
+    - flake8-comprehensions
+    - flake8-debugger
+    - flake8-string-format

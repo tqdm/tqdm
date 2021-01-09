@@ -116,7 +116,7 @@ def test_pandas_groupby_apply():
         dfs = pd.DataFrame(randint(0, 50, (500, 3)), columns=list('abc'))
         dfs.groupby(['a']).progress_apply(lambda x: None)
 
-        df2 = df = pd.DataFrame(dict(a=randint(1, 8, 10000), b=rand(10000)))
+        df2 = df = pd.DataFrame({'a': randint(1, 8, 10000), 'b': rand(10000)})
         res1 = df2.groupby("a").apply(max)
         res2 = df2.groupby("a").progress_apply(max)
         assert res1.equals(res2)
@@ -188,9 +188,9 @@ def test_pandas_apply_args_deprecation():
         df.progress_apply(lambda x: None, 1)  # 1 shall cause a warning
         # Check deprecation message
         res = our_file.getvalue()
-        assert all([i in res for i in (
+        assert all(i in res for i in (
             "TqdmDeprecationWarning", "not supported",
-            "keyword arguments instead")])
+            "keyword arguments instead"))
 
 
 def test_pandas_deprecation():

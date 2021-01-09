@@ -35,8 +35,8 @@ class TelegramIO(MonoWorker):
         try:
             res = session.post(
                 self.API + '%s/sendMessage' % self.token,
-                data=dict(text='`' + self.text + '`', chat_id=self.chat_id,
-                          parse_mode='MarkdownV2'))
+                data={'text': '`' + self.text + '`', 'chat_id': self.chat_id,
+                      'parse_mode': 'MarkdownV2'})
         except Exception as e:
             tqdm_auto.write(str(e))
         else:
@@ -53,8 +53,8 @@ class TelegramIO(MonoWorker):
         try:
             future = self.submit(
                 self.session.post, self.API + '%s/editMessageText' % self.token,
-                data=dict(text='`' + s + '`', chat_id=self.chat_id,
-                          message_id=self.message_id, parse_mode='MarkdownV2'))
+                data={'text': '`' + s + '`', 'chat_id': self.chat_id,
+                      'message_id': self.message_id, 'parse_mode': 'MarkdownV2'})
         except Exception as e:
             tqdm_auto.write(str(e))
         else:

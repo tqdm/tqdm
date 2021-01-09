@@ -60,7 +60,7 @@ def _executor_map(PoolExecutor, fn, *iterables, **tqdm_kwargs):
     chunksize = kwargs.pop("chunksize", 1)
     lock_name = kwargs.pop("lock_name", "")
     with ensure_lock(tqdm_class, lock_name=lock_name) as lk:
-        pool_kwargs = dict(max_workers=max_workers)
+        pool_kwargs = {'max_workers': max_workers}
         sys_version = sys.version_info[:2]
         if sys_version >= (3, 7):
             # share lock in case workers are already using `tqdm`

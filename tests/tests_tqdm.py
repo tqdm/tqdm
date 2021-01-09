@@ -321,7 +321,7 @@ def test_format_meter():
 
 def test_ansi_escape_codes():
     """Test stripping of ANSI escape codes"""
-    ansi = dict(BOLD='\033[1m', RED='\033[91m', END='\033[0m')
+    ansi = {'BOLD': '\033[1m', 'RED': '\033[91m', 'END': '\033[0m'}
     desc_raw = '{BOLD}{RED}Colored{END} description'
     ncols = 123
 
@@ -1193,7 +1193,7 @@ def test_position():
     # Artificially test nested loop printing
     # Without leave
     our_file = StringIO()
-    kwargs = dict(file=our_file, miniters=1, mininterval=0, maxinterval=0)
+    kwargs = {'file': our_file, 'miniters': 1, 'mininterval': 0, 'maxinterval': 0}
     t = tqdm(total=2, desc='pos2 bar', leave=False, position=2, **kwargs)
     t.update()
     t.close()
@@ -1567,7 +1567,7 @@ def test_autodisable_disable():
 def test_autodisable_enable():
     """Test autodisable will not disable on TTY"""
     with closing(StringIO()) as our_file:
-        setattr(our_file, "isatty", lambda: True)
+        our_file.isatty = lambda: True
         with tqdm(total=10, disable=None, file=our_file) as t:
             t.update()
         assert our_file.getvalue() != ''
@@ -1653,7 +1653,7 @@ def test_postfix_direct():
     with closing(StringIO()) as our_file:
         with tqdm(total=10, file=our_file, miniters=1, mininterval=0,
                   bar_format="{postfix[0][name]} {postfix[1]:>5.2f}",
-                  postfix=[dict(name="foo"), 42]) as t:
+                  postfix=[{'name': "foo"}, 42]) as t:
             for i in range(10):
                 if i % 2:
                     t.postfix[0]["name"] = "abcdefghij"[i]
@@ -1753,7 +1753,7 @@ def test_threading():
 def test_bool():
     """Test boolean cast"""
     def internal(our_file, disable):
-        kwargs = dict(file=our_file, disable=disable)
+        kwargs = {'file': our_file, 'disable': disable}
         with trange(10, **kwargs) as t:
             assert t
         with trange(0, **kwargs) as t:
@@ -1849,8 +1849,8 @@ def test_screen_shape():
 
     # no second/third bar, leave=False
     with closing(StringIO()) as our_file:
-        kwargs = dict(file=our_file, ncols=50, nrows=2, miniters=0,
-                      mininterval=0, leave=False)
+        kwargs = {'file': our_file, 'ncols': 50, 'nrows': 2, 'miniters': 0,
+                  'mininterval': 0, 'leave': False}
         with trange(10, desc="one", **kwargs) as t1:
             with trange(10, desc="two", **kwargs) as t2:
                 with trange(10, desc="three", **kwargs) as t3:
@@ -1870,7 +1870,8 @@ def test_screen_shape():
 
     # all bars, leave=True
     with closing(StringIO()) as our_file:
-        kwargs = dict(file=our_file, ncols=50, nrows=2, miniters=0, mininterval=0)
+        kwargs = {'file': our_file, 'ncols': 50, 'nrows': 2,
+                  'miniters': 0, 'mininterval': 0}
         with trange(10, desc="one", **kwargs) as t1:
             with trange(10, desc="two", **kwargs) as t2:
                 assert "two" not in our_file.getvalue()
@@ -1892,8 +1893,8 @@ def test_screen_shape():
 
     # second bar becomes first, leave=False
     with closing(StringIO()) as our_file:
-        kwargs = dict(file=our_file, ncols=50, nrows=2, miniters=0,
-                      mininterval=0, leave=False)
+        kwargs = {'file': our_file, 'ncols': 50, 'nrows': 2, 'miniters': 0,
+                  'mininterval': 0, 'leave': False}
         t1 = tqdm(total=10, desc="one", **kwargs)
         with tqdm(total=10, desc="two", **kwargs) as t2:
             t1.update()

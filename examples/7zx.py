@@ -57,8 +57,8 @@ def main():
         for s in range(2):  # size|compressed totals
             totals_s = sum(map(int, (inf[s] for inf in finfo[:-1])))
             if totals_s != totals[s]:
-                log.warn("%s: individual total %d != 7z total %d" %
-                         (fn, totals_s, totals[s]))
+                log.warn("%s: individual total %d != 7z total %d",
+                         fn, totals_s, totals[s])
         fcomp = {n: int(c if args.compressed else u) for (u, c, n) in finfo[:-1]}
         # log.debug(fcomp)
         # zips  : {'zipname' : {'filename' : int(size)}}
@@ -68,7 +68,7 @@ def main():
     cmd7zx = ["7z", "x", "-bd"]
     if args.yes:
         cmd7zx += ["-y"]
-    log.info("Extracting from {:d} file(s)".format(len(zips)))
+    log.info("Extracting from %d file(s)", len(zips))
     with tqdm(total=sum(sum(fcomp.values()) for fcomp in zips.values()),
               unit="B", unit_scale=True) as tall:
         for fn, fcomp in zips.items():
@@ -105,7 +105,7 @@ def main():
                                     if not args.silent:
                                         t.write(t.format_interval(
                                             t.start_t - tall.start_t) + ' ' +
-                                            ln.lstrip("Processing archive: "))
+                                            ln.replace("Processing archive: ", ""))
                                 else:
                                     t.write(ln)
             ex.wait()

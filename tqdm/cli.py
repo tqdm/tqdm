@@ -32,7 +32,7 @@ def cast(val, typ):
             raise TqdmTypeError(val + ' : ' + typ)
     try:
         return eval(typ + '("' + val + '")')
-    except:
+    except Exception:
         if typ == 'chr':
             return chr(ord(eval('"' + val + '"'))).encode()
         else:
@@ -221,7 +221,7 @@ Options:
         update_to = tqdm_args.pop('update_to', False)
         if sum((delim_per_char, update, update_to)) > 1:
             raise TqdmKeyError("Can only have one of --bytes --update --update_to")
-    except:
+    except Exception:
         fp.write('\nError:\nUsage:\n  tqdm [--help | options]\n')
         for i in sys.stdin:
             sys.stdout.write(i)

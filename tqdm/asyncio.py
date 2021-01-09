@@ -44,7 +44,7 @@ class tqdm_asyncio(std_tqdm):
         except StopIteration:
             self.close()
             raise StopAsyncIteration
-        except:
+        except BaseException:
             self.close()
             raise
 
