@@ -800,12 +800,13 @@ def test_smoothed_dynamic_min_iters_with_min_interval():
 @mark.slow
 def test_rlock_creation():
     """Test that importing tqdm does not create multiprocessing objects."""
-    importorskip('multiprocessing')
-    from multiprocessing import get_context
+    mp = importorskip('multiprocessing')
+    if not hasattr(mp, 'get_context'):
+        skip("missing multiprocessing.get_context")
 
     # Use 'spawn' instead of 'fork' so that the process does not inherit any
     # globals that have been constructed by running other tests
-    ctx = get_context('spawn')
+    ctx = mp.get_context('spawn')
     with ctx.Pool(1) as pool:
         # The pool will propagate the error if the target method fails
         pool.apply(_rlock_creation_target)
