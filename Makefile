@@ -15,7 +15,6 @@
 	testtimer
 	distclean
 	coverclean
-	pre-commit
 	prebuildclean
 	clean
 	toxclean
@@ -112,11 +111,6 @@ distclean:
 	@+make coverclean
 	@+make prebuildclean
 	@+make clean
-pre-commit:
-	# quick sanity checks
-	@make --no-print-directory testsetup
-	flake8 -j 8 --count --statistics setup.py .meta/ tqdm/ tests/ examples/
-	pytest -qq --durations=1 -k "not slow"
 prebuildclean:
 	@+python -c "import shutil; shutil.rmtree('build', True)"
 	@+python -c "import shutil; shutil.rmtree('dist', True)"

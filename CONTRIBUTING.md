@@ -123,8 +123,8 @@ Also consider `pip install`ing development utilities:
 
 ## Pre-commit Hook
 
-It's probably a good idea to add `[python setup.py] make pre-commit` to
-`.git/hooks/pre-commit` for convenient local sanity-checking.
+It's probably a good idea to run `pre-commit install` for convenient local
+sanity-checking.
 
 
 ## Semantic Versioning
