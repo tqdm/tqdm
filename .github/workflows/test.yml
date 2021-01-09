@@ -11,6 +11,8 @@ jobs:
     name: check
     steps:
     - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
     - uses: actions/setup-python@v2
     - name: set PYSHA
       run: echo "PYSHA=$(python -VV | sha256sum | cut -d' ' -f1)" >> $GITHUB_ENV
@@ -20,7 +22,7 @@ jobs:
         key: pre-commit|${{ env.PYSHA }}|${{ hashFiles('.pre-commit-config.yaml') }}
     - name: dependencies
       run: |
-        pip install -U pre-commit
+        pip install -U pre-commit docutils pygments py-make
         sudo apt-get install -yqq pandoc
     - uses: reviewdog/action-setup@v1
     - if: github.event_name != 'schedule'
