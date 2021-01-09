@@ -7,8 +7,10 @@ Usage:
 >>> async for i in trange(10):
 ...     ...
 """
-from .std import tqdm as std_tqdm
 import asyncio
+
+from .std import tqdm as std_tqdm
+
 __author__ = {"github.com/": ["casperdcl"]}
 __all__ = ['tqdm_asyncio', 'tarange', 'tqdm', 'trange']
 
@@ -44,7 +46,7 @@ class tqdm_asyncio(std_tqdm):
         except StopIteration:
             self.close()
             raise StopAsyncIteration
-        except:
+        except BaseException:
             self.close()
             raise
 

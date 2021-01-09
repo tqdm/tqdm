@@ -103,7 +103,7 @@ that each distribution has an alias to call the Python interpreter:
 
 Alternatively, use `pytest` to run the tests just for the current Python version:
 
-- install `pytest` and `flake8`
+- install `pytest`, `coverage`, `pytest-cov` and `flake8`
 - run the following command:
 
 ```
@@ -123,8 +123,8 @@ Also consider `pip install`ing development utilities:
 
 ## Pre-commit Hook
 
-It's probably a good idea to add `[python setup.py] make pre-commit` to
-`.git/hooks/pre-commit` for convenient local sanity-checking.
+It's probably a good idea to run `pre-commit install` for convenient local
+sanity-checking.
 
 
 ## Semantic Versioning

@@ -2,10 +2,10 @@
 """
 Auto-generate snapcraft.yaml.
 """
+import sys
 from io import open as io_open
 from os import path
 from subprocess import check_output
-import sys
 
 sys.path.insert(1, path.dirname(path.dirname(__file__)))
 import tqdm  # NOQA

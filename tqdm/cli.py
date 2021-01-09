@@ -1,13 +1,14 @@
 """
 Module version for monitoring CLI pipes (`... | python -m tqdm | ...`).
 """
-from ast import literal_eval as numeric
 import logging
 import re
 import sys
+from ast import literal_eval as numeric
 
-from .std import tqdm, TqdmTypeError, TqdmKeyError
+from .std import TqdmKeyError, TqdmTypeError, tqdm
 from .version import __version__
+
 __all__ = ["main"]
 log = logging.getLogger(__name__)
 
@@ -32,7 +33,7 @@ def cast(val, typ):
             raise TqdmTypeError(val + ' : ' + typ)
     try:
         return eval(typ + '("' + val + '")')
-    except:
+    except Exception:
         if typ == 'chr':
             return chr(ord(eval('"' + val + '"'))).encode()
         else:
@@ -221,7 +222,7 @@ Options:
         update_to = tqdm_args.pop('update_to', False)
         if sum((delim_per_char, update, update_to)) > 1:
             raise TqdmKeyError("Can only have one of --bytes --update --update_to")
-    except:
+    except Exception:
         fp.write('\nError:\nUsage:\n  tqdm [--help | options]\n')
         for i in sys.stdin:
             sys.stdout.write(i)
@@ -244,7 +245,8 @@ Options:
         if manpath or comppath:
             from os import path
             from shutil import copyfile
-            from pkg_resources import resource_filename, Requirement
+
+            from pkg_resources import Requirement, resource_filename
 
             def cp(src, dst):
                 """copies from src path to dst"""

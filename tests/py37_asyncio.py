@@ -1,12 +1,11 @@
+import asyncio
 from functools import partial
 from sys import platform
 from time import time
-import asyncio
 
-from pytest import mark
+from tqdm.asyncio import tarange, tqdm_asyncio
 
-from tqdm.asyncio import tqdm_asyncio, tarange
-from .tests_tqdm import StringIO, closing
+from .tests_tqdm import StringIO, closing, mark
 
 tqdm = partial(tqdm_asyncio, miniters=0, mininterval=0)
 trange = partial(tarange, miniters=0, mininterval=0)
@@ -95,6 +94,7 @@ async def test_coroutines():
         assert '10it' in our_file.getvalue()
 
 
+@mark.slow
 @mark.asyncio
 @mark.parametrize("tol", [0.2 if platform.startswith("darwin") else 0.1])
 async def test_as_completed(capsys, tol):

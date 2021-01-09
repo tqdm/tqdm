@@ -9,13 +9,15 @@ Usage:
 """
 # future division is important to divide integers and get as
 # a result precise floating numbers (instead of truncated int)
-from __future__ import division, absolute_import
+from __future__ import absolute_import, division
+
+from warnings import warn
+
+# to inherit from the tqdm class
+from .std import TqdmExperimentalWarning
+from .std import tqdm as std_tqdm
 # import compatibility functions and utilities
 from .utils import _range
-# to inherit from the tqdm class
-from .std import tqdm as std_tqdm
-from .std import TqdmExperimentalWarning
-from warnings import warn
 
 __author__ = {"github.com/": ["casperdcl", "lrq3000"]}
 __all__ = ['tqdm_gui', 'tgrange', 'tqdm', 'trange']
@@ -29,9 +31,10 @@ class tqdm_gui(std_tqdm):  # pragma: no cover
     # TODO: @classmethod: write() on GUI?
 
     def __init__(self, *args, **kwargs):
+        from collections import deque
+
         import matplotlib as mpl
         import matplotlib.pyplot as plt
-        from collections import deque
         kwargs = kwargs.copy()
         kwargs['gui'] = True
         colour = kwargs.pop('colour', 'g')

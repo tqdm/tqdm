@@ -9,12 +9,14 @@ Usage:
 """
 # future division is important to divide integers and get as
 # a result precise floating numbers (instead of truncated int)
-from __future__ import division, absolute_import
+from __future__ import absolute_import, division
+
 # import compatibility functions and utilities
 import sys
-from .utils import _range
+
 # to inherit from the tqdm class
 from .std import tqdm as std_tqdm
+from .utils import _range
 
 if True:  # pragma: no cover
     # import IPython/Jupyter base widget and display utilities
@@ -40,17 +42,19 @@ if True:  # pragma: no cover
 
     try:  # IPython 4.x / 3.x
         if IPY == 32:
+            from IPython.html.widgets import HTML
             from IPython.html.widgets import FloatProgress as IProgress
-            from IPython.html.widgets import HBox, HTML
+            from IPython.html.widgets import HBox
             IPY = 3
         else:
+            from ipywidgets import HTML
             from ipywidgets import FloatProgress as IProgress
-            from ipywidgets import HBox, HTML
+            from ipywidgets import HBox
     except ImportError:
         try:  # IPython 2.x
-            from IPython.html.widgets import FloatProgressWidget as IProgress
-            from IPython.html.widgets import ContainerWidget as HBox
             from IPython.html.widgets import HTML
+            from IPython.html.widgets import ContainerWidget as HBox
+            from IPython.html.widgets import FloatProgressWidget as IProgress
             IPY = 2
         except ImportError:
             IPY = 0

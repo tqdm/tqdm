@@ -8,6 +8,8 @@ Usage:
 ...     ...
 """
 from __future__ import absolute_import, division
+
+import sys
 from collections import OrderedDict
 from contextlib import contextmanager
 from datetime import datetime, timedelta
@@ -15,13 +17,12 @@ from numbers import Number
 from time import time
 from warnings import warn
 from weakref import WeakSet
-import sys
 
-from .utils import _supports_unicode, _screen_shape_wrapper, _range, _unich, \
-    _term_move_up, _unicode, _basestring, \
-    Comparable, _is_ascii, FormatReplace, disp_len, disp_trim, \
-    SimpleTextIOWrapper, DisableOnWriteError, CallbackIOWrapper
 from ._monitor import TMonitor
+from .utils import (
+    CallbackIOWrapper, Comparable, DisableOnWriteError, FormatReplace,
+    SimpleTextIOWrapper, _basestring, _is_ascii, _range, _screen_shape_wrapper,
+    _supports_unicode, _term_move_up, _unich, _unicode, disp_len, disp_trim)
 
 __author__ = "https://github.com/tqdm/tqdm#contributions"
 __all__ = ['tqdm', 'trange',
@@ -147,9 +148,9 @@ class Bar(object):
     BLANK = "  "
     COLOUR_RESET = '\x1b[0m'
     COLOUR_RGB = '\x1b[38;2;%d;%d;%dm'
-    COLOURS = dict(BLACK='\x1b[30m', RED='\x1b[31m', GREEN='\x1b[32m',
-                   YELLOW='\x1b[33m', BLUE='\x1b[34m', MAGENTA='\x1b[35m',
-                   CYAN='\x1b[36m', WHITE='\x1b[37m')
+    COLOURS = {'BLACK': '\x1b[30m', 'RED': '\x1b[31m', 'GREEN': '\x1b[32m',
+               'YELLOW': '\x1b[33m', 'BLUE': '\x1b[34m', 'MAGENTA': '\x1b[35m',
+               'CYAN': '\x1b[36m', 'WHITE': '\x1b[37m'}
 
     def __init__(self, frac, default_len=10, charset=UTF, colour=None):
         if not 0 <= frac <= 1:
@@ -188,7 +189,7 @@ class Bar(object):
         if format_spec:
             _type = format_spec[-1].lower()
             try:
-                charset = dict(a=self.ASCII, u=self.UTF, b=self.BLANK)[_type]
+                charset = {'a': self.ASCII, 'u': self.UTF, 'b': self.BLANK}[_type]
             except KeyError:
                 charset = self.charset
             else:
@@ -575,8 +576,8 @@ class tqdm(Comparable):
     @classmethod
     def _get_free_pos(cls, instance=None):
         """Skips specified instance."""
-        positions = set(abs(inst.pos) for inst in cls._instances
-                        if inst is not instance and hasattr(inst, "pos"))
+        positions = {abs(inst.pos) for inst in cls._instances
+                     if inst is not instance and hasattr(inst, "pos")}
         return min(set(range(len(positions) + 1)).difference(positions))
 
     @classmethod
@@ -709,21 +710,19 @@ class tqdm(Comparable):
                 from pandas.core.window import _Rolling_and_Expanding
             except ImportError:  # pandas>=1.2.0
                 try:  # pandas>=1.2.0
-                    from pandas.core.window.rolling import Rolling
                     from pandas.core.window.expanding import Expanding
+                    from pandas.core.window.rolling import Rolling
                     _Rolling_and_Expanding = Rolling, Expanding
-                except ImportError:
+                except ImportError:  # pragma: no cover
                     _Rolling_and_Expanding = None
         try:  # pandas>=0.25.0
-            from pandas.core.groupby.generic import DataFrameGroupBy, \
-                SeriesGroupBy  # , NDFrameGroupBy
+            from pandas.core.groupby.generic import SeriesGroupBy  # , NDFrameGroupBy
+            from pandas.core.groupby.generic import DataFrameGroupBy
         except ImportError:
             try:  # pandas>=0.23.0
-                from pandas.core.groupby.groupby import DataFrameGroupBy, \
-                    SeriesGroupBy
+                from pandas.core.groupby.groupby import DataFrameGroupBy, SeriesGroupBy
             except ImportError:
-                from pandas.core.groupby import DataFrameGroupBy, \
-                    SeriesGroupBy
+                from pandas.core.groupby import DataFrameGroupBy, SeriesGroupBy
         try:  # pandas>=0.23.0
             from pandas.core.groupby.groupby import GroupBy
         except ImportError:
@@ -1424,14 +1423,15 @@ class tqdm(Comparable):
         if self.dynamic_ncols:
             self.ncols, self.nrows = self.dynamic_ncols(self.fp)
         ncols, nrows = self.ncols, self.nrows
-        return dict(
-            n=self.n, total=self.total,
-            elapsed=self._time() - self.start_t if hasattr(self, 'start_t') else 0,
-            ncols=ncols, nrows=nrows, prefix=self.desc, ascii=self.ascii,
-            unit=self.unit, unit_scale=self.unit_scale,
-            rate=self._ema_dn() / self._ema_dt() if self._ema_dt() else None,
-            bar_format=self.bar_format, postfix=self.postfix,
-            unit_divisor=self.unit_divisor, initial=self.initial, colour=self.colour)
+        return {
+            'n': self.n, 'total': self.total,
+            'elapsed': self._time() - self.start_t if hasattr(self, 'start_t') else 0,
+            'ncols': ncols, 'nrows': nrows, 'prefix': self.desc, 'ascii': self.ascii,
+            'unit': self.unit, 'unit_scale': self.unit_scale,
+            'rate': self._ema_dn() / self._ema_dt() if self._ema_dt() else None,
+            'bar_format': self.bar_format, 'postfix': self.postfix,
+            'unit_divisor': self.unit_divisor, 'initial': self.initial,
+            'colour': self.colour}
 
     def display(self, msg=None, pos=None):
         """

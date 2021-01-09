@@ -1,17 +1,22 @@
-from __future__ import print_function, division
+from __future__ import division, print_function
+
+import sys
 from contextlib import contextmanager
 from functools import wraps
 from time import sleep, time
+
 # Use relative/cpu timer to have reliable timings when there is a sudden load
 try:
     from time import process_time
 except ImportError:
     from time import clock
     process_time = clock
-import sys
 
 from tqdm import tqdm, trange
-from .tests_tqdm import importorskip, skip, _range, patch_lock
+
+from .tests_tqdm import _range, importorskip, mark, patch_lock, skip
+
+pytestmark = mark.slow
 
 
 def cpu_sleep(t):

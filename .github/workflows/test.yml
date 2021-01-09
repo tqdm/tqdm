@@ -7,16 +7,38 @@ on:
 jobs:
   check:
     if: github.event_name != 'pull_request' || github.head_ref != 'devel'
-    name: install
     runs-on: ubuntu-latest
+    name: check
     steps:
     - uses: actions/checkout@v2
       with:
         fetch-depth: 0
     - uses: actions/setup-python@v2
+    - name: set PYSHA
+      run: echo "PYSHA=$(python -VV | sha256sum | cut -d' ' -f1)" >> $GITHUB_ENV
+    - uses: actions/cache@v1
       with:
-        python-version: '3.x'
-    - run: pip install .
+        path: ~/.cache/pre-commit
+        key: pre-commit|${{ env.PYSHA }}|${{ hashFiles('.pre-commit-config.yaml') }}
+    - name: dependencies
+      run: |
+        pip install -U pre-commit docutils pygments py-make
+        sudo apt-get install -yqq pandoc
+    - uses: reviewdog/action-setup@v1
+    - if: github.event_name != 'schedule'
+      name: comment
+      run: |
+        if [[ $EVENT == pull_request ]]; then
+          REPORTER=github-pr-review
+        else
+          REPORTER=github-check
+        fi
+        pre-commit run -a todo | reviewdog -efm="%f:%l: %m" -name=TODO -tee -reporter=$REPORTER -filter-mode nofilter
+        pre-commit run -a flake8 | reviewdog -f=pep8 -name=flake8 -tee -reporter=$REPORTER -filter-mode nofilter
+      env:
+        REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        EVENT: ${{ github.event_name }}
+    - run: pre-commit run -a --show-diff-on-failure
   test-os:
     if: github.event_name != 'pull_request' || github.head_ref != 'devel'
     strategy:
@@ -106,26 +128,20 @@ jobs:
       with:
         fetch-depth: 0
     - uses: actions/setup-python@v2
-      with:
-        python-version: '3.x'
     - name: Install
       run: |
         sudo apt-get install -yqq pandoc
         pip install .[dev]
         make build .dockerignore snapcraft.yaml
-    - if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
-      uses: casperdcl/deploy-pypi@v1
+    - id: dist
+      uses: casperdcl/deploy-pypi@v2
       with:
         password: ${{ secrets.PYPI_TOKEN }}
         gpg_key: ${{ secrets.GPG_KEY }}
-        skip_existing: true
+        upload: ${{ github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags') }}
     - id: collect_assets
       name: Collect assets
       run: |
-        echo "::set-output name=asset_path::$(ls dist/*.whl)"
-        echo "::set-output name=asset_name::$(basename dist/*.whl)"
-        echo "::set-output name=asset_path_sig::$(ls dist/*.whl.asc 2>/dev/null)"
-        echo "::set-output name=asset_name_sig::$(basename dist/*.whl.asc 2>/dev/null)"
         if [[ $GITHUB_REF == refs/tags/v* ]]; then
           echo ::set-output name=docker_tags::latest,${GITHUB_REF/refs\/tags\/v/}
           echo ::set-output name=snap_channel::stable,candidate,edge
@@ -153,8 +169,8 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ${{ steps.collect_assets.outputs.asset_path }}
-        asset_name: ${{ steps.collect_assets.outputs.asset_name }}
+        asset_path: dist/${{ steps.dist.outputs.whl }}
+        asset_name: ${{ steps.dist.outputs.whl }}
         asset_content_type: application/zip
     - if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
       uses: actions/upload-release-asset@v1
@@ -162,8 +178,8 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ${{ steps.collect_assets.outputs.asset_path_sig }}
-        asset_name: ${{ steps.collect_assets.outputs.asset_name_sig }}
+        asset_path: dist/${{ steps.dist.outputs.whl_asc }}
+        asset_name: ${{ steps.dist.outputs.whl_asc }}
         asset_content_type: text/plain
     - uses: snapcore/action-build@v1
       id: snap_build

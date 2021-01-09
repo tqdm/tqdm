@@ -15,7 +15,6 @@
 	testtimer
 	distclean
 	coverclean
-	pre-commit
 	prebuildclean
 	clean
 	toxclean
@@ -62,11 +61,11 @@ testsetup:
 
 testcoverage:
 	@make coverclean
-	pytest -k "not tests_perf" --cov=tqdm --cov-fail-under=80
+	pytest -k "not perf" --cov=tqdm --cov-fail-under=80
 
 testperf:
 	# do not use coverage (which is extremely slow)
-	pytest -k tests_perf
+	pytest -k perf
 
 testtimer:
 	pytest
@@ -112,11 +111,6 @@ distclean:
 	@+make coverclean
 	@+make prebuildclean
 	@+make clean
-pre-commit:
-	# quick sanity checks
-	@make --no-print-directory testsetup
-	flake8 -j 8 --count --statistics setup.py .meta/ tqdm/ tests/ examples/
-	pytest -qq --durations=1 -k "basic_overhead or not (perf or keras or pandas or monitoring)"
 prebuildclean:
 	@+python -c "import shutil; shutil.rmtree('build', True)"
 	@+python -c "import shutil; shutil.rmtree('dist', True)"

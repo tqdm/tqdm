@@ -2,29 +2,27 @@
 # Advice: use repr(our_file.read()) to print the full output of tqdm
 # (else '\r' will replace the previous lines and you'll see only the latest.
 
-import sys
 import csv
-import re
 import os
-from functools import wraps
+import re
+import sys
 from contextlib import contextmanager
-from pytest import raises as assert_raises
-from pytest import importorskip, skip
+from functools import wraps
 from warnings import catch_warnings, simplefilter
 
-from tqdm import tqdm
-from tqdm import trange
-from tqdm import TqdmDeprecationWarning, TqdmWarning
-from tqdm.std import Bar, EMA
+from pytest import importorskip, mark, raises, skip
+
+from tqdm import TqdmDeprecationWarning, TqdmWarning, tqdm, trange
 from tqdm.contrib import DummyTqdmFile
+from tqdm.std import EMA, Bar
 
 try:
     from StringIO import StringIO
 except ImportError:
     from io import StringIO
 
-from io import BytesIO
 from io import IOBase  # to support unicode strings
+from io import BytesIO
 
 
 class DeprecationError(Exception):
@@ -322,7 +320,7 @@ def test_format_meter():
 
 def test_ansi_escape_codes():
     """Test stripping of ANSI escape codes"""
-    ansi = dict(BOLD='\033[1m', RED='\033[91m', END='\033[0m')
+    ansi = {'BOLD': '\033[1m', 'RED': '\033[91m', 'END': '\033[0m'}
     desc_raw = '{BOLD}{RED}Colored{END} description'
     ncols = 123
 
@@ -798,11 +796,12 @@ def test_smoothed_dynamic_min_iters_with_min_interval():
     assert '14%' in out and '14%' in out2
 
 
+@mark.slow
 def test_rlock_creation():
     """Test that importing tqdm does not create multiprocessing objects."""
-    import multiprocessing as mp
-    if sys.version_info < (3, 3):
-        skip("unittest.mock is a 3.3+ feature")
+    mp = importorskip('multiprocessing')
+    if not hasattr(mp, 'get_context'):
+        skip("missing multiprocessing.get_context")
 
     # Use 'spawn' instead of 'fork' so that the process does not inherit any
     # globals that have been constructed by running other tests
@@ -814,8 +813,8 @@ def test_rlock_creation():
 
 def _rlock_creation_target():
     """Check that the RLock has not been constructed."""
-    from unittest.mock import patch
     import multiprocessing as mp
+    patch = importorskip('unittest.mock').patch
 
     # Patch the RLock class/method but use the original implementation
     with patch('multiprocessing.RLock', wraps=mp.RLock) as rlock_mock:
@@ -1087,10 +1086,9 @@ def test_smoothing():
     assert a2 <= c2 <= b2
 
 
+@mark.skipif(nt_and_no_colorama, reason="Windows without colorama")
 def test_deprecated_nested():
     """Test nested progress bars"""
-    if nt_and_no_colorama:
-        skip("Windows without colorama")
     # TODO: test degradation on windows without colorama?
 
     # Artificially test nested loop printing
@@ -1188,15 +1186,13 @@ def test_reset():
         assert '| 10/12' in our_file.getvalue()
 
 
+@mark.skipif(nt_and_no_colorama, reason="Windows without colorama")
 def test_position():
     """Test positioned progress bars"""
-    if nt_and_no_colorama:
-        skip("Windows without colorama")
-
     # Artificially test nested loop printing
     # Without leave
     our_file = StringIO()
-    kwargs = dict(file=our_file, miniters=1, mininterval=0, maxinterval=0)
+    kwargs = {'file': our_file, 'miniters': 1, 'mininterval': 0, 'maxinterval': 0}
     t = tqdm(total=2, desc='pos2 bar', leave=False, position=2, **kwargs)
     t.update()
     t.close()
@@ -1553,7 +1549,7 @@ def test_write():
 
 def test_len():
     """Test advance len (numpy array shape)"""
-    np = importorskip("numpy")
+    np = importorskip('numpy')
     with closing(StringIO()) as f:
         with tqdm(np.zeros((3, 4)), file=f) as t:
             assert len(t) == 3
@@ -1570,7 +1566,7 @@ def test_autodisable_disable():
 def test_autodisable_enable():
     """Test autodisable will not disable on TTY"""
     with closing(StringIO()) as our_file:
-        setattr(our_file, "isatty", lambda: True)
+        our_file.isatty = lambda: True
         with tqdm(total=10, disable=None, file=our_file) as t:
             t.update()
         assert our_file.getvalue() != ''
@@ -1585,8 +1581,8 @@ def test_deprecation_exception():
     def test_TqdmDeprecationWarning_nofpwrite():
         raise TqdmDeprecationWarning('Test!', fp_write=None)
 
-    assert_raises(TqdmDeprecationWarning, test_TqdmDeprecationWarning)
-    assert_raises(Exception, test_TqdmDeprecationWarning_nofpwrite)
+    raises(TqdmDeprecationWarning, test_TqdmDeprecationWarning)
+    raises(Exception, test_TqdmDeprecationWarning_nofpwrite)
 
 
 def test_postfix():
@@ -1656,7 +1652,7 @@ def test_postfix_direct():
     with closing(StringIO()) as our_file:
         with tqdm(total=10, file=our_file, miniters=1, mininterval=0,
                   bar_format="{postfix[0][name]} {postfix[1]:>5.2f}",
-                  postfix=[dict(name="foo"), 42]) as t:
+                  postfix=[{'name': "foo"}, 42]) as t:
             for i in range(10):
                 if i % 2:
                     t.postfix[0]["name"] = "abcdefghij"[i]
@@ -1756,7 +1752,7 @@ def test_threading():
 def test_bool():
     """Test boolean cast"""
     def internal(our_file, disable):
-        kwargs = dict(file=our_file, disable=disable)
+        kwargs = {'file': our_file, 'disable': disable}
         with trange(10, **kwargs) as t:
             assert t
         with trange(0, **kwargs) as t:
@@ -1801,7 +1797,7 @@ def backendCheck(module):
 
 def test_auto():
     """Test auto fallback"""
-    from tqdm import autonotebook, auto
+    from tqdm import auto, autonotebook
     backendCheck(autonotebook)
     backendCheck(auto)
 
@@ -1852,8 +1848,8 @@ def test_screen_shape():
 
     # no second/third bar, leave=False
     with closing(StringIO()) as our_file:
-        kwargs = dict(file=our_file, ncols=50, nrows=2, miniters=0,
-                      mininterval=0, leave=False)
+        kwargs = {'file': our_file, 'ncols': 50, 'nrows': 2, 'miniters': 0,
+                  'mininterval': 0, 'leave': False}
         with trange(10, desc="one", **kwargs) as t1:
             with trange(10, desc="two", **kwargs) as t2:
                 with trange(10, desc="three", **kwargs) as t3:
@@ -1873,7 +1869,8 @@ def test_screen_shape():
 
     # all bars, leave=True
     with closing(StringIO()) as our_file:
-        kwargs = dict(file=our_file, ncols=50, nrows=2, miniters=0, mininterval=0)
+        kwargs = {'file': our_file, 'ncols': 50, 'nrows': 2,
+                  'miniters': 0, 'mininterval': 0}
         with trange(10, desc="one", **kwargs) as t1:
             with trange(10, desc="two", **kwargs) as t2:
                 assert "two" not in our_file.getvalue()
@@ -1895,8 +1892,8 @@ def test_screen_shape():
 
     # second bar becomes first, leave=False
     with closing(StringIO()) as our_file:
-        kwargs = dict(file=our_file, ncols=50, nrows=2, miniters=0,
-                      mininterval=0, leave=False)
+        kwargs = {'file': our_file, 'ncols': 50, 'nrows': 2, 'miniters': 0,
+                  'mininterval': 0, 'leave': False}
         t1 = tqdm(total=10, desc="one", **kwargs)
         with tqdm(total=10, desc="two", **kwargs) as t2:
             t1.update()

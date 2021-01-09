@@ -3,8 +3,9 @@ Tests for `tqdm.contrib`.
 """
 import sys
 
-from tqdm.contrib import tenumerate, tzip, tmap
-from .tests_tqdm import importorskip, StringIO, closing
+from tqdm.contrib import tenumerate, tmap, tzip
+
+from .tests_tqdm import StringIO, closing, importorskip
 
 
 def incr(x):
@@ -28,9 +29,9 @@ def test_enumerate():
 
 def test_enumerate_numpy():
     """Test contrib.tenumerate(numpy.ndarray)"""
-    np = importorskip("numpy")
+    np = importorskip('numpy')
     with closing(StringIO()) as our_file:
-        a = np.random.random((42, 1337))
+        a = np.random.random((42, 7))
         assert list(tenumerate(a, file=our_file)) == list(np.ndenumerate(a))
 
 

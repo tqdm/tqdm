@@ -12,13 +12,17 @@ dependencies:
 - setuptools_scm
 - toml
 # test env managers
+- pre-commit
 - tox
 - asv
 # tests (native)
 - pytest
 - pytest-cov
+- pytest-timeout
 - pytest-asyncio  # [py>=3.7]
 - flake8
+- flake8-bugbear
+- flake8-comprehensions
 - coverage
 # extras
 - matplotlib         # gui
@@ -32,3 +36,5 @@ dependencies:
 - pip:
   - py-make >=0.1.0  # `setup.py make/pymake`
   - pydoc-markdown   # `cd docs && pymake`
+  - flake8-debugger       # flake8
+  - flake8-string-format  # flake8

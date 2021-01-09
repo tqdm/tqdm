@@ -1,12 +1,12 @@
 """
 General helpers required for `tqdm.std`.
 """
-from functools import wraps
-from warnings import warn
 import os
 import re
 import subprocess
 import sys
+from functools import wraps
+from warnings import warn
 
 # py2/3 compat
 try:
@@ -53,7 +53,7 @@ class FormatReplace(object):
     >>> a = FormatReplace('something')
     >>> "{:5d}".format(a)
     'something'
-    """
+    """  # NOQA: P102
     def __init__(self, replace=''):
         self.replace = replace
         self.format_called = 0
@@ -141,7 +141,7 @@ class DisableOnWriteError(ObjectWrapper):
         def inner(*args, **kwargs):
             try:
                 return func(*args, **kwargs)
-            except (IOError, OSError) as e:
+            except OSError as e:
                 if e.errno != 5:
                     raise
                 tqdm_instance.miniters = float('inf')
@@ -198,7 +198,7 @@ def _is_utf(encoding):
     except Exception:
         try:
             return encoding.lower().startswith('utf-') or ('U8' == encoding)
-        except:
+        except Exception:
             return False
     else:
         return True
@@ -237,8 +237,8 @@ def _screen_shape_wrapper():  # pragma: no cover
 
 def _screen_shape_windows(fp):  # pragma: no cover
     try:
-        from ctypes import windll, create_string_buffer
         import struct
+        from ctypes import create_string_buffer, windll
         from sys import stdin, stdout
 
         io_handle = -12  # assume stderr
@@ -254,7 +254,7 @@ def _screen_shape_windows(fp):  # pragma: no cover
             (_bufx, _bufy, _curx, _cury, _wattr, left, top, right, bottom,
              _maxx, _maxy) = struct.unpack("hhhhHhhhhhh", csbi.raw)
             return right - left, bottom - top  # +1
-    except:
+    except Exception:
         pass
     return None, None
 
@@ -265,7 +265,7 @@ def _screen_shape_tput(*_):  # pragma: no cover
         import shlex
         return [int(subprocess.check_call(shlex.split('tput ' + i))) - 1
                 for i in ('cols', 'lines')]
-    except:
+    except Exception:
         pass
     return None, None
 
@@ -273,16 +273,16 @@ def _screen_shape_tput(*_):  # pragma: no cover
 def _screen_shape_linux(fp):  # pragma: no cover
 
     try:
-        from termios import TIOCGWINSZ
-        from fcntl import ioctl
         from array import array
+        from fcntl import ioctl
+        from termios import TIOCGWINSZ
     except ImportError:
         return None
     else:
         try:
             rows, cols = array('h', ioctl(fp, TIOCGWINSZ, '\0' * 8))[:2]
             return cols, rows
-        except:
+        except Exception:
             try:
                 return [int(os.environ[i]) - 1 for i in ("COLUMNS", "LINES")]
             except KeyError:

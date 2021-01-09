@@ -25,24 +25,6 @@ jobs:
     - run: tox
       env:
         TOXENV: ${{ matrix.TOXENV }}
-  lint:
-    if: github.event_name != 'pull_request' || github.head_ref != 'devel'
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-python@v2
-      with:
-        python-version: '3.x'
-    - uses: reviewdog/action-setup@v1
-    - run: pip install -U flake8
-    - if: github.event_name != 'schedule'
-      name: flake8
-      run: |
-        set -o pipefail
-        flake8 -j8 --count --statistics . | \
-          reviewdog -f=pep8 -name=flake8 -tee -reporter=github-check -filter-mode nofilter
-      env:
-        REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   asvfull:
     if: (github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')) || github.event_name == 'schedule'
     name: Benchmark (Full)

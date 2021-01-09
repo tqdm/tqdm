@@ -10,13 +10,16 @@ Usage:
 https://raw.githubusercontent.com/tqdm/img/src/screenshot-telegram.gif)
 """
 from __future__ import absolute_import
+
 from os import getenv
 
 from requests import Session
 
 from tqdm.auto import tqdm as tqdm_auto
 from tqdm.utils import _range
+
 from .utils_worker import MonoWorker
+
 __author__ = {"github.com/": ["casperdcl"]}
 __all__ = ['TelegramIO', 'tqdm_telegram', 'ttgrange', 'tqdm', 'trange']
 
@@ -35,8 +38,8 @@ class TelegramIO(MonoWorker):
         try:
             res = session.post(
                 self.API + '%s/sendMessage' % self.token,
-                data=dict(text='`' + self.text + '`', chat_id=self.chat_id,
-                          parse_mode='MarkdownV2'))
+                data={'text': '`' + self.text + '`', 'chat_id': self.chat_id,
+                      'parse_mode': 'MarkdownV2'})
         except Exception as e:
             tqdm_auto.write(str(e))
         else:
@@ -53,8 +56,8 @@ class TelegramIO(MonoWorker):
         try:
             future = self.submit(
                 self.session.post, self.API + '%s/editMessageText' % self.token,
-                data=dict(text='`' + s + '`', chat_id=self.chat_id,
-                          message_id=self.message_id, parse_mode='MarkdownV2'))
+                data={'text': '`' + s + '`', 'chat_id': self.chat_id,
+                      'message_id': self.message_id, 'parse_mode': 'MarkdownV2'})
         except Exception as e:
             tqdm_auto.write(str(e))
         else:
