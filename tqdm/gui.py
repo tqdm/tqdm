@@ -1,6 +1,5 @@
 """
-GUI progressbar decorator for iterators.
-Includes a default `range` iterator printing to `stderr`.
+Matplotlib GUI progressbar decorator for iterators.
 
 Usage:
 >>> from tqdm.gui import trange, tqdm

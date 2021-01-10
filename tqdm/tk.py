@@ -1,9 +1,8 @@
 """
-GUI progressbar decorator for iterators.
-Includes a default `range` iterator printing to `stderr`.
+Tkinter GUI progressbar decorator for iterators.
 
 Usage:
->>> from tqdm.gui import trange, tqdm
+>>> from tqdm.tk import trange, tqdm
 >>> for i in trange(10):
 ...     ...
 """
@@ -197,7 +196,7 @@ class tqdm_tk(std_tqdm):  # pragma: no cover
 
 def ttkrange(*args, **kwargs):
     """
-    A shortcut for `tqdm.gui.tqdm_tk(xrange(*args), **kwargs)`.
+    A shortcut for `tqdm.tk.tqdm(xrange(*args), **kwargs)`.
     On Python3+, `range` is used instead of `xrange`.
     """
     return tqdm_tk(_range(*args), **kwargs)
