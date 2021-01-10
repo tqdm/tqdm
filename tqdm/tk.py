@@ -59,7 +59,6 @@ class tqdm_tk(std_tqdm):  # pragma: no cover
             'bar_format', "{l_bar}{r_bar}").replace("{bar}", "")
         # convert disable = None to False
         kwargs['disable'] = bool(kwargs.get('disable', False))
-        colour = kwargs.pop('colour', "blue")
         self._warn_leave = 'leave' in kwargs
         grab = kwargs.pop('grab', False)
         tk_parent = kwargs.pop('tk_parent', None)
@@ -98,9 +97,6 @@ class tqdm_tk(std_tqdm):  # pragma: no cover
         _tk_label.pack()
         self._tk_pbar = ttk.Progressbar(
             pbar_frame, variable=self._tk_n_var, length=450)
-        # WIP: is this the best way to set colour?
-        # WIP: what about error/complete (green/red) as with notebook?
-        self._tk_pbar.tk_setPalette(colour)
         if self.total is not None:
             self._tk_pbar.configure(maximum=self.total)
         else:
@@ -158,17 +154,6 @@ class tqdm_tk(std_tqdm):  # pragma: no cover
             self._tk_window.wm_title(desc)
             if refresh and not self._tk_dispatching:
                 self._tk_window.update()
-
-    def refresh(self, nolock=True, **kwargs):  # WIP: why is this needed?
-        """
-        Force refresh the display of this bar.
-
-        Parameters
-        ----------
-        nolock  : bool, optional
-            Ignored, behaves as if always `True`.
-        """
-        return super(tqdm_tk, self).refresh(nolock=True, **kwargs)
 
     def cancel(self):
         """
