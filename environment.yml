@@ -30,8 +30,9 @@ dependencies:
 - pandas
 - tensorflow         # keras
 - requests           # contrib.telegram
-- twine              # `pymake pypi`
+- rich               # rich
 - argopt             # `cd wiki && pymake`
+- twine              # `pymake pypi`
 - wheel              # `setup.py bdist_wheel`
 - pip:
   - py-make >=0.1.0  # `setup.py make/pymake`

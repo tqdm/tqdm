@@ -673,6 +673,9 @@ Submodules
     class tqdm.tk.tqdm(tqdm.tqdm):
         """Tkinter GUI version."""
 
+    class tqdm.rich.tqdm(tqdm.tqdm):
+        """`rich.progress` version."""
+
     class tqdm.keras.TqdmCallback(keras.callbacks.Callback):
         """`keras` callback for epoch and batch progress."""
 
