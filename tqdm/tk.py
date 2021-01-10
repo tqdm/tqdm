@@ -81,7 +81,7 @@ class tqdm_tk(std_tqdm):  # pragma: no cover
         else:
             self._tk_window = tkinter.Toplevel(tk_parent)
 
-        warn('GUI is experimental/alpha', TqdmExperimentalWarning, stacklevel=2)
+        warn("GUI is experimental/alpha", TqdmExperimentalWarning, stacklevel=2)
         self._tk_dispatching = self._tk_dispatching_helper()
 
         self._tk_window.protocol("WM_DELETE_WINDOW", self.cancel)
@@ -130,21 +130,18 @@ class tqdm_tk(std_tqdm):  # pragma: no cover
             _close()
         elif not self._tk_dispatching:
             if self._warn_leave:
-                warn('leave flag ignored if not in tkinter mainloop',
+                warn("leave flag ignored if not in tkinter mainloop",
                      TqdmWarning, stacklevel=2)
             _close()
 
     def clear(self, *_, **__):
         pass
 
-    def display(self):
+    def display(self, *_, **__):
         self._tk_n_var.set(self.n)
         d = self.format_dict
-        d['ncols'] = None
-        text = self.format_meter(**d)
-        # fixup only default bar format
-        self._tk_text_var.set(
-            text.replace("||", "", 1) if "{l_bar}{r_bar}" in self.bar_format else text)
+        d['ncols'] = 0  # remove bar
+        self._tk_text_var.set(self.format_meter(**d))
         if not self._tk_dispatching:
             self._tk_window.update()
 

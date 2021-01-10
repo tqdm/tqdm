@@ -113,7 +113,7 @@ class tqdm_gui(std_tqdm):  # pragma: no cover
     def clear(self, *_, **__):
         pass
 
-    def display(self):
+    def display(self, *_, **__):
         n = self.n
         cur_t = self._time()
         elapsed = cur_t - self.start_t
@@ -172,7 +172,7 @@ class tqdm_gui(std_tqdm):  # pragma: no cover
             line2.set_data(t_ago, zdata)
 
         d = self.format_dict
-        d['ncols'] = 0
+        d['ncols'] = 0  # remove bar
         ax.set_title(self.format_meter(**d), fontname="DejaVu Sans Mono", fontsize=11)
         self.plt.pause(1e-9)
 
