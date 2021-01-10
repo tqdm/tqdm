@@ -141,7 +141,11 @@ class tqdm_tk(std_tqdm):  # pragma: no cover
         self._tk_n_var.set(self.n)
         d = self.format_dict
         d['ncols'] = None
-        self._tk_text_var.set(self.format_meter(**d))
+        text = self.format_meter(**d)
+        # fixup only default bar format
+        if self.bar_format == "{l_bar}{r_bar}":
+            text = text.replace("||", "", 1)
+        self._tk_text_var.set(text)
         if not self._tk_dispatching:
             self._tk_window.update()
 
