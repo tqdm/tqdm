@@ -9,6 +9,7 @@ Usage:
 """
 from __future__ import absolute_import, division
 
+import re
 import sys
 from warnings import warn
 
@@ -55,8 +56,6 @@ class tqdm_tk(std_tqdm):  # pragma: no cover
         """
         kwargs = kwargs.copy()
         kwargs['gui'] = True
-        kwargs['bar_format'] = kwargs.get(
-            'bar_format', "{l_bar}{r_bar}").replace("{bar}", "")
         # convert disable = None to False
         kwargs['disable'] = bool(kwargs.get('disable', False))
         self._warn_leave = 'leave' in kwargs
@@ -140,8 +139,13 @@ class tqdm_tk(std_tqdm):  # pragma: no cover
     def display(self, *_, **__):
         self._tk_n_var.set(self.n)
         d = self.format_dict
-        d['ncols'] = 0  # remove bar
-        self._tk_text_var.set(self.format_meter(**d))
+        # remove {bar}
+        d['bar_format'] = (d['bar_format'] or "{l_bar}<bar/>{r_bar}").replace(
+            "{bar}", "<bar/>")
+        msg = self.format_meter(**d)
+        if '<bar/>' in msg:
+            msg = "".join(re.split(r'\|?<bar/>\|?', msg, 1))
+        self._tk_text_var.set(msg)
         if not self._tk_dispatching:
             self._tk_window.update()
 

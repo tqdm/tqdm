@@ -12,6 +12,7 @@ Usage:
 from __future__ import absolute_import, division
 
 # import compatibility functions and utilities
+import re
 import sys
 
 # to inherit from the tqdm class
@@ -81,9 +82,7 @@ class TqdmHBox(HBox):
     def _repr_json_(self, pretty=None):
         if not hasattr(self, "pbar"):
             return {}
-        d = dict(self.pbar.format_dict,
-                 bar_format=(self.pbar.format_dict['bar_format']
-                             or "{l_bar}{bar}{r_bar}").replace("<bar/>", "{bar}"))
+        d = self.pbar.format_dict
         if pretty is not None:
             d["ascii"] = not pretty
         return d
@@ -149,13 +148,6 @@ class tqdm_notebook(std_tqdm):
 
         return container
 
-    @staticmethod
-    def format_meter(n, total, *args, **kwargs):
-        if total and kwargs.get('bar_format', None) is None:
-            kwargs = kwargs.copy()
-            kwargs['bar_format'] = "{l_bar}<bar/>{r_bar}"
-        return std_tqdm.format_meter(n, total, *args, **kwargs)
-
     def display(self, msg=None, pos=None,
                 # additional signals
                 close=False, bar_style=None):
@@ -167,7 +159,11 @@ class tqdm_notebook(std_tqdm):
         # clear_output(wait=1)
 
         if not msg and not close:
-            msg = self.__repr__()
+            d = self.format_dict
+            # remove {bar}
+            d['bar_format'] = (d['bar_format'] or "{l_bar}<bar/>{r_bar}").replace(
+                "{bar}", "<bar/>")
+            msg = self.format_meter(**d)
 
         ltext, pbar, rtext = self.container.children
         pbar.value = self.n
@@ -175,15 +171,9 @@ class tqdm_notebook(std_tqdm):
         if msg:
             # html escape special characters (like '&')
             if '<bar/>' in msg:
-                left, right = map(escape, msg.split('<bar/>', 1))
+                left, right = map(escape, re.split(r'\|?<bar/>\|?', msg, 1))
             else:
                 left, right = '', escape(msg)
-
-            # remove inesthetical pipes
-            if left and left[-1] == '|':
-                left = left[:-1]
-            if right and right[0] == '|':
-                right = right[1:]
 
             # Update description
             ltext.value = left
@@ -195,7 +185,7 @@ class tqdm_notebook(std_tqdm):
         if bar_style:
             # Hack-ish way to avoid the danger bar_style being overridden by
             # success because the bar gets closed after the error...
-            if not (pbar.bar_style == 'danger' and bar_style == 'success'):
+            if pbar.bar_style != 'danger' or bar_style != 'success':
                 pbar.bar_style = bar_style
 
         # Special signal to close the bar
@@ -232,8 +222,6 @@ class tqdm_notebook(std_tqdm):
 
         # Initialize parent class + avoid printing by using gui=True
         kwargs['gui'] = True
-        if 'bar_format' in kwargs:
-            kwargs['bar_format'] = kwargs['bar_format'].replace('{bar}', '<bar/>')
         # convert disable = None to False
         kwargs['disable'] = bool(kwargs.get('disable', False))
         colour = kwargs.pop('colour', None)

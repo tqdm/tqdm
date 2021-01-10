@@ -11,6 +11,7 @@ Usage:
 # a result precise floating numbers (instead of truncated int)
 from __future__ import absolute_import, division
 
+import re
 from warnings import warn
 
 # to inherit from the tqdm class
@@ -172,8 +173,13 @@ class tqdm_gui(std_tqdm):  # pragma: no cover
             line2.set_data(t_ago, zdata)
 
         d = self.format_dict
-        d['ncols'] = 0  # remove bar
-        ax.set_title(self.format_meter(**d), fontname="DejaVu Sans Mono", fontsize=11)
+        # remove {bar}
+        d['bar_format'] = (d['bar_format'] or "{l_bar}<bar/>{r_bar}").replace(
+            "{bar}", "<bar/>")
+        msg = self.format_meter(**d)
+        if '<bar/>' in msg:
+            msg = "".join(re.split(r'\|?<bar/>\|?', msg, 1))
+        ax.set_title(msg, fontname="DejaVu Sans Mono", fontsize=11)
         self.plt.pause(1e-9)
 
 
