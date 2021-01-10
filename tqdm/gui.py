@@ -25,7 +25,7 @@ __all__ = ['tqdm_gui', 'tgrange', 'tqdm', 'trange']
 
 class tqdm_gui(std_tqdm):  # pragma: no cover
     """
-    Experimental GUI version of tqdm!
+    Experimental Matplotlib GUI version of tqdm!
     """
 
     # TODO: @classmethod: write() on GUI?
@@ -40,11 +40,10 @@ class tqdm_gui(std_tqdm):  # pragma: no cover
         colour = kwargs.pop('colour', 'g')
         super(tqdm_gui, self).__init__(*args, **kwargs)
 
-        # Initialize the GUI display
-        if self.disable or not kwargs['gui']:
+        if self.disable:
             return
 
-        warn('GUI is experimental/alpha', TqdmExperimentalWarning, stacklevel=2)
+        warn("GUI is experimental/alpha", TqdmExperimentalWarning, stacklevel=2)
         self.mpl = mpl
         self.plt = plt
 
@@ -69,8 +68,8 @@ class tqdm_gui(std_tqdm):  # pragma: no cover
         ax.set_ylim(0, 0.001)
         if total is not None:
             ax.set_xlim(0, 100)
-            ax.set_xlabel('percent')
-            self.fig.legend((self.line1, self.line2), ('cur', 'est'),
+            ax.set_xlabel("percent")
+            self.fig.legend((self.line1, self.line2), ("cur", "est"),
                             loc='center right')
             # progressbar
             self.hspan = plt.axhspan(0, 0.001, xmin=0, xmax=0, color=colour)
@@ -78,11 +77,11 @@ class tqdm_gui(std_tqdm):  # pragma: no cover
             # ax.set_xlim(-60, 0)
             ax.set_xlim(0, 60)
             ax.invert_xaxis()
-            ax.set_xlabel('seconds')
-            ax.legend(('cur', 'est'), loc='lower left')
+            ax.set_xlabel("seconds")
+            ax.legend(("cur", "est"), loc='lower left')
         ax.grid()
         # ax.set_xlabel('seconds')
-        ax.set_ylabel((self.unit if self.unit else 'it') + '/s')
+        ax.set_ylabel((self.unit if self.unit else "it") + "/s")
         if self.unit_scale:
             plt.ticklabel_format(style='sci', axis='y', scilimits=(0, 0))
             ax.yaxis.get_offset_text().set_x(-0.15)
@@ -93,8 +92,6 @@ class tqdm_gui(std_tqdm):  # pragma: no cover
         self.ax = ax
 
     def close(self):
-        # if not self.gui:
-        #   return super(tqdm_gui, self).close()
         if self.disable:
             return
 
@@ -175,7 +172,7 @@ class tqdm_gui(std_tqdm):  # pragma: no cover
             line2.set_data(t_ago, zdata)
 
         d = self.format_dict
-        d["ncols"] = 0
+        d['ncols'] = 0
         ax.set_title(self.format_meter(**d), fontname="DejaVu Sans Mono", fontsize=11)
         self.plt.pause(1e-9)
 
