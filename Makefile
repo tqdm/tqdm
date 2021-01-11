@@ -61,7 +61,7 @@ testsetup:
 
 testcoverage:
 	@make coverclean
-	pytest -k "not perf" --cov=tqdm --cov-fail-under=80
+	pytest -k "not perf" --cov=tqdm --cov-report=xml --cov-report=term --cov-fail-under=80
 
 testperf:
 	# do not use coverage (which is extremely slow)
