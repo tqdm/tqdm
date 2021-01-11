@@ -83,11 +83,11 @@ Latest development release on GitHub
 
 |GitHub-Status| |GitHub-Stars| |GitHub-Commits| |GitHub-Forks| |GitHub-Updated|
 
-Pull and install in the current directory:
+Pull and install pre-release ``devel`` branch:
 
 .. code:: sh
 
-    pip install -e git+https://github.com/tqdm/tqdm.git@master#egg=tqdm
+    pip install "git+https://github.com/tqdm/tqdm.git@devel#egg=tqdm"
 
 Latest Conda release
 ~~~~~~~~~~~~~~~~~~~~
@@ -634,11 +634,28 @@ Returns
         On Python3+, `range` is used instead of `xrange`.
         """
 
-    class tqdm.notebook.tqdm(tqdm.tqdm):
-        """Experimental IPython/Jupyter Notebook widget."""
+Convenience Functions
+~~~~~~~~~~~~~~~~~~~~~
 
-    def tqdm.notebook.trange(*args, **tqdm_kwargs):
-        """Experimental IPython/Jupyter Notebook widget version of `trange`."""
+.. code:: python
+
+    def tqdm.contrib.tenumerate(iterable, start=0, total=None,
+                                tqdm_class=tqdm.auto.tqdm, **tqdm_kwargs):
+        """Equivalent of `numpy.ndenumerate` or builtin `enumerate`."""
+
+    def tqdm.contrib.tzip(iter1, *iter2plus, **tqdm_kwargs):
+        """Equivalent of builtin `zip`."""
+
+    def tqdm.contrib.tmap(function, *sequences, **tqdm_kwargs):
+        """Equivalent of builtin `map`."""
+
+Submodules
+~~~~~~~~~~
+
+.. code:: python
+
+    class tqdm.notebook.tqdm(tqdm.tqdm):
+        """IPython/Jupyter Notebook widget."""
 
     class tqdm.auto.tqdm(tqdm.tqdm):
         """Automatically chooses beween `tqdm.notebook` and `tqdm.tqdm`."""
@@ -651,23 +668,20 @@ Returns
           """Wrapper for `asyncio.as_completed`."""
 
     class tqdm.gui.tqdm(tqdm.tqdm):
-        """Experimental GUI version."""
+        """Matplotlib GUI version."""
+
+    class tqdm.tk.tqdm(tqdm.tqdm):
+        """Tkinter GUI version."""
+
+    class tqdm.rich.tqdm(tqdm.tqdm):
+        """`rich.progress` version."""
 
     class tqdm.keras.TqdmCallback(keras.callbacks.Callback):
         """`keras` callback for epoch and batch progress."""
 
-    def tqdm.contrib.tenumerate(iterable, start=0, total=None,
-                                tqdm_class=tqdm.auto.tqdm, **tqdm_kwargs):
-        """Equivalent of `numpy.ndenumerate` or builtin `enumerate`."""
-
-    def tqdm.contrib.tzip(iter1, *iter2plus, **tqdm_kwargs):
-        """Equivalent of builtin `zip`."""
-
-    def tqdm.contrib.tmap(function, *sequences, **tqdm_kwargs):
-        """Equivalent of builtin `map`."""
 
 ``contrib``
------------
++++++++++++
 
 The ``tqdm.contrib`` package also contains experimental modules:
 
@@ -1146,6 +1160,7 @@ Some submodule examples of inheritance:
 
 - `tqdm/notebook.py <https://github.com/tqdm/tqdm/blob/master/tqdm/notebook.py>`__
 - `tqdm/gui.py <https://github.com/tqdm/tqdm/blob/master/tqdm/gui.py>`__
+- `tqdm/tk.py <https://github.com/tqdm/tqdm/blob/master/tqdm/tk.py>`__
 - `tqdm/contrib/telegram.py <https://github.com/tqdm/tqdm/blob/master/tqdm/contrib/telegram.py>`__
 - `tqdm/contrib/discord.py <https://github.com/tqdm/tqdm/blob/master/tqdm/contrib/discord.py>`__
 
