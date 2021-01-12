@@ -1381,10 +1381,10 @@ Citation information: |DOI|
 |README-Hits| (Since 19 May 2016)
 
 .. |Logo| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/logo.gif
-.. |Screenshot| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/tqdm.gif
-.. |Video| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/video.jpg
+.. |Screenshot| image:: https://raw.githubusercontent.com/tqdm/img/master/tqdm.gif
+.. |Video| image:: https://raw.githubusercontent.com/tqdm/img/master/video.jpg
    :target: https://tqdm.github.io/video
-.. |Slides| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/slides.jpg
+.. |Slides| image:: https://raw.githubusercontent.com/tqdm/img/master/slides.jpg
    :target: https://tqdm.github.io/PyData2019/slides.html
 .. |Build-Status| image:: https://img.shields.io/github/workflow/status/tqdm/tqdm/Test/master?logo=GitHub
    :target: https://github.com/tqdm/tqdm/actions?query=workflow%3ATest
@@ -1440,8 +1440,8 @@ Citation information: |DOI|
    :target: https://doi.org/10.5281/zenodo.595120
 .. |binder-demo| image:: https://mybinder.org/badge_logo.svg
    :target: https://mybinder.org/v2/gh/tqdm/tqdm/master?filepath=DEMO.ipynb
-.. |Screenshot-Jupyter1| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/tqdm-jupyter-1.gif
-.. |Screenshot-Jupyter2| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/tqdm-jupyter-2.gif
-.. |Screenshot-Jupyter3| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/tqdm-jupyter-3.gif
+.. |Screenshot-Jupyter1| image:: https://raw.githubusercontent.com/tqdm/img/master/jupyter-1.gif
+.. |Screenshot-Jupyter2| image:: https://raw.githubusercontent.com/tqdm/img/master/jupyter-2.gif
+.. |Screenshot-Jupyter3| image:: https://raw.githubusercontent.com/tqdm/img/master/jupyter-3.gif
 .. |README-Hits| image:: https://caspersci.uk.to/cgi-bin/hits.cgi?q=tqdm&style=social&r=https://github.com/tqdm/tqdm&l=https://caspersci.uk.to/images/tqdm.png&f=https://raw.githubusercontent.com/tqdm/tqdm/master/images/logo.gif
    :target: https://caspersci.uk.to/cgi-bin/hits.cgi?q=tqdm&a=plot&r=https://github.com/tqdm/tqdm&l=https://caspersci.uk.to/images/tqdm.png&f=https://raw.githubusercontent.com/tqdm/tqdm/master/images/logo.gif&style=social
