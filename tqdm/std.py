@@ -846,9 +846,10 @@ class tqdm(Comparable):
     def __init__(self, iterable=None, desc=None, total=None, leave=True, file=None,
                  ncols=None, mininterval=0.1, maxinterval=10.0, miniters=None,
                  ascii=None, disable=False, unit='it', unit_scale=False,
-                 dynamic_ncols=False, smoothing=0.3, bar_format=None, initial=0,
-                 position=None, postfix=None, unit_divisor=1000, write_bytes=None,
-                 lock_args=None, nrows=None, colour=None, delay=0, gui=False,
+                 dynamic_ncols=False, smoothing=0.3, smoothing_time=0,
+                 bar_format=None, initial=0, position=None, postfix=None,
+                 unit_divisor=1000, write_bytes=None, lock_args=None, nrows=None,
+                 colour=None, delay=0, gui=False,
                  **kwargs):
         """
         Parameters
@@ -914,9 +915,14 @@ class tqdm(Comparable):
             If set, constantly alters `ncols` and `nrows` to the
             environment (allowing for window resizes) [default: False].
         smoothing  : float, optional
-            Exponential moving average smoothing factor for speed estimates
-            (ignored in GUI mode). Ranges from 0 (average speed) to 1
-            (current/instantaneous speed) [default: 0.3].
+            Exponential moving average smoothing factor for rate estimates.
+            Ranges from 0 (average rate) to 1 (current/instantaneous rate)
+            [default: 0.3].
+        smoothing_time  : float, optional
+            Similar to smoothing but defined in terms of time (in seconds)
+            over which the rate is averaged. Valid values are positive
+            real numbers. Large times provide more smoothing. A value of
+            zero disables this feature [default: 0].
         bar_format  : str, optional
             Specify a custom bar string formatting. May impact performance.
             [default: '{l_bar}{bar}{r_bar}'], where
@@ -1056,6 +1062,9 @@ class tqdm(Comparable):
         if smoothing is None:
             smoothing = 0
 
+        if smoothing_time:
+            smoothing = 0.0001
+
         # Store the arguments
         self.iterable = iterable
         self.desc = desc or ''
@@ -1079,6 +1088,7 @@ class tqdm(Comparable):
         self.gui = gui
         self.dynamic_ncols = dynamic_ncols
         self.smoothing = smoothing
+        self.smoothing_time = smoothing_time
         self._ema_dn = EMA(smoothing)
         self._ema_dt = EMA(smoothing)
         self._ema_miniters = EMA(smoothing)
@@ -1251,8 +1261,12 @@ class tqdm(Comparable):
                 dn = self.n - self.last_print_n  # >= n
                 if self.smoothing and dt and dn:
                     # EMA (not just overall average)
-                    self._ema_dn(dn)
-                    self._ema_dt(dt)
+                    avg_it_time = self._ema_dt(dt) / self._ema_dn(dn)
+                    if self.smoothing_time:
+                        new_alpha = avg_it_time / self.smoothing_time
+                        if new_alpha > 1.0:
+                            new_alpha = 1.0
+                        self._ema_dn.alpha = self._ema_dt.alpha = new_alpha
                 self.refresh(lock_args=self.lock_args)
                 if self.dynamic_miniters:
                     # If no `miniters` was specified, adjust automatically to the
@@ -1267,6 +1281,8 @@ class tqdm(Comparable):
                         self.miniters = self._ema_miniters(
                             dn * (self.mininterval / dt if self.mininterval and dt
                                   else 1))
+                        if self.smoothing_time and dt and dn:
+                            self._ema_miniters.alpha = new_alpha
                     else:
                         # max iters between two prints
                         self.miniters = max(self.miniters, dn)
