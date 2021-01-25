@@ -107,6 +107,9 @@ snapcraft.yaml: .meta/mksnap.py
 .dockerignore:
 	@+python -c "fd=open('.dockerignore', 'w'); fd.write('*\n!dist/*.whl\n')"
 
+Dockerfile:
+	@+python -c 'fd=open("Dockerfile", "w"); fd.write("FROM python:3.8-alpine\nCOPY dist/*.whl .\nRUN pip install -U $$(ls ./*.whl) && rm ./*.whl\nENTRYPOINT [\"tqdm\"]\n")'
+
 distclean:
 	@+make coverclean
 	@+make prebuildclean
@@ -167,6 +170,7 @@ snap:
 docker:
 	@make build
 	@make .dockerignore
+	@make Dockerfile
 	docker build . -t tqdm/tqdm
 	docker tag tqdm/tqdm:latest tqdm/tqdm:$(shell docker run -i --rm tqdm/tqdm -v)
 none:
