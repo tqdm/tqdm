@@ -1133,7 +1133,7 @@ class tqdm(Comparable):
     def __del__(self):
         self.close()
 
-    def __repr__(self):
+    def __str__(self):
         return self.format_meter(**self.format_dict)
 
     @property
@@ -1466,7 +1466,7 @@ class tqdm(Comparable):
 
         if pos:
             self.moveto(pos)
-        self.sp(self.__repr__() if msg is None else msg)
+        self.sp(self.__str__() if msg is None else msg)
         if pos:
             self.moveto(-pos)
         return True
