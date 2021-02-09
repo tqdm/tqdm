@@ -1425,7 +1425,7 @@ def test_clear():
 
 
 def test_clear_disabled():
-    """Test clearing bar display"""
+    """Test disabled clear"""
     with closing(StringIO()) as our_file:
         with tqdm(total=10, file=our_file, desc='pos0 bar', disable=True,
                   bar_format='{l_bar}') as t:
@@ -1454,8 +1454,19 @@ def test_refresh():
         assert after == [u'pos0 bar:  10%|', u'pos1 bar:  10%|']
 
 
+def test_disabled_repr(capsys):
+    """Test disabled repr"""
+    with tqdm(total=10, disable=True) as t:
+        str(t)
+        t.update()
+        print(t)
+    out, err = capsys.readouterr()
+    assert not err
+    assert out == '  0%|          | 0/10 [00:00<?, ?it/s]\n'
+
+
 def test_disabled_refresh():
-    """Test refresh bar display"""
+    """Test disabled refresh"""
     with closing(StringIO()) as our_file:
         with tqdm(total=10, file=our_file, desc='pos0 bar', disable=True,
                   bar_format='{l_bar}', mininterval=999, miniters=999) as t:
