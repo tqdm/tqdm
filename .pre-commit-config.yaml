@@ -23,21 +23,16 @@ repos:
     name: Check TODO
     language: pygrep
     entry: WIP
+    args: [-i]
     types: [text]
     exclude: ^(.pre-commit-config.yaml|.github/workflows/test.yml)$
-    args: [-i]
-  - id: metadata
-    name: Check metadata
-    language: system
-    entry: make testsetup
-    pass_filenames: false
   - id: pytest
     name: pytest quick
+    language: python
     entry: pytest
     args: ['-qq', '--durations=1', '-k=not slow']
-    pass_filenames: false
     types: [python]
-    language: python
+    pass_filenames: false
     additional_dependencies:
     - numpy
     - pandas
@@ -47,6 +42,7 @@ repos:
   rev: 3.8.4
   hooks:
   - id: flake8
+    args: ['-j8']
     additional_dependencies:
     - flake8-bugbear
     - flake8-comprehensions

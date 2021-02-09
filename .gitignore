@@ -12,6 +12,7 @@ __pycache__/
 /snapcraft.yaml
 /tqdm_*.snap
 /.dockerignore
+/Dockerfile
 
 # Unit test / coverage reports
 /.tox/
