@@ -1172,6 +1172,18 @@ def test_unpause():
     assert r_before == r_after
 
 
+def test_disabled_unpause(capsys):
+    """Test disabled unpause"""
+    with tqdm(total=10, disable=True) as t:
+        t.update()
+        t.unpause()
+        t.update()
+        print(t)
+    out, err = capsys.readouterr()
+    assert not err
+    assert out == '  0%|          | 0/10 [00:00<?, ?it/s]\n'
+
+
 def test_reset():
     """Test resetting a bar for re-use"""
     with closing(StringIO()) as our_file:
@@ -1184,6 +1196,20 @@ def test_reset():
             t.update(10)
         assert '| 1/10' in our_file.getvalue()
         assert '| 10/12' in our_file.getvalue()
+
+
+def test_disabled_reset(capsys):
+    """Test disabled reset"""
+    with tqdm(total=10, disable=True) as t:
+        t.update(9)
+        t.reset()
+        t.update()
+        t.reset(total=12)
+        t.update(10)
+        print(t)
+    out, err = capsys.readouterr()
+    assert not err
+    assert out == '  0%|          | 0/12 [00:00<?, ?it/s]\n'
 
 
 @mark.skipif(nt_and_no_colorama, reason="Windows without colorama")

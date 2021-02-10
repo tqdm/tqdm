@@ -297,6 +297,8 @@ class tqdm_notebook(std_tqdm):
         ----------
         total  : int or float, optional. Total to use for the new bar.
         """
+        if self.disable:
+            return super(tqdm_notebook, self).reset(total=total)
         _, pbar, _ = self.container.children
         pbar.bar_style = ''
         if total is not None:
