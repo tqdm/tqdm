@@ -85,13 +85,13 @@ class tqdm_discord(tqdm_auto):
 
         See `tqdm.auto.tqdm.__init__` for other parameters.
         """
-        kwargs = kwargs.copy()
-        logging.getLogger("HTTPClient").setLevel(logging.WARNING)
-        self.dio = DiscordIO(
-            kwargs.pop('token', getenv("TQDM_DISCORD_TOKEN")),
-            kwargs.pop('channel_id', getenv("TQDM_DISCORD_CHANNEL_ID")))
-
-        kwargs['mininterval'] = max(1.5, kwargs.get('mininterval', 1.5))
+        if not kwargs.get('disable'):
+            kwargs = kwargs.copy()
+            logging.getLogger("HTTPClient").setLevel(logging.WARNING)
+            self.dio = DiscordIO(
+                kwargs.pop('token', getenv("TQDM_DISCORD_TOKEN")),
+                kwargs.pop('channel_id', getenv("TQDM_DISCORD_CHANNEL_ID")))
+            kwargs['mininterval'] = max(1.5, kwargs.get('mininterval', 1.5))
         super(tqdm_discord, self).__init__(*args, **kwargs)
 
     def display(self, **kwargs):
@@ -106,7 +106,8 @@ class tqdm_discord(tqdm_auto):
 
     def clear(self, *args, **kwargs):
         super(tqdm_discord, self).clear(*args, **kwargs)
-        self.dio.write("")
+        if not self.disable:
+            self.dio.write("")
 
 
 def tdrange(*args, **kwargs):
