@@ -126,6 +126,12 @@ jobs:
         coveralls --finish || :
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Codacy Finished
+      run: |
+        curl -sfL https://coverage.codacy.com/get.sh > codacy
+        bash codacy final || :
+      env:
+        CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
   deploy:
     if: github.event_name != 'pull_request' || github.head_ref != 'devel'
     needs: [check, test, test-os]
