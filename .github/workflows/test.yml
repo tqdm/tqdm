@@ -118,11 +118,11 @@ jobs:
     continue-on-error: ${{ github.event_name != 'push' }}
     needs: [test, test-os]
     runs-on: ubuntu-latest
-    container: python:3-slim
     steps:
+    - uses: actions/setup-python@v2
     - name: Coveralls Finished
       run: |
-        pip3 install --upgrade coveralls
+        pip install -U coveralls
         coveralls --finish || :
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
