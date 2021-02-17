@@ -66,7 +66,6 @@ jobs:
       shell: bash
       env:
         PYVER: ${{ matrix.python }}
-        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
   test:
     if: github.event_name != 'pull_request' || github.head_ref != 'devel'
@@ -102,7 +101,6 @@ jobs:
         fi
       env:
         PYVER: ${{ matrix.python }}
-        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
     - name: Coveralls Parallel
       uses: AndreMiras/coveralls-python-action@develop
