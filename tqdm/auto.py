@@ -30,7 +30,7 @@ else:  # Python3.5+
     from .std import tqdm as std_tqdm
 
     if notebook_tqdm != std_tqdm:
-        class tqdm(notebook_tqdm, asyncio_tqdm):
+        class tqdm(notebook_tqdm, asyncio_tqdm):  # pylint: disable=inconsistent-mro
             pass
     else:
         tqdm = asyncio_tqdm

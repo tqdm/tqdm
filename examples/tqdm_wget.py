@@ -100,12 +100,12 @@ eg_out = opts['--output'].replace("/dev/null", devnull)
 #                        reporthook=my_hook(t), data=None)
 with TqdmUpTo(unit='B', unit_scale=True, unit_divisor=1024, miniters=1,
               desc=eg_file) as t:  # all optional kwargs
-    urllib.urlretrieve(eg_link, filename=eg_out, reporthook=t.update_to,
-                       data=None)
+    urllib.urlretrieve(  # nosec
+        eg_link, filename=eg_out, reporthook=t.update_to, data=None)
     t.total = t.n
 
 # Even simpler progress by wrapping the output file's `write()`
-response = urllib.urlopen(eg_link)
+response = urllib.urlopen(eg_link)  # nosec
 with tqdm.wrapattr(open(eg_out, "wb"), "write",
                    miniters=1, desc=eg_file,
                    total=getattr(response, 'length', None)) as fout:

@@ -3,7 +3,6 @@ General helpers required for `tqdm.std`.
 """
 import os
 import re
-import subprocess
 import sys
 from functools import wraps
 from warnings import warn
@@ -254,7 +253,7 @@ def _screen_shape_windows(fp):  # pragma: no cover
             (_bufx, _bufy, _curx, _cury, _wattr, left, top, right, bottom,
              _maxx, _maxy) = struct.unpack("hhhhHhhhhhh", csbi.raw)
             return right - left, bottom - top  # +1
-    except Exception:
+    except Exception:  # nosec
         pass
     return None, None
 
@@ -263,9 +262,10 @@ def _screen_shape_tput(*_):  # pragma: no cover
     """cygwin xterm (windows)"""
     try:
         import shlex
-        return [int(subprocess.check_call(shlex.split('tput ' + i))) - 1
+        from subprocess import check_call  # nosec
+        return [int(check_call(shlex.split('tput ' + i))) - 1
                 for i in ('cols', 'lines')]
-    except Exception:
+    except Exception:  # nosec
         pass
     return None, None
 
