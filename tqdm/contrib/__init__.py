@@ -21,14 +21,23 @@ class DummyTqdmFile(ObjectWrapper):
         self._buf = []
 
     def write(self, x, nolock=False):
-        nl = "\n" if isinstance(x, str) else b"\n"
+        nl = b"\n" if isinstance(x, bytes) else "\n"
         pre, sep, post = x.rpartition(nl)
         if sep:
-            tqdm.write(type(nl)().join(self._buf) + pre,
-                       file=self._wrapped, nolock=nolock)
+            blank = type(nl)()
+            tqdm.write(blank.join(self._buf + [pre, sep]),
+                       end=blank, file=self._wrapped, nolock=nolock)
             self._buf = [post]
         else:
             self._buf.append(x)
+
+    def __del__(self):
+        if self._buf:
+            blank = type(self._buf[0])()
+            try:
+                tqdm.write(blank.join(self._buf), end=blank, file=self._wrapped)
+            except (OSError, ValueError):
+                pass
 
 
 def builtin_iterable(func):
