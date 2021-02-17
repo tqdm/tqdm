@@ -66,6 +66,11 @@ jobs:
       shell: bash
       env:
         PYVER: ${{ matrix.python }}
+        COVERALLS_FLAG_NAME: py${{ matrix.python }}-${{ matrix.os }}
+        COVERALLS_PARALLEL: true
+        COVERALLS_SERVICE_NAME: github
+        # coveralls needs explicit token
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
   test:
     if: github.event_name != 'pull_request' || github.head_ref != 'devel'
@@ -101,22 +106,26 @@ jobs:
         fi
       env:
         PYVER: ${{ matrix.python }}
+        COVERALLS_FLAG_NAME: py${{ matrix.python }}
+        COVERALLS_PARALLEL: true
+        COVERALLS_SERVICE_NAME: github
+        # coveralls needs explicit token
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
-    - name: Coveralls Parallel
-      uses: AndreMiras/coveralls-python-action@develop
-      with:
-        parallel: true
   finish:
     if: github.event_name != 'pull_request' || github.head_ref != 'devel'
     name: pytest cov
     continue-on-error: ${{ github.event_name != 'push' }}
     needs: [test, test-os]
     runs-on: ubuntu-latest
+    container: python:3-slim
     steps:
     - name: Coveralls Finished
-      uses: AndreMiras/coveralls-python-action@develop
-      with:
-        parallel-finished: true
+      run: |
+        pip3 install --upgrade coveralls
+        coveralls --finish || :
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   deploy:
     if: github.event_name != 'pull_request' || github.head_ref != 'devel'
     needs: [check, test, test-os]
