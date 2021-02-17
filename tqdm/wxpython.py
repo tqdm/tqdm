@@ -32,14 +32,15 @@ class tqdm_wx(std_tqdm):  # pragma: no cover
         kwargs = kwargs.copy()
         parent = kwargs.pop('parent')
         kwargs['gui'] = True
-        kwargs.pop('colour', 'g')
+        colour = wx.Colour(kwargs.pop('colour', 'black'))
         super(tqdm_wx, self).__init__(*args, **kwargs)
 
         if self.disable:
             return
 
         warn("WX is experimental/alpha", TqdmExperimentalWarning, stacklevel=2)
-        self.pnl = pnl = wx.Panel(parent)
+        self.panel = pnl = wx.Panel(parent)
+        pnl.SetForegroundColour(colour)
         left = wx.StaticText(pnl)
         gauge = wx.Gauge(pnl, range=self.__len__() or 100)
         right = wx.StaticText(pnl)
@@ -49,7 +50,7 @@ class tqdm_wx(std_tqdm):  # pragma: no cover
         sizer.Add(gauge)
         sizer.Add(right)
         pnl.SetSizer(sizer)
-        self.container = [left, gauge, right]
+        self.container = left, gauge, right
         self.display()
 
     def close(self):
@@ -84,7 +85,7 @@ class tqdm_wx(std_tqdm):  # pragma: no cover
             left, right = msg, ""
         _left.SetLabel(left)
         _right.SetLabel(right)
-        self.pnl.Fit()
+        self.panel.Fit()
 
     def reset(self, total=None):
         """
