@@ -696,11 +696,15 @@ class tqdm(Comparable):
         <https://stackoverflow.com/questions/18603270/\
         progress-indicator-during-pandas-operations-python>
         """
+        from warnings import catch_warnings, simplefilter
+
         from pandas.core.frame import DataFrame
         from pandas.core.series import Series
         try:
-            from pandas import Panel
-        except ImportError:  # TODO: pandas>0.25.2
+            with catch_warnings():
+                simplefilter("ignore", category=FutureWarning)
+                from pandas import Panel
+        except ImportError:  # pandas>=1.2.0
             Panel = None
         Rolling, Expanding = None, None
         try:  # pandas>=1.0.0
@@ -718,14 +722,14 @@ class tqdm(Comparable):
         try:  # pandas>=0.25.0
             from pandas.core.groupby.generic import SeriesGroupBy  # , NDFrameGroupBy
             from pandas.core.groupby.generic import DataFrameGroupBy
-        except ImportError:
+        except ImportError:  # pragma: no cover
             try:  # pandas>=0.23.0
                 from pandas.core.groupby.groupby import DataFrameGroupBy, SeriesGroupBy
             except ImportError:
                 from pandas.core.groupby import DataFrameGroupBy, SeriesGroupBy
         try:  # pandas>=0.23.0
             from pandas.core.groupby.groupby import GroupBy
-        except ImportError:
+        except ImportError:  # pragma: no cover
             from pandas.core.groupby import GroupBy
 
         try:  # pandas>=0.23.0
