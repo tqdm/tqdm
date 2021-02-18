@@ -875,6 +875,7 @@ Here's an example with ``urllib``:
 
     import urllib, os
     from tqdm import tqdm
+    urllib = getattr(urllib, 'request', urllib)
 
     class TqdmUpTo(tqdm):
         """Provides `update_to(n)` which uses `tqdm.update(delta_n)`."""
@@ -936,12 +937,14 @@ down to:
     from tqdm import tqdm
 
     eg_link = "https://caspersci.uk.to/matryoshka.zip"
+    response = getattr(urllib, 'request', urllib).urlopen(eg_link)
     with tqdm.wrapattr(open(os.devnull, "wb"), "write",
-                       miniters=1, desc=eg_link.split('/')[-1]) as fout:
-        for chunk in urllib.urlopen(eg_link):
+                       miniters=1, desc=eg_link.split('/')[-1],
+                       total=getattr(response, 'length', None)) as fout:
+        for chunk in response:
             fout.write(chunk)
 
-The ``requests`` equivalent is nearly identical, albeit with a ``total``:
+The ``requests`` equivalent is nearly identical:
 
 .. code:: python
 
