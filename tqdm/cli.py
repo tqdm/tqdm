@@ -263,7 +263,7 @@ Options:
             stdout_write = stdout.write
             fp_write = getattr(fp, 'buffer', fp).write
 
-            class stdout(object):
+            class stdout(object):  # pylint: disable=function-redefined
                 @staticmethod
                 def write(x):
                     with tqdm.external_write_mode(file=fp):

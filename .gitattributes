@@ -7,4 +7,3 @@
 images/        export-ignore
 benchmarks/    export-ignore
 asv.conf.json  export-ignore
-.tqdm.1.md     export-ignore

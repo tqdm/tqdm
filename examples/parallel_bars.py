@@ -16,7 +16,7 @@ PY2 = sys.version_info[:1] <= (2,)
 
 
 def progresser(n, auto_position=True, write_safe=False, blocking=True, progress=False):
-    interval = random() * 0.002 / (NUM_SUBITERS - n + 2)
+    interval = random() * 0.002 / (NUM_SUBITERS - n + 2)  # nosec
     total = 5000
     text = "#{0}, est. {1:<04.2}s".format(n, interval * total)
     for _ in trange(total, desc=text, disable=not progress,

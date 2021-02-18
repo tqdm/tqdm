@@ -5,7 +5,7 @@ Auto-generate snapcraft.yaml.
 import sys
 from io import open as io_open
 from os import path
-from subprocess import check_output
+from subprocess import check_output  # nosec
 
 sys.path.insert(1, path.dirname(path.dirname(__file__)))
 import tqdm  # NOQA
@@ -65,7 +65,7 @@ apps:
     command: bin/tqdm
     completer: completion.sh
 """.format(version=tqdm.__version__, commit=check_output([
-    'git', 'describe', '--always']).decode('U8').strip())
+    'git', 'describe', '--always']).decode('U8').strip())  # nosec
 fname = path.join(path.dirname(src_dir), 'snapcraft.yaml')
 
 if __name__ == "__main__":

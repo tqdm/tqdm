@@ -1,6 +1,6 @@
 """Test CLI usage."""
 import logging
-import subprocess
+import subprocess  # nosec
 import sys
 from functools import wraps
 from os import linesep
@@ -34,11 +34,11 @@ def norm(bytestr):
 @mark.slow
 def test_pipes():
     """Test command line pipes"""
-    ls_out = subprocess.check_output(['ls'])
-    ls = subprocess.Popen(['ls'], stdout=subprocess.PIPE)
+    ls_out = subprocess.check_output(['ls'])  # nosec
+    ls = subprocess.Popen(['ls'], stdout=subprocess.PIPE)  # nosec
     res = subprocess.Popen(
         [sys.executable, '-c', 'from tqdm.cli import main; main()'],
-        stdin=ls.stdout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdin=ls.stdout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)  # nosec
     out, err = res.communicate()
     assert ls.poll() == 0
 

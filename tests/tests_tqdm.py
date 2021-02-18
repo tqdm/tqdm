@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # Advice: use repr(our_file.read()) to print the full output of tqdm
 # (else '\r' will replace the previous lines and you'll see only the latest.
+from __future__ import print_function
 
 import csv
 import os
@@ -1722,8 +1723,14 @@ def test_file_redirection():
     with closing(StringIO()) as our_file:
         # Redirect stdout to tqdm.write()
         with std_out_err_redirect_tqdm(tqdm_file=our_file):
-            for _ in trange(3):
+            with tqdm(total=3) as pbar:
                 print("Such fun")
+                pbar.update(1)
+                print("Such", "fun")
+                pbar.update(1)
+                print("Such ", end="")
+                print("fun")
+                pbar.update(1)
         res = our_file.getvalue()
         assert res.count("Such fun\n") == 3
         assert "0/3" in res
