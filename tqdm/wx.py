@@ -2,7 +2,7 @@
 WX progressbar decorator for iterators.
 
 Usage:
->>> from tqdm.wxpython import trange, tqdm
+>>> from tqdm.wx import trange, tqdm
 >>> for i in trange(10, parent=wx.Panel()):
 ...     ...
 """
@@ -106,7 +106,7 @@ class tqdm_wx(std_tqdm):  # pragma: no cover
 
 def twrange(*args, **kwargs):
     """
-    A shortcut for `tqdm.wxpython.tqdm(xrange(*args), **kwargs)`.
+    A shortcut for `tqdm.wx.tqdm(xrange(*args), **kwargs)`.
     On Python3+, `range` is used instead of `xrange`.
     """
     return tqdm_wx(_range(*args), **kwargs)
