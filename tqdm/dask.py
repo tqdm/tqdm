@@ -8,8 +8,7 @@ __all__ = ['TqdmCallback']
 
 class TqdmCallback(Callback):
     """`dask` callback for task progress"""
-    def __init__(self, start=None, start_state=None, pretask=None,
-                 posttask=None, finish=None, tqdm_class=tqdm_auto,
+    def __init__(self, start=None, pretask=None, tqdm_class=tqdm_auto,
                  **tqdm_kwargs):
         """
         Parameters
@@ -19,9 +18,7 @@ class TqdmCallback(Callback):
         tqdm_kwargs  : optional
             Any other arguments used for all bars.
         """
-        super(TqdmCallback, self).__init__(
-            start=start, start_state=start_state, pretask=pretask,
-            posttask=posttask, finish=finish)
+        super(TqdmCallback, self).__init__(start=start, pretask=pretask)
         if tqdm_kwargs:
             tqdm_class = partial(tqdm_class, **tqdm_kwargs)
         self.tqdm_class = tqdm_class
@@ -30,10 +27,10 @@ class TqdmCallback(Callback):
         self.pbar = self.tqdm_class(total=sum(
             len(state[k]) for k in ['ready', 'waiting', 'running', 'finished']))
 
-    def _posttask(self, *args, **kwargs):
+    def _posttask(self, *_, **__):
         self.pbar.update()
 
-    def _finish(self, *args, **kwargs):
+    def _finish(self, *_, **__):
         self.pbar.close()
 
     def display(self):
