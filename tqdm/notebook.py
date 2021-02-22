@@ -248,9 +248,9 @@ class tqdm_notebook(std_tqdm):
         if not self.disable:
             self.display()
 
-    def __iter__(self, *args, **kwargs):
+    def __iter__(self):
         try:
-            for obj in super(tqdm_notebook, self).__iter__(*args, **kwargs):
+            for obj in super(tqdm_notebook, self).__iter__():
                 # return super(tqdm...) will not catch exception
                 yield obj
         # NB: except ... [ as ...] breaks IPython async KeyboardInterrupt
@@ -260,9 +260,9 @@ class tqdm_notebook(std_tqdm):
         # NB: don't `finally: close()`
         # since this could be a shared bar which the user will `reset()`
 
-    def update(self, *args, **kwargs):
+    def update(self, n=1):
         try:
-            return super(tqdm_notebook, self).update(*args, **kwargs)
+            return super(tqdm_notebook, self).update(n=n)
         # NB: except ... [ as ...] breaks IPython async KeyboardInterrupt
         except:  # NOQA
             # cannot catch KeyboardInterrupt when using manual tqdm
@@ -272,8 +272,8 @@ class tqdm_notebook(std_tqdm):
         # NB: don't `finally: close()`
         # since this could be a shared bar which the user will `reset()`
 
-    def close(self, *args, **kwargs):
-        super(tqdm_notebook, self).close(*args, **kwargs)
+    def close(self):
+        super(tqdm_notebook, self).close()
         # Try to detect if there was an error or KeyboardInterrupt
         # in manual mode: if n < total, things probably got wrong
         if self.total and self.n < self.total:
