@@ -77,11 +77,11 @@ def main():
               unit="B", unit_scale=True) as tall:
         for fn, fcomp in zips.items():
             md, sd = pty.openpty()
-            ex = subprocess.Popen(
+            ex = subprocess.Popen(  # nosec
                 cmd7zx + [fn],
                 bufsize=1,
                 stdout=md,  # subprocess.PIPE,
-                stderr=subprocess.STDOUT)  # nosec
+                stderr=subprocess.STDOUT)
             os.close(sd)
             with io.open(md, mode="rU", buffering=1) as m:
                 with tqdm(total=sum(fcomp.values()), disable=len(zips) < 2,

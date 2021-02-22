@@ -36,9 +36,9 @@ def test_pipes():
     """Test command line pipes"""
     ls_out = subprocess.check_output(['ls'])  # nosec
     ls = subprocess.Popen(['ls'], stdout=subprocess.PIPE)  # nosec
-    res = subprocess.Popen(
+    res = subprocess.Popen(  # nosec
         [sys.executable, '-c', 'from tqdm.cli import main; main()'],
-        stdin=ls.stdout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)  # nosec
+        stdin=ls.stdout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = res.communicate()
     assert ls.poll() == 0
 
