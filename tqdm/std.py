@@ -844,7 +844,8 @@ class tqdm(Comparable):
                  ascii=None, disable=False, unit='it', unit_scale=False,
                  dynamic_ncols=False, smoothing=0.3, bar_format=None, initial=0,
                  position=None, postfix=None, unit_divisor=1000, write_bytes=None,
-                 lock_args=None, nrows=None, colour=None, gui=False, **kwargs):
+                 lock_args=None, nrows=None, colour=None, delay=0, gui=False,
+                 **kwargs):
         """
         Parameters
         ----------
@@ -951,6 +952,8 @@ class tqdm(Comparable):
             The fallback is 20.
         colour  : str, optional
             Bar colour (e.g. 'green', '#00ff00').
+        delay  : float, optional
+            Don't display until [default: 0] seconds have elapsed.
         gui  : bool, optional
             WARNING: internal parameter - do not use.
             Use tqdm.gui.tqdm(...) instead. If set, will attempt to use
@@ -1068,6 +1071,7 @@ class tqdm(Comparable):
         self.unit_divisor = unit_divisor
         self.initial = initial
         self.lock_args = lock_args
+        self.delay = delay
         self.gui = gui
         self.dynamic_ncols = dynamic_ncols
         self.smoothing = smoothing
@@ -1099,7 +1103,8 @@ class tqdm(Comparable):
         if not gui:
             # Initialize the screen printer
             self.sp = self.status_printer(self.fp)
-            self.refresh(lock_args=self.lock_args)
+            if delay <= 0:
+                self.refresh(lock_args=self.lock_args)
 
         # Init the time counter
         self.last_print_t = self._time()
@@ -1163,6 +1168,7 @@ class tqdm(Comparable):
         mininterval = self.mininterval
         last_print_t = self.last_print_t
         last_print_n = self.last_print_n
+        min_start_t = self.start_t + self.delay
         n = self.n
         time = self._time
 
@@ -1174,8 +1180,9 @@ class tqdm(Comparable):
                 n += 1
 
                 if n - last_print_n >= self.miniters:
-                    dt = time() - last_print_t
-                    if dt >= mininterval:
+                    cur_t = time()
+                    dt = cur_t - last_print_t
+                    if dt >= mininterval and cur_t >= min_start_t:
                         self.update(n - last_print_n)
                         last_print_n = self.last_print_n
                         last_print_t = self.last_print_t
@@ -1218,8 +1225,9 @@ class tqdm(Comparable):
 
         # check counter first to reduce calls to time()
         if self.n - self.last_print_n >= self.miniters:
-            dt = self._time() - self.last_print_t
-            if dt >= self.mininterval:
+            cur_t = self._time()
+            dt = cur_t - self.last_print_t
+            if dt >= self.mininterval and cur_t >= self.start_t + self.delay:
                 cur_t = self._time()
                 dn = self.n - self.last_print_n  # >= n
                 if self.smoothing and dt and dn:
@@ -1279,6 +1287,9 @@ class tqdm(Comparable):
         leave = pos == 0 if self.leave is None else self.leave
 
         with self._lock:
+            if self.last_print_t < self.start_t + self.delay:
+                # haven't ever displayed; nothing to clear
+                return
             if leave:
                 # stats for overall rate (no weighted average)
                 self._ema_dt = lambda: None
