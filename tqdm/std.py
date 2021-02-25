@@ -1269,6 +1269,10 @@ class tqdm(Comparable):
         pos = abs(self.pos)
         self._decr_instances(self)
 
+        if self.last_print_t < self.start_t + self.delay:
+            # haven't ever displayed; nothing to clear
+            return
+
         # GUI mode
         if getattr(self, 'sp', None) is None:
             return
@@ -1287,9 +1291,6 @@ class tqdm(Comparable):
         leave = pos == 0 if self.leave is None else self.leave
 
         with self._lock:
-            if self.last_print_t < self.start_t + self.delay:
-                # haven't ever displayed; nothing to clear
-                return
             if leave:
                 # stats for overall rate (no weighted average)
                 self._ema_dt = lambda: None
