@@ -622,11 +622,11 @@ def test_max_interval():
         t2.close()
 
 
-def test_waituntil():
-    """Test waituntil"""
+def test_delay():
+    """Test delay"""
     timer = DiscreteTimer()
     with closing(StringIO()) as our_file:
-        t = tqdm(total=2, file=our_file, leave=True, waituntil=3)
+        t = tqdm(total=2, file=our_file, leave=True, delay=3)
         cpu_timify(t, timer)
         timer.sleep(2)
         t.update(1)
