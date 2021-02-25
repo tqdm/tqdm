@@ -144,7 +144,7 @@ jobs:
     - name: Install
       run: |
         sudo apt-get install -yqq pandoc
-        pip install .[dev]
+        pip install -r .meta/requirements-build.txt
         make build .dockerignore Dockerfile snapcraft.yaml
     - id: dist
       uses: casperdcl/deploy-pypi@v2
