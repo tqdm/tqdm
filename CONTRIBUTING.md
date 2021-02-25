@@ -131,13 +131,12 @@ sanity-checking.
 
 The tqdm repository managers should:
 
-- follow the [Semantic Versioning](https://semver.org/) convention
+- follow the [Semantic Versioning](https://semver.org) convention
 - take care of this (instead of users) to avoid PR conflicts
 solely due to the version file bumping
 
 Note: tools can be used to automate this process, such as
-[bumpversion](https://github.com/peritus/bumpversion) or
-[python-semanticversion](https://github.com/rbarrois/python-semanticversion/).
+[python-semanticversion](https://github.com/rbarrois/python-semanticversion).
 
 
 ## Checking setup.py
