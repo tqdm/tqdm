@@ -462,6 +462,8 @@ Parameters
     The fallback is 20.
 * colour  : str, optional  
     Bar colour (e.g. 'green', '#00ff00').
+* delay  : float, optional  
+    Don't display until [default: 0] seconds have elapsed.
 
 Extra CLI Options
 ~~~~~~~~~~~~~~~~~
