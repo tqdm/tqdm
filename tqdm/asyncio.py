@@ -8,11 +8,14 @@ Usage:
 ...     ...
 """
 import asyncio
+from typing import Awaitable, TypeVar, List
 
 from .std import tqdm as std_tqdm
 
 __author__ = {"github.com/": ["casperdcl"]}
 __all__ = ['tqdm_asyncio', 'tarange', 'tqdm', 'trange']
+
+T = TypeVar("T")
 
 
 class tqdm_asyncio(std_tqdm):
@@ -62,6 +65,36 @@ class tqdm_asyncio(std_tqdm):
             total = len(fs)
         yield from cls(asyncio.as_completed(fs, loop=loop, timeout=timeout),
                        total=total, **tqdm_kwargs)
+
+    @classmethod
+    def gather(
+            cls,
+            fs: List[Awaitable[T]],
+            *,
+            loop=None,
+            timeout=None,
+            total=None,
+            **tqdm_kwargs
+    ) -> List[T]:
+        """
+        Re-creating the functionality of asyncio.gather, giving a progress bar like
+        tqdm.as_completed(), but returning the results in original order.
+        """
+        async def wrap_awaitable(number: int, awaitable: Awaitable[T]):
+            return number, await awaitable
+        if total is None:
+            total = len(fs)
+
+        numbered_awaitables = [wrap_awaitable(idx, fs[idx]) for idx in range(len(fs))]
+
+        numbered_results = [
+            await f for f in cls.as_completed(
+                numbered_awaitables, total=total, loop=loop, timeout=timeout, **tqdm_kwargs
+            )
+        ]
+
+        results = [result_tuple[1] for result_tuple in sorted(numbered_results)]
+        return results
 
 
 def tarange(*args, **kwargs):
