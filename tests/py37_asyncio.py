@@ -10,6 +10,7 @@ from .tests_tqdm import StringIO, closing, mark
 tqdm = partial(tqdm_asyncio, miniters=0, mininterval=0)
 trange = partial(tarange, miniters=0, mininterval=0)
 as_completed = partial(tqdm_asyncio.as_completed, miniters=0, mininterval=0)
+gather = partial(tqdm_asyncio.gather, miniters=0, mininterval=0)
 
 
 def count(start=0, step=1):
@@ -104,6 +105,25 @@ async def test_as_completed(capsys, tol):
         skew = time() - t
         for i in as_completed([asyncio.sleep(0.01 * i) for i in range(30, 0, -1)]):
             await i
+        t = time() - t - 2 * skew
+        try:
+            assert 0.3 * (1 - tol) < t < 0.3 * (1 + tol), t
+            _, err = capsys.readouterr()
+            assert '30/30' in err
+        except AssertionError:
+            if retry == 2:
+                raise
+
+
+@mark.slow
+@mark.asyncio
+@mark.parametrize("tol", [0.2 if platform.startswith("darwin") else 0.1])
+async def test_gather(capsys, tol):
+    """Test asyncio gather"""
+    for retry in range(3):
+        t = time()
+        skew = time() - t
+        await gather([asyncio.sleep(0.01 * i) for i in range(30, 0, -1)])
         t = time() - t - 2 * skew
         try:
             assert 0.3 * (1 - tol) < t < 0.3 * (1 + tol), t

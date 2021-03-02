@@ -67,7 +67,7 @@ class tqdm_asyncio(std_tqdm):
                        total=total, **tqdm_kwargs)
 
     @classmethod
-    def gather(
+    async def gather(
             cls,
             fs: List[Awaitable[T]],
             *,
