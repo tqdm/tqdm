@@ -8,7 +8,7 @@ Usage:
 ...     ...
 """
 import asyncio
-from typing import Awaitable, TypeVar, List
+from typing import Awaitable, List, TypeVar
 
 from .std import tqdm as std_tqdm
 
@@ -89,7 +89,11 @@ class tqdm_asyncio(std_tqdm):
 
         numbered_results = [
             await f for f in cls.as_completed(
-                numbered_awaitables, total=total, loop=loop, timeout=timeout, **tqdm_kwargs
+                numbered_awaitables,
+                total=total,
+                loop=loop,
+                timeout=timeout,
+                **tqdm_kwargs
             )
         ]
 
