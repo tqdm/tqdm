@@ -22,14 +22,9 @@ from .utils import _range
 if True:  # pragma: no cover
     # import IPython/Jupyter base widget and display utilities
     IPY = 0
-    IPYW = 0
     try:  # IPython 4.x
         import ipywidgets
         IPY = 4
-        try:
-            IPYW = int(ipywidgets.__version__.split('.')[0])
-        except AttributeError:  # __version__ may not exist in old versions
-            pass
     except ImportError:  # IPython 3.x / 2.x
         IPY = 32
         import warnings
@@ -37,7 +32,7 @@ if True:  # pragma: no cover
             warnings.filterwarnings(
                 'ignore', message=".*The `IPython.html` package has been deprecated.*")
             try:
-                import IPython.html.widgets as ipywidgets
+                import IPython.html.widgets as ipywidgets  # NOQA: F401
             except ImportError:
                 pass
 
