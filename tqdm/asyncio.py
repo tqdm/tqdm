@@ -8,14 +8,11 @@ Usage:
 ...     ...
 """
 import asyncio
-from typing import Awaitable, List, TypeVar
 
 from .std import tqdm as std_tqdm
 
 __author__ = {"github.com/": ["casperdcl"]}
 __all__ = ['tqdm_asyncio', 'tarange', 'tqdm', 'trange']
-
-T = TypeVar("T")
 
 
 class tqdm_asyncio(std_tqdm):
@@ -67,38 +64,17 @@ class tqdm_asyncio(std_tqdm):
                        total=total, **tqdm_kwargs)
 
     @classmethod
-    async def gather(
-            cls,
-            fs: List[Awaitable[T]],
-            *,
-            loop=None,
-            timeout=None,
-            total=None,
-            **tqdm_kwargs
-    ) -> List[T]:
+    async def gather(cls, fs, *, loop=None, timeout=None, total=None, **tqdm_kwargs):
         """
-        Re-creating the functionality of asyncio.gather, giving a progress bar like
-        tqdm.as_completed(), but returning the results in original order.
+        Wrapper for `asyncio.gather`.
         """
-        async def wrap_awaitable(number: int, awaitable: Awaitable[T]):
-            return number, await awaitable
-        if total is None:
-            total = len(fs)
+        async def wrap_awaitable(i, f):
+            return i, await f
 
-        numbered_awaitables = [wrap_awaitable(idx, fs[idx]) for idx in range(len(fs))]
-
-        numbered_results = [
-            await f for f in cls.as_completed(
-                numbered_awaitables,
-                total=total,
-                loop=loop,
-                timeout=timeout,
-                **tqdm_kwargs
-            )
-        ]
-
-        results = [result_tuple[1] for result_tuple in sorted(numbered_results)]
-        return results
+        ifs = [wrap_awaitable(i, f) for i, f in enumerate(fs)]
+        res = [await f for f in cls.as_completed(ifs, loop=loop, timeout=timeout,
+                                                 total=total, **tqdm_kwargs)]
+        return [i for _, i in sorted(res)]
 
 
 def tarange(*args, **kwargs):
