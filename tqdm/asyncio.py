@@ -17,7 +17,7 @@ __all__ = ['tqdm_asyncio', 'tarange', 'tqdm', 'trange']
 
 class tqdm_asyncio(std_tqdm):
     """
-    Asynchronous-friendly version of tqdm (Python 3.5+).
+    Asynchronous-friendly version of tqdm (Python 3.6+).
     """
     def __init__(self, iterable=None, *args, **kwargs):
         super(tqdm_asyncio, self).__init__(iterable, *args, **kwargs)
