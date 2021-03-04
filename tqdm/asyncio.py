@@ -17,7 +17,7 @@ __all__ = ['tqdm_asyncio', 'tarange', 'tqdm', 'trange']
 
 class tqdm_asyncio(std_tqdm):
     """
-    Asynchronous-friendly version of tqdm (Python 3.5+).
+    Asynchronous-friendly version of tqdm (Python 3.6+).
     """
     def __init__(self, iterable=None, *args, **kwargs):
         super(tqdm_asyncio, self).__init__(iterable, *args, **kwargs)
@@ -62,6 +62,19 @@ class tqdm_asyncio(std_tqdm):
             total = len(fs)
         yield from cls(asyncio.as_completed(fs, loop=loop, timeout=timeout),
                        total=total, **tqdm_kwargs)
+
+    @classmethod
+    async def gather(cls, fs, *, loop=None, timeout=None, total=None, **tqdm_kwargs):
+        """
+        Wrapper for `asyncio.gather`.
+        """
+        async def wrap_awaitable(i, f):
+            return i, await f
+
+        ifs = [wrap_awaitable(i, f) for i, f in enumerate(fs)]
+        res = [await f for f in cls.as_completed(ifs, loop=loop, timeout=timeout,
+                                                 total=total, **tqdm_kwargs)]
+        return [i for _, i in sorted(res)]
 
 
 def tarange(*args, **kwargs):
