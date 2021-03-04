@@ -1418,7 +1418,7 @@ Citation information: |DOI|
 .. |GitHub-Updated| image:: https://img.shields.io/github/last-commit/tqdm/tqdm/master.svg?logo=github&logoColor=white&label=pushed
    :target: https://github.com/tqdm/tqdm/pulse
 .. |Gift-Casper| image:: https://img.shields.io/badge/dynamic/json.svg?color=ff69b4&label=gifts%20received&prefix=%C2%A3&query=%24..sum&url=https%3A%2F%2Fcaspersci.uk.to%2Fgifts.json
-   :target: https://www.caspersci.uk.to/sponsor
+   :target: https://www.cdcl.ml/sponsor
 .. |Versions| image:: https://img.shields.io/pypi/v/tqdm.svg
    :target: https://tqdm.github.io/releases
 .. |PyPI-Downloads| image:: https://img.shields.io/pypi/dm/tqdm.svg?label=pypi%20downloads&logo=PyPI&logoColor=white
