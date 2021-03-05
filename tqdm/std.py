@@ -1125,6 +1125,8 @@ class tqdm(Comparable):
         return self.total if self.iterable is None else \
             (self.iterable.shape[0] if hasattr(self.iterable, "shape")
              else len(self.iterable) if hasattr(self.iterable, "__len__")
+             else self.iterable.__length_hint__()
+             if hasattr(self.iterable, "__length_hint__")
              else getattr(self, "total", None))
 
     def __enter__(self):
