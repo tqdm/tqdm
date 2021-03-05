@@ -45,7 +45,7 @@ class TqdmCallback(keras.callbacks.Callback):
             0: epoch, 1: batch (transient), 2: batch. [default: 1].
             Will be set to `0` unless both `data_size` and `batch_size`
             are given.
-        tqdm_class : optional
+        tqdm_class  : optional
             `tqdm` class to use for bars [default: `tqdm.auto.tqdm`].
         tqdm_kwargs  : optional
             Any other arguments used for all bars.
