@@ -11,7 +11,7 @@ These benchmarks serve two purposes:
     - [`progressbar2`](https://pypi.org/project/progressbar2)
     - [`alive-progress`](https://pypi.org/project/alive-progress)
 
-Performance graphs are available at <https://tqdm.github.io/tqdm/>
+Performance graphs are available at <https://tqdm.github.io/tqdm>
 
 ## Running
 

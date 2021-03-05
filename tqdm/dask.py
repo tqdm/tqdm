@@ -1,13 +1,17 @@
 from __future__ import absolute_import
-from .auto import tqdm as tqdm_auto
+
 from functools import partial
+
 from dask.callbacks import Callback
+
+from .auto import tqdm as tqdm_auto
+
 __author__ = {"github.com/": ["casperdcl"]}
 __all__ = ['TqdmCallback']
 
 
 class TqdmCallback(Callback):
-    """`dask` callback for task progress"""
+    """Dask callback for task progress."""
     def __init__(self, start=None, pretask=None, tqdm_class=tqdm_auto,
                  **tqdm_kwargs):
         """
@@ -34,7 +38,7 @@ class TqdmCallback(Callback):
         self.pbar.close()
 
     def display(self):
-        """displays in the current cell in Notebooks"""
+        """Displays in the current cell in Notebooks."""
         container = getattr(self.bar, 'container', None)
         if container is None:
             return
