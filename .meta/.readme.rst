@@ -832,6 +832,24 @@ A ``keras`` callback is also available:
 
     model.fit(..., verbose=0, callbacks=[TqdmCallback()])
 
+Dask Integration
+~~~~~~~~~~~~~~~~
+
+A ``dask`` callback is also available:
+
+.. code:: python
+
+    from tqdm.dask import TqdmCallback
+
+    with TqdmCallback(desc="compute"):
+        ...
+        arr.compute()
+
+    # or use callback globally
+    cb = TqdmCallback(desc="global")
+    cb.register()
+    arr.compute()
+
 IPython/Jupyter Integration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
