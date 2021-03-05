@@ -18,7 +18,7 @@
 	prebuildclean
 	clean
 	toxclean
-	installdev
+	install_dev
 	install
 	build
 	buildupload
@@ -139,9 +139,6 @@ toxclean:
 	@+python -c "import shutil; shutil.rmtree('.tox', True)"
 
 
-installdev:
-	python setup.py develop --uninstall
-	python setup.py develop
 submodules:
 	git clone git@github.com:tqdm/tqdm.wiki wiki
 	git clone git@github.com:tqdm/tqdm.github.io docs
@@ -150,6 +147,13 @@ submodules:
 
 install:
 	python setup.py install
+install_dev:
+	python setup.py develop --uninstall
+	python setup.py develop
+install_build:
+	python -m pip install -r .meta/requirements-dev.txt
+install_test:
+	python -m pip install -r .meta/requirements-test.txt
 
 build:
 	@make prebuildclean

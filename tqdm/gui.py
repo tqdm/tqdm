@@ -24,12 +24,8 @@ __all__ = ['tqdm_gui', 'tgrange', 'tqdm', 'trange']
 
 
 class tqdm_gui(std_tqdm):  # pragma: no cover
-    """
-    Experimental Matplotlib GUI version of tqdm!
-    """
-
+    """Experimental Matplotlib GUI version of tqdm!"""
     # TODO: @classmethod: write() on GUI?
-
     def __init__(self, *args, **kwargs):
         from collections import deque
 

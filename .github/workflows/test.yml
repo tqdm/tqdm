@@ -21,9 +21,7 @@ jobs:
         path: ~/.cache/pre-commit
         key: pre-commit|${{ env.PYSHA }}|${{ hashFiles('.pre-commit-config.yaml') }}
     - name: dependencies
-      run: |
-        pip install -U pre-commit docutils pygments py-make
-        sudo apt-get install -yqq pandoc
+      run: pip install -U pre-commit
     - uses: reviewdog/action-setup@v1
     - if: github.event_name != 'schedule'
       name: comment
@@ -144,7 +142,7 @@ jobs:
     - name: Install
       run: |
         sudo apt-get install -yqq pandoc
-        pip install .[dev]
+        pip install -r .meta/requirements-build.txt
         make build .dockerignore Dockerfile snapcraft.yaml
     - id: dist
       uses: casperdcl/deploy-pypi@v2

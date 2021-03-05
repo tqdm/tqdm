@@ -74,12 +74,8 @@ class RateColumn(ProgressColumn):
 
 
 class tqdm_rich(std_tqdm):  # pragma: no cover
-    """
-    Experimental rich.progress GUI version of tqdm!
-    """
-
+    """Experimental rich.progress GUI version of tqdm!"""
     # TODO: @classmethod: write()?
-
     def __init__(self, *args, **kwargs):
         """
         This class accepts the following parameters *in addition* to

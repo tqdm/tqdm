@@ -10,6 +10,7 @@ from .tests_tqdm import StringIO, closing, mark
 tqdm = partial(tqdm_asyncio, miniters=0, mininterval=0)
 trange = partial(tarange, miniters=0, mininterval=0)
 as_completed = partial(tqdm_asyncio.as_completed, miniters=0, mininterval=0)
+gather = partial(tqdm_asyncio.gather, miniters=0, mininterval=0)
 
 
 def count(start=0, step=1):
@@ -112,3 +113,16 @@ async def test_as_completed(capsys, tol):
         except AssertionError:
             if retry == 2:
                 raise
+
+
+async def double(i):
+    return i * 2
+
+
+@mark.asyncio
+async def test_gather(capsys):
+    """Test asyncio gather"""
+    res = await gather(list(map(double, range(30))))
+    _, err = capsys.readouterr()
+    assert '30/30' in err
+    assert res == list(range(0, 30 * 2, 2))

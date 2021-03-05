@@ -1,0 +1,5 @@
+flake8
+pytest
+pytest-cov
+pytest-timeout
+# py>=37: pytest-asyncio
