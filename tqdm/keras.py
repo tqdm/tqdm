@@ -17,7 +17,7 @@ __all__ = ['TqdmCallback']
 
 
 class TqdmCallback(keras.callbacks.Callback):
-    """`keras` callback for epoch and batch progress"""
+    """Keras callback for epoch and batch progress."""
     @staticmethod
     def bar2callback(bar, pop=None, delta=(lambda logs: 1)):
         def callback(_, logs=None):
@@ -98,7 +98,7 @@ class TqdmCallback(keras.callbacks.Callback):
         self.epoch_bar.close()
 
     def display(self):
-        """displays in the current cell in Notebooks"""
+        """Displays in the current cell in Notebooks."""
         container = getattr(self.epoch_bar, 'container', None)
         if container is None:
             return

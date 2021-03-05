@@ -25,6 +25,7 @@ dependencies:
 - flake8-comprehensions
 - coverage
 # extras
+- dask               # dask
 - matplotlib         # gui
 - numpy              # pandas, keras, contrib.tenumerate
 - pandas

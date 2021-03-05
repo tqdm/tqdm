@@ -140,7 +140,7 @@ Changelog
 The list of all changes is available either on GitHub's Releases:
 |GitHub-Status|, on the
 `wiki <https://github.com/tqdm/tqdm/wiki/Releases>`__, or on the
-`website <https://tqdm.github.io/releases/>`__.
+`website <https://tqdm.github.io/releases>`__.
 
 
 Usage
@@ -460,7 +460,10 @@ Submodules
         """`rich.progress` version."""
 
     class tqdm.keras.TqdmCallback(keras.callbacks.Callback):
-        """`keras` callback for epoch and batch progress."""
+        """Keras callback for epoch and batch progress."""
+
+    class tqdm.dask.TqdmCallback(dask.callbacks.Callback):
+        """Dask callback for task progress."""
 
 
 ``contrib``
@@ -470,8 +473,8 @@ The ``tqdm.contrib`` package also contains experimental modules:
 
 - ``tqdm.contrib.itertools``: Thin wrappers around ``itertools``
 - ``tqdm.contrib.concurrent``: Thin wrappers around ``concurrent.futures``
-- ``tqdm.contrib.discord``: Posts to `Discord <https://discord.com/>`__ bots
-- ``tqdm.contrib.telegram``: Posts to `Telegram <https://telegram.org/>`__ bots
+- ``tqdm.contrib.discord``: Posts to `Discord <https://discord.com>`__ bots
+- ``tqdm.contrib.telegram``: Posts to `Telegram <https://telegram.org>`__ bots
 - ``tqdm.contrib.bells``: Automagically enables all optional features
 
   * ``auto``, ``pandas``, ``discord``, ``telegram``
@@ -828,6 +831,24 @@ A ``keras`` callback is also available:
     ...
 
     model.fit(..., verbose=0, callbacks=[TqdmCallback()])
+
+Dask Integration
+~~~~~~~~~~~~~~~~
+
+A ``dask`` callback is also available:
+
+.. code:: python
+
+    from tqdm.dask import TqdmCallback
+
+    with TqdmCallback(desc="compute"):
+        ...
+        arr.compute()
+
+    # or use callback globally
+    cb = TqdmCallback(desc="global")
+    cb.register()
+    arr.compute()
 
 IPython/Jupyter Integration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
