@@ -234,8 +234,10 @@ class tqdm_notebook(std_tqdm):
         total = self.total * unit_scale if self.total else self.total
         self.container = self.status_printer(self.fp, total, self.desc, self.ncols)
         self.container.pbar = self
-        if display_here:
+        self.displayed = False
+        if display_here and self.delay <= 0:
             display(self.container)
+            self.displayed = True
         self.disp = self.display
         self.colour = colour
 
@@ -256,6 +258,9 @@ class tqdm_notebook(std_tqdm):
         # since this could be a shared bar which the user will `reset()`
 
     def update(self, n=1):
+        if not self.displayed and self.delay > 0:
+            display(self.container)
+            self.displayed = True
         try:
             return super(tqdm_notebook, self).update(n=n)
         # NB: except ... [ as ...] breaks IPython async KeyboardInterrupt
