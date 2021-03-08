@@ -10,6 +10,7 @@
 	test
 	pytest
 	testsetup
+	testnb
 	testcoverage
 	testperf
 	testtimer
@@ -59,9 +60,13 @@ testsetup:
 	python setup.py check --metadata --restructuredtext --strict
 	python setup.py make none
 
+testnb:
+	pytest --nbval --current-env -k ipynb -W=ignore
+
 testcoverage:
 	@make coverclean
 	pytest -k "not perf" --cov=tqdm --cov-report=xml --cov-report=term --cov-fail-under=80
+	pytest -k ipynb --cov-append --nbval --current-env -W=ignore --cov=tqdm --cov-report=xml --cov-report=term --cov-fail-under=80
 
 testperf:
 	# do not use coverage (which is extremely slow)

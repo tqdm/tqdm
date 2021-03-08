@@ -8,6 +8,7 @@ dependencies:
 - python=3
 - pip
 - ipykernel
+- ipywidgets
 - setuptools
 - setuptools_scm
 - toml
@@ -20,6 +21,7 @@ dependencies:
 - pytest-cov
 - pytest-timeout
 - pytest-asyncio  # [py>=3.7]
+- nbval
 - flake8
 - flake8-bugbear
 - flake8-comprehensions
