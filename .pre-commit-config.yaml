@@ -52,3 +52,9 @@ repos:
   rev: 5.7.0
   hooks:
   - id: isort
+repos:
+- repo: https://github.com/kynan/nbstripout
+  rev: master
+  hooks:
+  - id: nbstripout
+    args: ['--keep-count', '--keep-output']

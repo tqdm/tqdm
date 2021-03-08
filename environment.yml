@@ -29,6 +29,7 @@ dependencies:
 # extras
 - dask               # dask
 - matplotlib         # gui
+- nbstripout         # notebook editing
 - numpy              # pandas, keras, contrib.tenumerate
 - pandas
 - tensorflow         # keras
