@@ -16,7 +16,7 @@ def incr(x):
     return x + 1
 
 
-@pytest.mark.parametrize("tqdm_kwargs", [dict(), dict(tqdm_class=tqdm)])
+@pytest.mark.parametrize("tqdm_kwargs", [{}, {"tqdm_class": tqdm}])
 def test_enumerate(tqdm_kwargs):
     """Test contrib.tenumerate"""
     with closing(StringIO()) as our_file:
@@ -41,7 +41,7 @@ def test_enumerate_numpy():
         assert list(tenumerate(a, file=our_file)) == list(np.ndenumerate(a))
 
 
-@pytest.mark.parametrize("tqdm_kwargs", [dict(), dict(tqdm_class=tqdm)])
+@pytest.mark.parametrize("tqdm_kwargs", [{}, {"tqdm_class": tqdm}])
 def test_zip(tqdm_kwargs):
     """Test contrib.tzip"""
     with closing(StringIO()) as our_file:
@@ -55,7 +55,7 @@ def test_zip(tqdm_kwargs):
             assert list(gen) == list(zip(a, b))
 
 
-@pytest.mark.parametrize("tqdm_kwargs", [dict(), dict(tqdm_class=tqdm)])
+@pytest.mark.parametrize("tqdm_kwargs", [{}, {"tqdm_class": tqdm}])
 def test_map(tqdm_kwargs):
     """Test contrib.tmap"""
     with closing(StringIO()) as our_file:
