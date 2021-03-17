@@ -258,6 +258,8 @@ class tqdm_notebook(std_tqdm):
         # since this could be a shared bar which the user will `reset()`
 
     def update(self, n=1):
+        if self.disable:
+            return
         if not self.displayed and self.delay > 0:
             display(self.container)
             self.displayed = True
