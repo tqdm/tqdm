@@ -69,10 +69,12 @@ class TqdmCallback(keras.callbacks.Callback):
     def on_train_begin(self, *_, **__):
         params = self.params.get
         auto_total = params('epochs', params('nb_epoch', None))
-        if auto_total is not None:
+        if auto_total is not None and auto_total != self.epoch_bar.total:
             self.epoch_bar.reset(total=auto_total)
 
-    def on_epoch_begin(self, *_, **__):
+    def on_epoch_begin(self, epoch, *_, **__):
+        if self.epoch_bar.n < epoch:
+            self.epoch_bar.update(epoch-self.epoch_bar.n)
         if self.verbose:
             params = self.params.get
             total = params('samples', params(

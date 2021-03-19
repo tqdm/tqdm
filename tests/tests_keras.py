@@ -80,3 +80,22 @@ def test_keras(capsys):
     assert "training: " in res
     assert "{epochs}/{epochs}".format(epochs=epochs) in res
     assert "{batches}/{batches}".format(batches=batches) in res
+
+    # continue training (start from epoch != 0)
+    initial_epoch = 3
+    model.fit(
+        x,
+        x,
+        initial_epoch=initial_epoch,
+        epochs=epochs,
+        batch_size=batch_size,
+        verbose=False,
+        callbacks=[TqdmCallback(
+            desc="training",
+            verbose=2
+        )],
+    )
+    _, res = capsys.readouterr()
+    assert "training: " in res
+    assert "{epochs}/{epochs}".format(epochs=epochs) in res
+    assert "{batches}/{batches}".format(batches=batches) in res
