@@ -145,7 +145,7 @@ class tqdm_notebook(std_tqdm):
 
     def display(self, msg=None, pos=None,
                 # additional signals
-                close=False, bar_style=None):
+                close=False, bar_style=None, check_delay=True):
         # Note: contrary to native tqdm, msg='' does NOT clear bar
         # goal is to keep all infos if error happens so user knows
         # at which iteration the loop failed.
@@ -189,6 +189,10 @@ class tqdm_notebook(std_tqdm):
                 self.container.close()
             except AttributeError:
                 self.container.visible = False
+
+        if check_delay and self.delay > 0 and not self.displayed:
+            display(self.container)
+            self.displayed = True
 
     @property
     def colour(self):
@@ -243,7 +247,7 @@ class tqdm_notebook(std_tqdm):
 
         # Print initial bar state
         if not self.disable:
-            self.display()
+            self.display(check_delay=False)
 
     def __iter__(self):
         try:
@@ -258,11 +262,6 @@ class tqdm_notebook(std_tqdm):
         # since this could be a shared bar which the user will `reset()`
 
     def update(self, n=1):
-        if self.disable:
-            return
-        if not self.displayed and self.delay > 0:
-            display(self.container)
-            self.displayed = True
         try:
             return super(tqdm_notebook, self).update(n=n)
         # NB: except ... [ as ...] breaks IPython async KeyboardInterrupt
@@ -275,16 +274,18 @@ class tqdm_notebook(std_tqdm):
         # since this could be a shared bar which the user will `reset()`
 
     def close(self):
+        if self.disable:
+            return
         super(tqdm_notebook, self).close()
         # Try to detect if there was an error or KeyboardInterrupt
         # in manual mode: if n < total, things probably got wrong
         if self.total and self.n < self.total:
-            self.disp(bar_style='danger')
+            self.disp(bar_style='danger', check_delay=False)
         else:
             if self.leave:
-                self.disp(bar_style='success')
+                self.disp(bar_style='success', check_delay=False)
             else:
-                self.disp(close=True)
+                self.disp(close=True, check_delay=False)
 
     def clear(self, *_, **__):
         pass
