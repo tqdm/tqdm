@@ -1321,58 +1321,32 @@ A reusable canonical example is given below:
     # After the `with`, printing is restored
     print("Done!")
 
-Redirecting console logging to tqdm
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Redirecting ``logging``
+~~~~~~~~~~~~~~~~~~~~~~~
 
-Similar to redirecting ``sys.stdout`` directly as detailed in the previous section,
-you may want to redirect logging that would otherwise go to the
-console (``sys.stdout`` or ``sys.stderr``) to ``tqdm``.
+Similar to ``sys.stdout``/``sys.stderr`` as detailed above, console ``logging``
+may also be redirected to ``tqdm.write()``.
 
-Note: if you are also replace ``sys.stdout`` and ``sys.stderr`` at the same time,
-then the logging should be redirected first. Otherwise it won't be able to detect
-the console logging handler.
+Warning: if also redirecting ``sys.stdout``/``sys.stderr``, make sure to
+redirect ``logging`` first if needed.
 
-For that you may use ``redirect_logging_to_tqdm`` or ``tqdm_with_logging_redirect``
-from ``tqdm.contrib.logging``. Both methods accept the following optional parameters:
-
-- ``loggers``: A list of loggers to update. Defaults to ``logging.root``.
-- ``tqdm``: A ``tqdm`` class. Defaults to ``tqdm.tqdm``.
-
-An example redirecting the console logging to tqdm:
+Helper methods are available in ``tqdm.contrib.logging``. For example:
 
 .. code:: python
 
     import logging
-    from tqdm.contrib.logging import redirect_logging_to_tqdm
+    from tqdm import trange
+    from tqdm.contrib.logging import logging_redirect_tqdm
 
-    LOGGER = logging.getLogger(__name__)
-
-    if __name__ == '__main__':
-        logging.basicConfig(level='INFO')
-        with redirect_logging_to_tqdm():
-            # logging to the console is now redirected to tqdm
-            LOGGER.info('some message')
-        # logging is now restored
-
-An similar example, wrapping tqdm while redirecting console logging:
-
-.. code:: python
-
-    import logging
-    from tqdm.contrib.logging import tqdm_with_logging_redirect
-
-    LOGGER = logging.getLogger(__name__)
+    LOG = logging.getLogger(__name__)
 
     if __name__ == '__main__':
-        logging.basicConfig(level='INFO')
-
-        file_list = ['file1', 'file2']
-        with tqdm_with_logging_redirect(total=len(file_list)) as pbar:
-            # logging to the console is now redirected to tqdm
-            for filename in file_list:
-                LOGGER.info('processing file: %s', filename)
-                pbar.update(1)
-        # logging is now restored
+        logging.basicConfig(level=logging.INFO)
+        with logging_redirect_tqdm():
+            for i in trange(9):
+                if i == 4:
+                    LOG.info("console logging redirected to `tqdm.write()`")
+        # logging restored
 
 Monitoring thread, intervals and miniters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

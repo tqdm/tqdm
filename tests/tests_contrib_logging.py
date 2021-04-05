@@ -1,6 +1,5 @@
 # pylint: disable=missing-module-docstring, missing-class-docstring
 # pylint: disable=missing-function-docstring, no-self-use
-
 from __future__ import absolute_import
 
 import logging
@@ -13,9 +12,9 @@ import pytest
 from tqdm import tqdm
 from tqdm.contrib.logging import _get_first_found_console_logging_formatter
 from tqdm.contrib.logging import _TqdmLoggingHandler as TqdmLoggingHandler
-from tqdm.contrib.logging import redirect_logging_to_tqdm, tqdm_with_logging_redirect
+from tqdm.contrib.logging import logging_redirect_tqdm, tqdm_logging_redirect
 
-from ..tests_tqdm import importorskip
+from .tests_tqdm import importorskip
 
 LOGGER = logging.getLogger(__name__)
 
@@ -101,7 +100,7 @@ class TestGetFirstFoundConsoleLoggingFormatter:
 class TestRedirectLoggingToTqdm:
     def test_should_add_and_remove_tqdm_handler(self):
         logger = logging.Logger('test')
-        with redirect_logging_to_tqdm(loggers=[logger]):
+        with logging_redirect_tqdm(loggers=[logger]):
             assert len(logger.handlers) == 1
             assert isinstance(logger.handlers[0], TqdmLoggingHandler)
         assert not logger.handlers
@@ -111,7 +110,7 @@ class TestRedirectLoggingToTqdm:
         stderr_console_handler = logging.StreamHandler(sys.stderr)
         stdout_console_handler = logging.StreamHandler(sys.stderr)
         logger.handlers = [stderr_console_handler, stdout_console_handler]
-        with redirect_logging_to_tqdm(loggers=[logger]):
+        with logging_redirect_tqdm(loggers=[logger]):
             assert len(logger.handlers) == 1
             assert isinstance(logger.handlers[0], TqdmLoggingHandler)
         assert logger.handlers == [stderr_console_handler, stdout_console_handler]
@@ -122,14 +121,14 @@ class TestRedirectLoggingToTqdm:
         console_handler = logging.StreamHandler(sys.stderr)
         console_handler.setFormatter(formatter)
         logger.handlers = [console_handler]
-        with redirect_logging_to_tqdm(loggers=[logger]):
+        with logging_redirect_tqdm(loggers=[logger]):
             assert logger.handlers[0].formatter == formatter
 
     def test_should_not_remove_stream_handlers_not_fot_stdout_or_stderr(self):
         logger = logging.Logger('test')
         stream_handler = logging.StreamHandler(StringIO())
         logger.addHandler(stream_handler)
-        with redirect_logging_to_tqdm(loggers=[logger]):
+        with logging_redirect_tqdm(loggers=[logger]):
             assert len(logger.handlers) == 2
             assert logger.handlers[0] == stream_handler
             assert isinstance(logger.handlers[1], TqdmLoggingHandler)
@@ -139,7 +138,7 @@ class TestRedirectLoggingToTqdm:
 class TestTqdmWithLoggingRedirect:
     def test_should_add_and_remove_handler_from_root_logger_by_default(self):
         original_handlers = list(logging.root.handlers)
-        with tqdm_with_logging_redirect(total=1) as pbar:
+        with tqdm_logging_redirect(total=1) as pbar:
             assert isinstance(logging.root.handlers[-1], TqdmLoggingHandler)
             LOGGER.info('test')
             pbar.update(1)
@@ -147,7 +146,7 @@ class TestTqdmWithLoggingRedirect:
 
     def test_should_add_and_remove_handler_from_custom_logger(self):
         logger = logging.Logger('test')
-        with tqdm_with_logging_redirect(total=1, loggers=[logger]) as pbar:
+        with tqdm_logging_redirect(total=1, loggers=[logger]) as pbar:
             assert len(logger.handlers) == 1
             assert isinstance(logger.handlers[0], TqdmLoggingHandler)
             logger.info('test')
@@ -157,7 +156,7 @@ class TestTqdmWithLoggingRedirect:
     def test_should_not_fail_with_logger_without_console_handler(self):
         logger = logging.Logger('test')
         logger.handlers = []
-        with tqdm_with_logging_redirect(total=1, loggers=[logger]):
+        with tqdm_logging_redirect(total=1, loggers=[logger]):
             logger.info('test')
         assert not logger.handlers
 
@@ -169,14 +168,14 @@ class TestTqdmWithLoggingRedirect:
         ))
         logger.handlers = [console_handler]
         CustomTqdm.messages = []
-        with tqdm_with_logging_redirect(loggers=[logger], tqdm=CustomTqdm):
+        with tqdm_logging_redirect(loggers=[logger], tqdm_class=CustomTqdm):
             logger.info('test')
         assert CustomTqdm.messages == ['prefix:test']
 
     def test_use_root_logger_by_default_and_write_to_custom_tqdm(self):
         logger = logging.root
         CustomTqdm.messages = []
-        with tqdm_with_logging_redirect(total=1, tqdm=CustomTqdm) as pbar:
+        with tqdm_logging_redirect(total=1, tqdm_class=CustomTqdm) as pbar:
             assert isinstance(pbar, CustomTqdm)
             logger.info('test')
             assert CustomTqdm.messages == ['test']
