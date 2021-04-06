@@ -166,32 +166,16 @@ jobs:
         git log --pretty='format:%d%n- %s%n%b---' $(git tag --sort=v:refname | tail -n2 | head -n1)..HEAD > _CHANGES.md
     - if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
       id: create_release
-      uses: actions/create-release@v1
+      uses: softprops/action-gh-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
       with:
-        tag_name: ${{ github.ref }}
         release_name: tqdm ${{ github.ref }} stable
         body_path: _CHANGES.md
         draft: true
-    - if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: dist/${{ steps.dist.outputs.whl }}
-        asset_name: ${{ steps.dist.outputs.whl }}
-        asset_content_type: application/zip
-    - if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: dist/${{ steps.dist.outputs.whl_asc }}
-        asset_name: ${{ steps.dist.outputs.whl_asc }}
-        asset_content_type: text/plain
+        files: |
+          dist/${{ steps.dist.outputs.whl }}
+          dist/${{ steps.dist.outputs.whl_asc }}
     - uses: snapcore/action-build@v1
       id: snap_build
     - if: github.event_name == 'push' && steps.collect_assets.outputs.snap_channel
