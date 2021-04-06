@@ -1102,6 +1102,33 @@ A reusable canonical example is given below:
     # After the `with`, printing is restored
     print("Done!")
 
+Redirecting ``logging``
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Similar to ``sys.stdout``/``sys.stderr`` as detailed above, console ``logging``
+may also be redirected to ``tqdm.write()``.
+
+Warning: if also redirecting ``sys.stdout``/``sys.stderr``, make sure to
+redirect ``logging`` first if needed.
+
+Helper methods are available in ``tqdm.contrib.logging``. For example:
+
+.. code:: python
+
+    import logging
+    from tqdm import trange
+    from tqdm.contrib.logging import logging_redirect_tqdm
+
+    LOG = logging.getLogger(__name__)
+
+    if __name__ == '__main__':
+        logging.basicConfig(level=logging.INFO)
+        with logging_redirect_tqdm():
+            for i in trange(9):
+                if i == 4:
+                    LOG.info("console logging redirected to `tqdm.write()`")
+        # logging restored
+
 Monitoring thread, intervals and miniters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

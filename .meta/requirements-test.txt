@@ -2,4 +2,6 @@ flake8
 pytest
 pytest-cov
 pytest-timeout
+nbval
+ipywidgets
 # py>=37: pytest-asyncio

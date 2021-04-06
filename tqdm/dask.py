@@ -17,7 +17,7 @@ class TqdmCallback(Callback):
         """
         Parameters
         ----------
-        tqdm_class : optional
+        tqdm_class  : optional
             `tqdm` class to use for bars [default: `tqdm.auto.tqdm`].
         tqdm_kwargs  : optional
             Any other arguments used for all bars.
