@@ -18,6 +18,12 @@ from time import time
 from warnings import warn
 from weakref import WeakSet
 
+try:
+    from typing import Any, Iterable, Text, TypeVar, Union
+    _T = TypeVar("_T")
+except ImportError:
+    pass
+
 from ._monitor import TMonitor
 from .utils import (
     CallbackIOWrapper, Comparable, DisableOnWriteError, FormatReplace,
@@ -839,13 +845,36 @@ class tqdm(Comparable):
         elif _Rolling_and_Expanding is not None:
             _Rolling_and_Expanding.progress_apply = inner_generator()
 
-    def __init__(self, iterable=None, desc=None, total=None, leave=True, file=None,
-                 ncols=None, mininterval=0.1, maxinterval=10.0, miniters=None,
-                 ascii=None, disable=False, unit='it', unit_scale=False,
-                 dynamic_ncols=False, smoothing=0.3, bar_format=None, initial=0,
-                 position=None, postfix=None, unit_divisor=1000, write_bytes=None,
-                 lock_args=None, nrows=None, colour=None, delay=0, gui=False,
-                 **kwargs):
+    def __init__(
+        self,
+        iterable=None,  # type: Iterable[_T]
+        desc=None,  # type: Text
+        total=None,  # type: Union[int, float]
+        leave=True,  # type: Union[bool, None]
+        file=None,
+        ncols=None,  # type: int
+        mininterval=0.1,  # type: float
+        maxinterval=10.0,  # type: float
+        miniters=None,  # type: Union[int, float]
+        ascii=None,  # type: Union[bool, Text]
+        disable=False,  # type: Union[bool, None]
+        unit='it',  # type: Text
+        unit_scale=False,  # type: Union[bool, int, float]
+        dynamic_ncols=False,  # type: Union[bool, None]
+        smoothing=0.3,  # type: float
+        bar_format=None,  # type: Text
+        initial=0,  # type: Union[int, float]
+        position=None,  # type: int
+        postfix=None,
+        unit_divisor=1000,  # type: Union[int, float]
+        write_bytes=None,  # type: bool
+        lock_args=None,
+        nrows=None,  # type: int
+        colour=None,  # type: Text
+        delay=0,  # type: float
+        gui=False,  # type: bool
+        **kwargs
+    ):
         """
         Parameters
         ----------
@@ -1516,7 +1545,7 @@ class tqdm(Comparable):
             yield CallbackIOWrapper(t.update, stream, method)
 
 
-def trange(*args, **kwargs):
+def trange(*args, **kwargs):  # type: (*Any, **Any) -> Iterable[int]
     """
     A shortcut for tqdm(xrange(*args), **kwargs).
     On Python3+ range is used instead of xrange.
