@@ -1,13 +1,11 @@
 ---
-name: Issue
-about: Use this template for reporting issue(s)
+name: Bug
+about: Exceptions and visual output errors
 ---
 
 - [ ] I have marked all applicable categories:
     + [ ] exception-raising bug
     + [ ] visual output bug
-    + [ ] documentation request (i.e. "X is missing from the documentation." If instead I want to ask "how to use X?" I understand [StackOverflow#tqdm] is more appropriate)
-    + [ ] new feature request
 - [ ] I have visited the [source website], and in particular
   read the [known issues]
 - [ ] I have searched through the [issue tracker] for duplicates
@@ -21,4 +19,3 @@ about: Use this template for reporting issue(s)
 [source website]: https://github.com/tqdm/tqdm/
 [known issues]: https://github.com/tqdm/tqdm/#faq-and-known-issues
 [issue tracker]: https://github.com/tqdm/tqdm/issues?q=
-[StackOverflow#tqdm]: https://stackoverflow.com/questions/tagged/tqdm
