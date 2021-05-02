@@ -74,7 +74,8 @@ class TqdmCallback(keras.callbacks.Callback):
 
     def on_epoch_begin(self, epoch, *_, **__):
         if self.epoch_bar.n < epoch:
-            self.epoch_bar.update(epoch-self.epoch_bar.n)
+            ebar = self.epoch_bar
+            ebar.n = ebar.last_print_n = ebar.initial = epoch
         if self.verbose:
             params = self.params.get
             total = params('samples', params(

@@ -38,9 +38,7 @@ def test_keras(capsys):
                 desc="training",
                 data_size=len(x),
                 batch_size=batch_size,
-                verbose=0,
-            )],
-    )
+                verbose=0)])
     _, res = capsys.readouterr()
     assert "training: " in res
     assert "{epochs}/{epochs}".format(epochs=epochs) in res
@@ -59,9 +57,7 @@ def test_keras(capsys):
                 desc="training",
                 data_size=len(x),
                 batch_size=batch_size,
-                verbose=2,
-            )],
-    )
+                verbose=2)])
     _, res = capsys.readouterr()
     assert "training: " in res
     assert "{epochs}/{epochs}".format(epochs=epochs) in res
@@ -74,8 +70,7 @@ def test_keras(capsys):
         epochs=epochs,
         batch_size=batch_size,
         verbose=False,
-        callbacks=[TqdmCallback(desc="training", verbose=2)],
-    )
+        callbacks=[TqdmCallback(desc="training", verbose=2)])
     _, res = capsys.readouterr()
     assert "training: " in res
     assert "{epochs}/{epochs}".format(epochs=epochs) in res
@@ -90,12 +85,9 @@ def test_keras(capsys):
         epochs=epochs,
         batch_size=batch_size,
         verbose=False,
-        callbacks=[TqdmCallback(
-            desc="training",
-            verbose=2
-        )],
-    )
+        callbacks=[TqdmCallback(desc="training", verbose=0,
+                                miniters=1, mininterval=0, maxinterval=0)])
     _, res = capsys.readouterr()
     assert "training: " in res
+    assert "{epochs}/{epochs}".format(epochs=initial_epoch - 1) not in res
     assert "{epochs}/{epochs}".format(epochs=epochs) in res
-    assert "{batches}/{batches}".format(batches=batches) in res
