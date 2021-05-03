@@ -6,8 +6,7 @@ Usage:
 >>> for i in tqdm(iterable, token='{token}', channel_id='{channel_id}'):
 ...     ...
 
-![screenshot](
-https://raw.githubusercontent.com/tqdm/img/src/screenshot-discord.png)
+![screenshot](https://img.tqdm.ml/screenshot-discord.png)
 """
 from __future__ import absolute_import
 
