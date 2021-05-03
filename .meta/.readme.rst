@@ -1214,7 +1214,7 @@ Citation information: |DOI|
 
 |README-Hits| (Since 19 May 2016)
 
-.. |Logo| image:: https://raw.githubusercontent.com/tqdm/tqdm/master/images/logo.gif
+.. |Logo| image:: https://img.tqdm.ml/logo.gif
 .. |Screenshot| image:: https://img.tqdm.ml/tqdm.gif
 .. |Video| image:: https://img.tqdm.ml/video.jpg
    :target: https://tqdm.github.io/video
@@ -1277,5 +1277,5 @@ Citation information: |DOI|
 .. |Screenshot-Jupyter1| image:: https://img.tqdm.ml/jupyter-1.gif
 .. |Screenshot-Jupyter2| image:: https://img.tqdm.ml/jupyter-2.gif
 .. |Screenshot-Jupyter3| image:: https://img.tqdm.ml/jupyter-3.gif
-.. |README-Hits| image:: https://caspersci.uk.to/cgi-bin/hits.cgi?q=tqdm&style=social&r=https://github.com/tqdm/tqdm&l=https://img.tqdm.ml/favicon.png&f=https://raw.githubusercontent.com/tqdm/tqdm/master/images/logo.gif
-   :target: https://caspersci.uk.to/cgi-bin/hits.cgi?q=tqdm&a=plot&r=https://github.com/tqdm/tqdm&l=https://img.tqdm.ml/favicon.png&f=https://raw.githubusercontent.com/tqdm/tqdm/master/images/logo.gif&style=social
+.. |README-Hits| image:: https://caspersci.uk.to/cgi-bin/hits.cgi?q=tqdm&style=social&r=https://github.com/tqdm/tqdm&l=https://img.tqdm.ml/favicon.png&f=https://img.tqdm.ml/logo.gif
+   :target: https://caspersci.uk.to/cgi-bin/hits.cgi?q=tqdm&a=plot&r=https://github.com/tqdm/tqdm&l=https://img.tqdm.ml/favicon.png&f=https://img.tqdm.ml/logo.gif&style=social
