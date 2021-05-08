@@ -1470,7 +1470,7 @@ Citation information: |DOI|
 .. |Versions| image:: https://img.shields.io/pypi/v/tqdm.svg
    :target: https://tqdm.github.io/releases
 .. |PyPI-Downloads| image:: https://img.shields.io/pypi/dm/tqdm.svg?label=pypi%20downloads&logo=PyPI&logoColor=white
-   :target: https://pypi.org/project/tqdm
+   :target: https://pepy.tech/project/tqdm
 .. |Py-Versions| image:: https://img.shields.io/pypi/pyversions/tqdm.svg?logo=python&logoColor=white
    :target: https://pypi.org/project/tqdm
 .. |Conda-Forge-Status| image:: https://img.shields.io/conda/v/conda-forge/tqdm.svg?label=conda-forge&logo=conda-forge
