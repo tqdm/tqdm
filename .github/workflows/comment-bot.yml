@@ -29,6 +29,7 @@ jobs:
           post({
             owner: context.repo.owner, repo: context.repo.repo,
             comment_id: context.payload.comment.id, content: "eyes"})
+        github-token: ${{ secrets.GH_TOKEN }}
     - name: Tag Commit
       run: |
         git clone https://${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY} repo
@@ -48,3 +49,4 @@ jobs:
           post({
             owner: context.repo.owner, repo: context.repo.repo,
             comment_id: context.payload.comment.id, content: "rocket"})
+        github-token: ${{ secrets.GH_TOKEN }}
