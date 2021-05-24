@@ -6,8 +6,7 @@ Usage:
 >>> for i in trange(10, token='{token}', chat_id='{chat_id}'):
 ...     ...
 
-![screenshot](
-https://raw.githubusercontent.com/tqdm/img/src/screenshot-telegram.gif)
+![screenshot](https://img.tqdm.ml/screenshot-telegram.gif)
 """
 from __future__ import absolute_import
 
