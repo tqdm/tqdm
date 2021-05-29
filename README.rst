@@ -1348,6 +1348,25 @@ Helper methods are available in ``tqdm.contrib.logging``. For example:
                     LOG.info("console logging redirected to `tqdm.write()`")
         # logging restored
 
+Outputting progress to ``logging``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To output the tqdm progress bar to ``logging``,
+``logging_tqdm`` from the ``tqdm.contrib.logging`` may be used. For example:
+
+.. code:: python
+
+    import logging
+    from time import sleep
+    from tqdm.contrib.logging import logging_tqdm
+
+    LOG = logging.getLogger(__name__)
+
+    if __name__ == '__main__':
+        logging.basicConfig(level=logging.INFO)
+        with logging_tqdm(range(10)):
+            sleep(0.3)
+
 Monitoring thread, intervals and miniters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

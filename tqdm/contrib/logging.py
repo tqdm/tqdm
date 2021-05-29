@@ -14,6 +14,8 @@ except ImportError:
 
 from ..std import tqdm as std_tqdm
 
+LOGGER = logging.getLogger(__name__)
+
 
 class _TqdmLoggingHandler(logging.StreamHandler):
     def __init__(
@@ -47,7 +49,7 @@ def _get_first_found_console_logging_formatter(handlers):
 
 @contextmanager
 def logging_redirect_tqdm(
-    loggers=None,  # type: Optional[List[logging.Logger]],
+    loggers=None,  # type: Optional[List[logging.Logger]]
     tqdm_class=std_tqdm  # type: Type[std_tqdm]
 ):
     # type: (...) -> Iterator[None]
@@ -124,3 +126,68 @@ def tqdm_logging_redirect(
     with tqdm_class(*args, **tqdm_kwargs) as pbar:
         with logging_redirect_tqdm(loggers=loggers, tqdm_class=tqdm_class):
             yield pbar
+
+
+class logging_tqdm(std_tqdm):
+    """
+    A version of tqdm that outputs the progress bar
+    to Python logging instead of the console.
+    The progress will be logged with the info level.
+
+    Parameters
+    ----------
+    logger   : logging.Logger, optional
+      Which logger to output to (default: logger.getLogger('tqdm.contrib.logging')).
+
+    All other parameters are passed on to regular tqdm,
+    with the following changed default:
+
+    mininterval: 1
+    bar_format: '{desc}{percentage:3.0f}%{r_bar}'
+    desc: 'progress: '
+
+
+    Example
+    -------
+    ```python
+    import logging
+    from time import sleep
+    from tqdm.contrib.logging import logging_tqdm
+
+    LOG = logging.getLogger(__name__)
+
+    if __name__ == '__main__':
+        logging.basicConfig(level=logging.INFO)
+        with logging_tqdm(range(10)):
+            sleep(0.3)
+        # logging restored
+    ```
+    """
+    def __init__(
+            self,
+            *args,
+            # logger=None,  # type: logging.Logger
+            # mininterval=1,  # type: float
+            # bar_format='{desc}{percentage:3.0f}%{r_bar}',  # type: str
+            # desc='progress: ',  # type: str
+            **kwargs):
+        tqdm_kwargs = kwargs.copy()
+        self._logger = tqdm_kwargs.pop('logger', None)
+        tqdm_kwargs.setdefault('mininterval', 1)
+        tqdm_kwargs.setdefault('bar_format', '{desc}{percentage:3.0f}%{r_bar}')
+        tqdm_kwargs.setdefault('desc', 'progress: ')
+        super(logging_tqdm, self).__init__(self, *args, **tqdm_kwargs)
+
+    @property
+    def logger(self):
+        if self._logger is not None:
+            return self._logger
+        return LOGGER
+
+    def display(self, msg=None, pos=None):
+        if not self.n:
+            # skip progress bar before having processed anything
+            return
+        if not msg:
+            msg = self.__str__()
+        self.logger.info('%s', msg)

@@ -5,14 +5,22 @@ from __future__ import absolute_import
 import logging
 import logging.handlers
 import sys
+from contextlib import contextmanager
 from io import StringIO
+
+try:
+    from typing import Iterator, List, Optional  # pylint: disable=unused-import
+except ImportError:
+    pass
 
 import pytest
 
 from tqdm import tqdm
+from tqdm.contrib.logging import LOGGER as DEFAULT_LOGGER
 from tqdm.contrib.logging import _get_first_found_console_logging_formatter
 from tqdm.contrib.logging import _TqdmLoggingHandler as TqdmLoggingHandler
-from tqdm.contrib.logging import logging_redirect_tqdm, tqdm_logging_redirect
+from tqdm.contrib.logging import (
+    logging_redirect_tqdm, logging_tqdm, tqdm_logging_redirect)
 
 from .tests_tqdm import importorskip
 
@@ -22,7 +30,7 @@ TEST_LOGGING_FORMATTER = logging.Formatter()
 
 
 class CustomTqdm(tqdm):
-    messages = []
+    messages = []  # type: List[str]
 
     @classmethod
     def write(cls, s, **__):  # pylint: disable=arguments-differ
@@ -179,3 +187,51 @@ class TestTqdmWithLoggingRedirect:
             assert isinstance(pbar, CustomTqdm)
             logger.info('test')
             assert CustomTqdm.messages == ['test']
+
+
+@contextmanager
+def add_capturing_logging_handler(
+    logger  # type: logging.Logger
+):
+    # type: (...) -> Iterator[StringIO]
+    try:
+        previous_handlers = logger.handlers
+        out = StringIO()
+        stream_handler = logging.StreamHandler(out)
+        logger.addHandler(stream_handler)
+        yield out
+    finally:
+        logger.handlers = previous_handlers
+
+
+class TestLoggingTqdm:
+    @pytest.mark.parametrize(
+        "logger_param,expected_logger",
+        [
+            (None, DEFAULT_LOGGER),
+            (LOGGER, LOGGER)
+        ]
+    )
+    def test_should_log_tqdm_output(
+        self,
+        logger_param,  # type: Optional[logging.Logger]
+        expected_logger  # type: logging.Logger
+    ):
+        with add_capturing_logging_handler(expected_logger) as out:
+            with logging_tqdm(total=2, logger=logger_param, mininterval=0) as pbar:
+                pbar.update(1)
+            last_log_line = out.getvalue().splitlines()[-1]
+        assert '50%' in last_log_line
+        assert '1/2' in last_log_line
+
+    def test_should_not_output_before_any_progress(self):
+        with add_capturing_logging_handler(DEFAULT_LOGGER) as out:
+            with logging_tqdm(total=2, mininterval=0) as _:
+                pass
+            assert out.getvalue() == ''
+
+    def test_should_not_output_with_none_msg(self):
+        with add_capturing_logging_handler(DEFAULT_LOGGER) as out:
+            with logging_tqdm(total=2, mininterval=0) as pbar:
+                pbar.display()
+            assert out.getvalue() == ''
