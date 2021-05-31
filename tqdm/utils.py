@@ -285,7 +285,7 @@ def _screen_shape_linux(fp):  # pragma: no cover
         except Exception:
             try:
                 return [int(os.environ[i]) - 1 for i in ("COLUMNS", "LINES")]
-            except KeyError:
+            except (KeyError, ValueError):
                 return None, None
 
 
