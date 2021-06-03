@@ -856,7 +856,7 @@ class tqdm(Comparable):
         )
         Parameters
         ----------
-        targs, twargs : arguments for the tqdm instance
+        targs, tkwargs : arguments for the tqdm instance
 
         For functions in model_selection, such as cross_val_predict,
         a tqdm version of the function is registered with sklearn.
@@ -904,45 +904,55 @@ class tqdm(Comparable):
         issues with the tqdm progress bar.**
         """
 
-        import types
         import functools
-        import sklearn, sklearn.model_selection as model_selection
+        import types
+
+        import sklearn
+        import sklearn.model_selection as model_selection
 
         earliest_supported_version = (0, 22, 1)
         if tuple(map(int, sklearn.__version__.split('.'))) < earliest_supported_version:
-            warn("tqdm.sklearn() has not been tested on versions of sklearn earlier than {}" \
-                        .format(".".join(map(str, earliest_supported_version))), category=TqdmWarning, stacklevel=2)
+            warn("tqdm.sklearn() has not been tested on versions of sklearn earlier "
+                 "than {0}".format(".".join(map(str, earliest_supported_version))),
+                 category=TqdmWarning, stacklevel=2)
 
         # Maintainers do not forget to look at the default value of cv,
         # it may change over time and has changed in the past
         def progress_cross_val(option, estimator, X, *args, **kwargs):
             cv = kwargs['cv'] if 'cv' in kwargs else 5
             valid_options = ['predict', 'score', 'validate',
-                            'learning_curve', 'permutation_test_score',
-                            'validation_curve', 'SearchCV']
+                             'learning_curve', 'permutation_test_score',
+                             'validation_curve', 'SearchCV']
 
-            if isinstance(option, (model_selection.GridSearchCV, model_selection.RandomizedSearchCV)):
+            if isinstance(option, (model_selection.GridSearchCV,
+                                   model_selection.RandomizedSearchCV)):
                 self = option
                 estimator = self.estimator
                 option = 'SearchCV'
             else:
                 self = None
             if (('verbose' in kwargs and kwargs['verbose'] >= 1)
-                or (self is not None and self.verbose >= 1)):
+                    or (self is not None and self.verbose >= 1)):
                 warn(('Using verbose with tqdm can cause display issues with tqdm'
-                              ' and/or the verbose messages'),
-                              category=TqdmWarning, stacklevel=2)
+                      ' and/or the verbose messages'),
+                     category=TqdmWarning, stacklevel=2)
 
-            assert option in valid_options, "[tqdm: Internal] progress_cross_val() {} not in valid options" \
-                                            .format(option)
+            assert option in valid_options, "[tqdm: Internal] progress_cross_val() " \
+                                            "{0} not in valid options".format(option)
 
-            option, validate = ('score', True) if option == 'validate' else (option, False)
-            option, learning_curve = ('score', True) if option == 'learning_curve' else (option, False)
-            option, permutation_test_score = ('score', True) if option == 'permutation_test_score' else (option, False)
-            option, validation_curve = ('score', True) if option == 'validation_curve' else (option, False)
-            option, SearchCV = ('score', True) if option == 'SearchCV' else (option, False)
+            option, validate = ('score', True) \
+                if option == 'validate' else (option, False)
+            option, learning_curve = ('score', True) \
+                if option == 'learning_curve' else (option, False)
+            option, permutation_test_score = ('score', True) \
+                if option == 'permutation_test_score' else (option, False)
+            option, validation_curve = ('score', True) \
+                if option == 'validation_curve' else (option, False)
+            option, SearchCV = ('score', True) \
+                if option == 'SearchCV' else (option, False)
 
-            # TODO: parsing cv has NOT been tested with values other than ints. Need to test!
+            # TODO: parsing cv has NOT been tested with values other than ints.
+            #       Need to test!
             if SearchCV:
                 cv = self.cv
             if hasattr(cv, 'n_splits'):
@@ -954,7 +964,7 @@ class tqdm(Comparable):
 
             if 'total' in kwargs:
                 # Maybe remove this? IDK
-                total = twargs['total']
+                total = tkwargs['total']
             elif learning_curve:
                 total = len(kwargs['train_sizes']) if 'train_sizes' in kwargs else 5
                 # The extra two is required because the `learning_curve` function trains
@@ -974,18 +984,21 @@ class tqdm(Comparable):
             else:
                 total = parsed_cv
 
-            # `_save_me` is outside of try catch so in case something goes wrong in the try catch,
-            # whatever function/method (aka predict or score) we changed will go back to way it was no matter what
+            # `_save_me` is outside of try catch so in case something goes wrong
+            # in the try catch, whatever function/method (aka predict or score)
+            # we changed will go back to way it was no matter what
             _save_me = getattr(estimator.__class__, option)
             try:
                 # This is "Option 1" of the roadmap
-                # This tracks folds/cvs in several of the model_selection methods/functions
+                # This tracks folds/cvs in several of
+                # the model_selection methods/functions
                 with tclass(*targs, total=total, **tkwargs) as t:
                     def update(self, func, *margs, **mkwargs):
                         assert callable(func), "func must a be function or method"
                         t.update()
                         return func(self, *margs, **mkwargs)
-                    setattr(estimator.__class__, option, functools.partialmethod(update, _save_me))
+                    setattr(estimator.__class__, option,
+                            functools.partialmethod(update, _save_me))
 
                     if learning_curve:
                         final_func = 'learning_curve'
@@ -994,34 +1007,45 @@ class tqdm(Comparable):
                     elif validation_curve:
                         final_func = 'validation_curve'
                     else:
-                        final_func = "cross_{}".format('validate' if validate else 'val_{}' \
-                                        .format(option))
+                        final_func = "cross_{0}"\
+                            .format('validate' if validate else 'val_' + str(option))
 
                     if SearchCV:
                         return self.fit(X, *args, **kwargs)
 
-                    return getattr(model_selection, final_func)(estimator, X, *args, **kwargs)
+                    return getattr(
+                        model_selection, final_func)(estimator, X, *args, **kwargs)
             finally:
                 setattr(estimator.__class__, option, _save_me)
 
         # aliases for each tqdm version of the function
-        cross_val_predict_alias = ['progress_cross_val_predict', 'pcvp', 'pcross_val_predict']
-        cross_val_score_alias = ['progress_cross_val_score', 'pcvs', 'pcross_val_score']
-        cross_validate_alias = ['progress_cross_validate', 'pcv', 'pcross_validate']
-        learning_curve_alias = ['progress_learning_curve', 'plc', 'plearning_curve']
+        cross_val_predict_alias = ['progress_cross_val_predict',
+                                   'pcvp',
+                                   'pcross_val_predict']
+        cross_val_score_alias = ['progress_cross_val_score',
+                                 'pcvs',
+                                 'pcross_val_score']
+        cross_validate_alias = ['progress_cross_validate',
+                                'pcv', 'pcross_validate']
+        learning_curve_alias = ['progress_learning_curve',
+                                'plc',
+                                'plearning_curve']
         permutation_test_score_alias = ['progress_permutation_test_score',
                                         'ppts',
                                         'ppermutation_test_score']
-        validation_curve_alias = ['progress_validation_curve', 'pvc', 'pvalidation_curve']
+        validation_curve_alias = ['progress_validation_curve',
+                                  'pvc',
+                                  'pvalidation_curve']
         SearchCV_alias = ['progress_fit']
 
-        aliases = cross_val_predict_alias \
-                + cross_val_score_alias \
-                + cross_validate_alias \
-                + learning_curve_alias \
-                + permutation_test_score_alias \
-                + validation_curve_alias \
-                + SearchCV_alias
+        aliases = \
+            cross_val_predict_alias \
+            + cross_val_score_alias \
+            + cross_validate_alias \
+            + learning_curve_alias \
+            + permutation_test_score_alias \
+            + validation_curve_alias \
+            + SearchCV_alias
 
         for name in aliases:
             if name in cross_val_predict_alias:
@@ -1044,7 +1068,8 @@ class tqdm(Comparable):
                         functools.partialmethod(progress_cross_val, option))
                 continue
 
-            setattr(model_selection, name, functools.partial(progress_cross_val, option))
+            setattr(model_selection, name,
+                    functools.partial(progress_cross_val, option))
 
     def __init__(self, iterable=None, desc=None, total=None, leave=True, file=None,
                  ncols=None, mininterval=0.1, maxinterval=10.0, miniters=None,
@@ -1721,6 +1746,7 @@ class tqdm(Comparable):
                 t.unit_scale = True
                 t.unit_divisor = 1024
             yield CallbackIOWrapper(t.update, stream, method)
+
 
 def trange(*args, **kwargs):
     """
