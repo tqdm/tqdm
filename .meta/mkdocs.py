@@ -2,15 +2,15 @@
 Auto-generate README.rst from .meta/.readme.rst and docstrings.
 """
 from __future__ import print_function
+
+import sys
 from io import open as io_open
 from os import path
-import sys
 from textwrap import dedent
 
-sys.path.insert(0, path.dirname(path.dirname(__file__)))  # NOQA
-import tqdm
-import tqdm.cli
-
+sys.path.insert(0, path.dirname(path.dirname(__file__)))
+import tqdm  # NOQA
+import tqdm.cli  # NOQA
 
 HEAD_ARGS = """
 Parameters

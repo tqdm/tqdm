@@ -19,17 +19,21 @@ Options:
   -d, --debug-trace      Print lots of debugging information (-D NOTSET)
 """
 from __future__ import print_function
-from argopt import argopt
-import logging
-import subprocess
-import re
-from tqdm import tqdm
-import pty
-import os
+
 import io
+import logging
+import os
+import pty
+import re
+import subprocess  # nosec
+
+from argopt import argopt
+
+from tqdm import tqdm
+
 __author__ = "Casper da Costa-Luis <casper.dcl@physics.org>"
 __licence__ = "MPLv2.0"
-__version__ = "0.2.1"
+__version__ = "0.2.2"
 __license__ = __licence__
 
 RE_SCN = re.compile(r"([0-9]+)\s+([0-9]+)\s+(.*)$", flags=re.M)
@@ -47,7 +51,7 @@ def main():
     # Get compressed sizes
     zips = {}
     for fn in args.zipfiles:
-        info = subprocess.check_output(["7z", "l", fn]).strip()
+        info = subprocess.check_output(["7z", "l", fn]).strip()  # nosec
         finfo = RE_SCN.findall(info)  # size|compressed|name
 
         # builtin test: last line should be total sizes
@@ -57,10 +61,9 @@ def main():
         for s in range(2):  # size|compressed totals
             totals_s = sum(map(int, (inf[s] for inf in finfo[:-1])))
             if totals_s != totals[s]:
-                log.warn("%s: individual total %d != 7z total %d" % (
-                    fn, totals_s, totals[s]))
-        fcomp = dict((n, int(c if args.compressed else u))
-                     for (u, c, n) in finfo[:-1])
+                log.warn("%s: individual total %d != 7z total %d",
+                         fn, totals_s, totals[s])
+        fcomp = {n: int(c if args.compressed else u) for (u, c, n) in finfo[:-1]}
         # log.debug(fcomp)
         # zips  : {'zipname' : {'filename' : int(size)}}
         zips[fn] = fcomp
@@ -69,12 +72,12 @@ def main():
     cmd7zx = ["7z", "x", "-bd"]
     if args.yes:
         cmd7zx += ["-y"]
-    log.info("Extracting from {:d} file(s)".format(len(zips)))
+    log.info("Extracting from %d file(s)", len(zips))
     with tqdm(total=sum(sum(fcomp.values()) for fcomp in zips.values()),
               unit="B", unit_scale=True) as tall:
         for fn, fcomp in zips.items():
             md, sd = pty.openpty()
-            ex = subprocess.Popen(
+            ex = subprocess.Popen(  # nosec
                 cmd7zx + [fn],
                 bufsize=1,
                 stdout=md,  # subprocess.PIPE,
@@ -101,13 +104,12 @@ def main():
                                     ln.startswith(i)
                                     for i in ("7-Zip ", "p7zip Version ",
                                               "Everything is Ok", "Folders: ",
-                                              "Files: ", "Size: ",
-                                              "Compressed: ")):
+                                              "Files: ", "Size: ", "Compressed: ")):
                                 if ln.startswith("Processing archive: "):
                                     if not args.silent:
                                         t.write(t.format_interval(
                                             t.start_t - tall.start_t) + ' ' +
-                                            ln.lstrip("Processing archive: "))
+                                            ln.replace("Processing archive: ", ""))
                                 else:
                                     t.write(ln)
             ex.wait()

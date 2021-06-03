@@ -1,0 +1,93 @@
+name: Check
+on:
+  push:
+  pull_request:
+  schedule:
+  - cron: '36 1 * * SUN'  # M H d m w (Sundays at 01:36)
+jobs:
+  check:
+    if: github.event_name != 'pull_request' || github.head_ref != 'devel'
+    name: ${{ matrix.TOXENV }}
+    strategy:
+      matrix:
+        TOXENV:
+        - setup.py
+        - perf
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+    - run: pip install -U tox
+    - run: tox
+      env:
+        TOXENV: ${{ matrix.TOXENV }}
+  asvfull:
+    if: (github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')) || github.event_name == 'schedule'
+    name: Benchmark (Full)
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+    - name: Install
+      run: |
+        pip install -U wheel
+        pip install -U virtualenv asv
+        git checkout master && git checkout -
+        asv machine --machine github-actions --yes
+    - name: Restore previous results
+      uses: actions/cache@v2
+      with:
+        path: .asv
+        key: asv-${{ runner.os }}
+        restore-keys: |
+          asv-
+    - name: Benchmark
+      run: |
+        asv run -j 8 --interleave-processes --skip-existing v3.2.0..HEAD
+    - name: Build pages
+      run: |
+        git config --global user.email "$GIT_AUTHOR_EMAIL"
+        git config --global user.name "$GIT_AUTHOR_NAME"
+        asv gh-pages --no-push
+        git push -f origin gh-pages:gh-pages
+      env:
+        GIT_AUTHOR_NAME: ${{ github.actor }}
+        GIT_AUTHOR_EMAIL: ${{ github.actor }}@users.noreply.github.com
+  testasv:
+    if: github.event.ref != 'refs/heads/master' && ! startsWith(github.event.ref, 'refs/tags')
+    name: Benchmark (Branch)
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+    - name: Install
+      run: |
+        pip install -U wheel
+        pip install -U virtualenv asv
+        git checkout master && git checkout -
+        asv machine --machine github-actions --yes
+    - name: Restore previous results
+      uses: actions/cache@v2
+      with:
+        path: .asv
+        key: asv-${{ runner.os }}
+        restore-keys: |
+          asv-
+    - name: Benchmark
+      run: |
+        asv continuous --interleave-processes --only-changed -f 1.25 master HEAD
+        CHANGES="$(asv compare --only-changed -f 1.25 master HEAD)"
+        echo "$CHANGES"
+        [ -z "$CHANGES" ] || exit 1

@@ -1,30 +1,31 @@
 """
 Customisable progressbar decorator for iterators.
-Includes a default (x)range iterator printing to stderr.
+Includes a default `range` iterator printing to `stderr`.
 
 Usage:
-  >>> from tqdm import trange[, tqdm]
-  >>> for i in trange(10): #same as: for i in tqdm(xrange(10))
-  ...     ...
+>>> from tqdm import trange, tqdm
+>>> for i in trange(10):
+...     ...
 """
 from __future__ import absolute_import, division
-# compatibility functions and utilities
-from .utils import _supports_unicode, _screen_shape_wrapper, _range, _unich, \
-    _term_move_up, _unicode, WeakSet, _basestring, _OrderedDict, \
-    Comparable, _is_ascii, FormatReplace, disp_len, disp_trim, \
-    SimpleTextIOWrapper, CallbackIOWrapper
-from ._monitor import TMonitor
-# native libraries
-from contextlib import contextmanager
+
 import sys
+from collections import OrderedDict, defaultdict
+from contextlib import contextmanager
+from datetime import datetime, timedelta
 from numbers import Number
 from time import time
-# For parallelism safety
-import threading as th
 from warnings import warn
+from weakref import WeakSet
 
-__author__ = {"github.com/": ["noamraph", "obiwanus", "kmike", "hadim",
-                              "casperdcl", "lrq3000", "TurretAA12"]}
+from ._monitor import TMonitor
+from .utils import (
+    CallbackIOWrapper, Comparable, DisableOnWriteError, FormatReplace,
+    SimpleTextIOWrapper, _basestring, _is_ascii, _range, _screen_shape_wrapper,
+    _supports_unicode, _term_move_up, _unich, _unicode, disp_len, disp_trim)
+
+__author__ = "https://github.com/tqdm/tqdm#contributions"
+
 __all__ = ['tqdm', 'trange',
            'TqdmTypeError', 'TqdmKeyError', 'TqdmWarning',
            'TqdmExperimentalWarning', 'TqdmDeprecationWarning',
@@ -46,8 +47,7 @@ class TqdmWarning(Warning):
     """
     def __init__(self, msg, fp_write=None, *a, **k):
         if fp_write is not None:
-            fp_write("\n" + self.__class__.__name__ + ": " +
-                     str(msg).rstrip() + '\n')
+            fp_write("\n" + self.__class__.__name__ + ": " + str(msg).rstrip() + '\n')
         else:
             super(TqdmWarning, self).__init__(msg, *a, **k)
 
@@ -67,6 +67,15 @@ class TqdmMonitorWarning(TqdmWarning, RuntimeWarning):
     pass
 
 
+def TRLock(*args, **kwargs):
+    """threading RLock"""
+    try:
+        from threading import RLock
+        return RLock(*args, **kwargs)
+    except (ImportError, OSError):  # pragma: no cover
+        pass
+
+
 class TqdmDefaultWriteLock(object):
     """
     Provide a default write lock for thread and multiprocessing safety.
@@ -76,13 +85,22 @@ class TqdmDefaultWriteLock(object):
     On Windows, you need to supply the lock from the parent to the children as
     an argument to joblib or the parallelism lib you use.
     """
+    # global thread lock so no setup required for multithreading.
+    # NB: Do not create multiprocessing lock as it sets the multiprocessing
+    # context, disallowing `spawn()`/`forkserver()`
+    th_lock = TRLock()
+
     def __init__(self):
         # Create global parallelism locks to avoid racing issues with parallel
         # bars works only if fork available (Linux/MacOSX, but not Windows)
-        self.create_mp_lock()
-        self.create_th_lock()
         cls = type(self)
+        root_lock = cls.th_lock
+        if root_lock is not None:
+            root_lock.acquire()
+        cls.create_mp_lock()
         self.locks = [lk for lk in [cls.mp_lock, cls.th_lock] if lk is not None]
+        if root_lock is not None:
+            root_lock.release()
 
     def acquire(self, *a, **k):
         for lock in self.locks:
@@ -103,26 +121,14 @@ class TqdmDefaultWriteLock(object):
         if not hasattr(cls, 'mp_lock'):
             try:
                 from multiprocessing import RLock
-                cls.mp_lock = RLock()  # multiprocessing lock
-            except ImportError:  # pragma: no cover
-                cls.mp_lock = None
-            except OSError:  # pragma: no cover
+                cls.mp_lock = RLock()
+            except (ImportError, OSError):  # pragma: no cover
                 cls.mp_lock = None
 
     @classmethod
     def create_th_lock(cls):
-        if not hasattr(cls, 'th_lock'):
-            try:
-                cls.th_lock = th.RLock()  # thread lock
-            except OSError:  # pragma: no cover
-                cls.th_lock = None
-
-
-# Create a thread lock before instantiation so that no setup needs to be done
-# before running in a multithreaded environment.
-# Do not create the multiprocessing lock because it sets the multiprocessing
-# context and does not allow the user to use 'spawn' or 'forkserver' methods.
-TqdmDefaultWriteLock.create_th_lock()
+        assert hasattr(cls, 'th_lock')
+        warn("create_th_lock not needed anymore", TqdmDeprecationWarning, stacklevel=2)
 
 
 class Bar(object):
@@ -141,21 +147,50 @@ class Bar(object):
     ASCII = " 123456789#"
     UTF = u" " + u''.join(map(_unich, range(0x258F, 0x2587, -1)))
     BLANK = "  "
+    COLOUR_RESET = '\x1b[0m'
+    COLOUR_RGB = '\x1b[38;2;%d;%d;%dm'
+    COLOURS = {'BLACK': '\x1b[30m', 'RED': '\x1b[31m', 'GREEN': '\x1b[32m',
+               'YELLOW': '\x1b[33m', 'BLUE': '\x1b[34m', 'MAGENTA': '\x1b[35m',
+               'CYAN': '\x1b[36m', 'WHITE': '\x1b[37m'}
 
-    def __init__(self, frac, default_len=10, charset=UTF):
-        if not (0 <= frac <= 1):
+    def __init__(self, frac, default_len=10, charset=UTF, colour=None):
+        if not 0 <= frac <= 1:
             warn("clamping frac to range [0, 1]", TqdmWarning, stacklevel=2)
             frac = max(0, min(1, frac))
         assert default_len > 0
         self.frac = frac
         self.default_len = default_len
         self.charset = charset
+        self.colour = colour
+
+    @property
+    def colour(self):
+        return self._colour
+
+    @colour.setter
+    def colour(self, value):
+        if not value:
+            self._colour = None
+            return
+        try:
+            if value.upper() in self.COLOURS:
+                self._colour = self.COLOURS[value.upper()]
+            elif value[0] == '#' and len(value) == 7:
+                self._colour = self.COLOUR_RGB % tuple(
+                    int(i, 16) for i in (value[1:3], value[3:5], value[5:7]))
+            else:
+                raise KeyError
+        except (KeyError, AttributeError):
+            warn("Unknown colour (%s); valid choices: [hex (#00ff00), %s]" % (
+                 value, ", ".join(self.COLOURS)),
+                 TqdmWarning, stacklevel=2)
+            self._colour = None
 
     def __format__(self, format_spec):
         if format_spec:
             _type = format_spec[-1].lower()
             try:
-                charset = dict(a=self.ASCII, u=self.UTF, b=self.BLANK)[_type]
+                charset = {'a': self.ASCII, 'u': self.UTF, 'b': self.BLANK}[_type]
             except KeyError:
                 charset = self.charset
             else:
@@ -171,17 +206,44 @@ class Bar(object):
             N_BARS = self.default_len
 
         nsyms = len(charset) - 1
-        bar_length, frac_bar_length = divmod(
-            int(self.frac * N_BARS * nsyms), nsyms)
+        bar_length, frac_bar_length = divmod(int(self.frac * N_BARS * nsyms), nsyms)
 
-        bar = charset[-1] * bar_length
-        frac_bar = charset[frac_bar_length]
-
-        # whitespace padding
-        if bar_length < N_BARS:
-            return bar + frac_bar + \
+        res = charset[-1] * bar_length
+        if bar_length < N_BARS:  # whitespace padding
+            res = res + charset[frac_bar_length] + \
                 charset[0] * (N_BARS - bar_length - 1)
-        return bar
+        return self.colour + res + self.COLOUR_RESET if self.colour else res
+
+
+class EMA(object):
+    """
+    Exponential moving average: smoothing to give progressively lower
+    weights to older values.
+
+    Parameters
+    ----------
+    smoothing  : float, optional
+        Smoothing factor in range [0, 1], [default: 0.3].
+        Increase to give more weight to recent values.
+        Ranges from 0 (yields old value) to 1 (yields new value).
+    """
+    def __init__(self, smoothing=0.3):
+        self.alpha = smoothing
+        self.last = 0
+        self.calls = 0
+
+    def __call__(self, x=None):
+        """
+        Parameters
+        ----------
+        x  : float
+            New value to include in EMA.
+        """
+        beta = 1 - self.alpha
+        if x is not None:
+            self.last = self.alpha * x + beta * self.last
+            self.calls += 1
+        return self.last / (1 - beta ** self.calls) if self.calls else self.last
 
 
 class tqdm(Comparable):
@@ -193,6 +255,7 @@ class tqdm(Comparable):
 
     monitor_interval = 10  # set to 0 to disable the thread
     monitor = None
+    _instances = WeakSet()
 
     @staticmethod
     def format_sizeof(num, suffix='', divisor=1000):
@@ -266,25 +329,6 @@ class tqdm(Comparable):
         return f if len(f) < len(n) else n
 
     @staticmethod
-    def ema(x, mu=None, alpha=0.3):
-        """
-        Exponential moving average: smoothing to give progressively lower
-        weights to older values.
-
-        Parameters
-        ----------
-        x  : float
-            New value to include in EMA.
-        mu  : float, optional
-            Previous EMA value.
-        alpha  : float, optional
-            Smoothing factor in range [0, 1], [default: 0.3].
-            Increase to give more weight to recent values.
-            Ranges from 0 (yields mu) to 1 (yields x).
-        """
-        return x if mu is None else (alpha * x) + (1 - alpha) * mu
-
-    @staticmethod
     def status_printer(file):
         """
         Manage the printing and in-place updating of a line of characters.
@@ -301,16 +345,16 @@ class tqdm(Comparable):
         last_len = [0]
 
         def print_status(s):
-            len_s = len(s)
+            len_s = disp_len(s)
             fp_write('\r' + s + (' ' * max(last_len[0] - len_s, 0)))
             last_len[0] = len_s
 
         return print_status
 
     @staticmethod
-    def format_meter(n, total, elapsed, ncols=None, prefix='', ascii=False,
-                     unit='it', unit_scale=False, rate=None, bar_format=None,
-                     postfix=None, unit_divisor=1000, **extra_kwargs):
+    def format_meter(n, total, elapsed, ncols=None, prefix='', ascii=False, unit='it',
+                     unit_scale=False, rate=None, bar_format=None, postfix=None,
+                     unit_divisor=1000, initial=0, colour=None, **extra_kwargs):
         """
         Return a string-based progress bar given some parameters
 
@@ -355,7 +399,7 @@ class tqdm(Comparable):
               percentage, elapsed, elapsed_s, ncols, nrows, desc, unit,
               rate, rate_fmt, rate_noinv, rate_noinv_fmt,
               rate_inv, rate_inv_fmt, postfix, unit_divisor,
-              remaining, remaining_s.
+              remaining, remaining_s, eta.
             Note that a trailing ": " is automatically removed after {desc}
             if the latter is empty.
         postfix  : *, optional
@@ -366,6 +410,10 @@ class tqdm(Comparable):
             However other types are supported (#382).
         unit_divisor  : float, optional
             [default: 1000], ignored unless `unit_scale` is True.
+        initial  : int or float, optional
+            The initial counter value [default: 0].
+        colour  : str, optional
+            Bar colour (e.g. 'green', '#00ff00').
 
         Returns
         -------
@@ -382,7 +430,7 @@ class tqdm(Comparable):
                 total *= unit_scale
             n *= unit_scale
             if rate:
-                rate *= unit_scale  # by default rate = 1 / self.avg_time
+                rate *= unit_scale  # by default rate = self.avg_dn / self.avg_dt
             unit_scale = False
 
         elapsed_str = tqdm.format_interval(elapsed)
@@ -390,15 +438,14 @@ class tqdm(Comparable):
         # if unspecified, attempt to use rate = average speed
         # (we allow manual override since predicting time is an arcane art)
         if rate is None and elapsed:
-            rate = n / elapsed
+            rate = (n - initial) / elapsed
         inv_rate = 1 / rate if rate else None
         format_sizeof = tqdm.format_sizeof
         rate_noinv_fmt = ((format_sizeof(rate) if unit_scale else
-                           '{0:5.2f}'.format(rate))
-                          if rate else '?') + unit + '/s'
-        rate_inv_fmt = ((format_sizeof(inv_rate) if unit_scale else
-                         '{0:5.2f}'.format(inv_rate))
-                        if inv_rate else '?') + 's/' + unit
+                           '{0:5.2f}'.format(rate)) if rate else '?') + unit + '/s'
+        rate_inv_fmt = (
+            (format_sizeof(inv_rate) if unit_scale else '{0:5.2f}'.format(inv_rate))
+            if inv_rate else '?') + 's/' + unit
         rate_fmt = rate_inv_fmt if inv_rate and inv_rate > 1 else rate_noinv_fmt
 
         if unit_scale:
@@ -416,6 +463,11 @@ class tqdm(Comparable):
 
         remaining = (total - n) / rate if rate and total else 0
         remaining_str = tqdm.format_interval(remaining) if rate else '?'
+        try:
+            eta_dt = datetime.now() + timedelta(seconds=remaining) \
+                if rate and total else datetime.utcfromtimestamp(0)
+        except OverflowError:
+            eta_dt = datetime.max
 
         # format the stats displayed to the left and right sides of the bar
         if prefix:
@@ -440,9 +492,10 @@ class tqdm(Comparable):
             rate_noinv_fmt=rate_noinv_fmt, rate_inv=inv_rate,
             rate_inv_fmt=rate_inv_fmt,
             postfix=postfix, unit_divisor=unit_divisor,
+            colour=colour,
             # plus more useful definitions
             remaining=remaining_str, remaining_s=remaining,
-            l_bar=l_bar, r_bar=r_bar,
+            l_bar=l_bar, r_bar=r_bar, eta=eta_dt,
             **extra_kwargs)
 
         # total is known: we can predict some stats
@@ -477,11 +530,10 @@ class tqdm(Comparable):
                 return nobar
 
             # Formatting progress bar space available for bar's display
-            full_bar = Bar(
-                frac,
-                max(1, ncols - disp_len(nobar))
-                if ncols else 10,
-                charset=Bar.ASCII if ascii is True else ascii or Bar.UTF)
+            full_bar = Bar(frac,
+                           max(1, ncols - disp_len(nobar)) if ncols else 10,
+                           charset=Bar.ASCII if ascii is True else ascii or Bar.UTF,
+                           colour=colour)
             if not _is_ascii(full_bar.charset) and _is_ascii(bar_format):
                 bar_format = _unicode(bar_format)
             res = bar_format.format(bar=full_bar, **format_dict)
@@ -495,11 +547,9 @@ class tqdm(Comparable):
             nobar = bar_format.format(bar=full_bar, **format_dict)
             if not full_bar.format_called:
                 return nobar
-            full_bar = Bar(
-                0,
-                max(1, ncols - disp_len(nobar))
-                if ncols else 10,
-                charset=Bar.BLANK)
+            full_bar = Bar(0,
+                           max(1, ncols - disp_len(nobar)) if ncols else 10,
+                           charset=Bar.BLANK, colour=colour)
             res = bar_format.format(bar=full_bar, **format_dict)
             return disp_trim(res, ncols) if ncols else res
         else:
@@ -508,18 +558,13 @@ class tqdm(Comparable):
                 '{0}{1} [{2}, {3}{4}]'.format(
                     n_fmt, unit, elapsed_str, rate_fmt, postfix)
 
-    def __new__(cls, *args, **kwargs):
-        # Create a new instance
+    def __new__(cls, *_, **__):
         instance = object.__new__(cls)
-        # Construct the lock if it does not exist
-        with cls.get_lock():
-            # Add to the list of instances
-            if not hasattr(cls, '_instances'):
-                cls._instances = WeakSet()
+        with cls.get_lock():  # also constructs lock if non-existent
             cls._instances.add(instance)
-            # Create the monitoring thread
-            if cls.monitor_interval and (cls.monitor is None or not
-                                         cls.monitor.report()):
+            # create monitoring thread
+            if cls.monitor_interval and (cls.monitor is None
+                                         or not cls.monitor.report()):
                 try:
                     cls.monitor = TMonitor(cls, cls.monitor_interval)
                 except Exception as e:  # pragma: nocover
@@ -527,14 +572,13 @@ class tqdm(Comparable):
                          " (monitor_interval = 0) due to:\n" + str(e),
                          TqdmMonitorWarning, stacklevel=2)
                     cls.monitor_interval = 0
-        # Return the instance
         return instance
 
     @classmethod
     def _get_free_pos(cls, instance=None):
         """Skips specified instance."""
-        positions = set(abs(inst.pos) for inst in cls._instances
-                        if inst is not instance and hasattr(inst, "pos"))
+        positions = {abs(inst.pos) for inst in cls._instances
+                     if inst is not instance and hasattr(inst, "pos")}
         return min(set(range(len(positions) + 1)).difference(positions))
 
     @classmethod
@@ -566,15 +610,6 @@ class tqdm(Comparable):
                     inst = min(instances, key=lambda i: i.pos)
                     inst.clear(nolock=True)
                     inst.pos = abs(instance.pos)
-            # Kill monitor if no instances are left
-            if not cls._instances and cls.monitor:
-                try:
-                    cls.monitor.exit()
-                    del cls.monitor
-                except AttributeError:  # pragma: nocover
-                    pass
-                else:
-                    cls.monitor = None
 
     @classmethod
     def write(cls, s, file=None, end="\n", nolock=False):
@@ -628,9 +663,9 @@ class tqdm(Comparable):
         return cls._lock
 
     @classmethod
-    def pandas(tclass, *targs, **tkwargs):
+    def pandas(cls, **tqdm_kwargs):
         """
-        Registers the given `tqdm` class with
+        Registers the current `tqdm` class with
             pandas.core.
             ( frame.DataFrame
             | series.Series
@@ -639,11 +674,11 @@ class tqdm(Comparable):
             ).progress_apply
 
         A new instance will be create every time `progress_apply` is called,
-        and each instance will automatically close() upon completion.
+        and each instance will automatically `close()` upon completion.
 
         Parameters
         ----------
-        targs, tkwargs  : arguments for the tqdm instance
+        tqdm_kwargs  : arguments for the tqdm instance
 
         Examples
         --------
@@ -659,35 +694,43 @@ class tqdm(Comparable):
 
         References
         ----------
-        https://stackoverflow.com/questions/18603270/
-        progress-indicator-during-pandas-operations-python
+        <https://stackoverflow.com/questions/18603270/\
+        progress-indicator-during-pandas-operations-python>
         """
+        from warnings import catch_warnings, simplefilter
+
         from pandas.core.frame import DataFrame
         from pandas.core.series import Series
         try:
-            from pandas import Panel
-        except ImportError:  # TODO: pandas>0.25.2
+            with catch_warnings():
+                simplefilter("ignore", category=FutureWarning)
+                from pandas import Panel
+        except ImportError:  # pandas>=1.2.0
             Panel = None
+        Rolling, Expanding = None, None
         try:  # pandas>=1.0.0
             from pandas.core.window.rolling import _Rolling_and_Expanding
         except ImportError:
             try:  # pandas>=0.18.0
                 from pandas.core.window import _Rolling_and_Expanding
-            except ImportError:  # pragma: no cover
-                _Rolling_and_Expanding = None
+            except ImportError:  # pandas>=1.2.0
+                try:  # pandas>=1.2.0
+                    from pandas.core.window.expanding import Expanding
+                    from pandas.core.window.rolling import Rolling
+                    _Rolling_and_Expanding = Rolling, Expanding
+                except ImportError:  # pragma: no cover
+                    _Rolling_and_Expanding = None
         try:  # pandas>=0.25.0
-            from pandas.core.groupby.generic import DataFrameGroupBy, \
-                SeriesGroupBy  # , NDFrameGroupBy
-        except ImportError:
+            from pandas.core.groupby.generic import SeriesGroupBy  # , NDFrameGroupBy
+            from pandas.core.groupby.generic import DataFrameGroupBy
+        except ImportError:  # pragma: no cover
             try:  # pandas>=0.23.0
-                from pandas.core.groupby.groupby import DataFrameGroupBy, \
-                    SeriesGroupBy
+                from pandas.core.groupby.groupby import DataFrameGroupBy, SeriesGroupBy
             except ImportError:
-                from pandas.core.groupby import DataFrameGroupBy, \
-                    SeriesGroupBy
+                from pandas.core.groupby import DataFrameGroupBy, SeriesGroupBy
         try:  # pandas>=0.23.0
             from pandas.core.groupby.groupby import GroupBy
-        except ImportError:
+        except ImportError:  # pragma: no cover
             from pandas.core.groupby import GroupBy
 
         try:  # pandas>=0.23.0
@@ -698,7 +741,8 @@ class tqdm(Comparable):
             except ImportError:  # pandas>=0.25.0
                 PanelGroupBy = None
 
-        deprecated_t = [tkwargs.pop('deprecated_t', None)]
+        tqdm_kwargs = tqdm_kwargs.copy()
+        deprecated_t = [tqdm_kwargs.pop('deprecated_t', None)]
 
         def inner_generator(df_function='apply'):
             def inner(df, func, *args, **kwargs):
@@ -714,7 +758,7 @@ class tqdm(Comparable):
                 """
 
                 # Precompute total iterations
-                total = tkwargs.pop("total", getattr(df, 'ngroups', None))
+                total = tqdm_kwargs.pop("total", getattr(df, 'ngroups', None))
                 if total is None:  # not grouped
                     if df_function == 'applymap':
                         total = df.size
@@ -736,7 +780,7 @@ class tqdm(Comparable):
                     t = deprecated_t[0]
                     deprecated_t[0] = None
                 else:
-                    t = tclass(*targs, total=total, **tkwargs)
+                    t = cls(total=total, **tqdm_kwargs)
 
                 if len(args) > 0:
                     # *args intentionally not supported (see #244, #299)
@@ -790,7 +834,10 @@ class tqdm(Comparable):
         GroupBy.progress_aggregate = inner_generator('aggregate')
         GroupBy.progress_transform = inner_generator('transform')
 
-        if _Rolling_and_Expanding is not None:  # pragma: no cover
+        if Rolling is not None and Expanding is not None:
+            Rolling.progress_apply = inner_generator()
+            Expanding.progress_apply = inner_generator()
+        elif _Rolling_and_Expanding is not None:
             _Rolling_and_Expanding.progress_apply = inner_generator()
 
     @classmethod
@@ -999,14 +1046,13 @@ class tqdm(Comparable):
 
             setattr(model_selection, name, functools.partial(progress_cross_val, option))
 
-    def __init__(self, iterable=None, desc=None, total=None, leave=True,
-                 file=None, ncols=None, mininterval=0.1, maxinterval=10.0,
-                 miniters=None, ascii=None, disable=False, unit='it',
-                 unit_scale=False, dynamic_ncols=False, smoothing=0.3,
-                 bar_format=None, initial=0, position=None, postfix=None,
-                 unit_divisor=1000, write_bytes=None, lock_args=None,
-                 nrows=None,
-                 gui=False, **kwargs):
+    def __init__(self, iterable=None, desc=None, total=None, leave=True, file=None,
+                 ncols=None, mininterval=0.1, maxinterval=10.0, miniters=None,
+                 ascii=None, disable=False, unit='it', unit_scale=False,
+                 dynamic_ncols=False, smoothing=0.3, bar_format=None, initial=0,
+                 position=None, postfix=None, unit_divisor=1000, write_bytes=None,
+                 lock_args=None, nrows=None, colour=None, delay=0, gui=False,
+                 **kwargs):
         """
         Parameters
         ----------
@@ -1084,7 +1130,7 @@ class tqdm(Comparable):
               percentage, elapsed, elapsed_s, ncols, nrows, desc, unit,
               rate, rate_fmt, rate_noinv, rate_noinv_fmt,
               rate_inv, rate_inv_fmt, postfix, unit_divisor,
-              remaining, remaining_s.
+              remaining, remaining_s, eta.
             Note that a trailing ": " is automatically removed after {desc}
             if the latter is empty.
         initial  : int or float, optional
@@ -1111,6 +1157,10 @@ class tqdm(Comparable):
             The screen height. If specified, hides nested bars outside this
             bound. If unspecified, attempts to use environment height.
             The fallback is 20.
+        colour  : str, optional
+            Bar colour (e.g. 'green', '#00ff00').
+        delay  : float, optional
+            Don't display until [default: 0] seconds have elapsed.
         gui  : bool, optional
             WARNING: internal parameter - do not use.
             Use tqdm.gui.tqdm(...) instead. If set, will attempt to use
@@ -1131,6 +1181,8 @@ class tqdm(Comparable):
             # should have bytes written to them.
             file = SimpleTextIOWrapper(
                 file, encoding=getattr(file, 'encoding', None) or 'utf-8')
+
+        file = DisableOnWriteError(file, tqdm_instance=self)
 
         if disable is None and hasattr(file, "isatty") and not file.isatty():
             disable = True
@@ -1224,14 +1276,19 @@ class tqdm(Comparable):
         self.unit = unit
         self.unit_scale = unit_scale
         self.unit_divisor = unit_divisor
+        self.initial = initial
         self.lock_args = lock_args
+        self.delay = delay
         self.gui = gui
         self.dynamic_ncols = dynamic_ncols
         self.smoothing = smoothing
-        self.avg_time = None
-        self._time = time
+        self._ema_dn = EMA(smoothing)
+        self._ema_dt = EMA(smoothing)
+        self._ema_miniters = EMA(smoothing)
         self.bar_format = bar_format
         self.postfix = None
+        self.colour = colour
+        self._time = time
         if postfix:
             try:
                 self.set_postfix(refresh=False, **postfix)
@@ -1253,7 +1310,8 @@ class tqdm(Comparable):
         if not gui:
             # Initialize the screen printer
             self.sp = self.status_printer(self.fp)
-            self.refresh(lock_args=self.lock_args)
+            if delay <= 0:
+                self.refresh(lock_args=self.lock_args)
 
         # Init the time counter
         self.last_print_t = self._time()
@@ -1274,6 +1332,8 @@ class tqdm(Comparable):
         return self.total if self.iterable is None else \
             (self.iterable.shape[0] if hasattr(self.iterable, "shape")
              else len(self.iterable) if hasattr(self.iterable, "__len__")
+             else self.iterable.__length_hint__()
+             if hasattr(self.iterable, "__length_hint__")
              else getattr(self, "total", None))
 
     def __enter__(self):
@@ -1291,7 +1351,7 @@ class tqdm(Comparable):
     def __del__(self):
         self.close()
 
-    def __repr__(self):
+    def __str__(self):
         return self.format_meter(**self.format_dict)
 
     @property
@@ -1315,21 +1375,11 @@ class tqdm(Comparable):
             return
 
         mininterval = self.mininterval
-        maxinterval = self.maxinterval
-        miniters = self.miniters
-        dynamic_miniters = self.dynamic_miniters
         last_print_t = self.last_print_t
         last_print_n = self.last_print_n
+        min_start_t = self.start_t + self.delay
         n = self.n
-        smoothing = self.smoothing
-        avg_time = self.avg_time
         time = self._time
-
-        if not hasattr(self, 'sp'):
-            raise TqdmDeprecationWarning(
-                "Please use `tqdm.gui.tqdm(...)` instead of"
-                " `tqdm(..., gui=True)`\n",
-                fp_write=getattr(self.fp, 'write', sys.stderr.write))
 
         try:
             for obj in iterable:
@@ -1337,54 +1387,16 @@ class tqdm(Comparable):
                 # Update and possibly print the progressbar.
                 # Note: does not call self.update(1) for speed optimisation.
                 n += 1
-                # check counter first to avoid calls to time()
+
                 if n - last_print_n >= self.miniters:
-                    miniters = self.miniters  # watch monitoring thread changes
-                    delta_t = time() - last_print_t
-                    if delta_t >= mininterval:
-                        cur_t = time()
-                        delta_it = n - last_print_n
-                        # EMA (not just overall average)
-                        if smoothing and delta_t and delta_it:
-                            rate = delta_t / delta_it
-                            avg_time = self.ema(rate, avg_time, smoothing)
-                            self.avg_time = avg_time
-
-                        self.n = n
-                        self.refresh(lock_args=self.lock_args)
-
-                        # If no `miniters` was specified, adjust automatically
-                        # to the max iteration rate seen so far between 2 prints
-                        if dynamic_miniters:
-                            if maxinterval and delta_t >= maxinterval:
-                                # Adjust miniters to time interval by rule of 3
-                                if mininterval:
-                                    # Set miniters to correspond to mininterval
-                                    miniters = delta_it * mininterval / delta_t
-                                else:
-                                    # Set miniters to correspond to maxinterval
-                                    miniters = delta_it * maxinterval / delta_t
-                            elif smoothing:
-                                # EMA-weight miniters to converge
-                                # towards the timeframe of mininterval
-                                rate = delta_it
-                                if mininterval and delta_t:
-                                    rate *= mininterval / delta_t
-                                miniters = self.ema(rate, miniters, smoothing)
-                            else:
-                                # Maximum nb of iterations between 2 prints
-                                miniters = max(miniters, delta_it)
-
-                        # Store old values for next call
-                        self.n = self.last_print_n = last_print_n = n
-                        self.last_print_t = last_print_t = cur_t
-                        self.miniters = miniters
+                    cur_t = time()
+                    dt = cur_t - last_print_t
+                    if dt >= mininterval and cur_t >= min_start_t:
+                        self.update(n - last_print_n)
+                        last_print_n = self.last_print_n
+                        last_print_t = self.last_print_t
         finally:
-            # Closing the progress bar.
-            # Update some internal variables for close().
-            self.last_print_n = last_print_n
             self.n = n
-            self.miniters = miniters
             self.close()
 
     def update(self, n=1):
@@ -1407,8 +1419,12 @@ class tqdm(Comparable):
             Increment to add to the internal counter of iterations
             [default: 1]. If using float, consider specifying `{n:.3f}`
             or similar in `bar_format`, or specifying `unit_scale`.
+
+        Returns
+        -------
+        out  : bool or None
+            True if a `display()` was triggered.
         """
-        # N.B.: see __iter__() for more comments.
         if self.disable:
             return
 
@@ -1418,50 +1434,37 @@ class tqdm(Comparable):
 
         # check counter first to reduce calls to time()
         if self.n - self.last_print_n >= self.miniters:
-            delta_t = self._time() - self.last_print_t
-            if delta_t >= self.mininterval:
+            cur_t = self._time()
+            dt = cur_t - self.last_print_t
+            if dt >= self.mininterval and cur_t >= self.start_t + self.delay:
                 cur_t = self._time()
-                delta_it = self.n - self.last_print_n  # >= n
-                # elapsed = cur_t - self.start_t
-                # EMA (not just overall average)
-                if self.smoothing and delta_t and delta_it:
-                    rate = delta_t / delta_it
-                    self.avg_time = self.ema(
-                        rate, self.avg_time, self.smoothing)
-
-                if not hasattr(self, "sp"):
-                    raise TqdmDeprecationWarning(
-                        "Please use `tqdm.gui.tqdm(...)`"
-                        " instead of `tqdm(..., gui=True)`\n",
-                        fp_write=getattr(self.fp, 'write', sys.stderr.write))
-
+                dn = self.n - self.last_print_n  # >= n
+                if self.smoothing and dt and dn:
+                    # EMA (not just overall average)
+                    self._ema_dn(dn)
+                    self._ema_dt(dt)
                 self.refresh(lock_args=self.lock_args)
-
-                # If no `miniters` was specified, adjust automatically to the
-                # maximum iteration rate seen so far between two prints.
-                # e.g.: After running `tqdm.update(5)`, subsequent
-                # calls to `tqdm.update()` will only cause an update after
-                # at least 5 more iterations.
                 if self.dynamic_miniters:
-                    if self.maxinterval and delta_t >= self.maxinterval:
-                        if self.mininterval:
-                            self.miniters = delta_it * self.mininterval \
-                                / delta_t
-                        else:
-                            self.miniters = delta_it * self.maxinterval \
-                                / delta_t
+                    # If no `miniters` was specified, adjust automatically to the
+                    # maximum iteration rate seen so far between two prints.
+                    # e.g.: After running `tqdm.update(5)`, subsequent
+                    # calls to `tqdm.update()` will only cause an update after
+                    # at least 5 more iterations.
+                    if self.maxinterval and dt >= self.maxinterval:
+                        self.miniters = dn * (self.mininterval or self.maxinterval) / dt
                     elif self.smoothing:
-                        self.miniters = self.smoothing * delta_it * \
-                            (self.mininterval / delta_t
-                             if self.mininterval and delta_t
-                             else 1) + \
-                            (1 - self.smoothing) * self.miniters
+                        # EMA miniters update
+                        self.miniters = self._ema_miniters(
+                            dn * (self.mininterval / dt if self.mininterval and dt
+                                  else 1))
                     else:
-                        self.miniters = max(self.miniters, delta_it)
+                        # max iters between two prints
+                        self.miniters = max(self.miniters, dn)
 
                 # Store old values for next call
                 self.last_print_n = self.n
                 self.last_print_t = cur_t
+                return True
 
     def close(self):
         """Cleanup and (if leave=False) close the progressbar."""
@@ -1475,8 +1478,12 @@ class tqdm(Comparable):
         pos = abs(self.pos)
         self._decr_instances(self)
 
+        if self.last_print_t < self.start_t + self.delay:
+            # haven't ever displayed; nothing to clear
+            return
+
         # GUI mode
-        if not hasattr(self, "sp"):
+        if getattr(self, 'sp', None) is None:
             return
 
         # annoyingly, _supports_unicode isn't good enough
@@ -1495,7 +1502,7 @@ class tqdm(Comparable):
         with self._lock:
             if leave:
                 # stats for overall rate (no weighted average)
-                self.avg_time = None
+                self._ema_dt = lambda: None
                 self.display(pos=0)
                 fp_write('\n')
             else:
@@ -1548,6 +1555,8 @@ class tqdm(Comparable):
 
     def unpause(self):
         """Restart tqdm timer from last print time."""
+        if self.disable:
+            return
         cur_t = self._time()
         self.start_t += cur_t - self.last_print_t
         self.last_print_t = cur_t
@@ -1562,10 +1571,16 @@ class tqdm(Comparable):
         ----------
         total  : int or float, optional. Total to use for the new bar.
         """
-        self.last_print_n = self.n = 0
-        self.last_print_t = self.start_t = self._time()
+        self.n = 0
         if total is not None:
             self.total = total
+        if self.disable:
+            return
+        self.last_print_n = 0
+        self.last_print_t = self.start_t = self._time()
+        self._ema_dn = EMA(self.smoothing)
+        self._ema_dt = EMA(self.smoothing)
+        self._ema_miniters = EMA(self.smoothing)
         self.refresh()
 
     def set_description(self, desc=None, refresh=True):
@@ -1601,7 +1616,7 @@ class tqdm(Comparable):
         kwargs  : dict, optional
         """
         # Sort in alphabetical order to be more deterministic
-        postfix = _OrderedDict([] if ordered_dict is None else ordered_dict)
+        postfix = OrderedDict([] if ordered_dict is None else ordered_dict)
         for key in sorted(kwargs.keys()):
             postfix[key] = kwargs[key]
         # Preprocess stats according to datatype
@@ -1635,19 +1650,20 @@ class tqdm(Comparable):
     @property
     def format_dict(self):
         """Public API for read-only member access."""
+        if self.disable and not hasattr(self, 'unit'):
+            return defaultdict(lambda: None, {
+                'n': self.n, 'total': self.total, 'elapsed': 0, 'unit': 'it'})
         if self.dynamic_ncols:
             self.ncols, self.nrows = self.dynamic_ncols(self.fp)
-        ncols, nrows = self.ncols, self.nrows
-        return dict(
-            n=self.n, total=self.total,
-            elapsed=self._time() - self.start_t
-            if hasattr(self, 'start_t') else 0,
-            ncols=ncols, nrows=nrows,
-            prefix=self.desc, ascii=self.ascii, unit=self.unit,
-            unit_scale=self.unit_scale,
-            rate=1 / self.avg_time if self.avg_time else None,
-            bar_format=self.bar_format, postfix=self.postfix,
-            unit_divisor=self.unit_divisor)
+        return {
+            'n': self.n, 'total': self.total,
+            'elapsed': self._time() - self.start_t if hasattr(self, 'start_t') else 0,
+            'ncols': self.ncols, 'nrows': self.nrows, 'prefix': self.desc,
+            'ascii': self.ascii, 'unit': self.unit, 'unit_scale': self.unit_scale,
+            'rate': self._ema_dn() / self._ema_dt() if self._ema_dt() else None,
+            'bar_format': self.bar_format, 'postfix': self.postfix,
+            'unit_divisor': self.unit_divisor, 'initial': self.initial,
+            'colour': self.colour}
 
     def display(self, msg=None, pos=None):
         """
@@ -1672,16 +1688,22 @@ class tqdm(Comparable):
             if msg or msg is None:  # override at `nrows - 1`
                 msg = " ... (more hidden) ..."
 
+        if not hasattr(self, "sp"):
+            raise TqdmDeprecationWarning(
+                "Please use `tqdm.gui.tqdm(...)`"
+                " instead of `tqdm(..., gui=True)`\n",
+                fp_write=getattr(self.fp, 'write', sys.stderr.write))
+
         if pos:
             self.moveto(pos)
-        self.sp(self.__repr__() if msg is None else msg)
+        self.sp(self.__str__() if msg is None else msg)
         if pos:
             self.moveto(-pos)
         return True
 
     @classmethod
     @contextmanager
-    def wrapattr(tclass, stream, method, total=None, bytes=True, **tkwargs):
+    def wrapattr(cls, stream, method, total=None, bytes=True, **tqdm_kwargs):
         """
         stream  : file-like object.
         method  : str, "read" or "write". The result of `read()` and
@@ -1693,7 +1715,7 @@ class tqdm(Comparable):
         ...         if not chunk:
         ...             break
         """
-        with tclass(total=total, **tkwargs) as t:
+        with cls(total=total, **tqdm_kwargs) as t:
             if bytes:
                 t.unit = "B"
                 t.unit_scale = True

@@ -1,7 +1,8 @@
+import atexit
 from threading import Event, Thread, current_thread
 from time import time
 from warnings import warn
-import atexit
+
 __all__ = ["TMonitor", "TqdmSynchronisationWarning"]
 
 
@@ -24,26 +25,16 @@ class TMonitor(Thread):
     sleep_interval  : fload
         Time to sleep between monitoring checks.
     """
-
-    # internal vars for unit testing
-    _time = None
-    _event = None
+    _test = {}  # internal vars for unit testing
 
     def __init__(self, tqdm_cls, sleep_interval):
         Thread.__init__(self)
         self.daemon = True  # kill thread when main killed (KeyboardInterrupt)
-        self.was_killed = Event()
         self.woken = 0  # last time woken up, to sync with monitor
         self.tqdm_cls = tqdm_cls
         self.sleep_interval = sleep_interval
-        if TMonitor._time is not None:
-            self._time = TMonitor._time
-        else:
-            self._time = time
-        if TMonitor._event is not None:
-            self._event = TMonitor._event
-        else:
-            self._event = Event
+        self._time = self._test.get("time", time)
+        self.was_killed = self._test.get("Event", Event)()
         atexit.register(self.exit)
         self.start()
 
@@ -90,10 +81,14 @@ class TMonitor(Thread):
                         instance.miniters = 1
                         # Refresh now! (works only for manual tqdm)
                         instance.refresh(nolock=True)
+                    # Remove accidental long-lived strong reference
+                    del instance
                 if instances != self.get_instances():  # pragma: nocover
                     warn("Set changed size during iteration" +
                          " (see https://github.com/tqdm/tqdm/issues/481)",
                          TqdmSynchronisationWarning, stacklevel=2)
+                # Remove accidental long-lived strong references
+                del instances
 
     def report(self):
         return not self.was_killed.is_set()
