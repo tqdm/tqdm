@@ -16,10 +16,10 @@ Options:
 
 from os import devnull
 
-from docopt import docopt
 import requests
-from tqdm.auto import tqdm
+from docopt import docopt
 
+from tqdm.auto import tqdm
 
 opts = docopt(__doc__)
 

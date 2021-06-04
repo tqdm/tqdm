@@ -2,9 +2,11 @@
 Thin wrappers around `itertools`.
 """
 from __future__ import absolute_import
-from tqdm.auto import tqdm as tqdm_auto
-from copy import deepcopy
+
 import itertools
+
+from tqdm.auto import tqdm as tqdm_auto
+
 __author__ = {"github.com/": ["casperdcl"]}
 __all__ = ['product']
 
@@ -17,7 +19,7 @@ def product(*iterables, **tqdm_kwargs):
     ----------
     tqdm_class  : [default: tqdm.auto.tqdm].
     """
-    kwargs = deepcopy(tqdm_kwargs)
+    kwargs = tqdm_kwargs.copy()
     tqdm_class = kwargs.pop("tqdm_class", tqdm_auto)
     try:
         lens = list(map(len, iterables))
