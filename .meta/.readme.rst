@@ -27,7 +27,7 @@ iterable with ``tqdm(iterable)``, and you're done!
 ``tqdm(range(N))``.
 
 |Screenshot|
-    |Video| |Slides|
+    |Video| |Slides| |Merch|
 
 It can also be executed as a module with pipes:
 
@@ -1162,6 +1162,11 @@ The monitor thread may be disabled application-wide by setting
 ``tqdm.tqdm.monitor_interval = 0`` before instantiation of any ``tqdm`` bar.
 
 
+Merch
+-----
+
+You can buy `tqdm branded merch <https://tqdm.github.io/merch>`__ now!
+
 Contributions
 -------------
 
@@ -1220,6 +1225,8 @@ Citation information: |DOI|
    :target: https://tqdm.github.io/video
 .. |Slides| image:: https://img.tqdm.ml/slides.jpg
    :target: https://tqdm.github.io/PyData2019/slides.html
+.. |Merch| image:: https://img.tqdm.ml/merch.jpg
+   :target: https://tqdm.github.io/merch
 .. |Build-Status| image:: https://img.shields.io/github/workflow/status/tqdm/tqdm/Test/master?logo=GitHub
    :target: https://github.com/tqdm/tqdm/actions?query=workflow%3ATest
 .. |Coverage-Status| image:: https://img.shields.io/coveralls/github/tqdm/tqdm/master?logo=coveralls
