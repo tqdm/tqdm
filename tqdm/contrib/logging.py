@@ -182,7 +182,7 @@ class logging_tqdm(std_tqdm):  # pylint: disable=invalid-name
         self._last_log_n = -1
         super(  # pylint: disable=super-with-arguments
             logging_tqdm, self
-        ).__init__(self, *args, **tqdm_kwargs)
+        ).__init__(*args, **tqdm_kwargs)
 
     def _get_logger(self):
         if self._logger is not None:
