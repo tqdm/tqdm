@@ -226,10 +226,12 @@ class TestLoggingTqdm:
 
     def test_should_log_tqdm_output_using_iterable(self):
         with add_capturing_logging_handler(DEFAULT_LOGGER) as out:
-            for item in logging_tqdm(range(2), mininterval=0):
-                LOGGER.debug('processing one item: %r', item)
-            last_log_line = out.getvalue().splitlines()[-1]
-        assert '100%' in last_log_line
+            processed_items = list(logging_tqdm(range(2), mininterval=0))
+            assert processed_items == [0, 1]
+            out_lines = out.getvalue().splitlines()
+        assert len(out_lines) == 2
+        assert '1/2' in out_lines[0]
+        assert '2/2' in out_lines[1]
 
     def test_should_not_output_before_any_progress(self):
         with add_capturing_logging_handler(DEFAULT_LOGGER) as out:
