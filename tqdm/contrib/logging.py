@@ -161,7 +161,7 @@ class logging_tqdm(std_tqdm):  # pylint: disable=invalid-name
 
     if __name__ == '__main__':
         logging.basicConfig(level=logging.INFO)
-        with logging_tqdm(range(10), mininterval=1, logger=LOG):
+        for _ in logging_tqdm(range(10), mininterval=1, logger=LOG):
             sleep(0.3)  # assume processing one item takes less than mininterval
         # logging restored
     ```
@@ -192,13 +192,16 @@ class logging_tqdm(std_tqdm):  # pylint: disable=invalid-name
     def display(self, msg=None, pos=None):
         if not self.n:
             # skip progress bar before having processed anything
+            LOGGER.debug('ignoring message before any progress: %r', self.n)
             return
         if self.n == self._last_log_n:
             # avoid logging for the same progress multiple times
+            LOGGER.debug('ignoring log message with same n: %r', self.n)
             return
         self._last_log_n = self.n
         if msg is None:
             msg = self.__str__()
         if not msg:
+            LOGGER.debug('ignoring empty message: %r', msg)
             return
         self._get_logger().info('%s', msg)
