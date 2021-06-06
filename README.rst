@@ -1364,8 +1364,8 @@ To output the tqdm progress bar to ``logging``,
 
     if __name__ == '__main__':
         logging.basicConfig(level=logging.INFO)
-        with logging_tqdm(range(10)):
-            sleep(0.3)
+        with logging_tqdm(range(10), mininterval=1):
+            sleep(0.3)  # assume processing one item takes less than mininterval
 
 Monitoring thread, intervals and miniters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
