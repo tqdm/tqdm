@@ -161,7 +161,7 @@ class logging_tqdm(std_tqdm):  # pylint: disable=invalid-name
 
     if __name__ == '__main__':
         logging.basicConfig(level=logging.INFO)
-        with logging_tqdm(range(10), mininterval=1):
+        with logging_tqdm(range(10), mininterval=1, logger=LOG):
             sleep(0.3)  # assume processing one item takes less than mininterval
         # logging restored
     ```
