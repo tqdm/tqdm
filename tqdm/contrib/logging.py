@@ -22,7 +22,9 @@ class _TqdmLoggingHandler(logging.StreamHandler):
         self,
         tqdm_class=std_tqdm  # type: Type[std_tqdm]
     ):
-        super(_TqdmLoggingHandler, self).__init__()
+        super(  # pylint: disable=super-with-arguments
+            _TqdmLoggingHandler, self
+        ).__init__()
         self.tqdm_class = tqdm_class
 
     def emit(self, record):
@@ -45,6 +47,7 @@ def _get_first_found_console_logging_formatter(handlers):
     for handler in handlers:
         if _is_console_logging_handler(handler):
             return handler.formatter
+    return None
 
 
 @contextmanager
@@ -128,7 +131,7 @@ def tqdm_logging_redirect(
             yield pbar
 
 
-class logging_tqdm(std_tqdm):
+class logging_tqdm(std_tqdm):  # pylint: disable=invalid-name
     """
     A version of tqdm that outputs the progress bar
     to Python logging instead of the console.
@@ -176,10 +179,12 @@ class logging_tqdm(std_tqdm):
         tqdm_kwargs.setdefault('mininterval', 1)
         tqdm_kwargs.setdefault('bar_format', '{desc}{percentage:3.0f}%{r_bar}')
         tqdm_kwargs.setdefault('desc', 'progress: ')
-        super(logging_tqdm, self).__init__(self, *args, **tqdm_kwargs)
+        self._last_log_n = -1
+        super(  # pylint: disable=super-with-arguments
+            logging_tqdm, self
+        ).__init__(self, *args, **tqdm_kwargs)
 
-    @property
-    def logger(self):
+    def _get_logger(self):
         if self._logger is not None:
             return self._logger
         return LOGGER
@@ -188,6 +193,12 @@ class logging_tqdm(std_tqdm):
         if not self.n:
             # skip progress bar before having processed anything
             return
-        if not msg:
+        if self.n == self._last_log_n:
+            # avoid logging for the same progress multiple times
+            return
+        self._last_log_n = self.n
+        if msg is None:
             msg = self.__str__()
-        self.logger.info('%s', msg)
+        if not msg:
+            return
+        self._get_logger().info('%s', msg)

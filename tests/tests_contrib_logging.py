@@ -230,8 +230,29 @@ class TestLoggingTqdm:
                 pass
             assert out.getvalue() == ''
 
-    def test_should_not_output_with_none_msg(self):
+    def test_should_use_default_message_if_msg_is_none(self):
         with add_capturing_logging_handler(DEFAULT_LOGGER) as out:
             with logging_tqdm(total=2, mininterval=0) as pbar:
+                pbar.n = 1
                 pbar.display()
+                out_lines = out.getvalue().splitlines()
+            assert len(out_lines) == 1
+            assert '1/2' in out_lines[-1]
+
+    def test_should_not_output_if_msg_is_empty(self):
+        with add_capturing_logging_handler(DEFAULT_LOGGER) as out:
+            with logging_tqdm(total=2, mininterval=0) as pbar:
+                pbar.n = 1
+                pbar.display(msg='')
             assert out.getvalue() == ''
+
+    def test_should_not_log_same_n_twice(self):
+        with add_capturing_logging_handler(DEFAULT_LOGGER) as out:
+            with logging_tqdm(total=2, mininterval=0) as pbar:
+                # update with call display
+                pbar.update(1)
+                # another call to display would cause the same message
+                pbar.display()
+                out_lines = out.getvalue().splitlines()
+            assert len(out_lines) == 1
+            assert '1/2' in out_lines[-1]
