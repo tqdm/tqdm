@@ -265,3 +265,13 @@ class TestLoggingTqdm:
                 out_lines = out.getvalue().splitlines()
             assert len(out_lines) == 1
             assert '1/2' in out_lines[-1]
+
+    def test_should_only_allow_iterable_as_positional_arg(self):
+        # with add_capturing_logging_handler(DEFAULT_LOGGER) as out:
+        with pytest.raises(ValueError):
+            list(logging_tqdm(range(2), 'other'))
+        #     assert processed_items == [0, 1]
+        #     out_lines = out.getvalue().splitlines()
+        # assert len(out_lines) == 2
+        # assert '1/2' in out_lines[0]
+        # assert '2/2' in out_lines[1]
