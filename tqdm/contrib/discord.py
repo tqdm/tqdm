@@ -6,10 +6,10 @@ Usage:
 >>> for i in tqdm(iterable, token='{token}', channel_id='{channel_id}'):
 ...     ...
 
-![screenshot](
-https://raw.githubusercontent.com/tqdm/img/src/screenshot-discord.png)
+![screenshot](https://img.tqdm.ml/screenshot-discord.png)
 """
 from __future__ import absolute_import
+
 import logging
 from os import getenv
 
@@ -20,7 +20,9 @@ except ImportError:
 
 from tqdm.auto import tqdm as tqdm_auto
 from tqdm.utils import _range
+
 from .utils_worker import MonoWorker
+
 __author__ = {"github.com/": ["casperdcl"]}
 __all__ = ['DiscordIO', 'tqdm_discord', 'tdrange', 'tqdm', 'trange']
 
@@ -35,15 +37,14 @@ class DiscordIO(MonoWorker):
         client = Client(config)
         self.text = self.__class__.__name__
         try:
-            self.message = client.api.channels_messages_create(
-                channel_id, self.text)
+            self.message = client.api.channels_messages_create(channel_id, self.text)
         except Exception as e:
             tqdm_auto.write(str(e))
 
     def write(self, s):
         """Replaces internal `message`'s text with `s`."""
         if not s:
-            return
+            s = "..."
         s = s.replace('\r', '').strip()
         if s == self.text:
             return  # skip duplicate message
@@ -83,13 +84,13 @@ class tqdm_discord(tqdm_auto):
 
         See `tqdm.auto.tqdm.__init__` for other parameters.
         """
-        kwargs = kwargs.copy()
-        logging.getLogger("HTTPClient").setLevel(logging.WARNING)
-        self.dio = DiscordIO(
-            kwargs.pop('token', getenv("TQDM_DISCORD_TOKEN")),
-            kwargs.pop('channel_id', getenv("TQDM_DISCORD_CHANNEL_ID")))
-
-        kwargs['mininterval'] = max(1.5, kwargs.get('mininterval', 1.5))
+        if not kwargs.get('disable'):
+            kwargs = kwargs.copy()
+            logging.getLogger("HTTPClient").setLevel(logging.WARNING)
+            self.dio = DiscordIO(
+                kwargs.pop('token', getenv("TQDM_DISCORD_TOKEN")),
+                kwargs.pop('channel_id', getenv("TQDM_DISCORD_CHANNEL_ID")))
+            kwargs['mininterval'] = max(1.5, kwargs.get('mininterval', 1.5))
         super(tqdm_discord, self).__init__(*args, **kwargs)
 
     def display(self, **kwargs):
@@ -101,6 +102,11 @@ class tqdm_discord(tqdm_auto):
         else:
             fmt['bar_format'] = '{l_bar}{bar:10u}{r_bar}'
         self.dio.write(self.format_meter(**fmt))
+
+    def clear(self, *args, **kwargs):
+        super(tqdm_discord, self).clear(*args, **kwargs)
+        if not self.disable:
+            self.dio.write("")
 
 
 def tdrange(*args, **kwargs):

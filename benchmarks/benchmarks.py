@@ -1,6 +1,7 @@
 # Write the benchmarking functions here.
 # See "Writing benchmarks" in the asv docs for more information.
 from __future__ import division
+
 from functools import partial
 
 
@@ -21,7 +22,7 @@ class Comparison:
     def run(self, cls):
         pbar = cls(self.iterable)
         t0 = self.time()
-        [0 for _ in pbar]
+        [0 for _ in pbar]  # pylint: disable=pointless-statement
         t1 = self.time()
         return t1 - t0
 

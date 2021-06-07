@@ -3,21 +3,42 @@ Thin wrappers around common functions.
 
 Subpackages contain potentially unstable extensions.
 """
+import sys
+from functools import wraps
+
 from tqdm import tqdm
 from tqdm.auto import tqdm as tqdm_auto
 from tqdm.utils import ObjectWrapper
-from functools import wraps
-import sys
+
 __author__ = {"github.com/": ["casperdcl"]}
 __all__ = ['tenumerate', 'tzip', 'tmap']
 
 
 class DummyTqdmFile(ObjectWrapper):
     """Dummy file-like that will write to tqdm"""
+
+    def __init__(self, wrapped):
+        super(DummyTqdmFile, self).__init__(wrapped)
+        self._buf = []
+
     def write(self, x, nolock=False):
-        # Avoid print() second call (useless \n)
-        if len(x.rstrip()) > 0:
-            tqdm.write(x, file=self._wrapped, nolock=nolock)
+        nl = b"\n" if isinstance(x, bytes) else "\n"
+        pre, sep, post = x.rpartition(nl)
+        if sep:
+            blank = type(nl)()
+            tqdm.write(blank.join(self._buf + [pre, sep]),
+                       end=blank, file=self._wrapped, nolock=nolock)
+            self._buf = [post]
+        else:
+            self._buf.append(x)
+
+    def __del__(self):
+        if self._buf:
+            blank = type(self._buf[0])()
+            try:
+                tqdm.write(blank.join(self._buf), end=blank, file=self._wrapped)
+            except (OSError, ValueError):
+                pass
 
 
 def builtin_iterable(func):
@@ -30,8 +51,7 @@ def builtin_iterable(func):
     return func
 
 
-def tenumerate(iterable, start=0, total=None, tqdm_class=tqdm_auto,
-               **tqdm_kwargs):
+def tenumerate(iterable, start=0, total=None, tqdm_class=tqdm_auto, **tqdm_kwargs):
     """
     Equivalent of `numpy.ndenumerate` or builtin `enumerate`.
 
@@ -45,8 +65,8 @@ def tenumerate(iterable, start=0, total=None, tqdm_class=tqdm_auto,
         pass
     else:
         if isinstance(iterable, np.ndarray):
-            return tqdm_class(np.ndenumerate(iterable),
-                              total=total or iterable.size, **tqdm_kwargs)
+            return tqdm_class(np.ndenumerate(iterable), total=total or iterable.size,
+                              **tqdm_kwargs)
     return enumerate(tqdm_class(iterable, total=total, **tqdm_kwargs), start)
 
 
@@ -61,7 +81,7 @@ def tzip(iter1, *iter2plus, **tqdm_kwargs):
     """
     kwargs = tqdm_kwargs.copy()
     tqdm_class = kwargs.pop("tqdm_class", tqdm_auto)
-    for i in zip(tqdm_class(iter1, **tqdm_kwargs), *iter2plus):
+    for i in zip(tqdm_class(iter1, **kwargs), *iter2plus):
         yield i
 
 

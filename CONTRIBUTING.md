@@ -1,9 +1,11 @@
 # HOW TO CONTRIBUTE TO TQDM
 
+**TL;DR: Skip to [QUICK DEV SUMMARY]**
+
 This file describes how to
 
 - contribute changes to the project, and
-- upload released to the pypi repository.
+- upload released to the PyPI repository.
 
 Most of the management commands have been directly placed inside the
 Makefile:
@@ -24,7 +26,7 @@ Contributions to the project are made using the "Fork & Pull" model. The
 typical steps would be:
 
 1. create an account on [github](https://github.com)
-2. fork [tqdm](https://github.com/tqdm/tqdm)
+2. fork [`tqdm`](https://github.com/tqdm/tqdm)
 3. make a local clone: `git clone https://github.com/your_account/tqdm.git`
 4. make changes on the local copy
 5. test (see below) and commit changes `git commit -a -m "my message"`
@@ -54,7 +56,6 @@ However it would be helpful to bear in mind:
     + remember, with millions of downloads per month, `tqdm` must be extremely fast and reliable
 - Any other kind of change may be included in a (possibly new) submodule
     + submodules are likely single python files under the main [tqdm/](tqdm/) directory
-        * large submodules requiring a sub-folder should be included in [`MANIFEST.in`](MANIFEST.in)
     + submodules extending `tqdm.std.tqdm` or any other module (e.g. [`tqdm.notebook.tqdm`](tqdm/notebook.py), [`tqdm.gui.tqdm`](tqdm/gui.py))
     + CLI wrapper `tqdm.cli`
         * if a newly added `tqdm.std.tqdm` option is not supported by the CLI, append to `tqdm.cli.UNSUPPORTED_OPTS`
@@ -64,7 +65,7 @@ However it would be helpful to bear in mind:
         * beta: well-used; commented, perhaps still missing tests
         * stable: >10 users; commented, 80% coverage
 - `.meta/`
-    + A "hidden" folder containing helper utilities not strictly part of `tqdm` distribution itself
+    + A "hidden" folder containing helper utilities not strictly part of the `tqdm` distribution itself
 
 
 ## TESTING
@@ -104,7 +105,7 @@ that each distribution has an alias to call the Python interpreter:
 
 Alternatively, use `pytest` to run the tests just for the current Python version:
 
-- install `pytest` and `flake8`
+- install test requirements: `[python setup.py] make install_test`
 - run the following command:
 
 ```
@@ -119,32 +120,27 @@ This section is intended for the project's maintainers and describes
 how to build and upload a new release. Once again,
 `[python setup.py] make [<alias>]` will help.
 Also consider `pip install`ing development utilities:
-`-r requirements-dev.txt` or `tqdm[dev]`.
+`[python setup.py] make install_build` at a minimum, or a more thorough `conda env create`.
 
 
 ## Pre-commit Hook
 
-It's probably a good idea to add `[python setup.py] make pre-commit` to
-`.git/hooks/pre-commit` for convenient local sanity-checking.
+It's probably a good idea to use the `pre-commit` (`pip install pre-commit`) helper.
+
+Run `pre-commit install` for convenient local sanity-checking.
 
 
 ## Semantic Versioning
 
-The tqdm repository managers should:
+The `tqdm` repository managers should:
 
-- follow the [Semantic Versioning](https://semver.org/) convention
-- take care of this (instead of users) to avoid PR conflicts
-solely due to the version file bumping
-
-Note: tools can be used to automate this process, such as
-[bumpversion](https://github.com/peritus/bumpversion) or
-[python-semanticversion](https://github.com/rbarrois/python-semanticversion/).
+- follow the [Semantic Versioning](https://semver.org) convention for tagging
 
 
 ## Checking setup.py
 
-To check that the `setup.py` file is compliant with PyPI requirements (e.g.
-version number; reStructuredText in `README.rst`) use:
+To check that the `setup.py`/`setup.cfg`/`pyproject.toml` file is compliant with PyPI
+requirements (e.g. version number; reStructuredText in `README.rst`) use:
 
 ```
 [python setup.py] make testsetup
@@ -219,18 +215,15 @@ Formally publishing requires additional steps: testing and tagging.
 
 ### Test
 
-- ensure that all online CI tests have passed
-- check `setup.py` and `MANIFEST.in` - which define the packaging
-process and info that will be uploaded to [PyPI](https://pypi.org) -
-using `[python setup.py] make installdev`
+Ensure that all online CI tests have passed.
 
 ### Tag
 
-- ensure the version has been bumped, committed **and** tagged.
+- ensure the version has been tagged.
 The tag format is `v{major}.{minor}.{patch}`, for example: `v4.4.1`.
 The current commit's tag is used in the version checking process.
 If the current commit is not tagged appropriately, the version will
-display as `v{major}.{minor}.{patch}-{commit_hash}`.
+display as `v{major}.{minor}.{patch}.dev{N}+g{commit_hash}`.
 
 ### Upload
 
@@ -246,7 +239,7 @@ Build `tqdm` into a distributable python package:
 This will generate several builds in the `dist/` folder. On non-windows
 machines the windows `exe` installer may fail to build. This is normal.
 
-Finally, upload everything to pypi. This can be done easily using the
+Finally, upload everything to PyPI. This can be done easily using the
 [twine](https://github.com/pypa/twine) module:
 
 ```
@@ -340,7 +333,7 @@ to assist with maintenance.
 For experienced devs, once happy with local master, follow the steps below.
 Much is automated so really it's steps 1-5, then 11(a).
 
-1. test (`[python setup.py] make alltests`)
+1. test (`[python setup.py] make alltests` or rely on `pre-commit`)
 2. `git commit [--amend]  # -m "bump version"`
 3. `git push`
 4. wait for tests to pass
@@ -371,6 +364,6 @@ Much is automated so really it's steps 1-5, then 11(a).
 
 Key:
 
-- **`[AUTO:GHA]`**: GitHub Actions CI should automatically do this after `git push --tags` (6)
-- **`[AUTO:GHA-rel]`**: GitHub Actions CI should automatically do this after release (12a)
+- **`[AUTO:GHA]`**: GitHub Actions CI should automatically do this after `git push --tags` (5)
+- **`[AUTO:GHA-rel]`**: GitHub Actions CI should automatically do this after release (11a)
 - **`[SUB]`**:  Requires one-time `make submodules` to clone `docs`, `wiki`, and `feedstock`

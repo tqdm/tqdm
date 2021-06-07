@@ -2,9 +2,12 @@
 Thin wrappers around `concurrent.futures`.
 """
 from __future__ import absolute_import
+
+from contextlib import contextmanager
+
 from tqdm import TqdmWarning
 from tqdm.auto import tqdm as tqdm_auto
-from contextlib import contextmanager
+
 try:
     from operator import length_hint
 except ImportError:
@@ -23,6 +26,7 @@ except ImportError:
         def cpu_count():
             return 4
 import sys
+
 __author__ = {"github.com/": ["casperdcl"]}
 __all__ = ['thread_map', 'process_map']
 
@@ -60,7 +64,7 @@ def _executor_map(PoolExecutor, fn, *iterables, **tqdm_kwargs):
     chunksize = kwargs.pop("chunksize", 1)
     lock_name = kwargs.pop("lock_name", "")
     with ensure_lock(tqdm_class, lock_name=lock_name) as lk:
-        pool_kwargs = dict(max_workers=max_workers)
+        pool_kwargs = {'max_workers': max_workers}
         sys_version = sys.version_info[:2]
         if sys_version >= (3, 7):
             # share lock in case workers are already using `tqdm`
@@ -69,8 +73,7 @@ def _executor_map(PoolExecutor, fn, *iterables, **tqdm_kwargs):
         if not (3, 0) < sys_version < (3, 5):
             map_args.update(chunksize=chunksize)
         with PoolExecutor(**pool_kwargs) as ex:
-            return list(tqdm_class(
-                ex.map(fn, *iterables, **map_args), **kwargs))
+            return list(tqdm_class(ex.map(fn, *iterables, **map_args), **kwargs))
 
 
 def thread_map(fn, *iterables, **tqdm_kwargs):

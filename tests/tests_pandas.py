@@ -1,11 +1,13 @@
 from tqdm import tqdm
-from .tests_tqdm import pretest_posttest  # NOQA, pylint: disable=unused-import
-from .tests_tqdm import importorskip, skip, StringIO, closing
 
-random = importorskip("numpy.random")
+from .tests_tqdm import StringIO, closing, importorskip, mark, skip
+
+pytestmark = mark.slow
+
+random = importorskip('numpy.random')
 rand = random.rand
 randint = random.randint
-pd = importorskip("pandas")
+pd = importorskip('pandas')
 
 
 def test_pandas_setup():
@@ -37,9 +39,8 @@ def test_pandas_rolling_expanding():
             our_file.seek(0)
             if our_file.getvalue().count(exres) < 2:
                 our_file.seek(0)
-                raise AssertionError(
-                    "\nExpected:\n{0}\nIn:\n{1}\n".format(
-                        exres + " at least twice.", our_file.read()))
+                raise AssertionError("\nExpected:\n{0}\nIn:\n{1}\n".format(
+                    exres + " at least twice.", our_file.read()))
 
 
 def test_pandas_series():
@@ -61,9 +62,8 @@ def test_pandas_series():
             our_file.seek(0)
             if our_file.getvalue().count(exres) < 2:
                 our_file.seek(0)
-                raise AssertionError(
-                    "\nExpected:\n{0}\nIn:\n{1}\n".format(
-                        exres + " at least twice.", our_file.read()))
+                raise AssertionError("\nExpected:\n{0}\nIn:\n{1}\n".format(
+                    exres + " at least twice.", our_file.read()))
 
 
 def test_pandas_data_frame():
@@ -103,9 +103,8 @@ def test_pandas_data_frame():
             our_file.seek(0)
             if our_file.getvalue().count(exres) < 1:
                 our_file.seek(0)
-                raise AssertionError(
-                    "\nExpected:\n{0}\nIn:\n {1}\n".format(
-                        exres + " at least once.", our_file.read()))
+                raise AssertionError("\nExpected:\n{0}\nIn:\n {1}\n".format(
+                    exres + " at least once.", our_file.read()))
 
 
 def test_pandas_groupby_apply():
@@ -119,7 +118,7 @@ def test_pandas_groupby_apply():
         dfs = pd.DataFrame(randint(0, 50, (500, 3)), columns=list('abc'))
         dfs.groupby(['a']).progress_apply(lambda x: None)
 
-        df2 = df = pd.DataFrame(dict(a=randint(1, 8, 10000), b=rand(10000)))
+        df2 = df = pd.DataFrame({'a': randint(1, 8, 10000), 'b': rand(10000)})
         res1 = df2.groupby("a").apply(max)
         res2 = df2.groupby("a").progress_apply(max)
         assert res1.equals(res2)
@@ -157,9 +156,8 @@ def test_pandas_groupby_apply():
             our_file.seek(0)
             if our_file.getvalue().count(exres) < 1:
                 our_file.seek(0)
-                raise AssertionError(
-                    "\nExpected:\n{0}\nIn:\n {1}\n".format(
-                        exres + " at least once.", our_file.read()))
+                raise AssertionError("\nExpected:\n{0}\nIn:\n {1}\n".format(
+                    exres + " at least once.", our_file.read()))
 
 
 def test_pandas_leave():
@@ -174,8 +172,8 @@ def test_pandas_leave():
         exres = '100%|##########| 100/100'
         if exres not in our_file.read():
             our_file.seek(0)
-            raise AssertionError(
-                "\nExpected:\n{0}\nIn:{1}\n".format(exres, our_file.read()))
+            raise AssertionError("\nExpected:\n{0}\nIn:{1}\n".format(
+                exres, our_file.read()))
 
 
 def test_pandas_apply_args_deprecation():
@@ -192,9 +190,9 @@ def test_pandas_apply_args_deprecation():
         df.progress_apply(lambda x: None, 1)  # 1 shall cause a warning
         # Check deprecation message
         res = our_file.getvalue()
-        assert all([i in res for i in (
+        assert all(i in res for i in (
             "TqdmDeprecationWarning", "not supported",
-            "keyword arguments instead")])
+            "keyword arguments instead"))
 
 
 def test_pandas_deprecation():

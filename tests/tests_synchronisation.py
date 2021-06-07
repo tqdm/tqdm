@@ -1,13 +1,14 @@
 from __future__ import division
+
+import sys
 from functools import wraps
 from threading import Event
 from time import sleep, time
-import sys
 
-from tqdm import tqdm, trange, TMonitor
+from tqdm import TMonitor, tqdm, trange
+
 from .tests_perf import retry_on_except
-from .tests_tqdm import pretest_posttest  # NOQA, pylint: disable=unused-import
-from .tests_tqdm import importorskip, skip, StringIO, closing, patch_lock
+from .tests_tqdm import StringIO, closing, importorskip, patch_lock, skip
 
 
 class Time(object):
@@ -201,6 +202,7 @@ def test_imap():
 
     pool = Pool()
     res = list(tqdm(pool.imap(incr, range(100)), disable=True))
+    pool.close()
     assert res[-1] == 100
 
 
@@ -209,7 +211,7 @@ def test_imap():
 @patch_lock(thread=True)
 def test_threadpool():
     """Test concurrent.futures.ThreadPoolExecutor"""
-    ThreadPoolExecutor = importorskip("concurrent.futures").ThreadPoolExecutor
+    ThreadPoolExecutor = importorskip('concurrent.futures').ThreadPoolExecutor
 
     with ThreadPoolExecutor(8) as pool:
         try:

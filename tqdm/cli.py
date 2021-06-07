@@ -1,13 +1,14 @@
 """
 Module version for monitoring CLI pipes (`... | python -m tqdm | ...`).
 """
-from ast import literal_eval as numeric
 import logging
 import re
 import sys
+from ast import literal_eval as numeric
 
-from .std import tqdm, TqdmTypeError, TqdmKeyError
+from .std import TqdmKeyError, TqdmTypeError, tqdm
 from .version import __version__
+
 __all__ = ["main"]
 log = logging.getLogger(__name__)
 
@@ -32,7 +33,7 @@ def cast(val, typ):
             raise TqdmTypeError(val + ' : ' + typ)
     try:
         return eval(typ + '("' + val + '")')
-    except:
+    except Exception:
         if typ == 'chr':
             return chr(ord(eval('"' + val + '"'))).encode()
         else:
@@ -163,9 +164,8 @@ def main(fp=sys.stderr, argv=None):
         # argv.pop(log_idx)
         # logLevel = argv.pop(log_idx)
         logLevel = argv[log_idx + 1]
-    logging.basicConfig(
-        level=getattr(logging, logLevel),
-        format="%(levelname)s:%(module)s:%(lineno)d:%(message)s")
+    logging.basicConfig(level=getattr(logging, logLevel),
+                        format="%(levelname)s:%(module)s:%(lineno)d:%(message)s")
 
     d = tqdm.__init__.__doc__ + CLI_EXTRA_DOC
 
@@ -221,9 +221,8 @@ Options:
         update = tqdm_args.pop('update', False)
         update_to = tqdm_args.pop('update_to', False)
         if sum((delim_per_char, update, update_to)) > 1:
-            raise TqdmKeyError(
-                "Can only have one of --bytes --update --update_to")
-    except:
+            raise TqdmKeyError("Can only have one of --bytes --update --update_to")
+    except Exception:
         fp.write('\nError:\nUsage:\n  tqdm [--help | options]\n')
         for i in sys.stdin:
             sys.stdout.write(i)
@@ -246,7 +245,8 @@ Options:
         if manpath or comppath:
             from os import path
             from shutil import copyfile
-            from pkg_resources import resource_filename, Requirement
+
+            from pkg_resources import Requirement, resource_filename
 
             def cp(src, dst):
                 """copies from src path to dst"""
@@ -256,15 +256,14 @@ Options:
                 cp(resource_filename(Requirement.parse('tqdm'), 'tqdm/tqdm.1'),
                    path.join(manpath, 'tqdm.1'))
             if comppath is not None:
-                cp(resource_filename(Requirement.parse('tqdm'),
-                                     'tqdm/completion.sh'),
+                cp(resource_filename(Requirement.parse('tqdm'), 'tqdm/completion.sh'),
                    path.join(comppath, 'tqdm_completion.sh'))
             sys.exit(0)
         if tee:
             stdout_write = stdout.write
             fp_write = getattr(fp, 'buffer', fp).write
 
-            class stdout(object):
+            class stdout(object):  # pylint: disable=function-redefined
                 @staticmethod
                 def write(x):
                     with tqdm.external_write_mode(file=fp):
@@ -306,5 +305,4 @@ Options:
                 else:
                     callback = t.update
                     callback_len = True
-                posix_pipe(stdin, stdout, delim, buf_size,
-                           callback, callback_len)
+                posix_pipe(stdin, stdout, delim, buf_size, callback, callback_len)

@@ -1,42 +1,25 @@
 *.py[cod]
-
-# C extensions
 *.so
+__pycache__/
+.ipynb_checkpoints/
 
 # Packages
 /tqdm/_dist_ver.py
 /.eggs/
-/tqdm.egg-info
+/*.egg*/
 /build/
 /dist/
 /snapcraft.yaml
-/tqdm_*_amd64.snap
+/tqdm_*.snap
 /.dockerignore
+/Dockerfile
 
 # Unit test / coverage reports
-.tox/
-.coverage
-.coverage.*
-__pycache__/
-.pytest_cache/
-
-# Translations
-*.mo
-
-# Mr Developer
-.mr.developer.cfg
-.project
-.pydevproject
-
-# PyCharm
-.idea
-
-# IPython
-.ipynb_checkpoints
-
-# asv
-.asv/
-benchmarks/*.py[co]
+/.tox/
+/.coverage*
+/coverage.xml
+/.pytest_cache/
+/.asv/
 
 # Sumbodules
 /wiki/

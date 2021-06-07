@@ -4,8 +4,8 @@ import sys
 if sys.version_info[:2] > (3, 6):
     from .py37_asyncio import *  # NOQA, pylint: disable=wildcard-import
 else:
-    import pytest
+    from .tests_tqdm import skip
     try:
-        pytest.skip("async not supported", allow_module_level=True)
+        skip("async not supported", allow_module_level=True)
     except TypeError:
         pass

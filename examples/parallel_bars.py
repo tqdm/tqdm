@@ -1,11 +1,12 @@
 from __future__ import print_function
+
+import sys
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
 from multiprocessing import Pool, RLock, freeze_support
 from random import random
 from threading import RLock as TRLock
 from time import sleep
-import sys
 
 from tqdm.auto import tqdm, trange
 from tqdm.contrib.concurrent import process_map, thread_map
@@ -14,11 +15,10 @@ NUM_SUBITERS = 9
 PY2 = sys.version_info[:1] <= (2,)
 
 
-def progresser(n, auto_position=True, write_safe=False, blocking=True,
-               progress=False):
-    interval = random() * 0.002 / (NUM_SUBITERS - n + 2)
+def progresser(n, auto_position=True, write_safe=False, blocking=True, progress=False):
+    interval = random() * 0.002 / (NUM_SUBITERS - n + 2)  # nosec
     total = 5000
-    text = "#{}, est. {:<04.2}s".format(n, interval * total)
+    text = "#{0}, est. {1:<04.2}s".format(n, interval * total)
     for _ in trange(total, desc=text, disable=not progress,
                     lock_args=None if blocking else (False,),
                     position=None if auto_position else n):
@@ -58,5 +58,4 @@ if __name__ == '__main__':
     if not PY2:
         pool_args.update(initializer=tqdm.set_lock, initargs=(tqdm.get_lock(),))
     with ThreadPoolExecutor(**pool_args) as p:
-        p.map(partial(progresser, progress=True, write_safe=not PY2,
-                      blocking=False), L)
+        p.map(partial(progresser, progress=True, write_safe=not PY2, blocking=False), L)

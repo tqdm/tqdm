@@ -47,13 +47,14 @@ for i in trange(int(1e8), miniters=4500000, mininterval=0.1, smoothing=0):
     pass
 """
 
+import re
 from time import sleep
 from timeit import timeit
-import re
 
 # Simple demo
 from tqdm import trange
-for i in trange(16, leave=True):
+
+for _ in trange(16, leave=True):
     sleep(0.1)
 
 # Profiling/overhead tests
