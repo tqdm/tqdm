@@ -807,9 +807,6 @@ Nested progress bars
             for k in trange(50, desc='3rd loop', leave=False):
                 sleep(0.01)
 
-On Windows `colorama <https://github.com/tartley/colorama>`__ will be used if
-available to keep nested bars on their respective lines.
-
 For manual control over positioning (e.g. for multi-processing use),
 you may specify ``position=n`` where ``n=0`` for the outermost bar,
 ``n=1`` for the next, and so on.
