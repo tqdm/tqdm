@@ -61,7 +61,6 @@ class tqdm_asyncio(std_tqdm):
         """
         if total is None:
             total = len(fs)
-
         kwargs = {}
         if version_info[:2] < (3, 10):
             kwargs['loop'] = loop

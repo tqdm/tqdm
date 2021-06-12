@@ -164,12 +164,11 @@ jobs:
         fi
         git log --pretty='format:%d%n- %s%n%b---' $(git tag --sort=v:refname | tail -n2 | head -n1)..HEAD > _CHANGES.md
     - if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
-      id: create_release
       uses: softprops/action-gh-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
       with:
-        release_name: tqdm ${{ github.ref }} stable
+        name: tqdm ${{ github.ref }} stable
         body_path: _CHANGES.md
         draft: true
         files: |
