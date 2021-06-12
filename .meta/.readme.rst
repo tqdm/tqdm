@@ -1132,7 +1132,7 @@ Helper methods are available in ``tqdm.contrib.logging``. For example:
 Monitoring thread, intervals and miniters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-``tqdm`` implements a few tricks to to increase efficiency and reduce overhead.
+``tqdm`` implements a few tricks to increase efficiency and reduce overhead.
 
 - Avoid unnecessary frequent bar refreshing: ``mininterval`` defines how long
   to wait between each refresh. ``tqdm`` always gets updated in the background,
