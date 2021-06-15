@@ -7,7 +7,7 @@ from .auto import tqdm as tqdm_auto
 
 try:
     import keras
-except ImportError as e:
+except (ImportError, AttributeError) as e:
     try:
         from tensorflow import keras
     except ImportError:
