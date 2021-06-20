@@ -113,10 +113,10 @@ class tqdm_rich(std_tqdm):  # pragma: no cover
         self._prog.__enter__()
         self._task_id = self._prog.add_task(self.desc or "", **d)
 
-    def close(self, *args, **kwargs):
+    def close(self):
         if self.disable:
             return
-        super(tqdm_rich, self).close(*args, **kwargs)
+        super(tqdm_rich, self).close()
         self._prog.__exit__(None, None, None)
 
     def clear(self, *_, **__):
