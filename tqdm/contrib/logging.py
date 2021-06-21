@@ -26,7 +26,7 @@ class _TqdmLoggingHandler(logging.StreamHandler):
     def emit(self, record):
         try:
             msg = self.format(record)
-            self.tqdm_class.write(msg)
+            self.tqdm_class.write(msg, file=self.stream)
             self.flush()
         except (KeyboardInterrupt, SystemExit):
             raise
@@ -39,10 +39,10 @@ def _is_console_logging_handler(handler):
             and handler.stream in {sys.stdout, sys.stderr})
 
 
-def _get_first_found_console_logging_formatter(handlers):
+def _get_first_found_console_logging_handler(handlers):
     for handler in handlers:
         if _is_console_logging_handler(handler):
-            return handler.formatter
+            return handler
 
 
 @contextmanager
@@ -85,8 +85,10 @@ def logging_redirect_tqdm(
     try:
         for logger in loggers:
             tqdm_handler = _TqdmLoggingHandler(tqdm_class)
-            tqdm_handler.setFormatter(
-                _get_first_found_console_logging_formatter(logger.handlers))
+            orig_handler = _get_first_found_console_logging_handler(logger.handlers)
+            if orig_handler is not None:
+                tqdm_handler.setFormatter(orig_handler.formatter)
+                tqdm_handler.setStream(orig_handler.stream)
             logger.handlers = [
                 handler for handler in logger.handlers
                 if not _is_console_logging_handler(handler)] + [tqdm_handler]
