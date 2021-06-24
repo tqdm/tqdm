@@ -13,7 +13,7 @@ from warnings import catch_warnings, simplefilter
 
 from pytest import importorskip, mark, raises, skip
 
-from tqdm import TqdmDeprecationWarning, TqdmWarning, tqdm, trange
+from tqdm import TqdmValueError, TqdmDeprecationWarning, TqdmWarning, tqdm, trange
 from tqdm.contrib import DummyTqdmFile
 from tqdm.std import EMA, Bar
 
@@ -2007,3 +2007,21 @@ def test_closed():
         for i in trange(9, file=our_file, miniters=1, mininterval=0):
             if i == 5:
                 our_file.close()
+
+
+def test_manual_mode_iter_raises():
+    with closing(StringIO()) as our_file:
+        # control check
+        t = tqdm([1, 2, 3], file=our_file)
+        iter(t)  # shouldn't raise
+        for _ in t:
+            pass
+
+        # raises when not wrapping an iterable ("manual mode")
+        with tqdm(file=our_file) as t:
+            with raises(TqdmValueError):
+                iter(t)
+
+            with raises(TqdmValueError):
+                for _ in t:
+                    pass
