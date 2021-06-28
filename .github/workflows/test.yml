@@ -45,6 +45,7 @@ jobs:
         os: [macos-latest, windows-latest]
     name: py${{ matrix.python }}-${{ matrix.os }}
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
     steps:
     - uses: actions/checkout@v2
       with:
@@ -77,6 +78,7 @@ jobs:
         python: [2.7, 3.5, 3.6, 3.7, 3.8, 3.9]
     name: py${{ matrix.python }}
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
     - uses: actions/checkout@v2
       with:
