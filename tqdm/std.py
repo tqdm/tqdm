@@ -791,8 +791,12 @@ class tqdm(Comparable):
                         " Use keyword arguments instead.",
                         fp_write=getattr(t.fp, 'write', sys.stderr.write))
 
+                try:  # pandas>=1.3.0
+                    from pandas.core.common import is_builtin_func
+                except ImportError:
+                    is_builtin_func = df._is_builtin_func
                 try:
-                    func = df._is_builtin_func(func)
+                    func = is_builtin_func(func)
                 except TypeError:
                     pass
 
