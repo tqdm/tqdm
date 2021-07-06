@@ -8,6 +8,7 @@ Usage:
 ...     ...
 """
 import asyncio
+from sys import version_info
 
 from .std import tqdm as std_tqdm
 
@@ -60,7 +61,10 @@ class tqdm_asyncio(std_tqdm):
         """
         if total is None:
             total = len(fs)
-        yield from cls(asyncio.as_completed(fs, loop=loop, timeout=timeout),
+        kwargs = {}
+        if version_info[:2] < (3, 10):
+            kwargs['loop'] = loop
+        yield from cls(asyncio.as_completed(fs, timeout=timeout, **kwargs),
                        total=total, **tqdm_kwargs)
 
     @classmethod

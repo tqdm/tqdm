@@ -62,6 +62,17 @@ class TelegramIO(MonoWorker):
         else:
             return future
 
+    def delete(self):
+        """Deletes internal `message_id`."""
+        try:
+            future = self.submit(
+                self.session.post, self.API + '%s/deleteMessage' % self.token,
+                data={'chat_id': self.chat_id, 'message_id': self.message_id})
+        except Exception as e:
+            tqdm_auto.write(str(e))
+        else:
+            return future
+
 
 class tqdm_telegram(tqdm_auto):
     """
@@ -111,6 +122,13 @@ class tqdm_telegram(tqdm_auto):
         super(tqdm_telegram, self).clear(*args, **kwargs)
         if not self.disable:
             self.tgio.write("")
+
+    def close(self):
+        if self.disable:
+            return
+        super(tqdm_telegram, self).close()
+        if not (self.leave or (self.leave is None and self.pos == 0)):
+            self.tgio.delete()
 
 
 def ttgrange(*args, **kwargs):
