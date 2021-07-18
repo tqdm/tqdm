@@ -4,6 +4,7 @@ General helpers required for `tqdm.std`.
 import os
 import re
 import sys
+import weakref
 from functools import wraps
 from warnings import warn
 
@@ -137,17 +138,22 @@ class DisableOnWriteError(ObjectWrapper):
         """
         Quietly set `tqdm_instance.miniters=inf` if `func` raises `errno=5`.
         """
+        tqdm_instance_ref = weakref.ref(tqdm_instance)
+
         def inner(*args, **kwargs):
+            tqdm_instance = tqdm_instance_ref()
             try:
                 return func(*args, **kwargs)
             except OSError as e:
                 if e.errno != 5:
                     raise
-                tqdm_instance.miniters = float('inf')
+                if tqdm_instance is not None:
+                    tqdm_instance.miniters = float('inf')
             except ValueError as e:
                 if 'closed' not in str(e):
                     raise
-                tqdm_instance.miniters = float('inf')
+                if tqdm_instance is not None:
+                    tqdm_instance.miniters = float('inf')
         return inner
 
     def __init__(self, wrapped, tqdm_instance):
