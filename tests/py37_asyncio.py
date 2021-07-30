@@ -122,7 +122,7 @@ async def double(i):
 @mark.asyncio
 async def test_gather(capsys):
     """Test asyncio gather"""
-    res = await gather(list(map(double, range(30))))
+    res = await gather(*map(double, range(30)))
     _, err = capsys.readouterr()
     assert '30/30' in err
     assert res == list(range(0, 30 * 2, 2))
