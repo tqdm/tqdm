@@ -277,7 +277,7 @@ def _screen_shape_linux(fp):  # pragma: no cover
         from fcntl import ioctl
         from termios import TIOCGWINSZ
     except ImportError:
-        return None
+        return None, None
     else:
         try:
             rows, cols = array('h', ioctl(fp, TIOCGWINSZ, '\0' * 8))[:2]
