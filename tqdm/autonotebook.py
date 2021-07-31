@@ -15,6 +15,7 @@ try:
         raise ImportError("console")
     if 'VSCODE_PID' in os.environ:  # pragma: no cover
         raise ImportError("vscode")
+    import ipywidgets
 except Exception:
     from .std import tqdm, trange
 else:  # pragma: no cover
