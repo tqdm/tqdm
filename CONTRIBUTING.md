@@ -96,7 +96,7 @@ interpreters errors - these are due to the local machine missing certain
 versions of Python.)
 
 Note: to install all versions of the Python interpreter that are specified
-in [tox.ini](https://raw.githubusercontent.com/tqdm/tqdm/master/tox.ini),
+in [tox.ini](https://github.com/tqdm/tqdm/blob/master/tox.ini),
 you can use `MiniConda` to install a minimal setup. You must also make sure
 that each distribution has an alias to call the Python interpreter:
 `python27` for Python 2.7's interpreter, `python32` for Python 3.2's, etc.
