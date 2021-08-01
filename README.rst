@@ -1403,18 +1403,15 @@ are:
 ==================== ======================================================== ==== ================================
 Name                 ID                                                       SLoC Notes
 ==================== ======================================================== ==== ================================
-Casper da Costa-Luis `casperdcl <https://github.com/casperdcl>`__             ~81% primary maintainer |Gift-Casper|
+Casper da Costa-Luis `casperdcl <https://github.com/casperdcl>`__             ~78% primary maintainer |Gift-Casper|
 Stephen Larroque     `lrq3000 <https://github.com/lrq3000>`__                 ~10% team member
-Martin Zugnoni       `martinzugnoni <https://github.com/martinzugnoni>`__     ~3%
+Martin Zugnoni       `martinzugnoni <https://github.com/martinzugnoni>`__     ~4%
+Daniel Ecer          `de-code <https://github.com/de-code>`__                 ~2%
 Richard Sheridan     `richardsheridan <https://github.com/richardsheridan>`__ ~1%
 Guangshuo Chen       `chengs <https://github.com/chengs>`__                   ~1%
 Kyle Altendorf       `altendky <https://github.com/altendky>`__               <1%
 Matthew Stevens      `mjstevens777 <https://github.com/mjstevens777>`__       <1%
 Hadrien Mary         `hadim <https://github.com/hadim>`__                     <1%  team member
-Ivan Ivanov          `obiwanus <https://github.com/obiwanus>`__               <1%
-Daniel Panteleit     `danielpanteleit <https://github.com/danielpanteleit>`__ <1%
-Jonas Haag           `jonashaag <https://github.com/jonashaag>`__             <1%
-James E. King III    `jeking3 <https://github.com/jeking3>`__                 <1%
 Noam Yorav-Raphael   `noamraph <https://github.com/noamraph>`__               <1%  original author
 Mikhail Korobov      `kmike <https://github.com/kmike>`__                     <1%  team member
 ==================== ======================================================== ==== ================================
