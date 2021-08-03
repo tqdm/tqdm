@@ -107,8 +107,8 @@ class tqdm_telegram(tqdm_auto):
             self.tgio = TelegramIO(
                 kwargs.pop('token', getenv('TQDM_TELEGRAM_TOKEN')),
                 kwargs.pop('chat_id', getenv('TQDM_TELEGRAM_CHAT_ID')))
-        super(tqdm_telegram, self).__init__(*args, **kwargs)
         self._last_display_operation_time = 0
+        super(tqdm_telegram, self).__init__(*args, **kwargs)
 
     def display(self, **kwargs):
         super(tqdm_telegram, self).display(**kwargs)
