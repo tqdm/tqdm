@@ -11,6 +11,7 @@ Usage:
 from __future__ import absolute_import
 
 from os import getenv
+import time
 
 from requests import Session
 
@@ -107,6 +108,7 @@ class tqdm_telegram(tqdm_auto):
                 kwargs.pop('token', getenv('TQDM_TELEGRAM_TOKEN')),
                 kwargs.pop('chat_id', getenv('TQDM_TELEGRAM_CHAT_ID')))
         super(tqdm_telegram, self).__init__(*args, **kwargs)
+        self._last_display_operation_time = 0
 
     def display(self, **kwargs):
         super(tqdm_telegram, self).display(**kwargs)
@@ -116,7 +118,12 @@ class tqdm_telegram(tqdm_auto):
                 '<bar/>', '{bar:10u}').replace('{bar}', '{bar:10u}')
         else:
             fmt['bar_format'] = '{l_bar}{bar:10u}{r_bar}'
-        self.tgio.write(self.format_meter(**fmt))
+        # Only call telegram api if more then a second passed. Avoids "Too Many Requests" Error
+        # https://core.telegram.org/bots/faq#my-bot-is-hitting-limits-how-do-i-avoid-this
+        current_time = time.time()
+        if current_time - self._last_display_operation_time > 1:
+            self._last_display_operation_time = current_time
+            self.tgio.write(self.format_meter(**fmt))
 
     def clear(self, *args, **kwargs):
         super(tqdm_telegram, self).clear(*args, **kwargs)
