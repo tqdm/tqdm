@@ -18,9 +18,8 @@ try:
 except ImportError:
     raise ImportError("Please `pip install disco-py`")
 
-from tqdm.auto import tqdm as tqdm_auto
-from tqdm.utils import _range
-
+from ..auto import tqdm as tqdm_auto
+from ..utils import _range
 from .utils_worker import MonoWorker
 
 __author__ = {"github.com/": ["casperdcl"]}
