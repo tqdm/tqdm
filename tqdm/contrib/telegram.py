@@ -11,10 +11,12 @@ Usage:
 from __future__ import absolute_import
 
 from os import getenv
+from warnings import warn
 
 from requests import Session
 
 from ..auto import tqdm as tqdm_auto
+from ..std import TqdmWarning
 from ..utils import _range
 from .utils_worker import MonoWorker
 
@@ -31,17 +33,28 @@ class TelegramIO(MonoWorker):
         super(TelegramIO, self).__init__()
         self.token = token
         self.chat_id = chat_id
-        self.session = session = Session()
+        self.session = Session()
         self.text = self.__class__.__name__
+        self.message_id
+
+    @property
+    def message_id(self):
+        if hasattr(self, '_message_id'):
+            return self._message_id
         try:
-            res = session.post(
+            res = self.session.post(
                 self.API + '%s/sendMessage' % self.token,
                 data={'text': '`' + self.text + '`', 'chat_id': self.chat_id,
-                      'parse_mode': 'MarkdownV2'})
+                      'parse_mode': 'MarkdownV2'}).json()
         except Exception as e:
             tqdm_auto.write(str(e))
         else:
-            self.message_id = res.json()['result']['message_id']
+            if res.get('error_code') == 429:
+                warn("Creation rate limit: try increasing `mininterval`.",
+                     TqdmWarning, stacklevel=2)
+            else:
+                self._message_id = res['result']['message_id']
+                return self._message_id
 
     def write(self, s):
         """Replaces internal `message_id`'s text with `s`."""
@@ -50,12 +63,15 @@ class TelegramIO(MonoWorker):
         s = s.replace('\r', '').strip()
         if s == self.text:
             return  # avoid duplicate message Bot error
+        message_id = self.message_id
+        if message_id is None:
+            return
         self.text = s
         try:
             future = self.submit(
                 self.session.post, self.API + '%s/editMessageText' % self.token,
                 data={'text': '`' + s + '`', 'chat_id': self.chat_id,
-                      'message_id': self.message_id, 'parse_mode': 'MarkdownV2'})
+                      'message_id': message_id, 'parse_mode': 'MarkdownV2'})
         except Exception as e:
             tqdm_auto.write(str(e))
         else:
