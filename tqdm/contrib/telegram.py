@@ -9,6 +9,7 @@ Usage:
 ![screenshot](https://img.tqdm.ml/screenshot-telegram.gif)
 """
 from __future__ import absolute_import
+from warnings import warn
 
 from os import getenv
 
@@ -42,6 +43,8 @@ class TelegramIO(MonoWorker):
         except Exception as e:
             tqdm_auto.write(str(e))
         else:
+            if res.json().get('error_code') == 429:
+                warn("Too Many Requests. See https://core.telegram.org/bots/faq#my-bot-is-hitting-limits-how-do-i-avoid-this")
             self.message_id = res.json()['result']['message_id']
 
     def write(self, s):
@@ -102,7 +105,7 @@ class tqdm_telegram(tqdm_auto):
             Minimum progress display update interval [default: 1.0] seconds.
             Override the default mininterval to Avoids "Too Many Requests" Error
             See https://core.telegram.org/bots/faq#my-bot-is-hitting-limits-how-do-i-avoid-this
-
+            
         See `tqdm.auto.tqdm.__init__` for other parameters.
         """
         if not kwargs.get('disable'):
