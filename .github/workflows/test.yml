@@ -75,7 +75,7 @@ jobs:
     if: github.event_name != 'pull_request' || github.head_ref != 'devel'
     strategy:
       matrix:
-        python: [2.7, 3.5, 3.6, 3.7, 3.8, 3.9]
+        python: [2.7, 3.5, 3.6, 3.7, 3.8, 3.9, 3.10-dev]
     name: py${{ matrix.python }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -99,6 +99,8 @@ jobs:
           tox -e $PYVER                                             # basic:pypy
         elif [[ "$PYVER" == *3.9 ]]; then
           tox -e py${PYVER/./}                                      # basic
+        elif [[ "$PYVER" == "3.10-dev" ]]; then
+          tox -e py310                                              # basic
         elif [[ "$PYVER" == "3.7" ]]; then
           tox -e py${PYVER/./}-tf,py${PYVER/./}-tf-keras            # full
         else
