@@ -5,7 +5,7 @@ from __future__ import absolute_import
 
 import itertools
 
-from tqdm.auto import tqdm as tqdm_auto
+from ..auto import tqdm as tqdm_auto
 
 __author__ = {"github.com/": ["casperdcl"]}
 __all__ = ['product']

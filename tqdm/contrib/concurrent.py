@@ -5,8 +5,8 @@ from __future__ import absolute_import
 
 from contextlib import contextmanager
 
-from tqdm import TqdmWarning
-from tqdm.auto import tqdm as tqdm_auto
+from ..auto import tqdm as tqdm_auto
+from ..std import TqdmWarning
 
 try:
     from operator import length_hint

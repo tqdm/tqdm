@@ -6,6 +6,7 @@ import re
 import sys
 from functools import wraps
 from warnings import warn
+from weakref import proxy
 
 # py2/3 compat
 try:
@@ -137,17 +138,25 @@ class DisableOnWriteError(ObjectWrapper):
         """
         Quietly set `tqdm_instance.miniters=inf` if `func` raises `errno=5`.
         """
+        tqdm_instance = proxy(tqdm_instance)
+
         def inner(*args, **kwargs):
             try:
                 return func(*args, **kwargs)
             except OSError as e:
                 if e.errno != 5:
                     raise
-                tqdm_instance.miniters = float('inf')
+                try:
+                    tqdm_instance.miniters = float('inf')
+                except ReferenceError:
+                    pass
             except ValueError as e:
                 if 'closed' not in str(e):
                     raise
-                tqdm_instance.miniters = float('inf')
+                try:
+                    tqdm_instance.miniters = float('inf')
+                except ReferenceError:
+                    pass
         return inner
 
     def __init__(self, wrapped, tqdm_instance):
