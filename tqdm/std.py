@@ -1529,3 +1529,9 @@ def trange(*args, **kwargs):
     On Python3+ range is used instead of xrange.
     """
     return tqdm(_range(*args), **kwargs)
+
+def tenumerate(iterable, start = 0, **kwargs):
+    """
+    A shortcut for enumerate(tqdm(iterable, **kwargs), start = start).
+    """
+    return enumerate(tqdm(iterable, **kwargs), start = start)

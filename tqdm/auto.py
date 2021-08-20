@@ -41,4 +41,10 @@ else:  # Python3.6+
         """
         return tqdm(range(*args), **kwargs)
 
-__all__ = ["tqdm", "trange"]
+    def tenumerate(iterable, start = 0, **kwargs):
+        """
+        A shortcut for `enumerate(tqdm.auto.tqdm(iterable, **kwargs), start = start)`.
+        """
+        return enumerate(tqdm(iterable, **kwargs), start = start)
+
+__all__ = ["tqdm", "trange", "tenumerate"]

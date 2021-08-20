@@ -16,13 +16,13 @@ try:
     if 'VSCODE_PID' in os.environ:  # pragma: no cover
         raise ImportError("vscode")
 except Exception:
-    from .std import tqdm, trange
+    from .std import tqdm, trange, tenumerate
 else:  # pragma: no cover
     from warnings import warn
 
-    from .notebook import tqdm, trange
+    from .notebook import tqdm, trange, tenumerate
     from .std import TqdmExperimentalWarning
     warn("Using `tqdm.autonotebook.tqdm` in notebook mode."
          " Use `tqdm.tqdm` instead to force console mode"
          " (e.g. in jupyter console)", TqdmExperimentalWarning, stacklevel=2)
-__all__ = ["tqdm", "trange"]
+__all__ = ["tqdm", "trange", "tenumerate"]

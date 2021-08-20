@@ -13,7 +13,7 @@ from warnings import catch_warnings, simplefilter
 
 from pytest import importorskip, mark, raises, skip
 
-from tqdm import TqdmDeprecationWarning, TqdmWarning, tqdm, trange
+from tqdm import TqdmDeprecationWarning, TqdmWarning, tqdm, trange, tenumerate
 from tqdm.contrib import DummyTqdmFile
 from tqdm.std import EMA, Bar
 
@@ -482,6 +482,23 @@ def test_trange():
             pass
         assert '| 3/3 ' not in our_file2.getvalue()
 
+def test_tenumerate():
+    """Test tenumerate"""
+    with closing(StringIO()) as our_file:
+        e = list(tenumerate([3, 4], file=our_file))
+        assert e == [(0, 3), (1, 4)]
+
+    with closing(StringIO()) as our_file:
+        for _ in tenumerate([3, 4], file=our_file, leave=True):
+            pass
+        s=our_file.getvalue()
+        assert '| 2/2 ' in s
+
+    with closing(StringIO()) as our_file2:
+        for _ in tenumerate([3, 4], file=our_file2, leave=False):
+            pass
+        s=our_file2.getvalue()
+        assert '| 2/2 ' not in our_file2.getvalue()
 
 def test_min_interval():
     """Test mininterval"""

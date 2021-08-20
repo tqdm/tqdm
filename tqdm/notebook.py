@@ -318,7 +318,13 @@ def tnrange(*args, **kwargs):
     """
     return tqdm_notebook(_range(*args), **kwargs)
 
+def tnenumerate(iterable, start = 0, **kwargs):
+    """
+    A shortcut for `enumerate(tqdm.notebook.tqdm(iterable, **kwargs), start = start)`.
+    """
+    return enumerate(tqdm_notebook(iterable, **kwargs), start = start)
 
 # Aliases
 tqdm = tqdm_notebook
 trange = tnrange
+tenumerate = tnenumerate
