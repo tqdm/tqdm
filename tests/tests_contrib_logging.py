@@ -17,7 +17,7 @@ import pytest
 
 from tqdm import tqdm
 from tqdm.contrib.logging import LOGGER as DEFAULT_LOGGER
-from tqdm.contrib.logging import _get_first_found_console_logging_formatter
+from tqdm.contrib.logging import _get_first_found_console_logging_handler
 from tqdm.contrib.logging import _TqdmLoggingHandler as TqdmLoggingHandler
 from tqdm.contrib.logging import (
     logging_redirect_tqdm, logging_tqdm, tqdm_logging_redirect)
@@ -76,33 +76,25 @@ class TestTqdmLoggingHandler:
             logger.info('test')
 
 
-class TestGetFirstFoundConsoleLoggingFormatter:
+class TestGetFirstFoundConsoleLoggingHandler:
     def test_should_return_none_for_no_handlers(self):
-        assert _get_first_found_console_logging_formatter([]) is None
+        assert _get_first_found_console_logging_handler([]) is None
 
     def test_should_return_none_without_stream_handler(self):
         handler = logging.handlers.MemoryHandler(capacity=1)
-        handler.formatter = TEST_LOGGING_FORMATTER
-        assert _get_first_found_console_logging_formatter([handler]) is None
+        assert _get_first_found_console_logging_handler([handler]) is None
 
     def test_should_return_none_for_stream_handler_not_stdout_or_stderr(self):
         handler = logging.StreamHandler(StringIO())
-        handler.formatter = TEST_LOGGING_FORMATTER
-        assert _get_first_found_console_logging_formatter([handler]) is None
+        assert _get_first_found_console_logging_handler([handler]) is None
 
-    def test_should_return_stream_handler_formatter_if_stream_is_stdout(self):
+    def test_should_return_stream_handler_if_stream_is_stdout(self):
         handler = logging.StreamHandler(sys.stdout)
-        handler.formatter = TEST_LOGGING_FORMATTER
-        assert _get_first_found_console_logging_formatter(
-            [handler]
-        ) == TEST_LOGGING_FORMATTER
+        assert _get_first_found_console_logging_handler([handler]) == handler
 
-    def test_should_return_stream_handler_formatter_if_stream_is_stderr(self):
+    def test_should_return_stream_handler_if_stream_is_stderr(self):
         handler = logging.StreamHandler(sys.stderr)
-        handler.formatter = TEST_LOGGING_FORMATTER
-        assert _get_first_found_console_logging_formatter(
-            [handler]
-        ) == TEST_LOGGING_FORMATTER
+        assert _get_first_found_console_logging_handler([handler]) == handler
 
 
 class TestRedirectLoggingToTqdm:

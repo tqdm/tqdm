@@ -5,7 +5,6 @@ __pycache__/
 
 # Packages
 /tqdm/_dist_ver.py
-/.eggs/
 /*.egg*/
 /build/
 /dist/

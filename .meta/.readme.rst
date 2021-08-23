@@ -27,7 +27,7 @@ iterable with ``tqdm(iterable)``, and you're done!
 ``tqdm(range(N))``.
 
 |Screenshot|
-    |Video| |Slides|
+    |Video| |Slides| |Merch|
 
 It can also be executed as a module with pipes:
 
@@ -588,9 +588,6 @@ Nested progress bars
             for k in trange(50, desc='3rd loop', leave=False):
                 sleep(0.01)
 
-On Windows `colorama <https://github.com/tartley/colorama>`__ will be used if
-available to keep nested bars on their respective lines.
-
 For manual control over positioning (e.g. for multi-processing use),
 you may specify ``position=n`` where ``n=0`` for the outermost bar,
 ``n=1`` for the next, and so on.
@@ -1132,7 +1129,7 @@ Helper methods are available in ``tqdm.contrib.logging``. For example:
 Monitoring thread, intervals and miniters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-``tqdm`` implements a few tricks to to increase efficiency and reduce overhead.
+``tqdm`` implements a few tricks to increase efficiency and reduce overhead.
 
 - Avoid unnecessary frequent bar refreshing: ``mininterval`` defines how long
   to wait between each refresh. ``tqdm`` always gets updated in the background,
@@ -1162,6 +1159,11 @@ The monitor thread may be disabled application-wide by setting
 ``tqdm.tqdm.monitor_interval = 0`` before instantiation of any ``tqdm`` bar.
 
 
+Merch
+-----
+
+You can buy `tqdm branded merch <https://tqdm.github.io/merch>`__ now!
+
 Contributions
 -------------
 
@@ -1171,7 +1173,7 @@ All source code is hosted on `GitHub <https://github.com/tqdm/tqdm>`__.
 Contributions are welcome.
 
 See the
-`CONTRIBUTING <https://raw.githubusercontent.com/tqdm/tqdm/master/CONTRIBUTING.md>`__
+`CONTRIBUTING <https://github.com/tqdm/tqdm/blob/master/CONTRIBUTING.md>`__
 file for more information.
 
 Developers who have made significant contributions, ranked by *SLoC*
@@ -1182,18 +1184,15 @@ are:
 ==================== ======================================================== ==== ================================
 Name                 ID                                                       SLoC Notes
 ==================== ======================================================== ==== ================================
-Casper da Costa-Luis `casperdcl <https://github.com/casperdcl>`__             ~81% primary maintainer |Gift-Casper|
+Casper da Costa-Luis `casperdcl <https://github.com/casperdcl>`__             ~78% primary maintainer |Gift-Casper|
 Stephen Larroque     `lrq3000 <https://github.com/lrq3000>`__                 ~10% team member
-Martin Zugnoni       `martinzugnoni <https://github.com/martinzugnoni>`__     ~3%
+Martin Zugnoni       `martinzugnoni <https://github.com/martinzugnoni>`__     ~4%
+Daniel Ecer          `de-code <https://github.com/de-code>`__                 ~2%
 Richard Sheridan     `richardsheridan <https://github.com/richardsheridan>`__ ~1%
 Guangshuo Chen       `chengs <https://github.com/chengs>`__                   ~1%
 Kyle Altendorf       `altendky <https://github.com/altendky>`__               <1%
 Matthew Stevens      `mjstevens777 <https://github.com/mjstevens777>`__       <1%
 Hadrien Mary         `hadim <https://github.com/hadim>`__                     <1%  team member
-Ivan Ivanov          `obiwanus <https://github.com/obiwanus>`__               <1%
-Daniel Panteleit     `danielpanteleit <https://github.com/danielpanteleit>`__ <1%
-Jonas Haag           `jonashaag <https://github.com/jonashaag>`__             <1%
-James E. King III    `jeking3 <https://github.com/jeking3>`__                 <1%
 Noam Yorav-Raphael   `noamraph <https://github.com/noamraph>`__               <1%  original author
 Mikhail Korobov      `kmike <https://github.com/kmike>`__                     <1%  team member
 ==================== ======================================================== ==== ================================
@@ -1220,6 +1219,8 @@ Citation information: |DOI|
    :target: https://tqdm.github.io/video
 .. |Slides| image:: https://img.tqdm.ml/slides.jpg
    :target: https://tqdm.github.io/PyData2019/slides.html
+.. |Merch| image:: https://img.tqdm.ml/merch.jpg
+   :target: https://tqdm.github.io/merch
 .. |Build-Status| image:: https://img.shields.io/github/workflow/status/tqdm/tqdm/Test/master?logo=GitHub
    :target: https://github.com/tqdm/tqdm/actions?query=workflow%3ATest
 .. |Coverage-Status| image:: https://img.shields.io/coveralls/github/tqdm/tqdm/master?logo=coveralls
@@ -1247,7 +1248,7 @@ Citation information: |DOI|
 .. |GitHub-Updated| image:: https://img.shields.io/github/last-commit/tqdm/tqdm/master.svg?logo=github&logoColor=white&label=pushed
    :target: https://github.com/tqdm/tqdm/pulse
 .. |Gift-Casper| image:: https://img.shields.io/badge/dynamic/json.svg?color=ff69b4&label=gifts%20received&prefix=%C2%A3&query=%24..sum&url=https%3A%2F%2Fcaspersci.uk.to%2Fgifts.json
-   :target: https://www.cdcl.ml/sponsor
+   :target: https://cdcl.ml/sponsor
 .. |Versions| image:: https://img.shields.io/pypi/v/tqdm.svg
    :target: https://tqdm.github.io/releases
 .. |PyPI-Downloads| image:: https://img.shields.io/pypi/dm/tqdm.svg?label=pypi%20downloads&logo=PyPI&logoColor=white
