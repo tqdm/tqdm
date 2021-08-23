@@ -45,10 +45,15 @@ class TMonitor(Thread):
         return self.report()
 
     def get_instances(self):
-        # returns a copy of started `tqdm_cls` instances
-        return [i for i in self.tqdm_cls._instances.copy()
-                # Avoid race by checking that the instance started
-                if hasattr(i, 'start_t')]
+        """returns a copy of started `tqdm_cls` instances"""
+        for _ in range(3):  # retry
+            try:
+                return [i for i in self.tqdm_cls._instances.copy()
+                        # Avoid race by checking that the instance started
+                        if hasattr(i, 'start_t')]
+            except RuntimeError:
+                pass
+        return []
 
     def run(self):
         cur_t = self._time()
