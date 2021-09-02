@@ -1225,15 +1225,36 @@ class tqdm(Comparable):
         out  : bool or None
             True if a `display()` was triggered.
         """
+
+        return self.update_to(self.n + n)
+
+    def update_to(self, n):
+        """
+        Manually set the progress to a specified amount.
+
+        Useful when monitoring external events that report their own absolte
+        progress.
+
+        Parameters
+        ----------
+        n  : int or float, optional
+            Value to provide to the internal counter.
+            If using float, consider specifying `{n:.3f}`
+            or similar in `bar_format`, or specifying `unit_scale`.
+
+        Returns
+        -------
+        out  : bool or None
+            True if a `display()` was triggered.
+        """
         if self.disable:
             return
-
-        if n < 0:
-            self.last_print_n += n  # for auto-refresh logic to work
-        self.n += n
+        self.n = n
 
         # check counter first to reduce calls to time()
-        if self.n - self.last_print_n >= self.miniters:
+        # Use abs to ensure that negative progress is also displayed to the
+        # end user.
+        if abs(self.n - self.last_print_n) >= self.miniters:
             cur_t = self._time()
             dt = cur_t - self.last_print_t
             if dt >= self.mininterval and cur_t >= self.start_t + self.delay:
