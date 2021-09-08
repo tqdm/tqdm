@@ -18,7 +18,6 @@ jobs:
       with:
         repository: ${{ github.repository }}.github.io
         path: docs
-        ref: src
         token: ${{ secrets.GH_TOKEN }}
     - uses: actions/setup-python@v2
       with:
@@ -42,9 +41,9 @@ jobs:
     - name: Update Docs
       run: |
         pushd docs
-        git fetch --depth=1 origin master:master
-        git checkout master
-        git push --set-upstream origin master
+        git fetch --depth=1 origin gh-pages:gh-pages
+        git checkout gh-pages
+        git push --set-upstream origin gh-pages
         git checkout -
         make deploy
         popd
