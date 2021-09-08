@@ -22,7 +22,7 @@ class TMonitor(Thread):
     ----------
     tqdm_cls  : class
         tqdm class to use (can be core tqdm or a submodule).
-    sleep_interval  : fload
+    sleep_interval  : float
         Time to sleep between monitoring checks.
     """
     _test = {}  # internal vars for unit testing
