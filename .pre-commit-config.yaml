@@ -49,11 +49,11 @@ repos:
     - flake8-debugger
     - flake8-string-format
 - repo: https://github.com/PyCQA/isort
-  rev: 5.9.2
+  rev: 5.9.3
   hooks:
   - id: isort
 - repo: https://github.com/kynan/nbstripout
-  rev: 0.4.0
+  rev: 0.5.0
   hooks:
   - id: nbstripout
     args: [--keep-count, --keep-output]
