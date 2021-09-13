@@ -336,10 +336,8 @@ class tqdm(Comparable):
         fp = file
         fp_flush = getattr(fp, 'flush', lambda: None)  # pragma: no cover
         if fp in (sys.stderr, sys.stdout):
-            if hasattr(sys.stderr, 'flush'):
-                sys.stderr.flush()
-            if hasattr(sys.stdout, 'flush'):
-                sys.stdout.flush()
+            getattr(sys.stderr, 'flush', lambda: None)()
+            getattr(sys.stdout, 'flush', lambda: None)()
 
         def fp_write(s):
             fp.write(_unicode(s))
@@ -1457,7 +1455,7 @@ class tqdm(Comparable):
     def moveto(self, n):
         # TODO: private method
         self.fp.write(_unicode('\n' * n + _term_move_up() * -n))
-        self.fp.flush()
+        getattr(self.fp, 'flush', lambda: None)()
 
     @property
     def format_dict(self):
