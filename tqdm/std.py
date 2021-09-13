@@ -336,8 +336,10 @@ class tqdm(Comparable):
         fp = file
         fp_flush = getattr(fp, 'flush', lambda: None)  # pragma: no cover
         if fp in (sys.stderr, sys.stdout):
-            sys.stderr.flush()
-            sys.stdout.flush()
+            if hasattr(sys.stderr, 'flush'):
+                sys.stderr.flush()
+            if hasattr(sys.stdout, 'flush'):
+                sys.stdout.flush()
 
         def fp_write(s):
             fp.write(_unicode(s))
