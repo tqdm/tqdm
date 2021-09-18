@@ -3,12 +3,11 @@ on:
   push:
   pull_request:
   schedule:
-  - cron: '2 1 * * 6'  # M H d m w (Saturdays at 1:02)
+  - cron: '2 1 * * 6'  # M H d m w (Sat 1:02)
 jobs:
   check:
-    if: github.event_name != 'pull_request' || github.head_ref != 'devel'
+    if: github.event_name != 'pull_request' || github.repository_owner != 'tqdm'
     runs-on: ubuntu-latest
-    name: check
     steps:
     - uses: actions/checkout@v2
       with:
@@ -38,12 +37,12 @@ jobs:
         EVENT: ${{ github.event_name }}
     - run: pre-commit run -a --show-diff-on-failure
   test-os:
-    if: github.event_name != 'pull_request' || github.head_ref != 'devel'
+    if: github.event_name != 'pull_request' || github.repository_owner != 'tqdm'
+    name: py${{ matrix.python }}-${{ matrix.os }}
     strategy:
       matrix:
-        python: [2.7, 3.7]
+        python: [2.7, 3.8]
         os: [macos-latest, windows-latest]
-    name: py${{ matrix.python }}-${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 20
     steps:
@@ -72,11 +71,11 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
   test:
-    if: github.event_name != 'pull_request' || github.head_ref != 'devel'
+    if: github.event_name != 'pull_request' || github.repository_owner != 'tqdm'
+    name: py${{ matrix.python }}
     strategy:
       matrix:
         python: [2.7, 3.5, 3.6, 3.7, 3.8, 3.9]
-    name: py${{ matrix.python }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -99,7 +98,7 @@ jobs:
           tox -e $PYVER                                             # basic:pypy
         elif [[ "$PYVER" == *3.9 ]]; then
           tox -e py${PYVER/./}                                      # basic
-        elif [[ "$PYVER" == "3.7" ]]; then
+        elif [[ "$PYVER" == "3.8" ]]; then
           tox -e py${PYVER/./}-tf,py${PYVER/./}-tf-keras            # full
         else
           tox -e py${PYVER/./}-tf-keras                             # normal
@@ -113,7 +112,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
   finish:
-    if: github.event_name != 'pull_request' || github.head_ref != 'devel'
+    if: github.event_name != 'pull_request' || github.repository_owner != 'tqdm'
     name: pytest cov
     continue-on-error: ${{ github.event_name != 'push' }}
     needs: [test, test-os]
@@ -150,7 +149,7 @@ jobs:
       with:
         password: ${{ secrets.PYPI_TOKEN }}
         gpg_key: ${{ secrets.GPG_KEY }}
-        upload: ${{ github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags') }}
+        upload: ${{ github.event_name == 'push' && startsWith(github.ref, 'refs/tags') }}
     - id: collect_assets
       name: Collect assets
       run: |
@@ -166,7 +165,7 @@ jobs:
         fi
         echo ::set-output name=tag::${GITHUB_REF#refs/tags/}
         git log --pretty='format:%d%n- %s%n%b---' $(git tag --sort=v:refname | tail -n2 | head -n1)..HEAD > _CHANGES.md
-    - if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
+    - if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
       uses: softprops/action-gh-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
