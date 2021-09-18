@@ -128,8 +128,7 @@ def simple_progress(iterable=None, total=None, file=sys.stdout, desc='',
                 barfill = " " * int((1.0 - frac) * width)
                 bar_length, frac_bar_length = divmod(int(frac * width * 10), 10)
                 full_bar = '#' * bar_length
-                frac_bar = chr(48 + frac_bar_length) if frac_bar_length \
-                    else ' '
+                frac_bar = chr(48 + frac_bar_length) if frac_bar_length else ' '
 
                 file.write("\r%s %i%%|%s%s%s| %i/%i [%s<%s, %s]" %
                            (desc, percentage, full_bar, frac_bar, barfill, n[0],

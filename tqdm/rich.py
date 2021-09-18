@@ -11,8 +11,7 @@ from __future__ import absolute_import
 from warnings import warn
 
 from rich.progress import (
-    BarColumn, Progress, ProgressColumn, Text, TimeElapsedColumn, TimeRemainingColumn,
-    filesize)
+    BarColumn, Progress, ProgressColumn, Text, TimeElapsedColumn, TimeRemainingColumn, filesize)
 
 from .std import TqdmExperimentalWarning
 from .std import tqdm as std_tqdm

@@ -50,10 +50,8 @@ with io_open(README_rst, mode='r', encoding='utf-8') as fd:
     README_rst = fd.read()
 DOC_tqdm = doc2rst(tqdm.tqdm.__doc__, False).replace('\n', '\n      ')
 DOC_tqdm_init = doc2rst(tqdm.tqdm.__init__.__doc__)
-DOC_tqdm_init_args = DOC_tqdm_init.partition(doc2rst(HEAD_ARGS))[-1]\
-    .replace('\n      ', '\n    ')
-DOC_tqdm_init_args, _, DOC_tqdm_init_rets = DOC_tqdm_init_args\
-    .partition(doc2rst(HEAD_RETS))
+DOC_tqdm_init_args = DOC_tqdm_init.partition(doc2rst(HEAD_ARGS))[-1].replace('\n      ', '\n    ')
+DOC_tqdm_init_args, _, DOC_tqdm_init_rets = DOC_tqdm_init_args.partition(doc2rst(HEAD_RETS))
 DOC_cli = doc2rst(tqdm.cli.CLI_EXTRA_DOC).partition(doc2rst(HEAD_CLI))[-1]
 DOC_tqdm_tqdm = {}
 for i in dir(tqdm.tqdm):
@@ -65,10 +63,11 @@ for i in dir(tqdm.tqdm):
 DOC_tqdm_init_args = DOC_tqdm_init_args.replace(' *,', ' ``*``,')
 DOC_tqdm_init_args = DOC_tqdm_init_args.partition('* gui  : bool, optional')[0]
 
-README_rst = README_rst.replace('{DOC_tqdm}', DOC_tqdm)\
-    .replace('{DOC_tqdm.tqdm.__init__.Parameters}', DOC_tqdm_init_args)\
-    .replace('{DOC_tqdm.cli.CLI_EXTRA_DOC}', DOC_cli)\
-    .replace('{DOC_tqdm.tqdm.__init__.Returns}', DOC_tqdm_init_rets)
+README_rst = (
+    README_rst.replace('{DOC_tqdm}', DOC_tqdm)
+    .replace('{DOC_tqdm.tqdm.__init__.Parameters}', DOC_tqdm_init_args)
+    .replace('{DOC_tqdm.cli.CLI_EXTRA_DOC}', DOC_cli)
+    .replace('{DOC_tqdm.tqdm.__init__.Returns}', DOC_tqdm_init_rets))
 for k, v in DOC_tqdm_tqdm.items():
     README_rst = README_rst.replace('{DOC_tqdm.tqdm.%s}' % k, v)
 

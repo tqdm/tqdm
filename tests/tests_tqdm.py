@@ -31,8 +31,7 @@ class DeprecationError(Exception):
 
 
 # Ensure we can use `with closing(...) as ... :` syntax
-if getattr(StringIO, '__exit__', False) and \
-   getattr(StringIO, '__enter__', False):
+if getattr(StringIO, '__exit__', False) and getattr(StringIO, '__enter__', False):
     def closing(arg):
         return arg
 else:
@@ -135,14 +134,12 @@ class UnicodeIO(IOBase):
         return self.cursor
 
     def write(self, s):
-        self.text = self.text[:self.cursor] + s + \
-            self.text[self.cursor + len(s):]
+        self.text = self.text[:self.cursor] + s + self.text[self.cursor + len(s):]
         self.cursor += len(s)
 
     def read(self, n=-1):
         _cur = self.cursor
-        self.cursor = len(self) if n < 0 \
-            else min(_cur + n, len(self))
+        self.cursor = len(self) if n < 0 else min(_cur + n, len(self))
         return self.text[_cur:self.cursor]
 
     def getvalue(self):
@@ -229,94 +226,77 @@ def test_format_meter():
 
     format_meter = tqdm.format_meter
 
-    assert format_meter(0, 1000, 13) == \
-        "  0%|          | 0/1000 [00:13<?, ?it/s]"
+    assert format_meter(0, 1000, 13) == "  0%|          | 0/1000 [00:13<?, ?it/s]"
     # If not implementing any changes to _tqdm.py, set prefix='desc'
     # or else ": : " will be in output, so assertion should change
-    assert format_meter(0, 1000, 13, ncols=68, prefix='desc: ') == \
-        "desc:   0%|                                | 0/1000 [00:13<?, ?it/s]"
-    assert format_meter(231, 1000, 392) == \
-        " 23%|" + unich(0x2588) * 2 + unich(0x258e) + \
-        "       | 231/1000 [06:32<21:44,  1.70s/it]"
-    assert format_meter(10000, 1000, 13) == \
-        "10000it [00:13, 769.23it/s]"
-    assert format_meter(231, 1000, 392, ncols=56, ascii=True) == \
-        " 23%|" + '#' * 3 + '6' + \
-        "            | 231/1000 [06:32<21:44,  1.70s/it]"
-    assert format_meter(100000, 1000, 13, unit_scale=True, unit='iB') == \
-        "100kiB [00:13, 7.69kiB/s]"
-    assert format_meter(100, 1000, 12, ncols=0, rate=7.33) == \
-        " 10% 100/1000 [00:12<02:02,  7.33it/s]"
+    assert format_meter(0, 1000, 13, ncols=68, prefix='desc: ') == (
+        "desc:   0%|                                | 0/1000 [00:13<?, ?it/s]")
+    assert format_meter(231, 1000, 392) == (" 23%|" + unich(0x2588) * 2 + unich(0x258e) +
+                                            "       | 231/1000 [06:32<21:44,  1.70s/it]")
+    assert format_meter(10000, 1000, 13) == "10000it [00:13, 769.23it/s]"
+    assert format_meter(231, 1000, 392, ncols=56, ascii=True) == " 23%|" + '#' * 3 + '6' + (
+        "            | 231/1000 [06:32<21:44,  1.70s/it]")
+    assert format_meter(100000, 1000, 13, unit_scale=True,
+                        unit='iB') == "100kiB [00:13, 7.69kiB/s]"
+    assert format_meter(100, 1000, 12, ncols=0,
+                        rate=7.33) == " 10% 100/1000 [00:12<02:02,  7.33it/s]"
     # ncols is small, l_bar is too large
     # l_bar gets chopped
     # no bar
     # no r_bar
-    assert \
-        format_meter(
-            0, 1000, 13, ncols=10,
-            bar_format="************{bar:10}$$$$$$$$$$") == \
-        "**********"  # 10/12 stars since ncols is 10
+    # 10/12 stars since ncols is 10
+    assert format_meter(
+        0, 1000, 13, ncols=10,
+        bar_format="************{bar:10}$$$$$$$$$$") == "**********"
     # n_cols allows for l_bar and some of bar
     # l_bar displays
     # bar gets chopped
     # no r_bar
-    assert \
-        format_meter(
-            0, 1000, 13, ncols=20,
-            bar_format="************{bar:10}$$$$$$$$$$") == \
-        "************        "  # all 12 stars and 8/10 bar parts
+    # all 12 stars and 8/10 bar parts
+    assert format_meter(
+        0, 1000, 13, ncols=20,
+        bar_format="************{bar:10}$$$$$$$$$$") == "************        "
     # n_cols allows for l_bar, bar, and some of r_bar
     # l_bar displays
     # bar displays
     # r_bar gets chopped
     # all 12 stars and 10 bar parts, but only 8/10 dollar signs
-    assert \
-        format_meter(
-            0, 1000, 13, ncols=30,
-            bar_format="************{bar:10}$$$$$$$$$$") == \
-        "************          $$$$$$$$"
+    assert format_meter(
+        0, 1000, 13, ncols=30,
+        bar_format="************{bar:10}$$$$$$$$$$") == "************          $$$$$$$$"
     # trim left ANSI; escape is before trim zone
     # we only know it has ANSI codes, so we append an END code anyway
-    assert \
-        format_meter(
-            0, 1000, 13, ncols=10,
-            bar_format="*****\033[22m****\033[0m***{bar:10}$$$$$$$$$$") == \
-        "*****\033[22m****\033[0m*\033[0m"
+    assert format_meter(
+        0, 1000, 13, ncols=10, bar_format="*****\033[22m****\033[0m***{bar:10}$$$$$$$$$$"
+    ) == "*****\033[22m****\033[0m*\033[0m"
     # trim left ANSI; escape is at trim zone
-    assert \
-        format_meter(
-            0, 1000, 13, ncols=10,
-            bar_format="*****\033[22m*****\033[0m**{bar:10}$$$$$$$$$$") == \
-        "*****\033[22m*****\033[0m"
+    assert format_meter(
+        0, 1000, 13, ncols=10,
+        bar_format="*****\033[22m*****\033[0m**{bar:10}$$$$$$$$$$") == "*****\033[22m*****\033[0m"
     # trim left ANSI; escape is after trim zone
-    assert \
-        format_meter(
-            0, 1000, 13, ncols=10,
-            bar_format="*****\033[22m******\033[0m*{bar:10}$$$$$$$$$$") == \
-        "*****\033[22m*****\033[0m"
+    assert format_meter(
+        0, 1000, 13, ncols=10,
+        bar_format="*****\033[22m******\033[0m*{bar:10}$$$$$$$$$$") == "*****\033[22m*****\033[0m"
     # Check that bar_format correctly adapts {bar} size to the rest
-    assert format_meter(20, 100, 12, ncols=13, rate=8.1,
-                        bar_format=r'{l_bar}{bar}|{n_fmt}/{total_fmt}') == \
-        " 20%|" + unich(0x258f) + "|20/100"
-    assert format_meter(20, 100, 12, ncols=14, rate=8.1,
-                        bar_format=r'{l_bar}{bar}|{n_fmt}/{total_fmt}') == \
-        " 20%|" + unich(0x258d) + " |20/100"
+    assert format_meter(
+        20, 100, 12, ncols=13, rate=8.1,
+        bar_format=r'{l_bar}{bar}|{n_fmt}/{total_fmt}') == " 20%|" + unich(0x258f) + "|20/100"
+    assert format_meter(
+        20, 100, 12, ncols=14, rate=8.1,
+        bar_format=r'{l_bar}{bar}|{n_fmt}/{total_fmt}') == " 20%|" + unich(0x258d) + " |20/100"
     # Check wide characters
     if sys.version_info >= (3,):
-        assert format_meter(0, 1000, 13, ncols=68, prefix='ｆｕｌｌｗｉｄｔｈ: ') == \
-            "ｆｕｌｌｗｉｄｔｈ:   0%|                  | 0/1000 [00:13<?, ?it/s]"
-        assert format_meter(0, 1000, 13, ncols=68, prefix='ニッポン [ﾆｯﾎﾟﾝ]: ') == \
-            "ニッポン [ﾆｯﾎﾟﾝ]:   0%|                    | 0/1000 [00:13<?, ?it/s]"
+        assert format_meter(0, 1000, 13, ncols=68, prefix='ｆｕｌｌｗｉｄｔｈ: ') == (
+            "ｆｕｌｌｗｉｄｔｈ:   0%|                  | 0/1000 [00:13<?, ?it/s]")
+        assert format_meter(0, 1000, 13, ncols=68, prefix='ニッポン [ﾆｯﾎﾟﾝ]: ') == (
+            "ニッポン [ﾆｯﾎﾟﾝ]:   0%|                    | 0/1000 [00:13<?, ?it/s]")
     # Check that bar_format can print only {bar} or just one side
     assert format_meter(20, 100, 12, ncols=2, rate=8.1,
-                        bar_format=r'{bar}') == \
-        unich(0x258d) + " "
+                        bar_format=r'{bar}') == unich(0x258d) + " "
     assert format_meter(20, 100, 12, ncols=7, rate=8.1,
-                        bar_format=r'{l_bar}{bar}') == \
-        " 20%|" + unich(0x258d) + " "
+                        bar_format=r'{l_bar}{bar}') == " 20%|" + unich(0x258d) + " "
     assert format_meter(20, 100, 12, ncols=6, rate=8.1,
-                        bar_format=r'{bar}|test') == \
-        unich(0x258f) + "|test"
+                        bar_format=r'{bar}|test') == unich(0x258f) + "|test"
 
 
 def test_ansi_escape_codes():
@@ -552,8 +532,7 @@ def test_max_interval():
             cpu_timify(t2, timer)
 
             for i in t2:
-                if i >= (bigstep - 1) and \
-                   ((i - (bigstep - 1)) % smallstep) == 0:
+                if i >= (bigstep - 1) and ((i - (bigstep - 1)) % smallstep) == 0:
                     timer.sleep(1e-2)
                 if i >= 3 * bigstep:
                     break
@@ -934,8 +913,7 @@ def test_update():
     """Test manual creation and updates"""
     res = None
     with closing(StringIO()) as our_file:
-        with tqdm(total=2, file=our_file, miniters=1, mininterval=0) \
-                as progressbar:
+        with tqdm(total=2, file=our_file, miniters=1, mininterval=0) as progressbar:
             assert len(progressbar) == 2
             progressbar.update(2)
             assert '| 2/2' in our_file.getvalue()
@@ -1383,9 +1361,10 @@ def test_deprecated_gui():
         try:
             t.update(1)
         except TqdmDeprecationWarning as e:
-            if ('Please use `tqdm.gui.tqdm(...)` instead of'
-                ' `tqdm(..., gui=True)`') \
-                    not in our_file.getvalue():
+            if (
+                'Please use `tqdm.gui.tqdm(...)` instead of `tqdm(..., gui=True)`'
+                not in our_file.getvalue()
+            ):
                 raise e
         else:
             raise DeprecationError('Should not allow manual gui=True without'
@@ -1400,9 +1379,10 @@ def test_deprecated_gui():
             for _ in t:
                 pass
         except TqdmDeprecationWarning as e:
-            if ('Please use `tqdm.gui.tqdm(...)` instead of'
-                ' `tqdm(..., gui=True)`') \
-                    not in our_file.getvalue():
+            if (
+                'Please use `tqdm.gui.tqdm(...)` instead of `tqdm(..., gui=True)`'
+                not in our_file.getvalue()
+            ):
                 raise e
         else:
             raise DeprecationError('Should not allow manual gui=True without'
