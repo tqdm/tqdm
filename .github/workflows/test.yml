@@ -36,48 +36,27 @@ jobs:
         REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         EVENT: ${{ github.event_name }}
     - run: pre-commit run -a --show-diff-on-failure
-  test-os:
+  test:
     if: github.event_name != 'pull_request' || github.repository_owner != 'tqdm'
     name: py${{ matrix.python }}-${{ matrix.os }}
     strategy:
       matrix:
-        python: [2.7, 3.8]
-        os: [macos-latest, windows-latest]
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 20
-    steps:
-    - uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
-    - uses: actions/setup-python@v2
-      with:
-        python-version: ${{ matrix.python }}
-    - name: install
-      shell: bash
-      run: |
-        pip install -U tox
-        mkdir -p "$HOME/bin"
-        curl -sfL https://coverage.codacy.com/get.sh > "$HOME/bin/codacy"
-        chmod +x "$HOME/bin/codacy"
-        echo "$HOME/bin" >> $GITHUB_PATH
-    - run: tox -e py${PYVER/./}
-      shell: bash
-      env:
-        PYVER: ${{ matrix.python }}
-        COVERALLS_FLAG_NAME: py${{ matrix.python }}-${{ matrix.os }}
-        COVERALLS_PARALLEL: true
-        COVERALLS_SERVICE_NAME: github
-        # coveralls needs explicit token
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
-  test:
-    if: github.event_name != 'pull_request' || github.repository_owner != 'tqdm'
-    name: py${{ matrix.python }}
-    strategy:
-      matrix:
+        os: [ubuntu]
         python: [2.7, 3.5, 3.6, 3.7, 3.8, 3.9]
-    runs-on: ubuntu-latest
+        include:
+        - os: macos
+          python: 2.7
+        - os: macos
+          python: 3.8
+        - os: windows
+          python: 2.7
+        - os: windows
+          python: 3.8
+    runs-on: ${{ matrix.os }}-latest
     timeout-minutes: 20
+    defaults:
+      run:
+        shell: bash
     steps:
     - uses: actions/checkout@v2
       with:
@@ -92,9 +71,21 @@ jobs:
         curl -sfL https://coverage.codacy.com/get.sh > "$HOME/bin/codacy"
         chmod +x "$HOME/bin/codacy"
         echo "$HOME/bin" >> $GITHUB_PATH
-    - run: tox
+    - name: tox
+      run: |
+        if [[ "${{ matrix.os }}" = ubuntu ]]; then
+          if [[ "${{ matrix.python }}" = "3.8" ]]; then
+            tox -e py38-tf,py38-tf-keras  # full
+          else
+            tox                           # nearly full
+          fi
+        else
+          tox -e py${PYVER/./}            # basic
+        fi
       env:
-        COVERALLS_FLAG_NAME: py${{ matrix.python }}
+        PYVER: ${{ matrix.python }}
+        PLATFORM: ${{ matrix.os }}
+        COVERALLS_FLAG_NAME: py${{ matrix.python }}-${{ matrix.os }}
         COVERALLS_PARALLEL: true
         COVERALLS_SERVICE_NAME: github
         # coveralls needs explicit token
@@ -104,7 +95,7 @@ jobs:
     if: github.event_name != 'pull_request' || github.repository_owner != 'tqdm'
     name: pytest cov
     continue-on-error: ${{ github.event_name != 'push' }}
-    needs: [test, test-os]
+    needs: test
     runs-on: ubuntu-latest
     steps:
     - uses: actions/setup-python@v2
@@ -121,7 +112,7 @@ jobs:
       env:
         CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
   deploy:
-    needs: [check, test, test-os]
+    needs: [check, test]
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
