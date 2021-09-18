@@ -87,24 +87,13 @@ jobs:
         python-version: ${{ matrix.python }}
     - name: install
       run: |
-        pip install -U tox
+        pip install -U tox tox-gh-actions
         mkdir -p "$HOME/bin"
         curl -sfL https://coverage.codacy.com/get.sh > "$HOME/bin/codacy"
         chmod +x "$HOME/bin/codacy"
         echo "$HOME/bin" >> $GITHUB_PATH
-    - name: tox
-      run: |
-        if [[ "$PYVER" == py* ]]; then
-          tox -e $PYVER                                             # basic:pypy
-        elif [[ "$PYVER" == *3.9 ]]; then
-          tox -e py${PYVER/./}                                      # basic
-        elif [[ "$PYVER" == "3.8" ]]; then
-          tox -e py${PYVER/./}-tf,py${PYVER/./}-tf-keras            # full
-        else
-          tox -e py${PYVER/./}-tf-keras                             # normal
-        fi
+    - run: tox
       env:
-        PYVER: ${{ matrix.python }}
         COVERALLS_FLAG_NAME: py${{ matrix.python }}
         COVERALLS_PARALLEL: true
         COVERALLS_SERVICE_NAME: github
