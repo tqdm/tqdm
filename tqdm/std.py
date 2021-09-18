@@ -1049,7 +1049,7 @@ class tqdm(Comparable):
         if ascii is None:
             ascii = not _supports_unicode(file)
 
-        if bar_format and not ((ascii is True) or _is_ascii(ascii)):
+        if bar_format and ascii is not True and not _is_ascii(ascii):
             # Convert bar format into unicode since terminal uses unicode
             bar_format = _unicode(bar_format)
 
@@ -1099,10 +1099,8 @@ class tqdm(Comparable):
         # if nested, at initial sp() call we replace '\r' by '\n' to
         # not overwrite the outer progress bar
         with self._lock:
-            if position is None:
-                self.pos = self._get_free_pos(self)
-            else:  # mark fixed positions as negative
-                self.pos = -position
+            # mark fixed positions as negative
+            self.pos = self._get_free_pos(self) if position is None else -position
 
         if not gui:
             # Initialize the screen printer

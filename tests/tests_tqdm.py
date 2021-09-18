@@ -160,42 +160,28 @@ def progressbar_rate(bar_str):
 
 def squash_ctrlchars(s):
     """Apply control characters in a string just like a terminal display"""
-    # Init variables
-    curline = 0  # current line in our fake terminal
-    lines = ['']  # state of our fake terminal
-
-    # Split input string by control codes
-    s_split = RE_ctrlchr.split(s)
-    s_split = filter(None, s_split)  # filter out empty splits
-
-    # For each control character or message
-    for nextctrl in s_split:
-        # If it's a control character, apply it
+    curline = 0
+    lines = ['']  # state of fake terminal
+    for nextctrl in filter(None, RE_ctrlchr.split(s)):
+        # apply control chars
         if nextctrl == '\r':
-            # Carriage return
-            # Go to the beginning of the line
-            # simplified here: we just empty the string
+            # go to line beginning (simplified here: just empty the string)
             lines[curline] = ''
         elif nextctrl == '\n':
-            # Newline
-            # Go to the next line
-            if curline < (len(lines) - 1):
-                # If already exists, just move cursor
-                curline += 1
-            else:
-                # Else the new line is created
+            if curline >= len(lines) - 1:
+                # wrap-around creates newline
                 lines.append('')
-                curline += 1
+            # move cursor down
+            curline += 1
         elif nextctrl == '\x1b[A':
-            # Move cursor up
+            # move cursor up
             if curline > 0:
                 curline -= 1
             else:
-                raise ValueError("Cannot go up, anymore!")
-        # Else, it is a message, we print it on current line
+                raise ValueError("Cannot go further up")
         else:
+            # print message on current line
             lines[curline] += nextctrl
-
     return lines
 
 
@@ -852,12 +838,12 @@ def test_infinite_total():
 def test_nototal():
     """Test unknown total length"""
     with closing(StringIO()) as our_file:
-        for _ in tqdm((i for i in range(10)), file=our_file, unit_scale=10):
+        for _ in tqdm(iter(range(10)), file=our_file, unit_scale=10):
             pass
         assert "100it" in our_file.getvalue()
 
     with closing(StringIO()) as our_file:
-        for _ in tqdm((i for i in range(10)), file=our_file,
+        for _ in tqdm(iter(range(10)), file=our_file,
                       bar_format="{l_bar}{bar}{r_bar}"):
             pass
         assert "10/?" in our_file.getvalue()
@@ -1804,9 +1790,9 @@ def test_bool():
             assert not t
         with tqdm([0], **kwargs) as t:
             assert t
-        with tqdm((x for x in []), **kwargs) as t:
+        with tqdm(iter([]), **kwargs) as t:
             assert t
-        with tqdm((x for x in [1, 2, 3]), **kwargs) as t:
+        with tqdm(iter([1, 2, 3]), **kwargs) as t:
             assert t
         with tqdm(**kwargs) as t:
             try:

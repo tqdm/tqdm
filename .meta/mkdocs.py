@@ -39,8 +39,8 @@ def doc2rst(doc, arglist=True, raw=False):
     else:
         doc = dedent(doc)
         if arglist:
-            doc = '\n'.join([i if not i or i[0] == ' ' else '* ' + i + '  '
-                             for i in doc.split('\n')])
+            doc = '\n'.join(i if not i or i[0] == ' ' else '* ' + i + '  '
+                            for i in doc.split('\n'))
     return doc
 
 
