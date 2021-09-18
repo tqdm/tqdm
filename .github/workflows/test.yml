@@ -53,7 +53,7 @@ jobs:
         - os: windows
           python: 3.8
     runs-on: ${{ matrix.os }}-latest
-    timeout-minutes: 20
+    timeout-minutes: 35
     defaults:
       run:
         shell: bash
@@ -73,14 +73,16 @@ jobs:
         echo "$HOME/bin" >> $GITHUB_PATH
     - name: tox
       run: |
-        if [[ "${{ matrix.os }}" = ubuntu ]]; then
-          if [[ "${{ matrix.python }}" = "3.8" ]]; then
-            tox -e py38-tf,py38-tf-keras  # full
-          else
-            tox                           # nearly full
-          fi
+        TIMEOUT=10m
+        if [[ "${{ matrix.python }}" = "2.7" ]]; then
+          TIMEOUT=15m
+        elif [[ "py${{ matrix.python }}-${{ matrix.os }}" = "py3.8-ubuntu" ]]; then
+          export TOXENV="py38-tf,py38-tf-keras"  # full
+        fi
+        if [[ "${{ matrix.os }}" != "ubuntu" ]]; then
+          tox -e py${PYVER/./}                   # basic
         else
-          tox -e py${PYVER/./}            # basic
+          timeout $TIMEOUT tox || timeout $TIMEOUT tox || timeout $TIMEOUT tox
         fi
       env:
         PYVER: ${{ matrix.python }}
@@ -89,6 +91,7 @@ jobs:
         COVERALLS_PARALLEL: true
         COVERALLS_SERVICE_NAME: github
         # coveralls needs explicit token
+        COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
   finish:
