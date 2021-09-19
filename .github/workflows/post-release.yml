@@ -38,12 +38,13 @@ jobs:
         git commit -a -m "update release notes to ${GITHUB_REF#refs/tags/}"
         git push
         popd
-    - name: Update Docs
-      run: |
-        pushd docs
-        git fetch --depth=1 origin gh-pages:gh-pages
-        git checkout gh-pages
-        git push --set-upstream origin gh-pages
-        git checkout -
-        make deploy
-        popd
+    - run: make -C docs build
+    - if: ${{ github.event_name == 'push' && startsWith(github.ref, 'refs/tags') }}
+      uses: casperdcl/push-dir@v1
+      with:
+        message: update static site
+        branch: gh-pages
+        dir: docs/build/docs/_site
+        nojekyll: true
+        name: tqdm[bot]
+        email: 68520887+tqdm-bot@users.noreply.github.com
