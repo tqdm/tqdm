@@ -22,14 +22,10 @@ dependencies:
 - pytest-timeout
 - pytest-asyncio  # [py>=3.7]
 - nbval
-- flake8
-- flake8-bugbear
-- flake8-comprehensions
 - coverage
 # extras
 - dask               # dask
 - matplotlib         # gui
-- nbstripout         # notebook editing
 - numpy              # pandas, keras, contrib.tenumerate
 - pandas
 - tensorflow         # keras
@@ -41,5 +37,3 @@ dependencies:
 - pydoc-markdown     # `cd docs && pymake`
 - pip:
   - py-make >=0.1.0  # `setup.py make/pymake`
-  - flake8-debugger       # flake8
-  - flake8-string-format  # flake8
