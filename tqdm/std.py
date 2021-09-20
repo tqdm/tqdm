@@ -20,9 +20,9 @@ from weakref import WeakSet
 
 from ._monitor import TMonitor
 from .utils import (
-    CallbackIOWrapper, Comparable, DisableOnWriteError, FormatReplace,
-    SimpleTextIOWrapper, _basestring, _is_ascii, _range, _screen_shape_wrapper,
-    _supports_unicode, _term_move_up, _unich, _unicode, disp_len, disp_trim)
+    CallbackIOWrapper, Comparable, DisableOnWriteError, FormatReplace, SimpleTextIOWrapper,
+    _basestring, _is_ascii, _range, _screen_shape_wrapper, _supports_unicode, _term_move_up,
+    _unich, _unicode, disp_len, disp_trim)
 
 __author__ = "https://github.com/tqdm/tqdm#contributions"
 __all__ = ['tqdm', 'trange',
@@ -209,8 +209,7 @@ class Bar(object):
 
         res = charset[-1] * bar_length
         if bar_length < N_BARS:  # whitespace padding
-            res = res + charset[frac_bar_length] + \
-                charset[0] * (N_BARS - bar_length - 1)
+            res = res + charset[frac_bar_length] + charset[0] * (N_BARS - bar_length - 1)
         return self.colour + res + self.COLOUR_RESET if self.colour else res
 
 
@@ -452,8 +451,7 @@ class tqdm(Comparable):
 
         if unit_scale:
             n_fmt = format_sizeof(n, divisor=unit_divisor)
-            total_fmt = format_sizeof(total, divisor=unit_divisor) \
-                if total is not None else '?'
+            total_fmt = format_sizeof(total, divisor=unit_divisor) if total is not None else '?'
         else:
             n_fmt = str(n)
             total_fmt = str(total) if total is not None else '?'
@@ -466,8 +464,8 @@ class tqdm(Comparable):
         remaining = (total - n) / rate if rate and total else 0
         remaining_str = tqdm.format_interval(remaining) if rate else '?'
         try:
-            eta_dt = datetime.now() + timedelta(seconds=remaining) \
-                if rate and total else datetime.utcfromtimestamp(0)
+            eta_dt = (datetime.now() + timedelta(seconds=remaining)
+                      if rate and total else datetime.utcfromtimestamp(0))
         except OverflowError:
             eta_dt = datetime.max
 
@@ -556,9 +554,8 @@ class tqdm(Comparable):
             return disp_trim(res, ncols) if ncols else res
         else:
             # no total: no progressbar, ETA, just progress stats
-            return ((prefix + ": ") if prefix else '') + \
-                '{0}{1} [{2}, {3}{4}]'.format(
-                    n_fmt, unit, elapsed_str, rate_fmt, postfix)
+            return '{0}{1}{2} [{3}, {4}{5}]'.format(
+                (prefix + ": ") if prefix else '', n_fmt, unit, elapsed_str, rate_fmt, postfix)
 
     def __new__(cls, *_, **__):
         instance = object.__new__(cls)
@@ -766,8 +763,8 @@ class tqdm(Comparable):
                         total = df.size
                     elif isinstance(df, Series):
                         total = len(df)
-                    elif _Rolling_and_Expanding is None or \
-                            not isinstance(df, _Rolling_and_Expanding):
+                    elif (_Rolling_and_Expanding is None or
+                          not isinstance(df, _Rolling_and_Expanding)):
                         # DataFrame or Panel
                         axis = kwargs.get('axis', 0)
                         if axis == 'index':
@@ -1021,9 +1018,9 @@ class tqdm(Comparable):
                 TqdmKeyError("Unknown argument(s): " + str(kwargs)))
 
         # Preprocess the arguments
-        if ((ncols is None or nrows is None) and
-            (file in (sys.stderr, sys.stdout))) or \
-                dynamic_ncols:  # pragma: no cover
+        if (
+            (ncols is None or nrows is None) and (file in (sys.stderr, sys.stdout))
+        ) or dynamic_ncols:  # pragma: no cover
             if dynamic_ncols:
                 dynamic_ncols = _screen_shape_wrapper()
                 if dynamic_ncols:
@@ -1052,7 +1049,7 @@ class tqdm(Comparable):
         if ascii is None:
             ascii = not _supports_unicode(file)
 
-        if bar_format and not ((ascii is True) or _is_ascii(ascii)):
+        if bar_format and ascii is not True and not _is_ascii(ascii):
             # Convert bar format into unicode since terminal uses unicode
             bar_format = _unicode(bar_format)
 
@@ -1102,10 +1099,8 @@ class tqdm(Comparable):
         # if nested, at initial sp() call we replace '\r' by '\n' to
         # not overwrite the outer progress bar
         with self._lock:
-            if position is None:
-                self.pos = self._get_free_pos(self)
-            else:  # mark fixed positions as negative
-                self.pos = -position
+            # mark fixed positions as negative
+            self.pos = self._get_free_pos(self) if position is None else -position
 
         if not gui:
             # Initialize the screen printer
@@ -1129,12 +1124,12 @@ class tqdm(Comparable):
         return self.__bool__()
 
     def __len__(self):
-        return self.total if self.iterable is None else \
-            (self.iterable.shape[0] if hasattr(self.iterable, "shape")
-             else len(self.iterable) if hasattr(self.iterable, "__len__")
-             else self.iterable.__length_hint__()
-             if hasattr(self.iterable, "__length_hint__")
-             else getattr(self, "total", None))
+        return (
+            self.total if self.iterable is None
+            else self.iterable.shape[0] if hasattr(self.iterable, "shape")
+            else len(self.iterable) if hasattr(self.iterable, "__len__")
+            else self.iterable.__length_hint__() if hasattr(self.iterable, "__length_hint__")
+            else getattr(self, "total", None))
 
     def __enter__(self):
         return self
