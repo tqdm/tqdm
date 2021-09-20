@@ -34,6 +34,12 @@ dependencies:
 - argopt             # `cd wiki && pymake`
 - twine              # `pymake pypi`
 - wheel              # `setup.py bdist_wheel`
-- pydoc-markdown     # `cd docs && pymake`
+# `cd docs && pymake`
+- mkdocs-material
+- pydoc-markdown >=3.3.0
+- pygments
+- pymdown-extensions
 - pip:
   - py-make >=0.1.0  # `setup.py make/pymake`
+  - mkdocs-minify-plugin                                   # `cd docs && pymake`
+  - git+git://github.com/tqdm/jsmin@python3-only#egg=jsmin # `cd docs && pymake`
