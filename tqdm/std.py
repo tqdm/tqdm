@@ -26,7 +26,7 @@ from .utils import (
 
 __author__ = "https://github.com/tqdm/tqdm#contributions"
 __all__ = ['tqdm', 'trange',
-           'TqdmTypeError', 'TqdmKeyError', 'TqdmWarning',
+           'TqdmTypeError', 'TqdmKeyError', 'TqdmValueError', 'TqdmWarning',
            'TqdmExperimentalWarning', 'TqdmDeprecationWarning',
            'TqdmMonitorWarning']
 
@@ -36,6 +36,10 @@ class TqdmTypeError(TypeError):
 
 
 class TqdmKeyError(KeyError):
+    pass
+
+
+class TqdmValueError(ValueError):
     pass
 
 
@@ -1158,7 +1162,13 @@ class tqdm(Comparable):
 
     def __iter__(self):
         """Backward-compatibility to use: for x in tqdm(iterable)"""
+        # check that we actually have an iterable
+        if self.iterable is None:
+            raise TqdmValueError(f"{self} isn't wrapping any iterable (manual mode)")
+        return self._iter()
 
+    def _iter(self):
+        """Internal hook for the actual implementation of __iter__."""
         # Inlining instance variables as locals (speed optimisation)
         iterable = self.iterable
 
