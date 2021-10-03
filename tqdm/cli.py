@@ -245,15 +245,15 @@ Options:
         if manpath or comppath:
             from os import path
             from shutil import copyfile
-            try:
-                from importlib import resources
-            except ImportError:  # py<3.9
+            try:  # py<3.7
                 import importlib_resources as resources
+            except ImportError:
+                from importlib import resources
 
             def cp(name, dst):
                 """copy resource `name` to `dst`"""
                 with resources.path('tqdm', name) as src:
-                    copyfile(src, dst)
+                    copyfile(str(src), dst)
                 log.info("written:%s", dst)
             if manpath is not None:
                 cp('tqdm.1', path.join(manpath, 'tqdm.1'))

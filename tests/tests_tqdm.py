@@ -1987,9 +1987,9 @@ def test_reversed(capsys):
 
 def test_contains(capsys):
     """Test __contains__ doesn't iterate"""
-    with tqdm(_range(9)) as t:
+    with tqdm(list(range(9))) as t:
         assert 9 not in t
-        assert all(i in t for i in range(9))
+        assert all(i in t for i in _range(9))
     out, err = capsys.readouterr()
     assert not out
     assert '  0%' in err
