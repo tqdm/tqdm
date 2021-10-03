@@ -1973,3 +1973,14 @@ def test_closed():
         for i in trange(9, file=our_file, miniters=1, mininterval=0):
             if i == 5:
                 our_file.close()
+
+
+def test_contains(capsys):
+    """Test __contains__ doesn't iterate"""
+    with tqdm(_range(9)) as t:
+        assert 9 not in t
+        assert all(i in t for i in range(9))
+    out, err = capsys.readouterr()
+    assert not out
+    assert '  0%' in err
+    assert '100%' not in err
