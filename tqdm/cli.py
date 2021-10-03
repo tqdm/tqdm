@@ -245,19 +245,20 @@ Options:
         if manpath or comppath:
             from os import path
             from shutil import copyfile
+            try:
+                from importlib import resources
+            except ImportError:  # py<3.9
+                import importlib_resources as resources
 
-            from pkg_resources import Requirement, resource_filename
-
-            def cp(src, dst):
-                """copies from src path to dst"""
-                copyfile(src, dst)
-                log.info("written:" + dst)
+            def cp(name, dst):
+                """copy resource `name` to `dst`"""
+                with resources.path('tqdm', name) as src:
+                    copyfile(src, dst)
+                log.info("written:%s", dst)
             if manpath is not None:
-                cp(resource_filename(Requirement.parse('tqdm'), 'tqdm/tqdm.1'),
-                   path.join(manpath, 'tqdm.1'))
+                cp('tqdm.1', path.join(manpath, 'tqdm.1'))
             if comppath is not None:
-                cp(resource_filename(Requirement.parse('tqdm'), 'tqdm/completion.sh'),
-                   path.join(comppath, 'tqdm_completion.sh'))
+                cp('completion.sh', path.join(comppath, 'tqdm_completion.sh'))
             sys.exit(0)
         if tee:
             stdout_write = stdout.write
