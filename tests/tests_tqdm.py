@@ -1975,6 +1975,16 @@ def test_closed():
                 our_file.close()
 
 
+def test_reversed(capsys):
+    """Test reversed()"""
+    for _ in reversed(tqdm(_range(9))):
+        pass
+    out, err = capsys.readouterr()
+    assert not out
+    assert '  0%' in err
+    assert '100%' in err
+
+
 def test_contains(capsys):
     """Test __contains__ doesn't iterate"""
     with tqdm(_range(9)) as t:
