@@ -25,7 +25,7 @@ def cast(val, typ):
 
     # sys.stderr.write('\ndebug | `val:type`: `' + val + ':' + typ + '`.\n')
     if typ == 'bool':
-        if (val == 'True') or (val == ''):
+        if val in ['True', '']:
             return True
         elif val == 'False':
             return False
@@ -224,9 +224,6 @@ Options:
             raise TqdmKeyError("Can only have one of --bytes --update --update_to")
     except Exception:
         fp.write('\nError:\nUsage:\n  tqdm [--help | options]\n')
-        for i in sys.stdin:
-            sys.stdout.write(i)
-        raise
     else:
         buf_size = tqdm_args.pop('buf_size', 256)
         delim = tqdm_args.pop('delim', b'\\n')
