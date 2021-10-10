@@ -25,7 +25,7 @@ def cast(val, typ):
 
     # sys.stderr.write('\ndebug | `val:type`: `' + val + ':' + typ + '`.\n')
     if typ == 'bool':
-        if (val == 'True') or (val == ''):
+        if val in ['True', '']:
             return True
         elif val == 'False':
             return False
