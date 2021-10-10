@@ -95,7 +95,7 @@ def main():
                             break
                         ln = l_raw.strip()
                         if ln.startswith("Extracting"):
-                            exname = ln.lstrip("Extracting").lstrip()
+                            exname = ln[len("Extracting"):].lstrip()
                             s = fcomp.get(exname, 0)  # 0 is likely folders
                             t.update(s)
                             tall.update(s)

@@ -44,16 +44,19 @@ repos:
   - id: flake8
     args: [-j8]
     additional_dependencies:
+    - flake8-broken-line
     - flake8-bugbear
     - flake8-comprehensions
     - flake8-debugger
+    - flake8-isort
     - flake8-string-format
+    - flake8-type-annotations
 - repo: https://github.com/PyCQA/isort
-  rev: 5.9.2
+  rev: 5.9.3
   hooks:
   - id: isort
 - repo: https://github.com/kynan/nbstripout
-  rev: 0.4.0
+  rev: 0.5.0
   hooks:
   - id: nbstripout
     args: [--keep-count, --keep-output]

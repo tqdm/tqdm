@@ -1,4 +1,4 @@
-flake8
+pre-commit
 pytest
 pytest-cov
 pytest-timeout

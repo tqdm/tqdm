@@ -3,12 +3,11 @@ on:
   push:
   pull_request:
   schedule:
-  - cron: '2 1 * * 6'  # M H d m w (Saturdays at 1:02)
+  - cron: '2 1 * * 6'  # M H d m w (Sat 1:02)
 jobs:
   check:
-    if: github.event_name != 'pull_request' || github.head_ref != 'devel'
+    if: github.event_name != 'pull_request' || github.repository_owner != 'tqdm'
     runs-on: ubuntu-latest
-    name: check
     steps:
     - uses: actions/checkout@v2
       with:
@@ -37,48 +36,27 @@ jobs:
         REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         EVENT: ${{ github.event_name }}
     - run: pre-commit run -a --show-diff-on-failure
-  test-os:
-    if: github.event_name != 'pull_request' || github.head_ref != 'devel'
-    strategy:
-      matrix:
-        python: [2.7, 3.7]
-        os: [macos-latest, windows-latest]
-    name: py${{ matrix.python }}-${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 20
-    steps:
-    - uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
-    - uses: actions/setup-python@v2
-      with:
-        python-version: ${{ matrix.python }}
-    - name: install
-      shell: bash
-      run: |
-        pip install -U tox
-        mkdir -p "$HOME/bin"
-        curl -sfL https://coverage.codacy.com/get.sh > "$HOME/bin/codacy"
-        chmod +x "$HOME/bin/codacy"
-        echo "$HOME/bin" >> $GITHUB_PATH
-    - run: tox -e py${PYVER/./}
-      shell: bash
-      env:
-        PYVER: ${{ matrix.python }}
-        COVERALLS_FLAG_NAME: py${{ matrix.python }}-${{ matrix.os }}
-        COVERALLS_PARALLEL: true
-        COVERALLS_SERVICE_NAME: github
-        # coveralls needs explicit token
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
   test:
-    if: github.event_name != 'pull_request' || github.head_ref != 'devel'
+    if: github.event_name != 'pull_request' || github.repository_owner != 'tqdm'
+    name: py${{ matrix.python }}-${{ matrix.os }}
     strategy:
       matrix:
+        os: [ubuntu]
         python: [2.7, 3.5, 3.6, 3.7, 3.8, 3.9]
-    name: py${{ matrix.python }}
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
+        include:
+        - os: macos
+          python: 2.7
+        - os: macos
+          python: 3.8
+        - os: windows
+          python: 2.7
+        - os: windows
+          python: 3.8
+    runs-on: ${{ matrix.os }}-latest
+    timeout-minutes: 35
+    defaults:
+      run:
+        shell: bash
     steps:
     - uses: actions/checkout@v2
       with:
@@ -88,35 +66,39 @@ jobs:
         python-version: ${{ matrix.python }}
     - name: install
       run: |
-        pip install -U tox
+        pip install -U tox tox-gh-actions
         mkdir -p "$HOME/bin"
         curl -sfL https://coverage.codacy.com/get.sh > "$HOME/bin/codacy"
         chmod +x "$HOME/bin/codacy"
         echo "$HOME/bin" >> $GITHUB_PATH
     - name: tox
       run: |
-        if [[ "$PYVER" == py* ]]; then
-          tox -e $PYVER                                             # basic:pypy
-        elif [[ "$PYVER" == *3.9 ]]; then
-          tox -e py${PYVER/./}                                      # basic
-        elif [[ "$PYVER" == "3.7" ]]; then
-          tox -e py${PYVER/./}-tf,py${PYVER/./}-tf-keras            # full
+        TIMEOUT=10m
+        if [[ "${{ matrix.python }}" = "2.7" ]]; then
+          TIMEOUT=15m
+        elif [[ "py${{ matrix.python }}-${{ matrix.os }}" = "py3.8-ubuntu" ]]; then
+          export TOXENV="py38-tf,py38-tf-keras"  # full
+        fi
+        if [[ "${{ matrix.os }}" != "ubuntu" ]]; then
+          tox -e py${PYVER/./}                   # basic
         else
-          tox -e py${PYVER/./}-tf-keras                             # normal
+          timeout $TIMEOUT tox || timeout $TIMEOUT tox || timeout $TIMEOUT tox
         fi
       env:
         PYVER: ${{ matrix.python }}
-        COVERALLS_FLAG_NAME: py${{ matrix.python }}
+        PLATFORM: ${{ matrix.os }}
+        COVERALLS_FLAG_NAME: py${{ matrix.python }}-${{ matrix.os }}
         COVERALLS_PARALLEL: true
         COVERALLS_SERVICE_NAME: github
         # coveralls needs explicit token
+        COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
   finish:
-    if: github.event_name != 'pull_request' || github.head_ref != 'devel'
+    if: github.event_name != 'pull_request' || github.repository_owner != 'tqdm'
     name: pytest cov
     continue-on-error: ${{ github.event_name != 'push' }}
-    needs: [test, test-os]
+    needs: test
     runs-on: ubuntu-latest
     steps:
     - uses: actions/setup-python@v2
@@ -133,7 +115,7 @@ jobs:
       env:
         CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
   deploy:
-    needs: [check, test, test-os]
+    needs: [check, test]
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -150,7 +132,7 @@ jobs:
       with:
         password: ${{ secrets.PYPI_TOKEN }}
         gpg_key: ${{ secrets.GPG_KEY }}
-        upload: ${{ github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags') }}
+        upload: ${{ github.event_name == 'push' && startsWith(github.ref, 'refs/tags') }}
     - id: collect_assets
       name: Collect assets
       run: |
@@ -166,7 +148,7 @@ jobs:
         fi
         echo ::set-output name=tag::${GITHUB_REF#refs/tags/}
         git log --pretty='format:%d%n- %s%n%b---' $(git tag --sort=v:refname | tail -n2 | head -n1)..HEAD > _CHANGES.md
-    - if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
+    - if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
       uses: softprops/action-gh-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}

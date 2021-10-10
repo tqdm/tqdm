@@ -114,10 +114,7 @@ def simple_progress(iterable=None, total=None, file=sys.stdout, desc='',
                 spent = last_t[0] - start_t[0]
                 spent_fmt = format_interval(spent)
                 rate = n[0] / spent if spent > 0 else 0
-                if 0.0 < rate < 1.0:
-                    rate_fmt = "%.2fs/it" % (1.0 / rate)
-                else:
-                    rate_fmt = "%.2fit/s" % rate
+                rate_fmt = "%.2fs/it" % (1.0 / rate) if 0.0 < rate < 1.0 else "%.2fit/s" % rate
 
                 frac = n[0] / total
                 percentage = int(frac * 100)
@@ -128,8 +125,7 @@ def simple_progress(iterable=None, total=None, file=sys.stdout, desc='',
                 barfill = " " * int((1.0 - frac) * width)
                 bar_length, frac_bar_length = divmod(int(frac * width * 10), 10)
                 full_bar = '#' * bar_length
-                frac_bar = chr(48 + frac_bar_length) if frac_bar_length \
-                    else ' '
+                frac_bar = chr(48 + frac_bar_length) if frac_bar_length else ' '
 
                 file.write("\r%s %i%%|%s%s%s| %i/%i [%s<%s, %s]" %
                            (desc, percentage, full_bar, frac_bar, barfill, n[0],
@@ -173,7 +169,7 @@ def test_iter_basic_overhead():
         with relative_timer() as time_tqdm:
             for i in t:
                 a += i
-    assert a == (total * total - total) / 2.0
+    assert a == (total ** 2 - total) / 2.0
 
     a = 0
     with relative_timer() as time_bench:
@@ -249,7 +245,7 @@ def test_iter_overhead_hard():
         with relative_timer() as time_tqdm:
             for i in t:
                 a += i
-    assert a == (total * total - total) / 2.0
+    assert a == (total ** 2 - total) / 2.0
 
     a = 0
     with relative_timer() as time_bench:
@@ -293,7 +289,7 @@ def test_iter_overhead_simplebar_hard():
         with relative_timer() as time_tqdm:
             for i in t:
                 a += i
-    assert a == (total * total - total) / 2.0
+    assert a == (total ** 2 - total) / 2.0
 
     a = 0
     s = simple_progress(_range(total), leave=True,
