@@ -359,12 +359,12 @@ Documentation
 Parameters
 ~~~~~~~~~~
 
-* iterable  : iterable, optional
+* iterable  : iterable, optional  
     Iterable to decorate with a progressbar.
     Leave blank to manually manage the updates.
-* desc  : str, optional
+* desc  : str, optional  
     Prefix for the progressbar.
-* total  : int or float, optional
+* total  : int or float, optional  
     The number of expected iterations. If unspecified,
     len(iterable) is used if possible. If float("inf") or as a last
     resort, only basic progress statistics are displayed
@@ -372,28 +372,28 @@ Parameters
     If ``gui`` is True and this parameter needs subsequent updating,
     specify an initial arbitrary large positive number,
     e.g. 9e9.
-* leave  : bool, optional
+* leave  : bool, optional  
     If [default: True], keeps all traces of the progressbar
     upon termination of iteration.
     If ``None``, will leave only if ``position`` is ``0``.
-* file  : ``io.TextIOWrapper`` or ``io.StringIO``, optional
+* file  : ``io.TextIOWrapper`` or ``io.StringIO``, optional  
     Specifies where to output the progress messages
     (default: sys.stderr). Uses ``file.write(str)`` and ``file.flush()``
     methods.  For encoding, see ``write_bytes``.
-* ncols  : int, optional
+* ncols  : int, optional  
     The width of the entire output message. If specified,
     dynamically resizes the progressbar to stay within this bound.
     If unspecified, attempts to use environment width. The
     fallback is a meter width of 10 and no limit for the counter and
     statistics. If 0, will not print any meter (only stats).
-* mininterval  : float, optional
+* mininterval  : float, optional  
     Minimum progress display update interval [default: 0.1] seconds.
-* maxinterval  : float, optional
+* maxinterval  : float, optional  
     Maximum progress display update interval [default: 10] seconds.
     Automatically adjusts ``miniters`` to correspond to ``mininterval``
     after long display update lag. Only works if ``dynamic_miniters``
     or monitor thread is enabled.
-* miniters  : int or float, optional
+* miniters  : int or float, optional  
     Minimum progress display update interval, in iterations.
     If 0 and ``dynamic_miniters``, will automatically adjust to equal
     ``mininterval`` (more CPU efficient, good for tight loops).
@@ -401,29 +401,29 @@ Parameters
     Tweak this and ``mininterval`` to get very efficient loops.
     If your progress is erratic with both fast and slow iterations
     (network, skipping items, etc) you should set miniters=1.
-* ascii  : bool or str, optional
+* ascii  : bool or str, optional  
     If unspecified or False, use unicode (smooth blocks) to fill
     the meter. The fallback is to use ASCII characters " 123456789#".
-* disable  : bool, optional
+* disable  : bool, optional  
     Whether to disable the entire progressbar wrapper
     [default: False]. If set to None, disable on non-TTY.
-* unit  : str, optional
+* unit  : str, optional  
     String that will be used to define the unit of each iteration
     [default: it].
-* unit_scale  : bool or int or float, optional
+* unit_scale  : bool or int or float, optional  
     If 1 or True, the number of iterations will be reduced/scaled
     automatically and a metric prefix following the
     International System of Units standard will be added
     (kilo, mega, etc.) [default: False]. If any other non-zero
     number, will scale ``total`` and ``n``.
-* dynamic_ncols  : bool, optional
+* dynamic_ncols  : bool, optional  
     If set, constantly alters ``ncols`` and ``nrows`` to the
     environment (allowing for window resizes) [default: False].
-* smoothing  : float, optional
+* smoothing  : float, optional  
     Exponential moving average smoothing factor for speed estimates
     (ignored in GUI mode). Ranges from 0 (average speed) to 1
     (current/instantaneous speed) [default: 0.3].
-* bar_format  : str, optional
+* bar_format  : str, optional  
     Specify a custom bar string formatting. May impact performance.
     [default: '{l_bar}{bar}{r_bar}'], where
     l_bar='{desc}: {percentage:3.0f}%|' and
@@ -436,70 +436,70 @@ Parameters
     remaining, remaining_s, eta.
     Note that a trailing ": " is automatically removed after {desc}
     if the latter is empty.
-* initial  : int or float, optional
+* initial  : int or float, optional  
     The initial counter value. Useful when restarting a progress
     bar [default: 0]. If using float, consider specifying ``{n:.3f}``
     or similar in ``bar_format``, or specifying ``unit_scale``.
-* position  : int, optional
+* position  : int, optional  
     Specify the line offset to print this bar (starting from 0)
     Automatic if unspecified.
     Useful to manage multiple bars at once (eg, from threads).
-* postfix  : dict or ``*``, optional
+* postfix  : dict or ``*``, optional  
     Specify additional stats to display at the end of the bar.
     Calls ``set_postfix(**postfix)`` if possible (dict).
-* unit_divisor  : float, optional
+* unit_divisor  : float, optional  
     [default: 1000], ignored unless ``unit_scale`` is True.
-* write_bytes  : bool, optional
+* write_bytes  : bool, optional  
     If (default: None) and ``file`` is unspecified,
     bytes will be written in Python 2. If ``True`` will also write
     bytes. In all other cases will default to unicode.
-* lock_args  : tuple, optional
+* lock_args  : tuple, optional  
     Passed to ``refresh`` for intermediate output
     (initialisation, iterating, and updating).
-* nrows  : int, optional
+* nrows  : int, optional  
     The screen height. If specified, hides nested bars outside this
     bound. If unspecified, attempts to use environment height.
     The fallback is 20.
-* colour  : str, optional
+* colour  : str, optional  
     Bar colour (e.g. 'green', '#00ff00').
-* delay  : float, optional
+* delay  : float, optional  
     Don't display until [default: 0] seconds have elapsed.
 
 Extra CLI Options
 ~~~~~~~~~~~~~~~~~
 
-* delim  : chr, optional
+* delim  : chr, optional  
     Delimiting character [default: '\n']. Use '\0' for null.
     N.B.: on Windows systems, Python converts '\n' to '\r\n'.
-* buf_size  : int, optional
+* buf_size  : int, optional  
     String buffer size in bytes [default: 256]
     used when ``delim`` is specified.
-* bytes  : bool, optional
+* bytes  : bool, optional  
     If true, will count bytes, ignore ``delim``, and default
     ``unit_scale`` to True, ``unit_divisor`` to 1024, and ``unit`` to 'B'.
-* tee  : bool, optional
+* tee  : bool, optional  
     If true, passes ``stdin`` to both ``stderr`` and ``stdout``.
-* update  : bool, optional
+* update  : bool, optional  
     If true, will treat input as newly elapsed iterations,
     i.e. numbers to pass to ``update()``. Note that this is slow
     (~2e5 it/s) since every input must be decoded as a number.
-* update_to  : bool, optional
+* update_to  : bool, optional  
     If true, will treat input as total elapsed iterations,
     i.e. numbers to assign to ``self.n``. Note that this is slow
     (~2e5 it/s) since every input must be decoded as a number.
-* null  : bool, optional
+* null  : bool, optional  
     If true, will discard input (no stdout).
-* manpath  : str, optional
+* manpath  : str, optional  
     Directory in which to install tqdm man pages.
-* comppath  : str, optional
+* comppath  : str, optional  
     Directory in which to place tqdm completion.
-* log  : str, optional
+* log  : str, optional  
     CRITICAL|FATAL|ERROR|WARN(ING)|[default: 'INFO']|DEBUG|NOTSET.
 
 Returns
 ~~~~~~~
 
-* out  : decorated iterator.
+* out  : decorated iterator.  
 
 .. code:: python
 
