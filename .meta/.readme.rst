@@ -388,7 +388,7 @@ Returns
       def set_description(self, desc=None, refresh=True):
           """{DOC_tqdm.tqdm.set_description}"""
 
-      def set_postfix(self, ordered_dict=None, refresh=True, **tqdm_kwargs):
+      def set_postfix(self, ordered_dict=None, refresh=True, strip=True, **tqdm_kwargs):
           """{DOC_tqdm.tqdm.set_postfix}"""
 
       @classmethod
