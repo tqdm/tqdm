@@ -1525,11 +1525,13 @@ class tqdm(Comparable):
         ...         if not chunk:
         ...             break
         """
+        if bytes:
+            tqdm_kwargs.update(
+                unit="B",
+                unit_scale=True,
+                unit_divisor=1024
+            )
         with cls(total=total, **tqdm_kwargs) as t:
-            if bytes:
-                t.unit = "B"
-                t.unit_scale = True
-                t.unit_divisor = 1024
             yield CallbackIOWrapper(t.update, stream, method)
 
 
