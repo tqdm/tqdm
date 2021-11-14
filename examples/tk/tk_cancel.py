@@ -12,7 +12,7 @@ class Task(Thread):
         self.is_cancelled = False
 
     def run(self):
-        for i in range(10):
+        for _ in range(10):
             if self.is_cancelled:
                 return
             time.sleep(0.1)

@@ -14,7 +14,7 @@ pbar = tqdm(tk_parent=window, total=10)
 
 def run():
     pbar.reset(total=10)
-    for i in range(10):
+    for _ in range(10):
         time.sleep(0.1)
         pbar.update(1)
 

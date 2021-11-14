@@ -10,7 +10,7 @@ pbar = tqdm(total=30, tk_parent=window)
 
 
 def run_task():
-    for i in range(30):
+    for _ in range(30):
         sleep(0.1)
         pbar.update(1)
     pbar.close()
