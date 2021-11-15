@@ -1,10 +1,7 @@
-from tqdm.tk import tqdm, trange
-from tkinter import Tk, Button
 import time
-from collections import namedtuple
-from functools import partial
-from threading import Thread
+from tkinter import Button, Tk
 
+from tqdm.tk import tqdm
 
 window = Tk()
 
@@ -27,4 +24,3 @@ button.pack()
 
 
 window.mainloop()
-

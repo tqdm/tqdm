@@ -1,7 +1,7 @@
-from tqdm.tk import tqdm
 from time import sleep
-from tkinter import Tk, Button
+from tkinter import Button, Tk
 
+from tqdm.tk import tqdm
 
 window = Tk()
 
