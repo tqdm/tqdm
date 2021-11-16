@@ -1020,7 +1020,7 @@ for ``DataFrame.progress_apply`` and ``DataFrameGroupBy.progress_apply``:
 
     df = pd.DataFrame(np.random.randint(0, 100, (100000, 6)))
 
-    # Register `pandas.progress_apply` and `pandas.Series.map_apply` with `tqdm`
+    # Register `pandas.progress_apply` and `pandas.Series.progress_map` with `tqdm`
     # (can use `tqdm.gui.tqdm`, `tqdm.notebook.tqdm`, optional kwargs, etc.)
     tqdm.pandas(desc="my bar!")
 
@@ -1034,6 +1034,10 @@ In case you're interested in how this works (and how to modify it for your
 own callbacks), see the
 `examples <https://github.com/tqdm/tqdm/tree/master/examples>`__
 folder or import the module and run ``help()``.
+
+Although ``pandas.Series.map`` supports ``function, collections.abc.Mapping subclass or Series`` as its arugment, 
+``pandas.Series.progress_map`` only supports a mapping function. If you're using ``dict`` or ``pandas.Series`` as your mapping, 
+please use ``pandas.Series.map``
 
 Keras Integration
 ~~~~~~~~~~~~~~~~~
