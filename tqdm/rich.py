@@ -75,7 +75,7 @@ class RateColumn(ProgressColumn):
 class tqdm_rich(std_tqdm):  # pragma: no cover
     """Experimental rich.progress GUI version of tqdm!"""
     # TODO: @classmethod: write()?
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, console=None, **kwargs):
         """
         This class accepts the following parameters *in addition* to
         the parameters accepted by `tqdm`.
@@ -108,7 +108,7 @@ class tqdm_rich(std_tqdm):  # pragma: no cover
                 ",", RateColumn(unit=d['unit'], unit_scale=d['unit_scale'],
                                 unit_divisor=d['unit_divisor']), "]"
             )
-        self._prog = Progress(*progress, transient=not self.leave)
+        self._prog = Progress(*progress, console=console, transient=not self.leave)
         self._prog.__enter__()
         self._task_id = self._prog.add_task(self.desc or "", **d)
 
