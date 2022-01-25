@@ -1,10 +1,14 @@
+# -*- coding: UTF-8 -*-
 """
 Providing a progress writer for scp.SCPClient
 """
 from sys import stderr
 from io import IOBase
-import typing
 from tqdm import tqdm
+try:
+    from typing import Tuple, Optional  # pylint: disable=unused-import
+except ImportError:
+    pass
 
 __author__ = {"github.com/": ["schwaneberg"]}
 __all__ = ['ScpProgressWriter']
@@ -30,7 +34,11 @@ class ScpProgressWriter:
     Copying archive.zip (peer: example.com): 100%|██████████| 15.4M/15.4M [00:07<00:00, 2.11MB/s]
     Copying another_archive.zip (peer: example.com): 100%|██████████| 42.9M/42.9M [00:18<00:00, 2.40MB/s]
     """
-    def __init__(self, desc: typing.Optional[str] = None, min_file_size: int = 102400, file: IOBase = stderr):
+    def __init__(
+            self, desc=None,  # type: Optional[str]
+            min_file_size=102400,  # type: int
+            file=stderr  # type: IOBase
+    ):
         """
         Parameters
         ----------
@@ -52,7 +60,10 @@ class ScpProgressWriter:
         if self.__tqdm is not None:
             self.__tqdm.close()
 
-    def update_to(self, filename, size, sent, peername: typing.Optional[typing.Tuple[str, int]] = None):
+    def update_to(
+            self, filename, size, sent,
+            peername=None  # type: Optional[Tuple[str, int]]
+    ):
         """
         Callback with compatible signature for SCP
         :param filename: filename - will be appended to the description
@@ -63,7 +74,9 @@ class ScpProgressWriter:
         if size > self.__min_file_size:
             if isinstance(filename, bytes):
                 filename = filename.decode("utf-8", "backslashreplace")
-            desc = f"{self.__desc} {filename} (peer: {peername[0]})" if peername else f"{self.__desc} {filename}"
+            desc = self.__desc + " " + filename
+            if peername:
+                desc += " (peer: " + peername[0] + ")"
             if filename != self.__cur_file:
                 if self.__tqdm is not None:
                     self.__tqdm.close()
