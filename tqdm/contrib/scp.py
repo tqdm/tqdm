@@ -3,7 +3,6 @@
 Providing a progress writer for scp.SCPClient
 """
 from sys import stderr
-from io import IOBase
 from tqdm import tqdm
 try:
     from typing import Tuple, Optional  # pylint: disable=unused-import
@@ -37,7 +36,7 @@ class ScpProgressWriter:
     def __init__(
             self, desc=None,  # type: Optional[str]
             min_file_size=102400,  # type: int
-            file=stderr  # type: IOBase
+            file=stderr
     ):
         """
         Parameters
