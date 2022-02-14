@@ -457,7 +457,7 @@ class tqdm(Comparable):
             total_fmt = str(total) if total is not None else '?'
 
         try:
-            postfix = ', ' + postfix if postfix else ''
+            postfix = f', {postfix}' if postfix else ''
         except TypeError:
             pass
 
@@ -473,7 +473,7 @@ class tqdm(Comparable):
         if prefix:
             # old prefix setup work around
             bool_prefix_colon_already = (prefix[-2:] == ": ")
-            l_bar = prefix if bool_prefix_colon_already else prefix + ": "
+            l_bar = prefix if bool_prefix_colon_already else f'{prefix}: '
         else:
             l_bar = ''
 
@@ -600,12 +600,12 @@ class tqdm(Comparable):
             # else:
             if not instance.gui:
                 last = (instance.nrows or 20) - 1
-                # find unfixed (`pos >= 0`) overflow (`pos >= nrows - 1`)
-                instances = list(filter(
-                    lambda i: hasattr(i, "pos") and last <= i.pos,
-                    cls._instances))
-                # set first found to current `pos`
-                if instances:
+                if instances := list(
+                    filter(
+                        lambda i: hasattr(i, "pos") and last <= i.pos,
+                        cls._instances,
+                    )
+                ):
                     inst = min(instances, key=lambda i: i.pos)
                     inst.clear(nolock=True)
                     inst.pos = abs(instance.pos)
@@ -1020,20 +1020,22 @@ class tqdm(Comparable):
         # Preprocess the arguments
         if (
             (ncols is None or nrows is None) and (file in (sys.stderr, sys.stdout))
-        ) or dynamic_ncols:  # pragma: no cover
+        ):  # pragma: no cover
             if dynamic_ncols:
                 dynamic_ncols = _screen_shape_wrapper()
                 if dynamic_ncols:
                     ncols, nrows = dynamic_ncols(file)
-            else:
-                _dynamic_ncols = _screen_shape_wrapper()
-                if _dynamic_ncols:
-                    _ncols, _nrows = _dynamic_ncols(file)
-                    if ncols is None:
-                        ncols = _ncols
-                    if nrows is None:
-                        nrows = _nrows
+            elif _dynamic_ncols := _screen_shape_wrapper():
+                _ncols, _nrows = _dynamic_ncols(file)
+                if ncols is None:
+                    ncols = _ncols
+                if nrows is None:
+                    nrows = _nrows
 
+        elif dynamic_ncols:  # pragma: no cover
+            dynamic_ncols = _screen_shape_wrapper()
+            if dynamic_ncols:
+                ncols, nrows = dynamic_ncols(file)
         if miniters is None:
             miniters = 0
             dynamic_miniters = True
@@ -1165,8 +1167,7 @@ class tqdm(Comparable):
         # If the bar is disabled, then just walk the iterable
         # (note: keep this check outside the loop for performance)
         if self.disable:
-            for obj in iterable:
-                yield obj
+            yield from iterable
             return
 
         mininterval = self.mininterval
@@ -1388,7 +1389,7 @@ class tqdm(Comparable):
         refresh  : bool, optional
             Forces refresh [default: True].
         """
-        self.desc = desc + ': ' if desc else ''
+        self.desc = f'{desc}: ' if desc else ''
         if refresh:
             self.refresh()
 
@@ -1424,8 +1425,10 @@ class tqdm(Comparable):
                 postfix[key] = str(postfix[key])
             # Else if it's a string, don't need to preprocess anything
         # Stitch together to get the final postfix
-        self.postfix = ', '.join(key + '=' + postfix[key].strip()
-                                 for key in postfix.keys())
+        self.postfix = ', '.join(
+            f'{key}=' + postfix[key].strip() for key in postfix.keys()
+        )
+
         if refresh:
             self.refresh()
 
