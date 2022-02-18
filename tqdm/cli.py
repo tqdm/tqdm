@@ -185,9 +185,8 @@ def main(fp=sys.stderr, argv=None):
                      otd[0].replace('_', '-'), otd[0], *otd[1:])
                 for otd in opt_types_desc if otd[0] not in UNSUPPORTED_OPTS)
 
-    d = """Usage:
-  tqdm [--help | options]
-
+    help_short = "Usage:\n  tqdm [--help | options]\n"
+    d = help_short + """
 Options:
   -h, --help     Print this help and exit.
   -v, --version  Print version and exit.
@@ -200,6 +199,9 @@ Options:
     elif any(v in argv for v in ('-h', '--help')):
         sys.stdout.write(d + '\n')
         sys.exit(0)
+    elif argv and argv[0][:2] != '--':
+        sys.stderr.write(
+            "Error:Unknown argument:{0}\n{1}".format(argv[0], help_short))
 
     argv = RE_SHLEX.split(' '.join(["tqdm"] + argv))
     opts = dict(zip(argv[1::3], argv[3::3]))
@@ -223,7 +225,7 @@ Options:
         if sum((delim_per_char, update, update_to)) > 1:
             raise TqdmKeyError("Can only have one of --bytes --update --update_to")
     except Exception:
-        fp.write('\nError:\nUsage:\n  tqdm [--help | options]\n')
+        fp.write("\nError:\n" + help_short)
         for i in sys.stdin:
             sys.stdout.write(i)
         raise
