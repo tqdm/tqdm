@@ -254,8 +254,11 @@ Options:
 
             def cp(name, dst):
                 """copy resource `name` to `dst`"""
-                with resources.path('tqdm', name) as src:
-                    copyfile(str(src), dst)
+                if hasattr(resources, 'files'):
+                    copyfile(str(resources.files('tqdm') / name), dst)
+                else:  # py<3.9
+                    with resources.path('tqdm', name) as src:
+                        copyfile(str(src), dst)
                 log.info("written:%s", dst)
             if manpath is not None:
                 cp('tqdm.1', path.join(manpath, 'tqdm.1'))
