@@ -40,7 +40,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu]
-        python: [2.7, 3.5, 3.6, 3.7, 3.8, 3.9]
+        python: [2.7, 3.5, 3.6, 3.7, 3.8, 3.9, '3.10']
         include:
         - os: macos
           python: 2.7
