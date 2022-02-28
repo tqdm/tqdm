@@ -1131,6 +1131,21 @@ class tqdm(Comparable):
             else self.iterable.__length_hint__() if hasattr(self.iterable, "__length_hint__")
             else getattr(self, "total", None))
 
+    def __reversed__(self):
+        try:
+            orig = self.iterable
+        except AttributeError:
+            raise TypeError("'tqdm' object is not reversible")
+        else:
+            self.iterable = reversed(self.iterable)
+            return self.__iter__()
+        finally:
+            self.iterable = orig
+
+    def __contains__(self, item):
+        contains = getattr(self.iterable, '__contains__', None)
+        return contains(item) if contains is not None else item in self.__iter__()
+
     def __enter__(self):
         return self
 

@@ -10,8 +10,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
     - uses: actions/setup-python@v2
     - name: set PYSHA
       run: echo "PYSHA=$(python -VV | sha256sum | cut -d' ' -f1)" >> $GITHUB_ENV
@@ -22,7 +20,7 @@ jobs:
     - name: dependencies
       run: pip install -U pre-commit
     - uses: reviewdog/action-setup@v1
-    - if: github.event_name != 'schedule'
+    - if: github.event_name == 'push' || github.event_name == 'pull_request'
       name: comment
       run: |
         if [[ $EVENT == pull_request ]]; then
@@ -42,7 +40,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu]
-        python: [2.7, 3.5, 3.6, 3.7, 3.8, 3.9]
+        python: [2.7, 3.5, 3.6, 3.7, 3.8, 3.9, '3.10']
         include:
         - os: macos
           python: 2.7

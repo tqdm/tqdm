@@ -45,6 +45,7 @@ def test_pipes():
     # actual test:
     assert norm(ls_out) == norm(out)
     assert b"it/s" in err
+    assert b"Error" not in err
 
 
 if sys.version_info[:2] >= (3, 8):
