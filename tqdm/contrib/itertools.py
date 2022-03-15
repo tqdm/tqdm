@@ -31,6 +31,7 @@ def product(*iterables, **tqdm_kwargs):
             total *= i
         kwargs.setdefault("total", total)
     with tqdm_class(**kwargs) as t:
-        for i in itertools.product(*iterables):
+        it = itertools.product(*iterables)
+        for i in it:
             yield i
             t.update()

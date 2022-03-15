@@ -67,6 +67,7 @@ def posix_pipe(fin, fout, delim=b'\\n', buf_size=256,
         # return
 
     buf = b''
+    len_delim = len(delim)
     # n = 0
     while True:
         tmp = fin.read(buf_size)
@@ -85,17 +86,15 @@ def posix_pipe(fin, fout, delim=b'\\n', buf_size=256,
             return  # n
 
         while True:
-            try:
-                i = tmp.index(delim)
-            except ValueError:
+            i = tmp.find(delim)
+            if i < 0:
                 buf += tmp
                 break
-            else:
-                fp_write(buf + tmp[:i + len(delim)])
-                # n += 1
-                callback(1 if callback_len else (buf + tmp[:i]))
-                buf = b''
-                tmp = tmp[i + len(delim):]
+            fp_write(buf + tmp[:i + len(delim)])
+            # n += 1
+            callback(1 if callback_len else (buf + tmp[:i]))
+            buf = b''
+            tmp = tmp[i + len_delim:]
 
 
 # ((opt, type), ... )
@@ -226,8 +225,9 @@ Options:
             raise TqdmKeyError("Can only have one of --bytes --update --update_to")
     except Exception:
         fp.write("\nError:\n" + help_short)
-        for i in sys.stdin:
-            sys.stdout.write(i)
+        stdin, stdout_write = sys.stdin, sys.stdout.write
+        for i in stdin:
+            stdout_write(i)
         raise
     else:
         buf_size = tqdm_args.pop('buf_size', 256)
@@ -284,6 +284,7 @@ Options:
                 posix_pipe(stdin, stdout, '', buf_size, t.update)
         elif delim == b'\\n':
             log.debug(tqdm_args)
+            write = stdout.write
             if update or update_to:
                 with tqdm(**tqdm_args) as t:
                     if update:
@@ -293,11 +294,11 @@ Options:
                         def callback(i):
                             t.update(numeric(i.decode()) - t.n)
                     for i in stdin:
-                        stdout.write(i)
+                        write(i)
                         callback(i)
             else:
                 for i in tqdm(stdin, **tqdm_args):
-                    stdout.write(i)
+                    write(i)
         else:
             log.debug(tqdm_args)
             with tqdm(**tqdm_args) as t:

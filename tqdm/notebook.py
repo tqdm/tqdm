@@ -254,7 +254,8 @@ class tqdm_notebook(std_tqdm):
 
     def __iter__(self):
         try:
-            for obj in super(tqdm_notebook, self).__iter__():
+            it = super(tqdm_notebook, self).__iter__()
+            for obj in it:
                 # return super(tqdm...) will not catch exception
                 yield obj
         # NB: except ... [ as ...] breaks IPython async KeyboardInterrupt
