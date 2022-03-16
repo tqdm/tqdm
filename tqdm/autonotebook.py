@@ -6,7 +6,6 @@ Usage:
 >>> for i in trange(10):
 ...     ...
 """
-import os
 import sys
 from warnings import warn
 
@@ -14,8 +13,6 @@ try:
     get_ipython = sys.modules['IPython'].get_ipython
     if 'IPKernelApp' not in get_ipython().config:  # pragma: no cover
         raise ImportError("console")
-    if 'VSCODE_PID' in os.environ:  # pragma: no cover
-        raise ImportError("vscode")
     from .notebook import WARN_NOIPYW, IProgress
     if IProgress is None:
         from .std import TqdmWarning
