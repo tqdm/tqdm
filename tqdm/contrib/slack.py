@@ -1,9 +1,11 @@
 """
 Sends updates to a Slack app.
+
 Usage:
 >>> from tqdm.contrib.slack import tqdm, trange
->>> for i in tqdm(iterable, token='{token}', channel='{channel}'):
+>>> for i in trange(10, token='{token}', channel='{channel}'):
 ...     ...
+
 ![screenshot](https://img.tqdm.ml/screenshot-slack.png)
 """
 from __future__ import absolute_import
@@ -33,8 +35,7 @@ class SlackIO(MonoWorker):
         self.channel = channel
         self.text = self.__class__.__name__
         try:
-            self.message = self.client.chat_postMessage(
-                channel=channel, text=self.text)
+            self.message = self.client.chat_postMessage(channel=channel, text=self.text)
         except Exception as e:
             tqdm_auto.write(str(e))
 
@@ -47,11 +48,8 @@ class SlackIO(MonoWorker):
             return  # skip duplicate message
         self.text = s
         try:
-            future = self.submit(
-                self.client.chat_update,
-                channel=self.message["channel"],
-                ts=self.message["ts"],
-                text='`' + s + '`')
+            future = self.submit(self.client.chat_update, channel=self.message["channel"],
+                                 ts=self.message["ts"], text='`' + s + '`')
         except Exception as e:
             tqdm_auto.write(str(e))
         else:
@@ -80,6 +78,7 @@ class tqdm_slack(tqdm_auto):
             [default: ${TQDM_SLACK_CHANNEL}].
         mininterval  : float, optional.
           Minimum of [default: 1.5] to avoid rate limit.
+
         See `tqdm.auto.tqdm.__init__` for other parameters.
         """
         if not kwargs.get('disable'):

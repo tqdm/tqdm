@@ -3,7 +3,7 @@ Sends updates to a Discord bot.
 
 Usage:
 >>> from tqdm.contrib.discord import tqdm, trange
->>> for i in tqdm(iterable, token='{token}', channel_id='{channel_id}'):
+>>> for i in trange(10, token='{token}', channel_id='{channel_id}'):
 ...     ...
 
 ![screenshot](https://img.tqdm.ml/screenshot-discord.png)
