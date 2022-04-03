@@ -37,6 +37,7 @@ class SlackIO(MonoWorker):
             self.message = self.client.chat_postMessage(channel=channel, text=self.text)
         except Exception as e:
             tqdm_auto.write(str(e))
+            self.message = None
 
     def write(self, s):
         """Replaces internal `message`'s text with `s`."""
@@ -45,10 +46,13 @@ class SlackIO(MonoWorker):
         s = s.replace('\r', '').strip()
         if s == self.text:
             return  # skip duplicate message
+        message = self.message
+        if message is None:
+            return
         self.text = s
         try:
-            future = self.submit(self.client.chat_update, channel=self.message["channel"],
-                                 ts=self.message["ts"], text='`' + s + '`')
+            future = self.submit(self.client.chat_update, channel=message["channel"],
+                                 ts=message["ts"], text='`' + s + '`')
         except Exception as e:
             tqdm_auto.write(str(e))
         else:
