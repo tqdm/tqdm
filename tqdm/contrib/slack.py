@@ -32,7 +32,6 @@ class SlackIO(MonoWorker):
         """Creates a new message in the given `channel`."""
         super(SlackIO, self).__init__()
         self.client = WebClient(token=token)
-        self.channel = channel
         self.text = self.__class__.__name__
         try:
             self.message = self.client.chat_postMessage(channel=channel, text=self.text)
