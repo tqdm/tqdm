@@ -98,9 +98,13 @@ class tqdm_slack(tqdm_auto):
         fmt = self.format_dict
         if fmt.get('bar_format', None):
             fmt['bar_format'] = fmt['bar_format'].replace(
-                '<bar/>', '{bar:10u}').replace('{bar}', '{bar:10u}')
+                '<bar/>', '`{bar:10}`').replace('{bar}', '`{bar:10u}`')
         else:
-            fmt['bar_format'] = '{l_bar}{bar:10u}{r_bar}'
+            fmt['bar_format'] = '{l_bar}`{bar:10}`{r_bar}'
+        if fmt['ascii'] is False:
+            fmt['ascii'] = [":black_square:", ":small_blue_diamond:", ":large_blue_diamond:",
+                            ":large_blue_square:"]
+            fmt['ncols'] = 336
         self.sio.write(self.format_meter(**fmt))
 
     def clear(self, *args, **kwargs):

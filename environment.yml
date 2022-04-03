@@ -36,7 +36,7 @@ dependencies:
 - wheel              # `setup.py bdist_wheel`
 # `cd docs && pymake`
 - mkdocs-material
-- pydoc-markdown >=4.6.0
+- pydoc-markdown
 - pygments
 - pymdown-extensions
 - pip:
