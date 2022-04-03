@@ -976,7 +976,7 @@ custom callback take advantage of this, simply use the return value of
 
     class TqdmExt(std_tqdm):
         def update(self, n=1):
-            displayed = super(TqdmExt, self).update(n):
+            displayed = super(TqdmExt, self).update(n)
             if displayed:
                 external_callback(**self.format_dict)
             return displayed

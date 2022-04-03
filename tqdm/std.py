@@ -672,7 +672,7 @@ class tqdm(Comparable):
             | groupby.(generic.)SeriesGroupBy
             ).progress_apply
 
-        A new instance will be create every time `progress_apply` is called,
+        A new instance will be created every time `progress_apply` is called,
         and each instance will automatically `close()` upon completion.
 
         Parameters
