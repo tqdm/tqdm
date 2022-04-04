@@ -692,12 +692,12 @@ The ``tqdm.contrib`` package also contains experimental modules:
 
 - ``tqdm.contrib.itertools``: Thin wrappers around ``itertools``
 - ``tqdm.contrib.concurrent``: Thin wrappers around ``concurrent.futures``
-- ``tqdm.contrib.discord``: Posts to `Discord <https://discord.com>`__ bots
 - ``tqdm.contrib.slack``: Posts to `Slack <https://slack.com>`__ bots
+- ``tqdm.contrib.discord``: Posts to `Discord <https://discord.com>`__ bots
 - ``tqdm.contrib.telegram``: Posts to `Telegram <https://telegram.org>`__ bots
 - ``tqdm.contrib.bells``: Automagically enables all optional features
 
-  * ``auto``, ``pandas``, ``discord``, ``slack``, ``telegram``
+  * ``auto``, ``pandas``, ``slack``, ``discord``, ``telegram``
 
 Examples and Advanced Usage
 ---------------------------
@@ -1185,9 +1185,9 @@ Some submodule examples of inheritance:
 - `tqdm/notebook.py <https://github.com/tqdm/tqdm/blob/master/tqdm/notebook.py>`__
 - `tqdm/gui.py <https://github.com/tqdm/tqdm/blob/master/tqdm/gui.py>`__
 - `tqdm/tk.py <https://github.com/tqdm/tqdm/blob/master/tqdm/tk.py>`__
-- `tqdm/contrib/telegram.py <https://github.com/tqdm/tqdm/blob/master/tqdm/contrib/telegram.py>`__
 - `tqdm/contrib/slack.py <https://github.com/tqdm/tqdm/blob/master/tqdm/contrib/slack.py>`__
 - `tqdm/contrib/discord.py <https://github.com/tqdm/tqdm/blob/master/tqdm/contrib/discord.py>`__
+- `tqdm/contrib/telegram.py <https://github.com/tqdm/tqdm/blob/master/tqdm/contrib/telegram.py>`__
 
 Dynamic Monitor/Meter
 ~~~~~~~~~~~~~~~~~~~~~

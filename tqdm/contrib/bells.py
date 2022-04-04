@@ -12,10 +12,10 @@ __all__ = ['tqdm', 'trange']
 import warnings
 from os import getenv
 
-if getenv("TQDM_TELEGRAM_TOKEN") and getenv("TQDM_TELEGRAM_CHAT_ID"):
-    from .telegram import tqdm, trange
-elif getenv("TQDM_SLACK_TOKEN") and getenv("TQDM_SLACK_CHANNEL"):
+if getenv("TQDM_SLACK_TOKEN") and getenv("TQDM_SLACK_CHANNEL"):
     from .slack import tqdm, trange
+elif getenv("TQDM_TELEGRAM_TOKEN") and getenv("TQDM_TELEGRAM_CHAT_ID"):
+    from .telegram import tqdm, trange
 elif getenv("TQDM_DISCORD_TOKEN") and getenv("TQDM_DISCORD_CHANNEL_ID"):
     from .discord import tqdm, trange
 else:

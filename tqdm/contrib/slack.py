@@ -51,8 +51,8 @@ class SlackIO(MonoWorker):
             return
         self.text = s
         try:
-            future = self.submit(self.client.chat_update, channel=message["channel"],
-                                 ts=message["ts"], text='`' + s + '`')
+            future = self.submit(self.client.chat_update, channel=message['channel'],
+                                 ts=message['ts'], text='`' + s + '`')
         except Exception as e:
             tqdm_auto.write(str(e))
         else:
