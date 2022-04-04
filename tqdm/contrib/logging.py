@@ -126,3 +126,62 @@ def tqdm_logging_redirect(
     with tqdm_class(*args, **tqdm_kwargs) as pbar:
         with logging_redirect_tqdm(loggers=loggers, tqdm_class=tqdm_class):
             yield pbar
+
+
+@contextmanager
+def loguru_redirect_tqdm(
+        logger=None,  # type: Optional[Type[logger]],
+):
+    # type: (...) -> Iterator[None]
+    """
+    Context manager redirecting console logging to `tqdm.write()`, leaving
+    other logging handlers (e.g. log files) unaffected.
+
+    Parameters
+    ----------
+    logger  : loguru.logger
+
+    Example
+    -------
+    ```python
+    from loguru import logger
+    from tqdm import trange
+    from tqdm.contrib.logging import loguru_redirect_tqdm
+
+    if __name__ == '__main__':
+        with loguru_redirect_tqdm():
+            for i in trange(90):
+                time.sleep(0.01)
+
+                if i % 10 == 1:
+                    logger.warning("console logging redirected to `tqdm.write()`")
+        # logging restored
+    ```
+    """
+    if logger is None:
+        try:
+            from loguru import logger as _logger
+        except ImportError:
+            raise ImportError("loguru is not installed")
+
+        logger: Type[logger] = _logger
+
+    original_handler_dictionary = logger._core.handlers.copy()
+    original_min_level = logger._core.min_level
+
+    std_handlers_dictionary = {}
+    try:
+        for _id, handler in original_handler_dictionary.items():
+            try:
+                if handler._sink._stream.name in ('<stderr>', '<stdout>'):
+                    std_handlers_dictionary[_id] = handler
+            except AttributeError:
+                continue
+        # set no std_handlers
+        logger._core.handlers = {id_: handler for id_, handler in original_handler_dictionary.items() if
+                                 id_ not in std_handlers_dictionary}.copy()
+        logger.add(lambda msg: std_tqdm.write(msg, end=""), colorize=True)
+        yield
+    finally:
+        logger._core.handlers = original_handler_dictionary
+        logger._core.min_level = original_min_level
