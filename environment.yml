@@ -29,6 +29,7 @@ dependencies:
 - numpy              # pandas, keras, contrib.tenumerate
 - pandas
 - tensorflow         # keras
+- slack-sdk          # contrib.slack
 - requests           # contrib.telegram
 - rich               # rich
 - argopt             # `cd wiki && pymake`
@@ -41,5 +42,5 @@ dependencies:
 - pymdown-extensions
 - pip:
   - py-make >=0.1.0  # `setup.py make/pymake`
-  - mkdocs-minify-plugin                                   # `cd docs && pymake`
+  - mkdocs-minify-plugin                                     # `cd docs && pymake`
   - git+https://github.com/tqdm/jsmin@python3-only#egg=jsmin # `cd docs && pymake`
