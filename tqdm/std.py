@@ -22,7 +22,7 @@ from ._monitor import TMonitor
 from .utils import (
     CallbackIOWrapper, Comparable, DisableOnWriteError, FormatReplace, SimpleTextIOWrapper,
     _basestring, _is_ascii, _range, _screen_shape_wrapper, _supports_unicode, _term_move_up,
-    _unich, _unicode, disp_len, disp_trim)
+    _unich, _unicode, disp_len, disp_trim, _should_printer_print_new_line)
 
 __author__ = "https://github.com/tqdm/tqdm#contributions"
 __all__ = ['tqdm', 'trange',
@@ -327,7 +327,7 @@ class tqdm(Comparable):
         return f if len(f) < len(n) else n
 
     @staticmethod
-    def status_printer(file):
+    def status_printer(file, do_print_new_line=False):
         """
         Manage the printing and in-place updating of a line of characters.
         Note that if the string is longer than a line, then in-place
@@ -342,6 +342,9 @@ class tqdm(Comparable):
         def fp_write(s):
             fp.write(_unicode(s))
             fp_flush()
+
+            if do_print_new_line or _should_printer_print_new_line():
+                getattr(fp, "write", lambda x: None)("\n")
 
         last_len = [0]
 
@@ -849,7 +852,7 @@ class tqdm(Comparable):
                  dynamic_ncols=False, smoothing=0.3, bar_format=None, initial=0,
                  position=None, postfix=None, unit_divisor=1000, write_bytes=None,
                  lock_args=None, nrows=None, colour=None, delay=0, gui=False,
-                 **kwargs):
+                 do_print_new_line=False, **kwargs):
         """
         Parameters
         ----------
@@ -962,6 +965,10 @@ class tqdm(Comparable):
             WARNING: internal parameter - do not use.
             Use tqdm.gui.tqdm(...) instead. If set, will attempt to use
             matplotlib animations for a graphical output [default: False].
+        do_print_new_line  : bool, optional
+            Whether to print a new line when the progress bar is refreshed. This is
+            particularly useful when piping output to a file or logging from container-based
+            workload such as Kubernetes.
 
         Returns
         -------
@@ -1085,6 +1092,7 @@ class tqdm(Comparable):
         self.bar_format = bar_format
         self.postfix = None
         self.colour = colour
+        self.do_print_new_line = do_print_new_line
         self._time = time
         if postfix:
             try:
@@ -1104,7 +1112,7 @@ class tqdm(Comparable):
 
         if not gui:
             # Initialize the screen printer
-            self.sp = self.status_printer(self.fp)
+            self.sp = self.status_printer(self.fp, do_print_new_line=do_print_new_line)
             if delay <= 0:
                 self.refresh(lock_args=self.lock_args)
 

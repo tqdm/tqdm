@@ -352,3 +352,10 @@ def disp_trim(data, length):
         # assume ANSI reset is required
         return data if data.endswith("\033[0m") else data + "\033[0m"
     return data
+
+
+def _should_printer_print_new_line():
+    """Detect whether a new line should be printed when refreshing a std progress bar."""
+    in_kubernetes_env = os.environ.get("KUBERNETES_SERVICE_HOST") is not None
+    tqdm_printer_new_line_enabled = os.environ.get("TQDM_PRINTER_NEW_LINE") == "true"
+    return in_kubernetes_env or tqdm_printer_new_line_enabled
