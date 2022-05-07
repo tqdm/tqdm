@@ -2,6 +2,7 @@ name: Post Release
 on:
   release:
     types: [published]
+  workflow_dispatch:
 jobs:
   docs:
     runs-on: ubuntu-latest
@@ -18,7 +19,6 @@ jobs:
       with:
         repository: ${{ github.repository }}.github.io
         path: docs
-        ref: src
         token: ${{ secrets.GH_TOKEN }}
     - uses: actions/setup-python@v2
       with:
@@ -36,15 +36,15 @@ jobs:
       run: |
         pushd wiki
         make
-        git commit -a -m "update release notes to ${GITHUB_REF#refs/tags/}"
+        git commit -a -m "update release notes to ${GITHUB_REF#refs/tags/}" || :
         git push
         popd
-    - name: Update Docs
-      run: |
-        pushd docs
-        git fetch --depth=1 origin master:master
-        git checkout master
-        git push --set-upstream origin master
-        git checkout -
-        make deploy
-        popd
+    - run: make -C docs build
+    - uses: casperdcl/push-dir@v1
+      with:
+        message: update static site
+        branch: gh-pages
+        dir: docs/build/docs/_site
+        nojekyll: true
+        name: tqdm[bot]
+        email: 68520887+tqdm-bot@users.noreply.github.com

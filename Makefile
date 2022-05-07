@@ -44,7 +44,8 @@ all:
 	@+make build
 
 flake8:
-	@+flake8 -j 8 --count --statistics --exit-zero .
+	@+pre-commit run -a flake8
+	@+pre-commit run -a nbstripout
 
 test:
 	TOX_SKIP_ENV=perf tox --skip-missing-interpreters -p all
@@ -61,11 +62,11 @@ testsetup:
 	python setup.py make none
 
 testnb:
-	pytest tests_notebook.ipynb --nbval --current-env -W=ignore --sanitize-with=setup.cfg --cov=tqdm.notebook --cov-report=term
+	pytest tests_notebook.ipynb --nbval --nbval-current-env -W=ignore --nbval-sanitize-with=setup.cfg --cov=tqdm.notebook --cov-report=term
 
 testcoverage:
 	@make coverclean
-	pytest tests_notebook.ipynb --cov=tqdm --cov-report= --nbval --current-env --sanitize-with=setup.cfg -W=ignore
+	pytest tests_notebook.ipynb --cov=tqdm --cov-report= --nbval --nbval-current-env --nbval-sanitize-with=setup.cfg -W=ignore
 	pytest -k "not perf" --cov=tqdm --cov-report=xml --cov-report=term --cov-append --cov-fail-under=80
 
 testperf:
@@ -159,6 +160,7 @@ install_build:
 	python -m pip install -r .meta/requirements-dev.txt
 install_test:
 	python -m pip install -r .meta/requirements-test.txt
+	pre-commit install
 
 build:
 	@make prebuildclean

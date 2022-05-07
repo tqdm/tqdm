@@ -26,10 +26,10 @@ def test_enumerate(tqdm_kwargs):
             enumerate(a, 42)
         )
     with closing(StringIO()) as our_file:
-        _ = list(tenumerate((i for i in a), file=our_file, **tqdm_kwargs))
+        _ = list(tenumerate(iter(a), file=our_file, **tqdm_kwargs))
         assert "100%" not in our_file.getvalue()
     with closing(StringIO()) as our_file:
-        _ = list(tenumerate((i for i in a), file=our_file, total=len(a), **tqdm_kwargs))
+        _ = list(tenumerate(iter(a), file=our_file, total=len(a), **tqdm_kwargs))
         assert "100%" in our_file.getvalue()
 
 

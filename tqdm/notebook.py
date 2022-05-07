@@ -71,6 +71,9 @@ if True:  # pragma: no cover
 
 __author__ = {"github.com/": ["lrq3000", "casperdcl", "alexanderkuk"]}
 __all__ = ['tqdm_notebook', 'tnrange', 'tqdm', 'trange']
+WARN_NOIPYW = ("IProgress not found. Please update jupyter and ipywidgets."
+               " See https://ipywidgets.readthedocs.io/en/stable"
+               "/user_install.html")
 
 
 class TqdmHBox(HBox):
@@ -112,10 +115,7 @@ class tqdm_notebook(std_tqdm):
 
         # Prepare IPython progress bar
         if IProgress is None:  # #187 #451 #558 #872
-            raise ImportError(
-                "IProgress not found. Please update jupyter and ipywidgets."
-                " See https://ipywidgets.readthedocs.io/en/stable"
-                "/user_install.html")
+            raise ImportError(WARN_NOIPYW)
         if total:
             pbar = IProgress(min=0, max=total)
         else:  # No total? Show info style bar with no progress tqdm status
@@ -254,7 +254,8 @@ class tqdm_notebook(std_tqdm):
 
     def __iter__(self):
         try:
-            for obj in super(tqdm_notebook, self).__iter__():
+            it = super(tqdm_notebook, self).__iter__()
+            for obj in it:
                 # return super(tqdm...) will not catch exception
                 yield obj
         # NB: except ... [ as ...] breaks IPython async KeyboardInterrupt

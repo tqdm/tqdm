@@ -67,6 +67,7 @@ def posix_pipe(fin, fout, delim=b'\\n', buf_size=256,
         # return
 
     buf = b''
+    len_delim = len(delim)
     # n = 0
     while True:
         tmp = fin.read(buf_size)
@@ -85,17 +86,15 @@ def posix_pipe(fin, fout, delim=b'\\n', buf_size=256,
             return  # n
 
         while True:
-            try:
-                i = tmp.index(delim)
-            except ValueError:
+            i = tmp.find(delim)
+            if i < 0:
                 buf += tmp
                 break
-            else:
-                fp_write(buf + tmp[:i + len(delim)])
-                # n += 1
-                callback(1 if callback_len else (buf + tmp[:i]))
-                buf = b''
-                tmp = tmp[i + len(delim):]
+            fp_write(buf + tmp[:i + len(delim)])
+            # n += 1
+            callback(1 if callback_len else (buf + tmp[:i]))
+            buf = b''
+            tmp = tmp[i + len_delim:]
 
 
 # ((opt, type), ... )
@@ -185,9 +184,8 @@ def main(fp=sys.stderr, argv=None):
                      otd[0].replace('_', '-'), otd[0], *otd[1:])
                 for otd in opt_types_desc if otd[0] not in UNSUPPORTED_OPTS)
 
-    d = """Usage:
-  tqdm [--help | options]
-
+    help_short = "Usage:\n  tqdm [--help | options]\n"
+    d = help_short + """
 Options:
   -h, --help     Print this help and exit.
   -v, --version  Print version and exit.
@@ -200,6 +198,9 @@ Options:
     elif any(v in argv for v in ('-h', '--help')):
         sys.stdout.write(d + '\n')
         sys.exit(0)
+    elif argv and argv[0][:2] != '--':
+        sys.stderr.write(
+            "Error:Unknown argument:{0}\n{1}".format(argv[0], help_short))
 
     argv = RE_SHLEX.split(' '.join(["tqdm"] + argv))
     opts = dict(zip(argv[1::3], argv[3::3]))
@@ -223,9 +224,10 @@ Options:
         if sum((delim_per_char, update, update_to)) > 1:
             raise TqdmKeyError("Can only have one of --bytes --update --update_to")
     except Exception:
-        fp.write('\nError:\nUsage:\n  tqdm [--help | options]\n')
-        for i in sys.stdin:
-            sys.stdout.write(i)
+        fp.write("\nError:\n" + help_short)
+        stdin, stdout_write = sys.stdin, sys.stdout.write
+        for i in stdin:
+            stdout_write(i)
         raise
     else:
         buf_size = tqdm_args.pop('buf_size', 256)
@@ -245,19 +247,23 @@ Options:
         if manpath or comppath:
             from os import path
             from shutil import copyfile
+            try:  # py<3.7
+                import importlib_resources as resources
+            except ImportError:
+                from importlib import resources
 
-            from pkg_resources import Requirement, resource_filename
-
-            def cp(src, dst):
-                """copies from src path to dst"""
-                copyfile(src, dst)
-                log.info("written:" + dst)
+            def cp(name, dst):
+                """copy resource `name` to `dst`"""
+                if hasattr(resources, 'files'):
+                    copyfile(str(resources.files('tqdm') / name), dst)
+                else:  # py<3.9
+                    with resources.path('tqdm', name) as src:
+                        copyfile(str(src), dst)
+                log.info("written:%s", dst)
             if manpath is not None:
-                cp(resource_filename(Requirement.parse('tqdm'), 'tqdm/tqdm.1'),
-                   path.join(manpath, 'tqdm.1'))
+                cp('tqdm.1', path.join(manpath, 'tqdm.1'))
             if comppath is not None:
-                cp(resource_filename(Requirement.parse('tqdm'), 'tqdm/completion.sh'),
-                   path.join(comppath, 'tqdm_completion.sh'))
+                cp('completion.sh', path.join(comppath, 'tqdm_completion.sh'))
             sys.exit(0)
         if tee:
             stdout_write = stdout.write
@@ -278,6 +284,7 @@ Options:
                 posix_pipe(stdin, stdout, '', buf_size, t.update)
         elif delim == b'\\n':
             log.debug(tqdm_args)
+            write = stdout.write
             if update or update_to:
                 with tqdm(**tqdm_args) as t:
                     if update:
@@ -287,11 +294,11 @@ Options:
                         def callback(i):
                             t.update(numeric(i.decode()) - t.n)
                     for i in stdin:
-                        stdout.write(i)
+                        write(i)
                         callback(i)
             else:
                 for i in tqdm(stdin, **tqdm_args):
-                    stdout.write(i)
+                    write(i)
         else:
             log.debug(tqdm_args)
             with tqdm(**tqdm_args) as t:
