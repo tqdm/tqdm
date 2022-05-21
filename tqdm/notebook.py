@@ -103,6 +103,20 @@ class TqdmHBox(HBox):
         pp.text(self.__repr__(True))
 
 
+def _display_or_update(obj, display_id=None):
+    """
+    Create new display with obj or update an existing display if id is given.
+    """
+    if display_id and update_display:
+        try:
+            # DisplayHandle objects
+            display_id.update(obj)
+        except AttributeError:
+            update_display(obj, display_id=display_id)
+    else:
+        display(obj)
+
+
 class tqdm_notebook(std_tqdm):
     """
     Experimental IPython/Jupyter Notebook widget using tqdm!
@@ -200,15 +214,7 @@ class tqdm_notebook(std_tqdm):
                 self.container.visible = False
 
         if check_delay and self.delay > 0 and not self.displayed:
-            display_id = getattr(self, "display_id", None)
-            if display_id and update_display:
-                try:
-                    # DisplayHandle objects
-                    display_id.update(self.container)
-                except AttributeError:
-                    update_display(self.container, display_id=display_id)
-            else:
-                display(self.container)
+            _display_or_update(self.container, self.display_id)
             self.displayed = True
 
     @property
@@ -262,7 +268,7 @@ class tqdm_notebook(std_tqdm):
         self.displayed = False
         self.display_id = display_id
         if display_here and self.delay <= 0:
-            display(self.container)
+            _display_or_update(self.container, self.display_id)
             self.displayed = True
         self.disp = self.display
         self.colour = colour
