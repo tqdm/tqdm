@@ -63,6 +63,12 @@ if True:  # pragma: no cover
     except ImportError:
         pass
 
+    try:
+        from IPython.display import update_display
+    except ImportError:
+        update_display = None
+        pass
+
     # HTML encoding
     try:  # Py3
         from html import escape
@@ -148,7 +154,7 @@ class tqdm_notebook(std_tqdm):
 
     def display(self, msg=None, pos=None,
                 # additional signals
-                close=False, bar_style=None, check_delay=True):
+                close=False, bar_style=None, check_delay=True,):
         # Note: contrary to native tqdm, msg='' does NOT clear bar
         # goal is to keep all infos if error happens so user knows
         # at which iteration the loop failed.
@@ -194,7 +200,15 @@ class tqdm_notebook(std_tqdm):
                 self.container.visible = False
 
         if check_delay and self.delay > 0 and not self.displayed:
-            display(self.container)
+            display_id = getattr(self, "display_id", None)
+            if display_id and update_display:
+                try:
+                    # DisplayHandle objects
+                    display_id.update(self.container)
+                except AttributeError:
+                    update_display(self.container, display_id=display_id)
+            else:
+                display(self.container)
             self.displayed = True
 
     @property
@@ -215,6 +229,9 @@ class tqdm_notebook(std_tqdm):
         ----------
         display  : Whether to call `display(self.container)` immediately
             [default: True].
+        display_id : `DisplayHandle` or string id of a IPython display
+            to use. If not specified, will create a new display
+            [default: None].
         """
         kwargs = kwargs.copy()
         # Setup default output
@@ -228,6 +245,7 @@ class tqdm_notebook(std_tqdm):
         kwargs['disable'] = bool(kwargs.get('disable', False))
         colour = kwargs.pop('colour', None)
         display_here = kwargs.pop('display', True)
+        display_id = kwargs.pop('display_id', None)
         super(tqdm_notebook, self).__init__(*args, **kwargs)
         if self.disable or not kwargs['gui']:
             self.disp = lambda *_, **__: None
@@ -242,6 +260,7 @@ class tqdm_notebook(std_tqdm):
         self.container = self.status_printer(self.fp, total, self.desc, self.ncols)
         self.container.pbar = proxy(self)
         self.displayed = False
+        self.display_id = display_id
         if display_here and self.delay <= 0:
             display(self.container)
             self.displayed = True
