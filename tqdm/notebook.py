@@ -67,7 +67,6 @@ if True:  # pragma: no cover
         from IPython.display import update_display
     except ImportError:
         update_display = None
-        pass
 
     # HTML encoding
     try:  # Py3
