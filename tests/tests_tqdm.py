@@ -1382,32 +1382,54 @@ def test_deprecated_gui():
             assert hasattr(t, "sp")
 
 
-def test_cmp():
+def test_cmp(capsys):
     """Test comparison functions"""
-    with closing(StringIO()) as our_file:
-        t0 = tqdm(total=10, file=our_file)
-        t1 = tqdm(total=10, file=our_file)
-        t2 = tqdm(total=10, file=our_file)
+    t0 = tqdm(total=10)
+    t1 = tqdm(total=10)
+    t2 = tqdm(total=10)
 
-        assert t0 < t1
-        assert t2 >= t0
-        assert t0 <= t2
+    assert t0 < t1
+    assert t2 >= t0
+    assert t0 <= t2
 
-        t3 = tqdm(total=10, file=our_file)
-        t4 = tqdm(total=10, file=our_file)
-        t5 = tqdm(total=10, file=our_file)
-        t5.close()
-        t6 = tqdm(total=10, file=our_file)
+    t3 = tqdm(total=10)
+    t4 = tqdm(total=10)
+    t5 = tqdm(total=10)
+    t5.close()
+    t6 = tqdm(total=10)
 
-        assert t3 != t4
-        assert t3 > t2
-        assert t5 == t6
-        t6.close()
-        t4.close()
-        t3.close()
-        t2.close()
-        t1.close()
-        t0.close()
+    assert t3 != t4
+    assert t3 > t2
+    assert t5 == t6
+    t6.close()
+    t4.close()
+    t3.close()
+    t2.close()
+    t1.close()
+    t0.close()
+    out, err = capsys.readouterr()
+    assert not out
+    assert " 0/10 " in err
+
+
+# https://docs.python.org/3/tutorial/datastructures.html#comparing-sequences-and-other-types
+@mark.parametrize('left,right', [
+    ((1, 2, 3), (1, 2, 4)),
+    ([1, 2, 3], [1, 2, 4]),
+    ('ABC', 'C'),
+    ('C', 'Pascal'),
+    ('Pascal', 'Python'),
+    ((1, 2, 3, 4), (1, 2, 4)),
+    ((1, 2), (1, 2, -1)),
+    ((1, 2, ('aa', 'ab')), (1, 2, ('abc', 'a'), 4))])
+def test_cmp_iterables(capsys, left, right):
+    """Test iterable comparison"""
+    assert (left < right) == (tqdm(left) < right)
+    assert (left == right) == (tqdm(left) == right)
+    assert (left > right) == (tqdm(left) > right)
+    out, err = capsys.readouterr()
+    assert not out
+    assert "/{0:d} ".format(len(left)) in err
 
 
 def test_repr():
