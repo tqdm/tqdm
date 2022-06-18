@@ -64,15 +64,44 @@ class FormatReplace(object):
 
 
 class Comparable(object):
-    """Assumes child has self._comparable attr/@property"""
+    """
+    Compares `self._comparable` & `other._comparable` (fallback `self.iterable` & `other`)
+    """
     def __lt__(self, other):
-        return self._comparable < other._comparable
+        if hasattr(other, '_comparable'):
+            return self._comparable < other._comparable
+        if not isinstance(self.iterable, other.__class__):
+            raise TypeError(("'<' not supported between instances of"
+                             " {i.__class__.__name__!r} and {j.__class__.__name__!r}").format(
+                            i=self.iterable, j=other))
+        for i, j in zip(self, other):
+            if i != j:
+                return i < j
+        return len(self) < len(other)
 
     def __le__(self, other):
-        return (self < other) or (self == other)
+        if hasattr(other, '_comparable'):
+            return self._comparable <= other._comparable
+        if not isinstance(self.iterable, other.__class__):
+            raise TypeError(("'<=' not supported between instances of"
+                             " {i.__class__.__name__!r} and {j.__class__.__name__!r}").format(
+                            i=self.iterable, j=other))
+        for i, j in zip(self, other):
+            if i != j:
+                return i <= j
+        return len(self) <= len(other)
 
     def __eq__(self, other):
-        return self._comparable == other._comparable
+        if hasattr(other, '_comparable'):
+            return self._comparable == other._comparable
+        if not isinstance(self.iterable, other.__class__):
+            raise TypeError(("'==' not supported between instances of"
+                             " {i.__class__.__name__!r} and {j.__class__.__name__!r}").format(
+                            i=self.iterable, j=other))
+        for i, j in zip(self, other):
+            if i != j:
+                return False
+        return len(self) == len(other)
 
     def __ne__(self, other):
         return not self == other
