@@ -1347,6 +1347,22 @@ Helper methods are available in ``tqdm.contrib.logging``. For example:
                     LOG.info("console logging redirected to `tqdm.write()`")
         # logging restored
 
+Alternatively you can replace your ``StreamHandler`` with the ``TqdmLoggingHandler()``. In this case make sure to not overwrite the ``emit()`` function.
+
+.. code:: python
+
+    import logging
+    from tqdm import trange
+    from tqdm.contrib.logging import TqdmLoggingHandler
+
+    LOG = logging.getLogger(__name__)
+
+    if __name__ == '__main__':
+        logging.basicConfig(level=logging.INFO, handlers=[TqdmLoggingHandler()])
+        for i in trange(9):
+            if i == 4:
+                LOG.info("console logging redirected to `tqdm.write()`")
+
 Monitoring thread, intervals and miniters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

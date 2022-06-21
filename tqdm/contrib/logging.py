@@ -15,15 +15,17 @@ except ImportError:
 from ..std import tqdm as std_tqdm
 
 
-class _TqdmLoggingHandler(logging.StreamHandler):
+class TqdmLoggingHandler(logging.StreamHandler):
+    """Logging StreamHandler drop-in replacement for logging inside progress bars."""
     def __init__(
         self,
         tqdm_class=std_tqdm  # type: Type[std_tqdm]
     ):
-        super(_TqdmLoggingHandler, self).__init__()
+        super(TqdmLoggingHandler, self).__init__()
         self.tqdm_class = tqdm_class
 
     def emit(self, record):
+        """Write a log message *above* the progress bar, without breaking it."""
         try:
             msg = self.format(record)
             self.tqdm_class.write(msg, file=self.stream)
@@ -84,7 +86,7 @@ def logging_redirect_tqdm(
     original_handlers_list = [logger.handlers for logger in loggers]
     try:
         for logger in loggers:
-            tqdm_handler = _TqdmLoggingHandler(tqdm_class)
+            tqdm_handler = TqdmLoggingHandler(tqdm_class)
             orig_handler = _get_first_found_console_logging_handler(logger.handlers)
             if orig_handler is not None:
                 tqdm_handler.setFormatter(orig_handler.formatter)
