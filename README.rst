@@ -1334,6 +1334,7 @@ Helper methods are available in ``tqdm.contrib.logging``. For example:
 .. code:: python
 
     import logging
+    import time
     from tqdm import trange
     from tqdm.contrib.logging import logging_redirect_tqdm
 
@@ -1343,7 +1344,8 @@ Helper methods are available in ``tqdm.contrib.logging``. For example:
         logging.basicConfig(level=logging.INFO)
         with logging_redirect_tqdm():
             for i in trange(9):
-                if i == 4:
+                time.sleep(0.5)
+                if i % 2:
                     LOG.info("console logging redirected to `tqdm.write()`")
         # logging restored
 
@@ -1352,6 +1354,7 @@ Alternatively you can replace your ``StreamHandler`` with the ``TqdmLoggingHandl
 .. code:: python
 
     import logging
+    import time
     from tqdm import trange
     from tqdm.contrib.logging import TqdmLoggingHandler
 
@@ -1360,7 +1363,8 @@ Alternatively you can replace your ``StreamHandler`` with the ``TqdmLoggingHandl
     if __name__ == '__main__':
         logging.basicConfig(level=logging.INFO, handlers=[TqdmLoggingHandler()])
         for i in trange(9):
-            if i == 4:
+            time.sleep(0.5)
+            if i % 2:
                 LOG.info("console logging redirected to `tqdm.write()`")
 
 Monitoring thread, intervals and miniters
