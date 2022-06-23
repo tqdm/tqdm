@@ -212,20 +212,20 @@ def test_format_meter():
 
     format_meter = tqdm.format_meter
 
-    assert format_meter(0, 1000, 13) == "  0%|          | 0/1000 [00:13<?, ?it/s]"
+    assert format_meter(0, 1000, 13) == "  0%|          |    0/1000 [00:13<?, ?it/s]"
     # If not implementing any changes to _tqdm.py, set prefix='desc'
     # or else ": : " will be in output, so assertion should change
     assert format_meter(0, 1000, 13, ncols=68, prefix='desc: ') == (
-        "desc:   0%|                                | 0/1000 [00:13<?, ?it/s]")
+        "desc:   0%|                             |    0/1000 [00:13<?, ?it/s]")
     assert format_meter(231, 1000, 392) == (" 23%|" + unich(0x2588) * 2 + unich(0x258e) +
-                                            "       | 231/1000 [06:32<21:44,  1.70s/it]")
+                                            "       |  231/1000 [06:32<21:44,  1.70s/it]")
     assert format_meter(10000, 1000, 13) == "10000it [00:13, 769.23it/s]"
-    assert format_meter(231, 1000, 392, ncols=56, ascii=True) == " 23%|" + '#' * 3 + '6' + (
-        "            | 231/1000 [06:32<21:44,  1.70s/it]")
+    assert format_meter(231, 1000, 392, ncols=56, ascii=True) == " 23%|" + '#' * 3 + '4' + (
+        "           |  231/1000 [06:32<21:44,  1.70s/it]")
     assert format_meter(100000, 1000, 13, unit_scale=True,
                         unit='iB') == "100kiB [00:13, 7.69kiB/s]"
     assert format_meter(100, 1000, 12, ncols=0,
-                        rate=7.33) == " 10% 100/1000 [00:12<02:02,  7.33it/s]"
+                        rate=7.33) == " 10%  100/1000 [00:12<02:02,  7.33it/s]"
     # ncols is small, l_bar is too large
     # l_bar gets chopped
     # no bar
@@ -273,9 +273,9 @@ def test_format_meter():
     # Check wide characters
     if sys.version_info >= (3,):
         assert format_meter(0, 1000, 13, ncols=68, prefix='ｆｕｌｌｗｉｄｔｈ: ') == (
-            "ｆｕｌｌｗｉｄｔｈ:   0%|                  | 0/1000 [00:13<?, ?it/s]")
+            "ｆｕｌｌｗｉｄｔｈ:   0%|               |    0/1000 [00:13<?, ?it/s]")
         assert format_meter(0, 1000, 13, ncols=68, prefix='ニッポン [ﾆｯﾎﾟﾝ]: ') == (
-            "ニッポン [ﾆｯﾎﾟﾝ]:   0%|                    | 0/1000 [00:13<?, ?it/s]")
+            "ニッポン [ﾆｯﾎﾟﾝ]:   0%|                 |    0/1000 [00:13<?, ?it/s]")
     # Check that bar_format can print only {bar} or just one side
     assert format_meter(20, 100, 12, ncols=2, rate=8.1,
                         bar_format=r'{bar}') == unich(0x258d) + " "
@@ -644,7 +644,7 @@ def test_dynamic_min_iters():
         assert t.dynamic_miniters
         t.__del__()  # simulate immediate del gc
 
-    assert '  0%|          | 0/10 [00:00<' in out
+    assert '  0%|          |  0/10 [00:00<' in out
     assert '40%' in out
     assert '50%' not in out
     assert '60%' not in out
@@ -727,7 +727,7 @@ def test_smoothed_dynamic_min_iters():
 
             assert t.dynamic_miniters
         out = our_file.getvalue()
-    assert '  0%|          | 0/100 [00:00<' in out
+    assert '  0%|          |   0/100 [00:00<' in out
     assert '20%' in out
     assert '23%' not in out
     assert '25%' in out
@@ -770,7 +770,7 @@ def test_smoothed_dynamic_min_iters_with_min_interval():
             out2 = our_file.getvalue()
 
     assert t.dynamic_miniters
-    assert '  0%|          | 0/100 [00:00<' in out
+    assert '  0%|          |   0/100 [00:00<' in out
     assert '11%' in out and '11%' in out2
     # assert '12%' not in out and '12%' in out2
     assert '13%' in out and '13%' in out2
@@ -1161,7 +1161,7 @@ def test_disabled_unpause(capsys):
         print(t)
     out, err = capsys.readouterr()
     assert not err
-    assert out == '  0%|          | 0/10 [00:00<?, ?it/s]\n'
+    assert out == '  0%|          |  0/10 [00:00<?, ?it/s]\n'
 
 
 def test_reset():
@@ -1174,7 +1174,7 @@ def test_reset():
             t.update()
             t.reset(total=12)
             t.update(10)
-        assert '| 1/10' in our_file.getvalue()
+        assert '|  1/10' in our_file.getvalue()
         assert '| 10/12' in our_file.getvalue()
 
 
@@ -1189,7 +1189,7 @@ def test_disabled_reset(capsys):
         print(t)
     out, err = capsys.readouterr()
     assert not err
-    assert out == '  0%|          | 0/12 [00:00<?, ?it/s]\n'
+    assert out == '  0%|          |  0/12 [00:00<?, ?it/s]\n'
 
 
 @mark.skipif(nt_and_no_colorama, reason="Windows without colorama")
@@ -1414,7 +1414,7 @@ def test_repr():
     """Test representation"""
     with closing(StringIO()) as our_file:
         with tqdm(total=10, ascii=True, file=our_file) as t:
-            assert str(t) == '  0%|          | 0/10 [00:00<?, ?it/s]'
+            assert str(t) == '  0%|          |  0/10 [00:00<?, ?it/s]'
 
 
 def test_clear():
@@ -1470,7 +1470,7 @@ def test_disabled_repr(capsys):
         print(t)
     out, err = capsys.readouterr()
     assert not err
-    assert out == '  0%|          | 0/10 [00:00<?, ?it/s]\n'
+    assert out == '  0%|          |  0/10 [00:00<?, ?it/s]\n'
 
 
 def test_disabled_refresh():
