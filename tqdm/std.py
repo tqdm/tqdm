@@ -1002,6 +1002,7 @@ class tqdm(Comparable):
             self.n = initial
             self.total = total
             self.leave = leave
+            self.desc = desc or ''
             return
 
         if kwargs:
