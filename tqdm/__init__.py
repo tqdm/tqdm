@@ -1,5 +1,6 @@
 from ._monitor import TMonitor, TqdmSynchronisationWarning
 from ._tqdm_pandas import tqdm_pandas
+from ._tqdm_function_decorator import tqdm_function_decorator
 from .cli import main  # TODO: remove in v5.0.0
 from .gui import tqdm as tqdm_gui  # TODO: remove in v5.0.0
 from .gui import trange as tgrange  # TODO: remove in v5.0.0
@@ -14,6 +15,7 @@ __all__ = ['tqdm', 'tqdm_gui', 'trange', 'tgrange', 'tqdm_pandas',
            'TqdmWarning', 'TqdmDeprecationWarning',
            'TqdmExperimentalWarning',
            'TqdmMonitorWarning', 'TqdmSynchronisationWarning',
+           'tqdm_function_decorator',
            '__version__']
 
 
