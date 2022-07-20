@@ -1,0 +1,46 @@
+# development environment
+name: tqdm
+channels:
+- conda-forge
+- defaults
+dependencies:
+# base
+- python=3
+- pip
+- ipykernel
+- ipywidgets
+- setuptools
+- setuptools_scm
+- toml
+# test env managers
+- pre-commit
+- tox
+- asv
+# tests (native)
+- pytest
+- pytest-cov
+- pytest-timeout
+- pytest-asyncio  # [py>=3.7]
+- nbval
+- coverage
+# extras
+- dask               # dask
+- matplotlib         # gui
+- numpy              # pandas, keras, contrib.tenumerate
+- pandas
+- tensorflow         # keras
+- slack-sdk          # contrib.slack
+- requests           # contrib.telegram
+- rich               # rich
+- argopt             # `cd wiki && pymake`
+- twine              # `pymake pypi`
+- wheel              # `setup.py bdist_wheel`
+# `cd docs && pymake`
+- mkdocs-material
+- pydoc-markdown
+- pygments
+- pymdown-extensions
+- pip:
+  - py-make >=0.1.0  # `setup.py make/pymake`
+  - mkdocs-minify-plugin                                     # `cd docs && pymake`
+  - git+https://github.com/tqdm/jsmin@python3-only#egg=jsmin # `cd docs && pymake`

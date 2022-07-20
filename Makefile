@@ -8,8 +8,9 @@
 	all
 	flake8
 	test
-	testnose
+	pytest
 	testsetup
+	testnb
 	testcoverage
 	testperf
 	testtimer
@@ -18,7 +19,7 @@
 	prebuildclean
 	clean
 	toxclean
-	installdev
+	install_dev
 	install
 	build
 	buildupload
@@ -43,31 +44,37 @@ all:
 	@+make build
 
 flake8:
-	@+flake8 -j 8 --count --statistics --exit-zero .
+	@+pre-commit run -a flake8
+	@+pre-commit run -a nbstripout
 
 test:
 	TOX_SKIP_ENV=perf tox --skip-missing-interpreters -p all
 	tox -e perf
 
-testnose:
-	nosetests tqdm -d -v
+pytest:
+	pytest
 
 testsetup:
 	@make README.rst
 	@make tqdm/tqdm.1
+	@make tqdm/completion.sh
 	python setup.py check --metadata --restructuredtext --strict
 	python setup.py make none
 
+testnb:
+	pytest tests_notebook.ipynb --nbval --nbval-current-env -W=ignore --nbval-sanitize-with=setup.cfg --cov=tqdm.notebook --cov-report=term
+
 testcoverage:
 	@make coverclean
-	nosetests tqdm --with-coverage --cover-package=tqdm --cover-erase --cover-min-percentage=80 --ignore-files="tests_perf\.py" -d -v
+	pytest tests_notebook.ipynb --cov=tqdm --cov-report= --nbval --nbval-current-env --nbval-sanitize-with=setup.cfg -W=ignore
+	pytest -k "not perf" --cov=tqdm --cov-report=xml --cov-report=term --cov-append --cov-fail-under=80
 
 testperf:
 	# do not use coverage (which is extremely slow)
-	nosetests tqdm/tests/tests_perf.py -d -v
+	pytest -k perf
 
 testtimer:
-	nosetests tqdm --with-timer -d -v
+	pytest
 
 # another performance test, to check evolution across commits
 testasv:
@@ -77,35 +84,37 @@ testasv:
 
 testasvfull:
 	# Test all the commits since the beginning (full test)
-	asv run -j 8 v1.0.0..master
+	asv run --skip-existing-commits -j 8 v1.0.0..HEAD
 	@make testasv
 
 viewasv:
 	asv publish
 	asv preview
 
-tqdm/tqdm.1: .meta/.tqdm.1.md tqdm/_main.py tqdm/_tqdm.py
+tqdm/tqdm.1: .meta/.tqdm.1.md tqdm/cli.py tqdm/std.py
 	# TODO: add to mkdocs.py
 	python -m tqdm --help | tail -n+5 |\
     sed -r -e 's/\\/\\\\/g' \
       -e 's/^  (--.*)=<(.*)>  : (.*)$$/\n\\\1=*\2*\n: \3./' \
+      -e 's/^  (--.*)  : (.*)$$/\n\\\1\n: \2./' \
       -e 's/  (-.*, )(--.*)  /\n\1\\\2\n: /' |\
     cat "$<" - |\
     pandoc -o "$@" -s -t man
 
-README.rst: .meta/.readme.rst tqdm/_tqdm.py tqdm/_main.py
+tqdm/completion.sh: .meta/mkcompletion.py tqdm/std.py tqdm/cli.py
+	@python .meta/mkcompletion.py
+
+README.rst: .meta/.readme.rst tqdm/std.py tqdm/cli.py
 	@python .meta/mkdocs.py
 
-snapcraft.yaml: .meta/.snapcraft.yml
-	cat "$<" | sed -e 's/{version}/'"`python -m tqdm --version`"'/g' \
-    -e 's/{commit}/'"`git describe --always`"'/g' \
-    -e 's/{source}/./g' -e 's/{icon}/logo.png/g' \
-    -e 's/{description}/https:\/\/tqdm.github.io/g' > "$@"
+snapcraft.yaml: .meta/mksnap.py
+	@python .meta/mksnap.py
 
-.dockerignore: .gitignore
-	cat $^ > "$@"
-	echo -e ".git" > "$@"
-	git clean -xdn | sed -nr 's/^Would remove (.*)$$/\1/p' >> "$@"
+.dockerignore:
+	@+python -c "fd=open('.dockerignore', 'w'); fd.write('*\n!dist/*.whl\n')"
+
+Dockerfile:
+	@+python -c 'fd=open("Dockerfile", "w"); fd.write("FROM python:3.8-alpine\nCOPY dist/*.whl .\nRUN pip install -U $$(ls ./*.whl) && rm ./*.whl\nENTRYPOINT [\"tqdm\"]\n")'
 
 distclean:
 	@+make coverclean
@@ -115,22 +124,27 @@ prebuildclean:
 	@+python -c "import shutil; shutil.rmtree('build', True)"
 	@+python -c "import shutil; shutil.rmtree('dist', True)"
 	@+python -c "import shutil; shutil.rmtree('tqdm.egg-info', True)"
+	@+python -c "import shutil; shutil.rmtree('.eggs', True)"
+	@+python -c "import os; os.remove('tqdm/_dist_ver.py') if os.path.exists('tqdm/_dist_ver.py') else None"
 coverclean:
 	@+python -c "import os; os.remove('.coverage') if os.path.exists('.coverage') else None"
+	@+python -c "import os, glob; [os.remove(i) for i in glob.glob('.coverage.*')]"
+	@+python -c "import shutil; shutil.rmtree('tests/__pycache__', True)"
+	@+python -c "import shutil; shutil.rmtree('benchmarks/__pycache__', True)"
 	@+python -c "import shutil; shutil.rmtree('tqdm/__pycache__', True)"
-	@+python -c "import shutil; shutil.rmtree('tqdm/tests/__pycache__', True)"
+	@+python -c "import shutil; shutil.rmtree('tqdm/contrib/__pycache__', True)"
+	@+python -c "import shutil; shutil.rmtree('tqdm/examples/__pycache__', True)"
 clean:
 	@+python -c "import os, glob; [os.remove(i) for i in glob.glob('*.py[co]')]"
+	@+python -c "import os, glob; [os.remove(i) for i in glob.glob('tests/*.py[co]')]"
+	@+python -c "import os, glob; [os.remove(i) for i in glob.glob('benchmarks/*.py[co]')]"
 	@+python -c "import os, glob; [os.remove(i) for i in glob.glob('tqdm/*.py[co]')]"
-	@+python -c "import os, glob; [os.remove(i) for i in glob.glob('tqdm/tests/*.py[co]')]"
+	@+python -c "import os, glob; [os.remove(i) for i in glob.glob('tqdm/contrib/*.py[co]')]"
 	@+python -c "import os, glob; [os.remove(i) for i in glob.glob('tqdm/examples/*.py[co]')]"
 toxclean:
 	@+python -c "import shutil; shutil.rmtree('.tox', True)"
 
 
-installdev:
-	python setup.py develop --uninstall
-	python setup.py develop
 submodules:
 	git clone git@github.com:tqdm/tqdm.wiki wiki
 	git clone git@github.com:tqdm/tqdm.github.io docs
@@ -139,6 +153,14 @@ submodules:
 
 install:
 	python setup.py install
+install_dev:
+	python setup.py develop --uninstall
+	python setup.py develop
+install_build:
+	python -m pip install -r .meta/requirements-dev.txt
+install_test:
+	python -m pip install -r .meta/requirements-test.txt
+	pre-commit install
 
 build:
 	@make prebuildclean
@@ -154,12 +176,12 @@ buildupload:
 	@make pypi
 
 snap:
-	@make snapcraft.yaml
+	@make -B snapcraft.yaml
 	snapcraft
 docker:
+	@make build
 	@make .dockerignore
-	@make coverclean
-	@make clean
+	@make Dockerfile
 	docker build . -t tqdm/tqdm
 	docker tag tqdm/tqdm:latest tqdm/tqdm:$(shell docker run -i --rm tqdm/tqdm -v)
 none:

@@ -1,0 +1,62 @@
+default_language_version:
+  python: python3
+repos:
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v4.1.0
+  hooks:
+  - id: check-added-large-files
+  - id: check-case-conflict
+  - id: check-docstring-first
+  - id: check-executables-have-shebangs
+  - id: check-toml
+  - id: check-merge-conflict
+  - id: check-yaml
+  - id: debug-statements
+  - id: end-of-file-fixer
+  - id: mixed-line-ending
+  - id: sort-simple-yaml
+  - id: trailing-whitespace
+    exclude: ^README.rst$
+- repo: local
+  hooks:
+  - id: todo
+    name: Check TODO
+    language: pygrep
+    entry: WIP
+    args: [-i]
+    types: [text]
+    exclude: ^(.pre-commit-config.yaml|.github/workflows/test.yml)$
+  - id: pytest
+    name: pytest quick
+    language: python
+    entry: pytest
+    args: [-qq, --durations=1, -k=not slow]
+    types: [python]
+    pass_filenames: false
+    additional_dependencies:
+    - numpy
+    - pandas
+    - pytest-timeout
+    - pytest-asyncio
+- repo: https://gitlab.com/pycqa/flake8
+  rev: 3.9.2
+  hooks:
+  - id: flake8
+    args: [-j8]
+    additional_dependencies:
+    - flake8-broken-line
+    - flake8-bugbear
+    - flake8-comprehensions
+    - flake8-debugger
+    - flake8-isort
+    - flake8-string-format
+    - flake8-type-annotations
+- repo: https://github.com/PyCQA/isort
+  rev: 5.10.1
+  hooks:
+  - id: isort
+- repo: https://github.com/kynan/nbstripout
+  rev: 0.5.0
+  hooks:
+  - id: nbstripout
+    args: [--keep-count, --keep-output]

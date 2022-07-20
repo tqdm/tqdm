@@ -1,8 +1,0 @@
-[run]
-branch = True
-omit =
-    tqdm/tests/*
-    tqdm/_tqdm_gui.py
-    tqdm/_tqdm_notebook.py
-[report]
-show_missing = True

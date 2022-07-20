@@ -1,0 +1,52 @@
+name: Comment Bot
+on:
+  issue_comment:
+    types: [created]
+  pull_request_review_comment:
+    types: [created]
+jobs:
+  tag:  # /tag <tagname> <commit>
+    if: startsWith(github.event.comment.body, '/tag ')
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: React Seen
+      uses: actions/github-script@v2
+      with:
+        script: |
+          const perm = await github.repos.getCollaboratorPermissionLevel({
+            owner: context.repo.owner, repo: context.repo.repo,
+            username: context.payload.comment.user.login})
+          post = (context.eventName == "issue_comment"
+            ? github.reactions.createForIssueComment
+            : github.reactions.createForPullRequestReviewComment)
+          if (!["admin", "write"].includes(perm.data.permission)){
+            post({
+              owner: context.repo.owner, repo: context.repo.repo,
+              comment_id: context.payload.comment.id, content: "laugh"})
+            throw "Permission denied for user " + context.payload.comment.user.login
+          }
+          post({
+            owner: context.repo.owner, repo: context.repo.repo,
+            comment_id: context.payload.comment.id, content: "eyes"})
+        github-token: ${{ secrets.GH_TOKEN }}
+    - name: Tag Commit
+      run: |
+        git clone https://${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY} repo
+        git -C repo tag $(echo "$BODY" | awk '{print $2" "$3}')
+        git -C repo push --tags
+        rm -rf repo
+      env:
+        BODY: ${{ github.event.comment.body }}
+        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+    - name: React Success
+      uses: actions/github-script@v2
+      with:
+        script: |
+          post = (context.eventName == "issue_comment"
+            ? github.reactions.createForIssueComment
+            : github.reactions.createForPullRequestReviewComment)
+          post({
+            owner: context.repo.owner, repo: context.repo.repo,
+            comment_id: context.payload.comment.id, content: "rocket"})
+        github-token: ${{ secrets.GH_TOKEN }}
