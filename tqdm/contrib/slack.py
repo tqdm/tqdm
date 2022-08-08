@@ -28,13 +28,41 @@ __all__ = ['SlackIO', 'tqdm_slack', 'tsrange', 'tqdm', 'trange']
 
 class SlackIO(MonoWorker):
     """Non-blocking file-like IO using a Slack app."""
-    def __init__(self, token, channel):
+    def __init__(
+        self,
+        token,
+        channel,
+        as_user,
+        icon_emoji,
+        icon_url,
+        link_names,
+        metadata,
+        parse,
+        reply_broadcast,
+        thread_ts,
+        username
+    ):
         """Creates a new message in the given `channel`."""
         super(SlackIO, self).__init__()
         self.client = WebClient(token=token)
         self.text = self.__class__.__name__
         try:
-            self.message = self.client.chat_postMessage(channel=channel, text=self.text)
+            self.message = self.client.chat_postMessage(
+                channel=channel,
+                text=self.text,
+                as_user=as_user,
+                icon_emoji=icon_emoji,
+                icon_url=icon_url,
+                link_names=link_names,
+                metadata=metadata,
+                parse=parse,
+                reply_broadcast=reply_broadcast,
+                thread_ts=thread_ts,
+                username=username,
+                mrkdown=False, 
+                unfurl_links=False, 
+                unfurl_media=False
+            )
         except Exception as e:
             tqdm_auto.write(str(e))
             self.message = None
@@ -89,7 +117,17 @@ class tqdm_slack(tqdm_auto):
             logging.getLogger("HTTPClient").setLevel(logging.WARNING)
             self.sio = SlackIO(
                 kwargs.pop('token', getenv("TQDM_SLACK_TOKEN")),
-                kwargs.pop('channel', getenv("TQDM_SLACK_CHANNEL")))
+                kwargs.pop('channel', getenv("TQDM_SLACK_CHANNEL")),
+                kwargs.pop('as_user', None),
+                kwargs.pop('icon_emoji', None),
+                kwargs.pop('icon_url', None),
+                kwargs.pop('link_names', None),
+                kwargs.pop('metadata', None),
+                kwargs.pop('parse', None),
+                kwargs.pop('reply_broadcast', None),
+                kwargs.pop('thread_ts', None),
+                kwargs.pop('username', None),
+            )
             kwargs['mininterval'] = max(1.5, kwargs.get('mininterval', 1.5))
         super(tqdm_slack, self).__init__(*args, **kwargs)
 
