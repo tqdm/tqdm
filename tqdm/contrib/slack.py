@@ -98,6 +98,7 @@ class tqdm_slack(tqdm_auto):
     >>> from tqdm.contrib.slack import tqdm, trange
     >>> for i in tqdm(iterable, token='{token}', channel='{channel}'):
     ...     ...
+    - It takes the same optional arguments as the slack sdk `chat_postMessage` method: https://slack.dev/python-slack-sdk/api-docs/slack_sdk/#slack_sdk.WebClient.chat_postMessage
     """
     def __init__(self, *args, **kwargs):
         """
