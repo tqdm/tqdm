@@ -11,6 +11,7 @@ from __future__ import absolute_import, division
 
 import os
 import sys
+import logging
 from collections import OrderedDict, defaultdict
 from contextlib import contextmanager
 from datetime import datetime, timedelta
@@ -30,6 +31,10 @@ __all__ = ['tqdm', 'trange',
            'TqdmTypeError', 'TqdmKeyError', 'TqdmWarning',
            'TqdmExperimentalWarning', 'TqdmDeprecationWarning',
            'TqdmMonitorWarning']
+
+DISABLE_THRESHOLD = 20  # disabled for log level above this
+_log = logging.getLogger('tqdm')
+_log.setLevel(DISABLE_THRESHOLD)  # default enabled
 
 
 class TqdmTypeError(TypeError):
@@ -982,8 +987,10 @@ class tqdm(Comparable):
 
         file = DisableOnWriteError(file, tqdm_instance=self)
 
+        log = _log.getChild(desc) if desc else _log
         if disable == 'default':
-            disable = os.environ.get('TQDM_DISABLE', False)
+            disable = os.environ.get('TQDM_DISABLE',
+                                     not log.isEnabledFor(DISABLE_THRESHOLD))
 
         if disable is None and hasattr(file, "isatty") and not file.isatty():
             disable = True
