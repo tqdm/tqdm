@@ -967,6 +967,14 @@ class tqdm(Comparable):
         -------
         out  : decorated iterator.
         """
+
+        if isinstance(iterable, enumerate):
+            warn(
+                "you may want to replace `tqdm(enumerate(...))` with `enumerate(tqdm(...))`",
+                TqdmWarning,
+                stacklevel=2,
+            )
+
         if write_bytes is None:
             write_bytes = file is None and sys.version_info < (3,)
 
