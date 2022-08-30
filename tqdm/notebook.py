@@ -78,7 +78,7 @@ WARN_NOIPYW = ("IProgress not found. Please update jupyter and ipywidgets."
 
 class TqdmHBox(HBox):
     """`ipywidgets.HBox` with a pretty representation"""
-    def _repr_json_(self, pretty=None):
+    def _json_(self, pretty=None):
         pbar = getattr(self, 'pbar', None)
         if pbar is None:
             return {}
@@ -91,7 +91,7 @@ class TqdmHBox(HBox):
         pbar = getattr(self, 'pbar', None)
         if pbar is None:
             return super(TqdmHBox, self).__repr__()
-        return pbar.format_meter(**self._repr_json_(pretty))
+        return pbar.format_meter(**self._json_(pretty))
 
     def _repr_pretty_(self, pp, *_, **__):
         pp.text(self.__repr__(True))
