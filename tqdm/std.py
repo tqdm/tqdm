@@ -15,6 +15,7 @@ from numbers import Number
 from time import time
 from warnings import warn
 from weakref import WeakSet
+import random
 
 from ._monitor import TMonitor
 from .utils import (
@@ -205,11 +206,11 @@ class Bar(object):
         nsyms = len(charset) - 1
         bar_length, frac_bar_length = divmod(int(self.frac * N_BARS * nsyms), nsyms)
 
-        import random
-
         random.seed(1)
         tree_locations = [random.randint(0, N_BARS - 1) for _ in range(10)]
-        tree_locations = [(tree_location - bar_length) % N_BARS for tree_location in tree_locations]
+        tree_locations = [
+            (tree_location - bar_length) % N_BARS for tree_location in tree_locations
+        ]
         tree_types = ""
         trees = random.choices(tree_types, k=len(tree_locations))
 
