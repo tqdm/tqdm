@@ -205,9 +205,28 @@ class Bar(object):
         nsyms = len(charset) - 1
         bar_length, frac_bar_length = divmod(int(self.frac * N_BARS * nsyms), nsyms)
 
-        res = charset[-1] * bar_length
-        if bar_length < N_BARS:  # whitespace padding
-            res = res + charset[frac_bar_length] + charset[0] * (N_BARS - bar_length - 1)
+        import random
+
+        random.seed(1)
+        tree_locations = [random.randint(0, N_BARS - 1) for _ in range(10)]
+        tree_locations = [(tree_location - bar_length) % N_BARS for tree_location in tree_locations]
+        tree_types = ""
+        trees = random.choices(tree_types, k=len(tree_locations))
+
+        pre_tracks = list("‗" * max(bar_length - 10, 0))
+        for j, i in enumerate(tree_locations):
+            if i < len(pre_tracks):
+                pre_tracks[i] = trees[j]
+
+        track_len = N_BARS - bar_length - 1
+        post_tracks = list("‗" * (track_len))
+        for j, i in enumerate(tree_locations):
+            if N_BARS - i < len(post_tracks):
+                post_tracks[i - bar_length - 1] = trees[j]
+
+        res = "".join(pre_tracks)
+        if bar_length <= N_BARS:  # whitespace padding
+            res = res + "ﲫ" * min(bar_length, 10) + "" + "".join(post_tracks)
         return self.colour + res + self.COLOUR_RESET if self.colour else res
 
 
