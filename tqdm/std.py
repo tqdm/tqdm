@@ -162,6 +162,7 @@ class Bar(object):
         self.default_len = default_len
         self.charset = charset
         self.colour = colour
+        self.tree_locations = None
 
     @property
     def colour(self):
@@ -209,13 +210,18 @@ class Bar(object):
         bar_length, frac_bar_length = divmod(int(self.frac * N_BARS * nsyms), nsyms)
 
         if charset == self.TRAIN:
-            random.seed(1)
-            tree_locations = [random.randint(0, N_BARS - 1) for _ in range(10)]
+            rng = random.Random(1)
+            self.tree_locations = (
+                [rng.randint(0, N_BARS - 1) for _ in range(10)]
+                if self.tree_locations is None
+                else self.tree_locations
+            )
             tree_locations = [
-                (tree_location - bar_length) % N_BARS for tree_location in tree_locations
+                (tree_location - bar_length) % N_BARS
+                for tree_location in self.tree_locations
             ]
             tree_types = ""
-            trees = random.choices(tree_types, k=len(tree_locations))
+            trees = rng.choices(tree_types, k=len(tree_locations))
 
             pre_tracks = list("‗" * max(bar_length - 10, 0))
             for j, i in enumerate(tree_locations):
