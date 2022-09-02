@@ -221,11 +221,13 @@ class Bar(object):
         track_len = N_BARS - bar_length - 1
         post_tracks = list("‗" * (track_len))
         for j, i in enumerate(tree_locations):
-            if N_BARS - i < len(post_tracks):
+            if N_BARS - i < len(post_tracks) + 1:
                 post_tracks[i - bar_length - 1] = trees[j]
 
         res = "".join(pre_tracks)
         if bar_length <= N_BARS:  # whitespace padding
+            if bar_length == N_BARS:
+                res = res[:-1]
             res = res + "ﲫ" * min(bar_length, 10) + "" + "".join(post_tracks)
         return self.colour + res + self.COLOUR_RESET if self.colour else res
 
