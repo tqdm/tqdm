@@ -192,6 +192,7 @@ class tqdm_notebook(std_tqdm):
                 self.container.close()
             except AttributeError:
                 self.container.visible = False
+            self.container.layout.visibility = 'hidden'  # IPYW>=8
 
         if check_delay and self.delay > 0 and not self.displayed:
             display(self.container)
