@@ -23,6 +23,7 @@ from .utils import (
     CallbackIOWrapper, Comparable, DisableOnWriteError, FormatReplace, SimpleTextIOWrapper,
     _basestring, _is_ascii, _range, _screen_shape_wrapper, _supports_unicode, _term_move_up,
     _unich, _unicode, disp_len, disp_trim)
+from .platform_specific import MetaReporter
 
 __author__ = "https://github.com/tqdm/tqdm#contributions"
 __all__ = ['tqdm', 'trange',
@@ -967,6 +968,7 @@ class tqdm(Comparable):
         -------
         out  : decorated iterator.
         """
+        self._entered = 0
         if write_bytes is None:
             write_bytes = file is None and sys.version_info < (3,)
 
@@ -1086,6 +1088,7 @@ class tqdm(Comparable):
         self.postfix = None
         self.colour = colour
         self._time = time
+        self.platform_specific_reporter = None
         if postfix:
             try:
                 self.set_postfix(refresh=False, **postfix)
@@ -1147,18 +1150,35 @@ class tqdm(Comparable):
         return contains(item) if contains is not None else item in self.__iter__()
 
     def __enter__(self):
+        if not self._entered:
+            self.platform_specific_reporter = MetaReporter(self.total, getattr(self, "unit", None)).__enter__()
+        self._entered += 1
         return self
 
-    def __exit__(self, exc_type, exc_value, traceback):
-        try:
-            self.close()
-        except AttributeError:
-            # maybe eager thread cleanup upon external error
-            if (exc_type, exc_value, traceback) == (None, None, None):
-                raise
-            warn("AttributeError ignored", TqdmWarning, stacklevel=2)
+    def __exit__(self, exc_type, exc_value, exc_traceback):
+        if self._entered:
+            self._entered -= 1
+
+        if not self._entered or exc_traceback:
+            if self.platform_specific_reporter:
+                if exc_traceback:
+                    import traceback
+                    self.platform_specific_reporter.fail("".join(traceback.format_exception(exc_type, exc_value, exc_traceback, limit=1)))
+                elif self.total and self.n < self.total:
+                    self.platform_specific_reporter.fail("The iteration not reached its finishing amount, though no exception has been thrown.")
+                self.platform_specific_reporter.__exit__(exc_type, exc_value, exc_traceback)
+                self.platform_specific_reporter = None
+            try:
+                self.close()
+            except AttributeError:
+                # maybe eager thread cleanup upon external error
+                if (exc_type, exc_value, traceback) == (None, None, None):
+                    raise
+                warn("AttributeError ignored", TqdmWarning)
+            return False
 
     def __del__(self):
+        self.__exit__(None, None, None)
         self.close()
 
     def __str__(self):
@@ -1173,6 +1193,8 @@ class tqdm(Comparable):
 
     def __iter__(self):
         """Backward-compatibility to use: for x in tqdm(iterable)"""
+        if not self._entered and self.iterable:
+            self.__enter__()
 
         # Inlining instance variables as locals (speed optimisation)
         iterable = self.iterable
@@ -1180,8 +1202,7 @@ class tqdm(Comparable):
         # If the bar is disabled, then just walk the iterable
         # (note: keep this check outside the loop for performance)
         if self.disable:
-            for obj in iterable:
-                yield obj
+            yield from iterable
             return
 
         mininterval = self.mininterval
@@ -1207,6 +1228,10 @@ class tqdm(Comparable):
                         last_print_t = self.last_print_t
         finally:
             self.n = n
+            if self.platform_specific_reporter:
+                self.platform_specific_reporter.success()
+                self.platform_specific_reporter.__exit__(None, None, None)
+                self.platform_specific_reporter = None
             self.close()
 
     def update(self, n=1):
@@ -1281,6 +1306,11 @@ class tqdm(Comparable):
         if self.disable:
             return
 
+        def clearPlatdormSpecific():
+            """Just satisfies Codacy"""
+            if self.platform_specific_reporter:
+                self.platform_specific_reporter.clear()
+
         # Prevent multiple closures
         self.disable = True
 
@@ -1294,6 +1324,7 @@ class tqdm(Comparable):
 
         # GUI mode
         if getattr(self, 'sp', None) is None:
+            clearPlatdormSpecific()
             return
 
         # annoyingly, _supports_unicode isn't good enough
@@ -1303,6 +1334,7 @@ class tqdm(Comparable):
         try:
             fp_write('')
         except ValueError as e:
+            clearPlatdormSpecific()
             if 'closed' in str(e):
                 return
             raise  # pragma: no cover
@@ -1314,11 +1346,15 @@ class tqdm(Comparable):
                 # stats for overall rate (no weighted average)
                 self._ema_dt = lambda: None
                 self.display(pos=0)
+                if self.platform_specific_reporter:
+                    self.platform_specific_reporter.clear()
                 fp_write('\n')
             else:
                 # clear previous display
                 if self.display(msg='', pos=pos) and not pos:
                     fp_write('\r')
+
+        clearPlatdormSpecific()
 
     def clear(self, nolock=False):
         """Clear current bar display."""
@@ -1506,6 +1542,14 @@ class tqdm(Comparable):
 
         if pos:
             self.moveto(pos)
+
+        if self.platform_specific_reporter:
+            self.platform_specific_reporter.prefix(self.desc)
+            self.platform_specific_reporter.postfix(self.postfix)
+            #self.platform_specific_reporter.message(msg)
+            if self.total:
+                self.platform_specific_reporter.progress(self.n, 0)  # ToDo: rate is not available here anymore. So we set it to 0.
+
         self.sp(self.__str__() if msg is None else msg)
         if pos:
             self.moveto(-pos)
