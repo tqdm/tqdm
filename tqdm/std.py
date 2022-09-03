@@ -476,9 +476,10 @@ class tqdm(Comparable):
             l_bar = prefix if bool_prefix_colon_already else prefix + ": "
         else:
             l_bar = ''
-
-        r_bar = '| {0}/{1} [{2}<{3}, {4}{5}]'.format(
-            n_fmt, total_fmt, elapsed_str, remaining_str, rate_fmt, postfix)
+        # get width of total_fmt to right align the n_fmt
+        width_fmt = len(str(total_fmt))
+        r_bar = '| {1:>{0}}/{2} [{3}<{4}, {5}{6}]'.format(
+            width_fmt, n_fmt, total_fmt, elapsed_str, remaining_str, rate_fmt, postfix)
 
         # Custom bar formatting
         # Populate a dict with all available progress indicators
