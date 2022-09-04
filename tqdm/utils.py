@@ -171,6 +171,9 @@ class DisableOnWriteError(ObjectWrapper):
     def __eq__(self, other):
         return self._wrapped == getattr(other, '_wrapped', other)
 
+    def __hash__(self):
+        return hash(self._wrapped)
+
 
 class CallbackIOWrapper(ObjectWrapper):
     def __init__(self, callback, stream, method="read"):
