@@ -5,14 +5,22 @@ from __future__ import absolute_import
 import logging
 import logging.handlers
 import sys
+from contextlib import contextmanager
 from io import StringIO
+
+try:
+    from typing import Iterator, List, Optional  # pylint: disable=unused-import
+except ImportError:
+    pass
 
 import pytest
 
 from tqdm import tqdm
+from tqdm.contrib.logging import LOGGER as DEFAULT_LOGGER
 from tqdm.contrib.logging import _get_first_found_console_logging_handler
 from tqdm.contrib.logging import _TqdmLoggingHandler as TqdmLoggingHandler
-from tqdm.contrib.logging import logging_redirect_tqdm, tqdm_logging_redirect
+from tqdm.contrib.logging import (
+    logging_redirect_tqdm, logging_tqdm, tqdm_logging_redirect)
 
 from .tests_tqdm import importorskip
 
@@ -22,7 +30,7 @@ TEST_LOGGING_FORMATTER = logging.Formatter()
 
 
 class CustomTqdm(tqdm):
-    messages = []
+    messages = []  # type: List[str]
 
     @classmethod
     def write(cls, s, **__):  # pylint: disable=arguments-differ
@@ -171,3 +179,85 @@ class TestTqdmWithLoggingRedirect:
             assert isinstance(pbar, CustomTqdm)
             logger.info('test')
             assert CustomTqdm.messages == ['test']
+
+
+@contextmanager
+def add_capturing_logging_handler(
+    logger  # type: logging.Logger
+):
+    # type: (...) -> Iterator[StringIO]
+    try:
+        previous_handlers = logger.handlers
+        out = StringIO()
+        stream_handler = logging.StreamHandler(out)
+        logger.addHandler(stream_handler)
+        yield out
+    finally:
+        logger.handlers = previous_handlers
+
+
+class TestLoggingTqdm:
+    @pytest.mark.parametrize(
+        "logger_param,expected_logger",
+        [
+            (None, DEFAULT_LOGGER),
+            (LOGGER, LOGGER)
+        ]
+    )
+    def test_should_log_tqdm_output(
+        self,
+        logger_param,  # type: Optional[logging.Logger]
+        expected_logger  # type: logging.Logger
+    ):
+        with add_capturing_logging_handler(expected_logger) as out:
+            with logging_tqdm(total=2, logger=logger_param, mininterval=0) as pbar:
+                pbar.update(1)
+            last_log_line = out.getvalue().splitlines()[-1]
+        assert '50%' in last_log_line
+        assert '1/2' in last_log_line
+
+    def test_should_log_tqdm_output_using_iterable(self):
+        with add_capturing_logging_handler(DEFAULT_LOGGER) as out:
+            processed_items = list(logging_tqdm(range(2), mininterval=0))
+            assert processed_items == [0, 1]
+            out_lines = out.getvalue().splitlines()
+        assert len(out_lines) == 2
+        assert '1/2' in out_lines[0]
+        assert '2/2' in out_lines[1]
+
+    def test_should_not_output_before_any_progress(self):
+        with add_capturing_logging_handler(DEFAULT_LOGGER) as out:
+            with logging_tqdm(total=2, mininterval=0) as _:
+                pass
+            assert out.getvalue() == ''
+
+    def test_should_use_default_message_if_msg_is_none(self):
+        with add_capturing_logging_handler(DEFAULT_LOGGER) as out:
+            with logging_tqdm(total=2, mininterval=0) as pbar:
+                pbar.n = 1
+                pbar.display()
+                out_lines = out.getvalue().splitlines()
+            assert len(out_lines) == 1
+            assert '1/2' in out_lines[-1]
+
+    def test_should_not_output_if_msg_is_empty(self):
+        with add_capturing_logging_handler(DEFAULT_LOGGER) as out:
+            with logging_tqdm(total=2, mininterval=0) as pbar:
+                pbar.n = 1
+                pbar.display(msg='')
+            assert out.getvalue() == ''
+
+    def test_should_not_log_same_n_twice(self):
+        with add_capturing_logging_handler(DEFAULT_LOGGER) as out:
+            with logging_tqdm(total=2, mininterval=0) as pbar:
+                # update with call display
+                pbar.update(1)
+                # another call to display would cause the same message
+                pbar.display()
+                out_lines = out.getvalue().splitlines()
+            assert len(out_lines) == 1
+            assert '1/2' in out_lines[-1]
+
+    def test_should_only_allow_iterable_as_positional_arg(self):
+        with pytest.raises(ValueError):
+            list(logging_tqdm(range(2), 'other'))
