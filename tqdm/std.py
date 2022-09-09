@@ -461,7 +461,7 @@ class tqdm(Comparable):
         except TypeError:
             pass
 
-        remaining = (total - n) / rate if rate and total else 0
+        remaining = elapsed / (n - initial) * (total - n + initial) if rate and total else 0
         remaining_str = tqdm.format_interval(remaining) if rate else '?'
         try:
             eta_dt = (datetime.now() + timedelta(seconds=remaining)
