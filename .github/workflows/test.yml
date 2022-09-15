@@ -37,6 +37,7 @@ jobs:
   test:
     if: github.event_name != 'pull_request' || github.repository_owner != 'tqdm'
     name: py${{ matrix.python }}-${{ matrix.os }}
+    continue-on-error: ${{ matrix.os == 'windows' }}
     strategy:
       matrix:
         os: [ubuntu]
