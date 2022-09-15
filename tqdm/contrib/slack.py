@@ -59,8 +59,8 @@ class SlackIO(MonoWorker):
                 reply_broadcast=reply_broadcast,
                 thread_ts=thread_ts,
                 username=username,
-                mrkdown=False, 
-                unfurl_links=False, 
+                mrkdown=False,
+                unfurl_links=False,
                 unfurl_media=False
             )
         except Exception as e:
@@ -98,7 +98,8 @@ class tqdm_slack(tqdm_auto):
     >>> from tqdm.contrib.slack import tqdm, trange
     >>> for i in tqdm(iterable, token='{token}', channel='{channel}'):
     ...     ...
-    - It takes the same optional arguments as the slack sdk `chat_postMessage` method: https://slack.dev/python-slack-sdk/api-docs/slack_sdk/#slack_sdk.WebClient.chat_postMessage
+    - It takes the same optional arguments as the slack sdk `chat_postMessage`
+     method: https://slack.dev/python-slack-sdk/api-docs/slack_sdk/#slack_sdk.WebClient.chat_postMessage
     """
     def __init__(self, *args, **kwargs):
         """
