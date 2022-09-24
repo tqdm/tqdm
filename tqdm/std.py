@@ -897,7 +897,10 @@ class tqdm(Comparable):
             (network, skipping items, etc) you should set miniters=1.
         ascii  : bool or str, optional
             If unspecified or False, use unicode (smooth blocks) to fill
-            the meter. The fallback is to use ASCII characters " 123456789#".
+            the meter, with blank whitespace padding. If specified, adopt
+            given characters to fill the meter, using the first given
+            character to  fill the  whitespace padding. If True, use ASCII
+            characters " 123456789#".
         disable  : bool, optional
             Whether to disable the entire progressbar wrapper
             [default: False]. If set to None, disable on non-TTY.
