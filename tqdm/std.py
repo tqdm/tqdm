@@ -1399,11 +1399,11 @@ class tqdm(Comparable):
 
         Parameters
         ----------
-        desc  : str, optional
+        desc  : any, optional
         refresh  : bool, optional
             Forces refresh [default: True].
         """
-        self.desc = desc + ': ' if desc else ''
+        self.desc = str(desc) + ': ' if desc else ''
         if refresh:
             self.refresh()
 
