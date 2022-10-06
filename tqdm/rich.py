@@ -139,7 +139,7 @@ class tqdm_rich(std_tqdm):  # pragma: no cover
         total  : int or float, optional. Total to use for the new bar.
         """
         if hasattr(self, '_prog'):
-            self._prog.reset(total=total)
+            self._prog.reset(task_id=self._task_id, total=total)
         super(tqdm_rich, self).reset(total=total)
 
 
