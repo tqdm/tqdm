@@ -3,7 +3,7 @@ Sends updates to a Discord bot.
 
 Usage:
 >>> from tqdm.contrib.discord import tqdm, trange
->>> for i in trange(10, token='{token}', channel_id='{channel_id}'):
+>>> for i in trange(10, webhook_url='{webhook_url}'):
 ...     ...
 
 ![screenshot](https://img.tqdm.ml/screenshot-discord.png)
@@ -14,32 +14,36 @@ import logging
 from os import getenv
 
 try:
-    from disco.client import Client, ClientConfig
+    import discord
 except ImportError:
-    raise ImportError("Please `pip install disco-py`")
+    raise ImportError("Please `pip install discord.py requests`")
 
 from ..auto import tqdm as tqdm_auto
 from ..utils import _range
 from .utils_worker import MonoWorker
 
-__author__ = {"github.com/": ["casperdcl"]}
+__author__ = {"github.com/": ["casperdcl", "xx-05"]}
 __all__ = ['DiscordIO', 'tqdm_discord', 'tdrange', 'tqdm', 'trange']
 
 
 class DiscordIO(MonoWorker):
     """Non-blocking file-like IO using a Discord Bot."""
-    def __init__(self, token, channel_id):
-        """Creates a new message in the given `channel_id`."""
+    def __init__(self, webhook_url):
+        """Creates a new message on a channel via the given `webhook_url`."""
         super(DiscordIO, self).__init__()
-        config = ClientConfig()
-        config.token = token
-        client = Client(config)
+
+        webhook = discord.SyncWebhook.from_url(webhook_url)
         self.text = self.__class__.__name__
+
         try:
-            self.message = client.api.channels_messages_create(channel_id, self.text)
+            self.message = webhook.send(self.text, wait=True)
         except Exception as e:
             tqdm_auto.write(str(e))
             self.message = None
+
+    def _edit_message(self, content):
+        """Wraps the `message.edit` method to make the `content` keyword argument positional."""
+        self.message.edit(content=content)
 
     def write(self, s):
         """Replaces internal `message`'s text with `s`."""
@@ -53,7 +57,7 @@ class DiscordIO(MonoWorker):
             return
         self.text = s
         try:
-            future = self.submit(message.edit, '`' + s + '`')
+            future = self.submit(self._edit_message, '`' + s + '`')
         except Exception as e:
             tqdm_auto.write(str(e))
         else:
@@ -65,23 +69,20 @@ class tqdm_discord(tqdm_auto):
     Standard `tqdm.auto.tqdm` but also sends updates to a Discord Bot.
     May take a few seconds to create (`__init__`).
 
-    - create a discord bot (not public, no requirement of OAuth2 code
-      grant, only send message permissions) & invite it to a channel:
-      <https://discordpy.readthedocs.io/en/latest/discord.html>
-    - copy the bot `{token}` & `{channel_id}` and paste below
+    - add a webhook to a server channel:
+        (Edit Channel -> Integrations -> Webhooks -> New Webhook)
+    - copy the `{webhook_url}` into the tqdm_discord constructor
 
     >>> from tqdm.contrib.discord import tqdm, trange
-    >>> for i in tqdm(iterable, token='{token}', channel_id='{channel_id}'):
+    >>> for i in tqdm(iterable, webhook_url='{webhook_url}'):
     ...     ...
     """
     def __init__(self, *args, **kwargs):
         """
         Parameters
         ----------
-        token  : str, required. Discord token
-            [default: ${TQDM_DISCORD_TOKEN}].
-        channel_id  : int, required. Discord channel ID
-            [default: ${TQDM_DISCORD_CHANNEL_ID}].
+        webhook_url  : str, required. Discord channel webhook url
+            [default: ${TQDM_DISCORD_WEBHOOK_URL}].
         mininterval  : float, optional.
           Minimum of [default: 1.5] to avoid rate limit.
 
@@ -91,8 +92,7 @@ class tqdm_discord(tqdm_auto):
             kwargs = kwargs.copy()
             logging.getLogger("HTTPClient").setLevel(logging.WARNING)
             self.dio = DiscordIO(
-                kwargs.pop('token', getenv("TQDM_DISCORD_TOKEN")),
-                kwargs.pop('channel_id', getenv("TQDM_DISCORD_CHANNEL_ID")))
+                webhook_url=kwargs.pop('webhook_url', getenv("TQDM_DISCORD_WEBHOOK_URL")))
             kwargs['mininterval'] = max(1.5, kwargs.get('mininterval', 1.5))
         super(tqdm_discord, self).__init__(*args, **kwargs)
 
@@ -116,6 +116,11 @@ def tdrange(*args, **kwargs):
     """
     A shortcut for `tqdm.contrib.discord.tqdm(xrange(*args), **kwargs)`.
     On Python3+, `range` is used instead of `xrange`.
+
+    Parameters:
+    ----------
+    webhook_url  : str, required. Discord webhook url
+        [default: ${TQDM_DISCORD_WEBHOOK_URL}].
     """
     return tqdm_discord(_range(*args), **kwargs)
 
