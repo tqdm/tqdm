@@ -42,10 +42,7 @@ try:
 except ImportError:
     colorama = None
 else:
-    try:
-        colorama.init(strip=False)
-    except TypeError:
-        colorama.init()
+    colorama.just_fix_windows_console()
 
 
 class FormatReplace(object):
