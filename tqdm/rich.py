@@ -84,12 +84,15 @@ class tqdm_rich(std_tqdm):  # pragma: no cover
         ----------
         progress  : tuple, optional
             arguments for `rich.progress.Progress()`.
+        options  : dict, optional
+            keyword arguments for `rich.progress.Progress()`.
         """
         kwargs = kwargs.copy()
         kwargs['gui'] = True
         # convert disable = None to False
         kwargs['disable'] = bool(kwargs.get('disable', False))
         progress = kwargs.pop('progress', None)
+        options = kwargs.pop('options', {}).copy()
         super(tqdm_rich, self).__init__(*args, **kwargs)
 
         if self.disable:
@@ -108,7 +111,8 @@ class tqdm_rich(std_tqdm):  # pragma: no cover
                 ",", RateColumn(unit=d['unit'], unit_scale=d['unit_scale'],
                                 unit_divisor=d['unit_divisor']), "]"
             )
-        self._prog = Progress(*progress, transient=not self.leave)
+        options.setdefault('transient', not self.leave)
+        self._prog = Progress(*progress, **options)
         self._prog.__enter__()
         self._task_id = self._prog.add_task(self.desc or "", **d)
 

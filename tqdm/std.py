@@ -336,8 +336,8 @@ class tqdm(Comparable):
         fp = file
         fp_flush = getattr(fp, 'flush', lambda: None)  # pragma: no cover
         if fp in (sys.stderr, sys.stdout):
-            sys.stderr.flush()
-            sys.stdout.flush()
+            getattr(sys.stderr, 'flush', lambda: None)()
+            getattr(sys.stdout, 'flush', lambda: None)()
 
         def fp_write(s):
             fp.write(_unicode(s))
@@ -672,7 +672,7 @@ class tqdm(Comparable):
             | groupby.(generic.)SeriesGroupBy
             ).progress_apply
 
-        A new instance will be create every time `progress_apply` is called,
+        A new instance will be created every time `progress_apply` is called,
         and each instance will automatically `close()` upon completion.
 
         Parameters
@@ -1131,6 +1131,21 @@ class tqdm(Comparable):
             else self.iterable.__length_hint__() if hasattr(self.iterable, "__length_hint__")
             else getattr(self, "total", None))
 
+    def __reversed__(self):
+        try:
+            orig = self.iterable
+        except AttributeError:
+            raise TypeError("'tqdm' object is not reversible")
+        else:
+            self.iterable = reversed(self.iterable)
+            return self.__iter__()
+        finally:
+            self.iterable = orig
+
+    def __contains__(self, item):
+        contains = getattr(self.iterable, '__contains__', None)
+        return contains(item) if contains is not None else item in self.__iter__()
+
     def __enter__(self):
         return self
 
@@ -1440,7 +1455,7 @@ class tqdm(Comparable):
     def moveto(self, n):
         # TODO: private method
         self.fp.write(_unicode('\n' * n + _term_move_up() * -n))
-        self.fp.flush()
+        getattr(self.fp, 'flush', lambda: None)()
 
     @property
     def format_dict(self):
