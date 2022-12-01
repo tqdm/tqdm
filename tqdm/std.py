@@ -150,7 +150,11 @@ class Bar(object):
     COLOUR_RGB = '\x1b[38;2;%d;%d;%dm'
     COLOURS = {'BLACK': '\x1b[30m', 'RED': '\x1b[31m', 'GREEN': '\x1b[32m',
                'YELLOW': '\x1b[33m', 'BLUE': '\x1b[34m', 'MAGENTA': '\x1b[35m',
-               'CYAN': '\x1b[36m', 'WHITE': '\x1b[37m', 'GRAY': '\x1b[90m', 'BRIGHT RED': '\x1b[91m', 'BRIGHT GREEN': '\x1b[92m', 'BRIGHT YELLOW': '\x1b[93m', 'BRIGHT BLUE': '\x1b[94m', 'BRIGHT MAGENTA': '\x1b[95m', 'BRIGHT CYAN': '\x1b[96m', 'BRIGHT WHITE': '\x1b[97m'}
+               'CYAN': '\x1b[36m', 'WHITE': '\x1b[37m', 'GRAY': '\x1b[90m',
+               'BRIGHT RED': '\x1b[91m', 'BRIGHT GREEN': '\x1b[92m',
+               'BRIGHT YELLOW': '\x1b[93m', 'BRIGHT BLUE': '\x1b[94m',
+               'BRIGHT MAGENTA': '\x1b[95m', 'BRIGHT CYAN': '\x1b[96m',
+               'BRIGHT WHITE': '\x1b[97m'}
 
     def __init__(self, frac, default_len=10, charset=UTF, colour=None):
         if not 0 <= frac <= 1:
