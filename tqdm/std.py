@@ -1092,7 +1092,6 @@ class tqdm(Comparable):
         self.smoothing_time = smoothing_time
         self._ema_dn = EMA(smoothing)
         self._ema_dt = EMA(smoothing)
-        self._ema_miniters = EMA(smoothing)
         self.bar_format = bar_format
         self.postfix = None
         self.colour = colour
@@ -1264,8 +1263,8 @@ class tqdm(Comparable):
                     # EMA (not just overall average)
                     avg_it_time = self._ema_dt(dt) / self._ema_dn(dn)
                     if self.smoothing_time:
-                        new_alpha = 1 - exp(-avg_it_time / self.smoothing_time)
-                        self._ema_dn.alpha = self._ema_dt.alpha = new_alpha
+                        self._ema_dn.alpha = self._ema_dt.alpha = 1.0 - exp(
+                            -avg_it_time / self.smoothing_time)
                 self.refresh(lock_args=self.lock_args)
                 if self.dynamic_miniters:
                     # If no `miniters` was specified, adjust automatically to the
@@ -1275,13 +1274,9 @@ class tqdm(Comparable):
                     # at least 5 more iterations.
                     if self.maxinterval and dt >= self.maxinterval:
                         self.miniters = dn * (self.mininterval or self.maxinterval) / dt
-                    elif self.smoothing:
+                    elif self.smoothing and dt and dn:
                         # EMA miniters update
-                        self.miniters = self._ema_miniters(
-                            dn * (self.mininterval / dt if self.mininterval and dt
-                                  else 1))
-                        if self.smoothing_time and dt and dn:
-                            self._ema_miniters.alpha = new_alpha
+                        self.miniters = self.mininterval / avg_it_time
                     else:
                         # max iters between two prints
                         self.miniters = max(self.miniters, dn)
@@ -1405,7 +1400,6 @@ class tqdm(Comparable):
         self.last_print_t = self.start_t = self._time()
         self._ema_dn = EMA(self.smoothing)
         self._ema_dt = EMA(self.smoothing)
-        self._ema_miniters = EMA(self.smoothing)
         self.refresh()
 
     def set_description(self, desc=None, refresh=True):
