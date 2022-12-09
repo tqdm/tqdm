@@ -13,6 +13,7 @@ import sys
 from collections import OrderedDict, defaultdict
 from contextlib import contextmanager
 from datetime import datetime, timedelta
+from math import exp
 from numbers import Number
 from time import time
 from warnings import warn
@@ -1263,9 +1264,7 @@ class tqdm(Comparable):
                     # EMA (not just overall average)
                     avg_it_time = self._ema_dt(dt) / self._ema_dn(dn)
                     if self.smoothing_time:
-                        new_alpha = avg_it_time / self.smoothing_time
-                        if new_alpha > 1.0:
-                            new_alpha = 1.0
+                        new_alpha = 1 - exp(-avg_it_time / self.smoothing_time)
                         self._ema_dn.alpha = self._ema_dt.alpha = new_alpha
                 self.refresh(lock_args=self.lock_args)
                 if self.dynamic_miniters:
