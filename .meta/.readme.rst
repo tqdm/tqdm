@@ -1223,8 +1223,8 @@ Citation information: |DOI|
    :target: https://tqdm.github.io/PyData2019/slides.html
 .. |Merch| image:: https://img.tqdm.ml/merch.jpg
    :target: https://tqdm.github.io/merch
-.. |Build-Status| image:: https://img.shields.io/github/workflow/status/tqdm/tqdm/Test/master?logo=GitHub
-   :target: https://github.com/tqdm/tqdm/actions?query=workflow%3ATest
+.. |Build-Status| image:: https://img.shields.io/github/actions/workflow/status/tqdm/tqdm/test.yml?branch=master&logo=GitHub
+   :target: https://github.com/tqdm/tqdm/actions/workflows/test.yml
 .. |Coverage-Status| image:: https://img.shields.io/coveralls/github/tqdm/tqdm/master?logo=coveralls
    :target: https://coveralls.io/github/tqdm/tqdm
 .. |Branch-Coverage-Status| image:: https://codecov.io/gh/tqdm/tqdm/branch/master/graph/badge.svg
