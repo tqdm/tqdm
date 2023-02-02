@@ -91,3 +91,33 @@ def test_keras(capsys):
     assert "training: " in res
     assert "{epochs}/{epochs}".format(epochs=initial_epoch - 1) not in res
     assert "{epochs}/{epochs}".format(epochs=epochs) in res
+
+    # 1D autoencoder
+    dtype = np.float32
+    model = K.models.Sequential([
+        K.layers.InputLayer((1, 1), dtype=dtype), K.layers.Conv1D(1, 1)])
+    model.compile("adam", "mse")
+    x = np.random.rand(100, 1, 1).astype(dtype)
+    batch_size = 10
+    batches = len(x) / batch_size
+    epochs = 5
+
+    # just epoch (no batch) progress
+    model.fit(
+        x,
+        x,
+        epochs=epochs,
+        batch_size=batch_size,
+        verbose=False,
+        # check if TqdmCallback can be wrapped in a tf.keras.callbacks.CallbackList object
+        callbacks=K.callbacks.CallbackList(
+            callbacks=[TqdmCallback(
+                epochs,
+                desc="training",
+                data_size=len(x),
+                batch_size=batch_size,
+                verbose=0)]))
+    _, res = capsys.readouterr()
+    assert "training: " in res
+    assert "{epochs}/{epochs}".format(epochs=epochs) in res
+    assert "{batches}/{batches}".format(batches=batches) not in res
