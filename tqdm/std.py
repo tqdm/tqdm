@@ -988,7 +988,10 @@ class tqdm(Comparable):
             try:
                 total = len(iterable)
             except (TypeError, AttributeError):
-                total = None
+                try:
+                    total = length_hint(iterable)
+                except (TypeError, AttributeError):
+                    total = None
         if total == float("inf"):
             # Infinite iterations, behave same as unknown
             total = None
