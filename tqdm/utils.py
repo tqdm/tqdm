@@ -6,6 +6,7 @@ import re
 import sys
 from functools import wraps
 from warnings import warn
+from wcwidth import wcwidth
 from weakref import proxy
 
 # py2/3 compat
@@ -320,14 +321,35 @@ def _term_move_up():  # pragma: no cover
     return '' if (os.name == 'nt') and (colorama is None) else '\x1b[A'
 
 
-try:
-    # TODO consider using wcswidth third-party package for 0-width characters
-    from unicodedata import east_asian_width
-except ImportError:
-    _text_width = len
-else:
-    def _text_width(s):
-        return sum(2 if east_asian_width(ch) in 'FW' else 1 for ch in _unicode(s))
+def _wcswidth_tolerant(pwcs, n=None, unicode_version='auto'):
+    """
+    Given a unicode string, return its printable length on a terminal.
+
+    Modified fault-tolerant version of ``wcwidth.wcswidth`` function.
+    Non-printable characters are considered zero-length.
+
+    :param str pwcs: Measure width of given unicode string.
+    :param int n: When ``n`` is None (default), return the length of the
+        entire string, otherwise width the first ``n`` characters specified.
+    :param str unicode_version: An explicit definition of the unicode version
+        level to use for determination, may be ``auto`` (default), which uses
+        the Environment Variable, ``UNICODE_VERSION`` if defined, or the latest
+        available unicode version, otherwise.
+    :rtype: int
+    :returns: The width, in cells, necessary to display the first ``n``
+        characters of the unicode string ``pwcs``.
+    """
+    # pylint: disable=C0103
+    #         Invalid argument name "n"
+
+    end = len(pwcs) if n is None else n
+    idx = slice(0, end)
+    width = 0
+    for char in pwcs[idx]:
+        wcw = wcwidth(char, unicode_version)
+        if wcw >= 0:
+            width += wcw
+    return width
 
 
 def disp_len(data):
@@ -335,7 +357,7 @@ def disp_len(data):
     Returns the real on-screen length of a string which may contain
     ANSI control codes and wide chars.
     """
-    return _text_width(RE_ANSI.sub('', data))
+    return _wcswidth_tolerant(RE_ANSI.sub('', data))
 
 
 def disp_trim(data, length):

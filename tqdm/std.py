@@ -343,12 +343,13 @@ class tqdm(Comparable):
             fp.write(_unicode(s))
             fp_flush()
 
-        last_len = [0]
+        last_len = 0
 
         def print_status(s):
+            nonlocal last_len
             len_s = disp_len(s)
-            fp_write('\r' + s + (' ' * max(last_len[0] - len_s, 0)))
-            last_len[0] = len_s
+            fp_write('\r' + s + (' ' * max(last_len - len_s, 0)))
+            last_len = len_s
 
         return print_status
 
