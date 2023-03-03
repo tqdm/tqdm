@@ -53,7 +53,6 @@ license: MPL-2.0
 parts:
   tqdm:
     plugin: python
-    python-packages: [disco-py]
     source: .
     source-commit: '{commit}'
     build-packages: [git]
