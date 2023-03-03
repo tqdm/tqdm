@@ -15,10 +15,10 @@ jobs:
         - perf
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
         fetch-depth: 0
-    - uses: actions/setup-python@v2
+    - uses: actions/setup-python@v4
     - run: pip install -U tox
     - run: tox
       env:
@@ -28,10 +28,10 @@ jobs:
     name: Benchmark (Full)
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
         fetch-depth: 0
-    - uses: actions/setup-python@v2
+    - uses: actions/setup-python@v4
     - name: Install
       run: |
         pip install -U wheel
@@ -62,10 +62,10 @@ jobs:
     name: Benchmark (Branch)
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
         fetch-depth: 0
-    - uses: actions/setup-python@v2
+    - uses: actions/setup-python@v4
     - name: Install
       run: |
         pip install -U wheel
