@@ -412,10 +412,7 @@ Returns
           """Registers the current `tqdm` class with `pandas`."""
 
     def trange(*args, **tqdm_kwargs):
-        """
-        A shortcut for `tqdm(xrange(*args), **tqdm_kwargs)`.
-        On Python3+, `range` is used instead of `xrange`.
-        """
+        """Shortcut for `tqdm(range(*args), **tqdm_kwargs)`."""
 
 Convenience Functions
 ~~~~~~~~~~~~~~~~~~~~~

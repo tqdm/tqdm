@@ -21,8 +21,7 @@ from weakref import WeakSet
 from ._monitor import TMonitor
 from .utils import (
     CallbackIOWrapper, Comparable, DisableOnWriteError, FormatReplace, SimpleTextIOWrapper,
-    _basestring, _is_ascii, _range, _screen_shape_wrapper, _supports_unicode, _term_move_up,
-    _unich, _unicode, disp_len, disp_trim)
+    _is_ascii, _screen_shape_wrapper, _supports_unicode, _term_move_up, disp_len, disp_trim)
 
 __author__ = "https://github.com/tqdm/tqdm#contributions"
 __all__ = ['tqdm', 'trange',
@@ -144,7 +143,7 @@ class Bar(object):
       + `b`: blank (`charset="  "` override)
     """
     ASCII = " 123456789#"
-    UTF = u" " + u''.join(map(_unich, range(0x258F, 0x2587, -1)))
+    UTF = u" " + u''.join(map(chr, range(0x258F, 0x2587, -1)))
     BLANK = "  "
     COLOUR_RESET = '\x1b[0m'
     COLOUR_RGB = '\x1b[38;2;%d;%d;%dm'
@@ -340,7 +339,7 @@ class tqdm(Comparable):
             getattr(sys.stdout, 'flush', lambda: None)()
 
         def fp_write(s):
-            fp.write(_unicode(s))
+            fp.write(str(s))
             fp_flush()
 
         last_len = [0]
@@ -523,7 +522,7 @@ class tqdm(Comparable):
             try:
                 nobar = bar_format.format(bar=full_bar, **format_dict)
             except UnicodeEncodeError:
-                bar_format = _unicode(bar_format)
+                bar_format = str(bar_format)
                 nobar = bar_format.format(bar=full_bar, **format_dict)
             if not full_bar.format_called:
                 # no {bar}, we can just format and return
@@ -535,7 +534,7 @@ class tqdm(Comparable):
                            charset=Bar.ASCII if ascii is True else ascii or Bar.UTF,
                            colour=colour)
             if not _is_ascii(full_bar.charset) and _is_ascii(bar_format):
-                bar_format = _unicode(bar_format)
+                bar_format = str(bar_format)
             res = bar_format.format(bar=full_bar, **format_dict)
             return disp_trim(res, ncols) if ncols else res
 
@@ -847,7 +846,7 @@ class tqdm(Comparable):
                  ncols=None, mininterval=0.1, maxinterval=10.0, miniters=None,
                  ascii=None, disable=False, unit='it', unit_scale=False,
                  dynamic_ncols=False, smoothing=0.3, bar_format=None, initial=0,
-                 position=None, postfix=None, unit_divisor=1000, write_bytes=None,
+                 position=None, postfix=None, unit_divisor=1000, write_bytes=False,
                  lock_args=None, nrows=None, colour=None, delay=0, gui=False,
                  **kwargs):
         """
@@ -944,9 +943,7 @@ class tqdm(Comparable):
         unit_divisor  : float, optional
             [default: 1000], ignored unless `unit_scale` is True.
         write_bytes  : bool, optional
-            If (default: None) and `file` is unspecified,
-            bytes will be written in Python 2. If `True` will also write
-            bytes. In all other cases will default to unicode.
+            Whether to write bytes. If (default: False) will write unicode.
         lock_args  : tuple, optional
             Passed to `refresh` for intermediate output
             (initialisation, iterating, and updating).
@@ -967,9 +964,6 @@ class tqdm(Comparable):
         -------
         out  : decorated iterator.
         """
-        if write_bytes is None:
-            write_bytes = file is None and sys.version_info < (3,)
-
         if file is None:
             file = sys.stderr
 
@@ -1051,7 +1045,7 @@ class tqdm(Comparable):
 
         if bar_format and ascii is not True and not _is_ascii(ascii):
             # Convert bar format into unicode since terminal uses unicode
-            bar_format = _unicode(bar_format)
+            bar_format = str(bar_format)
 
         if smoothing is None:
             smoothing = 0
@@ -1298,7 +1292,7 @@ class tqdm(Comparable):
 
         # annoyingly, _supports_unicode isn't good enough
         def fp_write(s):
-            self.fp.write(_unicode(s))
+            self.fp.write(str(s))
 
         try:
             fp_write('')
@@ -1435,7 +1429,7 @@ class tqdm(Comparable):
             if isinstance(postfix[key], Number):
                 postfix[key] = self.format_num(postfix[key])
             # Else for any other type, try to get the string conversion
-            elif not isinstance(postfix[key], _basestring):
+            elif not isinstance(postfix[key], str):
                 postfix[key] = str(postfix[key])
             # Else if it's a string, don't need to preprocess anything
         # Stitch together to get the final postfix
@@ -1454,7 +1448,7 @@ class tqdm(Comparable):
 
     def moveto(self, n):
         # TODO: private method
-        self.fp.write(_unicode('\n' * n + _term_move_up() * -n))
+        self.fp.write('\n' * n + _term_move_up() * -n)
         getattr(self.fp, 'flush', lambda: None)()
 
     @property
@@ -1534,8 +1528,5 @@ class tqdm(Comparable):
 
 
 def trange(*args, **kwargs):
-    """
-    A shortcut for tqdm(xrange(*args), **kwargs).
-    On Python3+ range is used instead of xrange.
-    """
-    return tqdm(_range(*args), **kwargs)
+    """Shortcut for tqdm(range(*args), **kwargs)."""
+    return tqdm(range(*args), **kwargs)

@@ -5,7 +5,7 @@ channels:
 - defaults
 dependencies:
 # base
-- python=3
+- python >=3.7
 - pip
 - ipykernel
 - ipywidgets
@@ -20,7 +20,7 @@ dependencies:
 - pytest
 - pytest-cov
 - pytest-timeout
-- pytest-asyncio  # [py>=3.7]
+- pytest-asyncio
 - nbval
 - coverage
 # extras

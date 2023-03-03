@@ -14,7 +14,7 @@ except ImportError:
 
 from tqdm import tqdm, trange
 
-from .tests_tqdm import _range, importorskip, mark, patch_lock, skip
+from .tests_tqdm import importorskip, mark, patch_lock, skip
 
 pytestmark = mark.slow
 
@@ -173,7 +173,7 @@ def test_iter_basic_overhead():
 
     a = 0
     with relative_timer() as time_bench:
-        for i in _range(total):
+        for i in range(total):
             a += i
             sys.stdout.write(str(a))
 
@@ -188,13 +188,13 @@ def test_manual_basic_overhead():
     with tqdm(total=total * 10, leave=True) as t:
         a = 0
         with relative_timer() as time_tqdm:
-            for i in _range(total):
+            for i in range(total):
                 a += i
                 t.update(10)
 
     a = 0
     with relative_timer() as time_bench:
-        for i in _range(total):
+        for i in range(total):
             a += i
             sys.stdout.write(str(a))
 
@@ -249,7 +249,7 @@ def test_iter_overhead_hard():
 
     a = 0
     with relative_timer() as time_bench:
-        for i in _range(total):
+        for i in range(total):
             a += i
             sys.stdout.write(("%i" % a) * 40)
 
@@ -265,13 +265,13 @@ def test_manual_overhead_hard():
               mininterval=0, maxinterval=0) as t:
         a = 0
         with relative_timer() as time_tqdm:
-            for i in _range(total):
+            for i in range(total):
                 a += i
                 t.update(10)
 
     a = 0
     with relative_timer() as time_bench:
-        for i in _range(total):
+        for i in range(total):
             a += i
             sys.stdout.write(("%i" % a) * 40)
 
@@ -292,7 +292,7 @@ def test_iter_overhead_simplebar_hard():
     assert a == (total ** 2 - total) / 2.0
 
     a = 0
-    s = simple_progress(_range(total), leave=True,
+    s = simple_progress(range(total), leave=True,
                         miniters=1, mininterval=0)
     with relative_timer() as time_bench:
         for i in s:
@@ -310,7 +310,7 @@ def test_manual_overhead_simplebar_hard():
               mininterval=0, maxinterval=0) as t:
         a = 0
         with relative_timer() as time_tqdm:
-            for i in _range(total):
+            for i in range(total):
                 a += i
                 t.update(10)
 
@@ -318,7 +318,7 @@ def test_manual_overhead_simplebar_hard():
                                        miniters=1, mininterval=0)
     a = 0
     with relative_timer() as time_bench:
-        for i in _range(total):
+        for i in range(total):
             a += i
             simplebar_update(10)
 

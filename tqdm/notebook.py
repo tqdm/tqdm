@@ -18,7 +18,6 @@ from weakref import proxy
 
 # to inherit from the tqdm class
 from .std import tqdm as std_tqdm
-from .utils import _range
 
 if True:  # pragma: no cover
     # import IPython/Jupyter base widget and display utilities
@@ -317,11 +316,8 @@ class tqdm_notebook(std_tqdm):
 
 
 def tnrange(*args, **kwargs):
-    """
-    A shortcut for `tqdm.notebook.tqdm(xrange(*args), **kwargs)`.
-    On Python3+, `range` is used instead of `xrange`.
-    """
-    return tqdm_notebook(_range(*args), **kwargs)
+    """Shortcut for `tqdm.notebook.tqdm(range(*args), **kwargs)`."""
+    return tqdm_notebook(range(*args), **kwargs)
 
 
 # Aliases

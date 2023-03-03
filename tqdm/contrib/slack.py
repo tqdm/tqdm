@@ -19,7 +19,6 @@ except ImportError:
     raise ImportError("Please `pip install slack-sdk`")
 
 from ..auto import tqdm as tqdm_auto
-from ..utils import _range
 from .utils_worker import MonoWorker
 
 __author__ = {"github.com/": ["0x2b3bfa0", "casperdcl"]}
@@ -114,11 +113,8 @@ class tqdm_slack(tqdm_auto):
 
 
 def tsrange(*args, **kwargs):
-    """
-    A shortcut for `tqdm.contrib.slack.tqdm(xrange(*args), **kwargs)`.
-    On Python3+, `range` is used instead of `xrange`.
-    """
-    return tqdm_slack(_range(*args), **kwargs)
+    """Shortcut for `tqdm.contrib.slack.tqdm(range(*args), **kwargs)`."""
+    return tqdm_slack(range(*args), **kwargs)
 
 
 # Aliases

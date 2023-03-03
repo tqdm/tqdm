@@ -450,9 +450,7 @@ Parameters
 * unit_divisor  : float, optional  
     [default: 1000], ignored unless ``unit_scale`` is True.
 * write_bytes  : bool, optional  
-    If (default: None) and ``file`` is unspecified,
-    bytes will be written in Python 2. If ``True`` will also write
-    bytes. In all other cases will default to unicode.
+    Whether to write bytes. If (default: False) will write unicode.
 * lock_args  : tuple, optional  
     Passed to ``refresh`` for intermediate output
     (initialisation, iterating, and updating).
@@ -631,10 +629,7 @@ Returns
           """Registers the current `tqdm` class with `pandas`."""
 
     def trange(*args, **tqdm_kwargs):
-        """
-        A shortcut for `tqdm(xrange(*args), **tqdm_kwargs)`.
-        On Python3+, `range` is used instead of `xrange`.
-        """
+        """Shortcut for `tqdm(range(*args), **tqdm_kwargs)`."""
 
 Convenience Functions
 ~~~~~~~~~~~~~~~~~~~~~

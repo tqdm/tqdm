@@ -3,11 +3,10 @@ Thin wrappers around common functions.
 
 Subpackages contain potentially unstable extensions.
 """
-import sys
-from functools import wraps
+from warnings import warn
 
 from ..auto import tqdm as tqdm_auto
-from ..std import tqdm
+from ..std import TqdmDeprecationWarning, tqdm
 from ..utils import ObjectWrapper
 
 __author__ = {"github.com/": ["casperdcl"]}
@@ -42,12 +41,9 @@ class DummyTqdmFile(ObjectWrapper):
 
 
 def builtin_iterable(func):
-    """Wraps `func()` output in a `list()` in py2"""
-    if sys.version_info[:1] < (3,):
-        @wraps(func)
-        def inner(*args, **kwargs):
-            return list(func(*args, **kwargs))
-        return inner
+    """Returns `func`"""
+    warn("This function has no effect, and will be removed in tqdm==5.0.0",
+         TqdmDeprecationWarning, stacklevel=2)
     return func
 
 
@@ -70,7 +66,6 @@ def tenumerate(iterable, start=0, total=None, tqdm_class=tqdm_auto, **tqdm_kwarg
     return enumerate(tqdm_class(iterable, total=total, **tqdm_kwargs), start)
 
 
-@builtin_iterable
 def tzip(iter1, *iter2plus, **tqdm_kwargs):
     """
     Equivalent of builtin `zip`.
@@ -85,7 +80,6 @@ def tzip(iter1, *iter2plus, **tqdm_kwargs):
         yield i
 
 
-@builtin_iterable
 def tmap(function, *sequences, **tqdm_kwargs):
     """
     Equivalent of builtin `map`.

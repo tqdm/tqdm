@@ -51,7 +51,7 @@ However it would be helpful to bear in mind:
         * use two spaces between variable name and colon, specify a type, and most likely state that it's optional: `VAR<space><space>:<space>TYPE[, optional]`
         * use [default: ...] for default values of keyword arguments
     + will not break backward compatibility unless there is a very good reason
-        * e.g. breaking py26 compatibility purely in favour of readability (such as converting `dict(a=1)` to `{'a': 1}`) is not a good enough reason
+        * e.g. breaking py26 compatibility purely in favour of minor readability changes (such as converting `dict(a=1)` to `{'a': 1}`) is not a good enough reason
     + API changes should be discussed carefully
     + remember, with millions of downloads per month, `tqdm` must be extremely fast and reliable
 - Any other kind of change may be included in a (possibly new) submodule

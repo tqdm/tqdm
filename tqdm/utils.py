@@ -8,26 +8,7 @@ from functools import wraps
 from warnings import warn
 from weakref import proxy
 
-# py2/3 compat
-try:
-    _range = xrange
-except NameError:
-    _range = range
-
-try:
-    _unich = unichr
-except NameError:
-    _unich = chr
-
-try:
-    _unicode = unicode
-except NameError:
-    _unicode = str
-
-try:
-    _basestring = basestring
-except NameError:
-    _basestring = str
+_range, _unich, _unicode, _basestring = range, chr, str, str
 
 CUR_OS = sys.platform
 IS_WIN = any(CUR_OS.startswith(i) for i in ['win32', 'cygwin'])
@@ -327,7 +308,7 @@ except ImportError:
     _text_width = len
 else:
     def _text_width(s):
-        return sum(2 if east_asian_width(ch) in 'FW' else 1 for ch in _unicode(s))
+        return sum(2 if east_asian_width(ch) in 'FW' else 1 for ch in str(s))
 
 
 def disp_len(data):

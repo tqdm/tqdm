@@ -21,7 +21,6 @@ except ImportError:
 
 from .std import TqdmExperimentalWarning, TqdmWarning
 from .std import tqdm as std_tqdm
-from .utils import _range
 
 __author__ = {"github.com/": ["richardsheridan", "casperdcl"]}
 __all__ = ['tqdm_tk', 'ttkrange', 'tqdm', 'trange']
@@ -195,11 +194,8 @@ class tqdm_tk(std_tqdm):  # pragma: no cover
 
 
 def ttkrange(*args, **kwargs):
-    """
-    A shortcut for `tqdm.tk.tqdm(xrange(*args), **kwargs)`.
-    On Python3+, `range` is used instead of `xrange`.
-    """
-    return tqdm_tk(_range(*args), **kwargs)
+    """Shortcut for `tqdm.tk.tqdm(range(*args), **kwargs)`."""
+    return tqdm_tk(range(*args), **kwargs)
 
 
 # Aliases

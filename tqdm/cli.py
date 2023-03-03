@@ -245,12 +245,9 @@ Options:
             stdout = getattr(stdout, 'buffer', stdout)
         stdin = getattr(sys.stdin, 'buffer', sys.stdin)
         if manpath or comppath:
+            from importlib import resources
             from os import path
             from shutil import copyfile
-            try:  # py<3.7
-                import importlib_resources as resources
-            except ImportError:
-                from importlib import resources
 
             def cp(name, dst):
                 """copy resource `name` to `dst`"""

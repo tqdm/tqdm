@@ -16,8 +16,8 @@ from warnings import warn
 # to inherit from the tqdm class
 from .std import TqdmExperimentalWarning
 from .std import tqdm as std_tqdm
+
 # import compatibility functions and utilities
-from .utils import _range
 
 __author__ = {"github.com/": ["casperdcl", "lrq3000"]}
 __all__ = ['tqdm_gui', 'tgrange', 'tqdm', 'trange']
@@ -179,11 +179,8 @@ class tqdm_gui(std_tqdm):  # pragma: no cover
 
 
 def tgrange(*args, **kwargs):
-    """
-    A shortcut for `tqdm.gui.tqdm(xrange(*args), **kwargs)`.
-    On Python3+, `range` is used instead of `xrange`.
-    """
-    return tqdm_gui(_range(*args), **kwargs)
+    """Shortcut for `tqdm.gui.tqdm(range(*args), **kwargs)`."""
+    return tqdm_gui(range(*args), **kwargs)
 
 
 # Aliases
