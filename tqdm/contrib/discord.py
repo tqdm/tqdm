@@ -8,8 +8,6 @@ Usage:
 
 ![screenshot](https://img.tqdm.ml/screenshot-discord.png)
 """
-from __future__ import absolute_import
-
 import logging
 from os import getenv
 
@@ -19,7 +17,6 @@ except ImportError:
     raise ImportError("Please `pip install disco-py`")
 
 from ..auto import tqdm as tqdm_auto
-from ..utils import _range
 from .utils_worker import MonoWorker
 
 __author__ = {"github.com/": ["casperdcl"]}
@@ -113,11 +110,8 @@ class tqdm_discord(tqdm_auto):
 
 
 def tdrange(*args, **kwargs):
-    """
-    A shortcut for `tqdm.contrib.discord.tqdm(xrange(*args), **kwargs)`.
-    On Python3+, `range` is used instead of `xrange`.
-    """
-    return tqdm_discord(_range(*args), **kwargs)
+    """Shortcut for `tqdm.contrib.discord.tqdm(range(*args), **kwargs)`."""
+    return tqdm_discord(range(*args), **kwargs)
 
 
 # Aliases

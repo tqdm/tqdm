@@ -450,9 +450,7 @@ Parameters
 * unit_divisor  : float, optional  
     [default: 1000], ignored unless ``unit_scale`` is True.
 * write_bytes  : bool, optional  
-    If (default: None) and ``file`` is unspecified,
-    bytes will be written in Python 2. If ``True`` will also write
-    bytes. In all other cases will default to unicode.
+    Whether to write bytes. If (default: False) will write unicode.
 * lock_args  : tuple, optional  
     Passed to ``refresh`` for intermediate output
     (initialisation, iterating, and updating).
@@ -631,10 +629,7 @@ Returns
           """Registers the current `tqdm` class with `pandas`."""
 
     def trange(*args, **tqdm_kwargs):
-        """
-        A shortcut for `tqdm(xrange(*args), **tqdm_kwargs)`.
-        On Python3+, `range` is used instead of `xrange`.
-        """
+        """Shortcut for `tqdm(range(*args), **tqdm_kwargs)`."""
 
 Convenience Functions
 ~~~~~~~~~~~~~~~~~~~~~
@@ -737,7 +732,7 @@ with the ``desc`` and ``postfix`` arguments:
             sleep(0.1)
 
     with tqdm(total=10, bar_format="{postfix[0]} {postfix[1][value]:>8.2g}",
-              postfix=["Batch", dict(value=0)]) as t:
+              postfix=["Batch", {"value": 0}]) as t:
         for i in range(10):
             sleep(0.1)
             t.postfix[1]["value"] = i / 2
@@ -1442,8 +1437,8 @@ Citation information: |DOI|
    :target: https://tqdm.github.io/PyData2019/slides.html
 .. |Merch| image:: https://img.tqdm.ml/merch.jpg
    :target: https://tqdm.github.io/merch
-.. |Build-Status| image:: https://img.shields.io/github/workflow/status/tqdm/tqdm/Test/master?logo=GitHub
-   :target: https://github.com/tqdm/tqdm/actions?query=workflow%3ATest
+.. |Build-Status| image:: https://img.shields.io/github/actions/workflow/status/tqdm/tqdm/test.yml?branch=master&label=tqdm&logo=GitHub
+   :target: https://github.com/tqdm/tqdm/actions/workflows/test.yml
 .. |Coverage-Status| image:: https://img.shields.io/coveralls/github/tqdm/tqdm/master?logo=coveralls
    :target: https://coveralls.io/github/tqdm/tqdm
 .. |Branch-Coverage-Status| image:: https://codecov.io/gh/tqdm/tqdm/branch/master/graph/badge.svg

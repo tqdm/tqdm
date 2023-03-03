@@ -46,19 +46,18 @@ description: |
  `line feed \n` control characters.
 grade: stable
 confinement: strict
-base: core18
+base: core22
 icon: logo.png
 version: '{version}'
 license: MPL-2.0
 parts:
   tqdm:
     plugin: python
-    python-packages: [disco-py]
     source: .
     source-commit: '{commit}'
     build-packages: [git]
     override-build: |
-        snapcraftctl build
+        craftctl default
         cp $SNAPCRAFT_PART_BUILD/tqdm/completion.sh $SNAPCRAFT_PART_INSTALL/
 apps:
   tqdm:

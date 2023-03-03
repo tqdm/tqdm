@@ -199,8 +199,7 @@ Options:
         sys.stdout.write(d + '\n')
         sys.exit(0)
     elif argv and argv[0][:2] != '--':
-        sys.stderr.write(
-            "Error:Unknown argument:{0}\n{1}".format(argv[0], help_short))
+        sys.stderr.write(f"Error:Unknown argument:{argv[0]}\n{help_short}")
 
     argv = RE_SHLEX.split(' '.join(["tqdm"] + argv))
     opts = dict(zip(argv[1::3], argv[3::3]))
@@ -245,12 +244,9 @@ Options:
             stdout = getattr(stdout, 'buffer', stdout)
         stdin = getattr(sys.stdin, 'buffer', sys.stdin)
         if manpath or comppath:
+            from importlib import resources
             from os import path
             from shutil import copyfile
-            try:  # py<3.7
-                import importlib_resources as resources
-            except ImportError:
-                from importlib import resources
 
             def cp(name, dst):
                 """copy resource `name` to `dst`"""
