@@ -732,7 +732,7 @@ with the ``desc`` and ``postfix`` arguments:
             sleep(0.1)
 
     with tqdm(total=10, bar_format="{postfix[0]} {postfix[1][value]:>8.2g}",
-              postfix=["Batch", dict(value=0)]) as t:
+              postfix=["Batch", {"value": 0}]) as t:
         for i in range(10):
             sleep(0.1)
             t.postfix[1]["value"] = i / 2

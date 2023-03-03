@@ -936,8 +936,7 @@ def test_close():
         res = our_file.getvalue()
         assert res[-1] == '\n'
         if not res.startswith(exres):
-            raise AssertionError("\n<<< Expected:\n{0}\n>>> Got:\n{1}\n===".format(
-                exres + ', ...it/s]\n', our_file.getvalue()))
+            raise AssertionError(f"\n<<< Expected:\n{exres}, ...it/s]\n>>> Got:\n{res}\n===")
 
     # Closing after the output stream has closed
     with closing(StringIO()) as our_file:

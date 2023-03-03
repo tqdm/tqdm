@@ -474,26 +474,25 @@ class tqdm(Comparable):
         else:
             l_bar = ''
 
-        r_bar = '| {0}/{1} [{2}<{3}, {4}{5}]'.format(
-            n_fmt, total_fmt, elapsed_str, remaining_str, rate_fmt, postfix)
+        r_bar = f'| {n_fmt}/{total_fmt} [{elapsed_str}<{remaining_str}, {rate_fmt}{postfix}]'
 
         # Custom bar formatting
         # Populate a dict with all available progress indicators
-        format_dict = dict(
+        format_dict = {
             # slight extension of self.format_dict
-            n=n, n_fmt=n_fmt, total=total, total_fmt=total_fmt,
-            elapsed=elapsed_str, elapsed_s=elapsed,
-            ncols=ncols, desc=prefix or '', unit=unit,
-            rate=inv_rate if inv_rate and inv_rate > 1 else rate,
-            rate_fmt=rate_fmt, rate_noinv=rate,
-            rate_noinv_fmt=rate_noinv_fmt, rate_inv=inv_rate,
-            rate_inv_fmt=rate_inv_fmt,
-            postfix=postfix, unit_divisor=unit_divisor,
-            colour=colour,
+            'n': n, 'n_fmt': n_fmt, 'total': total, 'total_fmt': total_fmt,
+            'elapsed': elapsed_str, 'elapsed_s': elapsed,
+            'ncols': ncols, 'desc': prefix or '', 'unit': unit,
+            'rate': inv_rate if inv_rate and inv_rate > 1 else rate,
+            'rate_fmt': rate_fmt, 'rate_noinv': rate,
+            'rate_noinv_fmt': rate_noinv_fmt, 'rate_inv': inv_rate,
+            'rate_inv_fmt': rate_inv_fmt,
+            'postfix': postfix, 'unit_divisor': unit_divisor,
+            'colour': colour,
             # plus more useful definitions
-            remaining=remaining_str, remaining_s=remaining,
-            l_bar=l_bar, r_bar=r_bar, eta=eta_dt,
-            **extra_kwargs)
+            'remaining': remaining_str, 'remaining_s': remaining,
+            'l_bar': l_bar, 'r_bar': r_bar, 'eta': eta_dt,
+            **extra_kwargs}
 
         # total is known: we can predict some stats
         if total:
@@ -551,8 +550,8 @@ class tqdm(Comparable):
             return disp_trim(res, ncols) if ncols else res
         else:
             # no total: no progressbar, ETA, just progress stats
-            return '{0}{1}{2} [{3}, {4}{5}]'.format(
-                (prefix + ": ") if prefix else '', n_fmt, unit, elapsed_str, rate_fmt, postfix)
+            return (f'{(prefix + ": ") if prefix else ""}'
+                    f'{n_fmt}{unit} [{elapsed_str}, {rate_fmt}{postfix}]')
 
     def __new__(cls, *_, **__):
         instance = object.__new__(cls)

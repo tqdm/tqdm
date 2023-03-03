@@ -18,12 +18,10 @@ def pretest_posttest():
         n = len(tqdm._instances)
         if n:
             tqdm._instances.clear()
-            raise EnvironmentError(
-                "{0} `tqdm` instances still in existence PRE-test".format(n))
+            raise EnvironmentError(f"{n} `tqdm` instances still in existence PRE-test")
     yield
     if getattr(tqdm, "_instances", False):
         n = len(tqdm._instances)
         if n:
             tqdm._instances.clear()
-            raise EnvironmentError(
-                "{0} `tqdm` instances still in existence POST-test".format(n))
+            raise EnvironmentError(f"{n} `tqdm` instances still in existence POST-test")

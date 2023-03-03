@@ -14,7 +14,7 @@ NUM_SUBITERS = 9
 def progresser(n, auto_position=True, write_safe=False, blocking=True, progress=False):
     interval = random() * 0.002 / (NUM_SUBITERS - n + 2)  # nosec
     total = 5000
-    text = "#{0}, est. {1:<04.2}s".format(n, interval * total)
+    text = f"#{n}, est. {interval * total:<04.2g}s"
     for _ in trange(total, desc=text, disable=not progress,
                     lock_args=None if blocking else (False,),
                     position=None if auto_position else n):

@@ -199,8 +199,7 @@ Options:
         sys.stdout.write(d + '\n')
         sys.exit(0)
     elif argv and argv[0][:2] != '--':
-        sys.stderr.write(
-            "Error:Unknown argument:{0}\n{1}".format(argv[0], help_short))
+        sys.stderr.write(f"Error:Unknown argument:{argv[0]}\n{help_short}")
 
     argv = RE_SHLEX.split(' '.join(["tqdm"] + argv))
     opts = dict(zip(argv[1::3], argv[3::3]))
