@@ -509,21 +509,16 @@ class tqdm(Comparable):
             if bar_format:
                 format_dict.update(percentage=percentage)
 
-                # auto-remove colon for empty `desc`
+                # auto-remove colon for empty `{desc}`
                 if not prefix:
                     bar_format = bar_format.replace("{desc}: ", '')
             else:
                 bar_format = "{l_bar}{bar}{r_bar}"
 
             full_bar = FormatReplace()
-            try:
-                nobar = bar_format.format(bar=full_bar, **format_dict)
-            except UnicodeEncodeError:
-                bar_format = str(bar_format)
-                nobar = bar_format.format(bar=full_bar, **format_dict)
+            nobar = bar_format.format(bar=full_bar, **format_dict)
             if not full_bar.format_called:
-                # no {bar}, we can just format and return
-                return nobar
+                return nobar  # no `{bar}`; nothing else to do
 
             # Formatting progress bar space available for bar's display
             full_bar = Bar(frac,
@@ -1110,9 +1105,6 @@ class tqdm(Comparable):
         if self.iterable is None:
             raise TypeError('bool() undefined when iterable == total == None')
         return bool(self.iterable)
-
-    def __nonzero__(self):
-        return self.__bool__()
 
     def __len__(self):
         return (

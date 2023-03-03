@@ -8,14 +8,9 @@ Usage:
 """
 import re
 import sys
+import tkinter
+import tkinter.ttk as ttk
 from warnings import warn
-
-try:
-    import tkinter
-    import tkinter.ttk as ttk
-except ImportError:
-    import Tkinter as tkinter
-    import ttk as ttk
 
 from .std import TqdmExperimentalWarning, TqdmWarning
 from .std import tqdm as std_tqdm

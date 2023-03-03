@@ -2,27 +2,11 @@
 Thin wrappers around `concurrent.futures`.
 """
 from contextlib import contextmanager
+from operator import length_hint
+from os import cpu_count
 
 from ..auto import tqdm as tqdm_auto
 from ..std import TqdmWarning
-
-try:
-    from operator import length_hint
-except ImportError:
-    def length_hint(it, default=0):
-        """Returns `len(it)`, falling back to `default`"""
-        try:
-            return len(it)
-        except TypeError:
-            return default
-try:
-    from os import cpu_count
-except ImportError:
-    try:
-        from multiprocessing import cpu_count
-    except ImportError:
-        def cpu_count():
-            return 4
 
 __author__ = {"github.com/": ["casperdcl"]}
 __all__ = ['thread_map', 'process_map']
