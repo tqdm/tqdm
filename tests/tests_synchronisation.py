@@ -1,5 +1,3 @@
-from __future__ import division
-
 from functools import wraps
 from threading import Event
 from time import sleep, time

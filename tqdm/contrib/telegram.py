@@ -8,8 +8,6 @@ Usage:
 
 ![screenshot](https://img.tqdm.ml/screenshot-telegram.gif)
 """
-from __future__ import absolute_import
-
 from os import getenv
 from warnings import warn
 

@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 # Advice: use repr(our_file.read()) to print the full output of tqdm
 # (else '\r' will replace the previous lines and you'll see only the latest.
-from __future__ import print_function
-
 import csv
 import os
 import re

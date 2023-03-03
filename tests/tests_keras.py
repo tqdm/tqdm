@@ -1,5 +1,3 @@
-from __future__ import division
-
 from .tests_tqdm import importorskip, mark
 
 pytestmark = mark.slow

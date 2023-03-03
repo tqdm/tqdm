@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
 from multiprocessing import Pool, RLock, freeze_support

@@ -8,8 +8,6 @@ Usage:
 
 ![screenshot](https://img.tqdm.ml/screenshot-discord.png)
 """
-from __future__ import absolute_import
-
 import logging
 from os import getenv
 

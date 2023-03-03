@@ -1,8 +1,6 @@
 """
 Helper functionality for interoperability with stdlib `logging`.
 """
-from __future__ import absolute_import
-
 import logging
 import sys
 from contextlib import contextmanager

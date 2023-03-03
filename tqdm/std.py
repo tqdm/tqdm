@@ -7,8 +7,6 @@ Usage:
 >>> for i in trange(10):
 ...     ...
 """
-from __future__ import absolute_import, division
-
 import sys
 from collections import OrderedDict, defaultdict
 from contextlib import contextmanager

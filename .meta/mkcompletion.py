@@ -1,8 +1,6 @@
 """
 Auto-generate tqdm/completion.sh from docstrings.
 """
-from __future__ import print_function
-
 import re
 import sys
 from io import open as io_open

@@ -1,5 +1,3 @@
-from __future__ import division, print_function
-
 import sys
 from contextlib import contextmanager
 from functools import wraps

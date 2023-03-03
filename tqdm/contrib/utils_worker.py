@@ -1,8 +1,6 @@
 """
 IO/concurrency helpers for `tqdm.contrib`.
 """
-from __future__ import absolute_import
-
 from collections import deque
 from concurrent.futures import ThreadPoolExecutor
 

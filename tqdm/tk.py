@@ -6,8 +6,6 @@ Usage:
 >>> for i in trange(10):
 ...     ...
 """
-from __future__ import absolute_import, division
-
 import re
 import sys
 from warnings import warn

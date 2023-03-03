@@ -6,8 +6,6 @@ Usage:
 >>> for i in trange(10):
 ...     ...
 """
-from __future__ import absolute_import
-
 from warnings import warn
 
 from rich.progress import (

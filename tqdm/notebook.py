@@ -7,10 +7,6 @@ Usage:
 >>> for i in trange(10):
 ...     ...
 """
-# future division is important to divide integers and get as
-# a result precise floating numbers (instead of truncated int)
-from __future__ import absolute_import, division
-
 # import compatibility functions and utilities
 import re
 import sys
