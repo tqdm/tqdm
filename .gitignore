@@ -24,3 +24,6 @@ __pycache__/
 /wiki/
 /docs/
 /feedstock/
+
+# MacOS
+*.DS_Store
