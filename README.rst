@@ -691,6 +691,7 @@ The ``tqdm.contrib`` package also contains experimental modules:
 - ``tqdm.contrib.discord``: Posts to `Discord <https://discord.com>`__ bots
 - ``tqdm.contrib.telegram``: Posts to `Telegram <https://telegram.org>`__ bots
 - ``tqdm.contrib.bells``: Automagically enables all optional features
+- ``tqdm.contrib.scp``: Provides a progress writer for operations using scp.SCPClient
 
   * ``auto``, ``pandas``, ``slack``, ``discord``, ``telegram``
 
