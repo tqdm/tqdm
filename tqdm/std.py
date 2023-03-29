@@ -499,6 +499,9 @@ class tqdm(Comparable):
             # fractional and percentage progress
             frac = n / total
             percentage = frac * 100
+            if percentage >= 99.5 and n != total:
+                percentage = 99
+
 
             l_bar += '{0:3.0f}%|'.format(percentage)
 
