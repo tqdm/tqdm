@@ -1552,6 +1552,88 @@ def test_write():
     sys.stdout = stdo
 
 
+def test_print():
+    """Test print values"""
+    values = ["Hello", "world", 123, 3.141592653589793, set("Python"), dict]
+    with closing(StringIO()) as our_file:
+        # Change format to keep only left part w/o bar and it/s rate
+        t1 = tqdm(total=10, file=our_file, desc='pos0 bar',
+                  bar_format='{l_bar}', mininterval=0, miniters=1)
+        t2 = trange(10, file=our_file, desc='pos1 bar', bar_format='{l_bar}',
+                    mininterval=0, miniters=1)
+        t3 = tqdm(total=10, file=our_file, desc='pos2 bar',
+                  bar_format='{l_bar}', mininterval=0, miniters=1)
+        t1.update()
+        t2.update()
+        t3.update()
+        before = our_file.getvalue()
+
+        # Write msg and see if bars are correctly redrawn below the msg
+        t1.print(*values, file=our_file)  # call as an instance method
+        tqdm.print(*values, file=our_file)  # call as a class method
+        after = our_file.getvalue()
+
+        t1.close()
+        t2.close()
+        t3.close()
+
+        before_squashed = squash_ctrlchars(before)
+        after_squashed = squash_ctrlchars(after)
+
+        assert after_squashed == [' '.join('{}'.format(v) for v in values)] * 2 + before_squashed
+
+    # Check that no bar clearing if different file
+    with closing(StringIO()) as our_file_bar:
+        with closing(StringIO()) as our_file_write:
+            t1 = tqdm(total=10, file=our_file_bar, desc='pos0 bar',
+                      bar_format='{l_bar}', mininterval=0, miniters=1)
+
+            t1.update()
+            before_bar = our_file_bar.getvalue()
+
+            tqdm.print(*values, file=our_file_write)
+
+            after_bar = our_file_bar.getvalue()
+            t1.close()
+
+            assert before_bar == after_bar
+
+    # Test stdout/stderr anti-mixup strategy
+    # Backup stdout/stderr
+    stde = sys.stderr
+    stdo = sys.stdout
+    # Mock stdout/stderr
+    with closing(StringIO()) as our_stderr:
+        with closing(StringIO()) as our_stdout:
+            sys.stderr = our_stderr
+            sys.stdout = our_stdout
+            t1 = tqdm(total=10, file=sys.stderr, desc='pos0 bar',
+                      bar_format='{l_bar}', mininterval=0, miniters=1)
+
+            t1.update()
+            before_err = sys.stderr.getvalue()
+            before_out = sys.stdout.getvalue()
+
+            tqdm.print(*values, file=sys.stdout)
+            after_err = sys.stderr.getvalue()
+            after_out = sys.stdout.getvalue()
+
+            t1.close()
+
+            assert before_err == '\rpos0 bar:   0%|\rpos0 bar:  10%|'
+            assert before_out == ''
+            after_err_res = [m[0] for m in RE_pos.findall(after_err)]
+            exres = ['\rpos0 bar:   0%|',
+                     '\rpos0 bar:  10%|',
+                     '\r               ',
+                     '\r\rpos0 bar:  10%|']
+            pos_line_diff(after_err_res, exres)
+            assert after_out == ' '.join('{}'.format(v) for v in values) + '\n'
+    # Restore stdout and stderr
+    sys.stderr = stde
+    sys.stdout = stdo
+
+
 def test_len():
     """Test advance len (numpy array shape)"""
     np = importorskip('numpy')
