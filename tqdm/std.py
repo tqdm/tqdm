@@ -609,7 +609,7 @@ class tqdm(Comparable):
             # Write the message
             fp.write(s)
             fp.write(end)
-            
+
     @classmethod
     def print(cls, *values, file=None, sep=' ', end='\n', nolock=False):
         """Print several heterogenous values via tqdm (without overlap with bars)."""
