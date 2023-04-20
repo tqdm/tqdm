@@ -1276,10 +1276,6 @@ class tqdm(Comparable):
             # haven't ever displayed; nothing to clear
             return
 
-        # terminate all possibly spawned processes from iterating object
-        for child in active_children():
-            child.terminate()
-
         # GUI mode
         if getattr(self, 'sp', None) is None:
             return
