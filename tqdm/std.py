@@ -15,7 +15,6 @@ from numbers import Number
 from time import time
 from warnings import warn
 from weakref import WeakSet
-from multiprocessing import active_children
 
 from ._monitor import TMonitor
 from .utils import (
