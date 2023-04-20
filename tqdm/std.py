@@ -15,6 +15,7 @@ from numbers import Number
 from time import time
 from warnings import warn
 from weakref import WeakSet
+from multiprocessing import active_children
 
 from ._monitor import TMonitor
 from .utils import (
@@ -1274,6 +1275,10 @@ class tqdm(Comparable):
         if self.last_print_t < self.start_t + self.delay:
             # haven't ever displayed; nothing to clear
             return
+
+        # terminate all possibly spawned processes from iterating object
+        for child in active_children():
+            child.terminate()
 
         # GUI mode
         if getattr(self, 'sp', None) is None:
