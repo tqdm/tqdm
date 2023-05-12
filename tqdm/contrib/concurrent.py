@@ -39,7 +39,8 @@ def _executor_map(PoolExecutor, fn, *iterables, **tqdm_kwargs):
     """
     kwargs = tqdm_kwargs.copy()
     if "total" not in kwargs:
-        kwargs["total"] = length_hint(iterables[0])
+        shortest_iterable_len = min(map(length_hint, iterables))
+        kwargs["total"] = shortest_iterable_len
     tqdm_class = kwargs.pop("tqdm_class", tqdm_auto)
     max_workers = kwargs.pop("max_workers", min(32, cpu_count() + 4))
     chunksize = kwargs.pop("chunksize", 1)
@@ -92,12 +93,12 @@ def process_map(fn, *iterables, **tqdm_kwargs):
     if iterables and "chunksize" not in tqdm_kwargs:
         # default `chunksize=1` has poor performance for large iterables
         # (most time spent dispatching items to workers).
-        longest_iterable_len = max(map(length_hint, iterables))
-        if longest_iterable_len > 1000:
+        shortest_iterable_len = min(map(length_hint, iterables))
+        if shortest_iterable_len > 1000:
             from warnings import warn
             warn("Iterable length %d > 1000 but `chunksize` is not set."
                  " This may seriously degrade multiprocess performance."
-                 " Set `chunksize=1` or more." % longest_iterable_len,
+                 " Set `chunksize=1` or more." % shortest_iterable_len,
                  TqdmWarning, stacklevel=2)
     if "lock_name" not in tqdm_kwargs:
         tqdm_kwargs = tqdm_kwargs.copy()
