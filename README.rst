@@ -433,7 +433,7 @@ Parameters
     ``rate``, ``rate_fmt``, ``rate_noinv``, ``rate_noinv_fmt``,
     ``rate_inv``, ``rate_inv_fmt``, ``postfix``, ``unit_divisor``,
     ``remaining``, ``remaining_s``, ``eta``.
-    Note that a trailing ``: `` is automatically removed after ``{desc}``
+    Note that a trailing ": " is automatically removed after ``{desc}``
     if the latter is empty.
 * initial  : int or float, optional  
     The initial counter value. Useful when restarting a progress
