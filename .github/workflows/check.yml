@@ -11,7 +11,7 @@ jobs:
     strategy:
       matrix:
         TOXENV:
-        - setup.py
+        - check
         - perf
     runs-on: ubuntu-latest
     steps:
