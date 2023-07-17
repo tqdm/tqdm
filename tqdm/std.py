@@ -141,7 +141,7 @@ class Bar():
       + `b`: blank (`charset="  "` override)
     """
     ASCII = " 123456789#"
-    UTF = u" " + u''.join(map(chr, range(0x258F, 0x2587, -1)))
+    UTF = " " + ''.join(map(chr, range(0x258F, 0x2587, -1)))
     BLANK = "  "
     COLOUR_RESET = '\x1b[0m'
     COLOUR_RGB = '\x1b[38;2;%d;%d;%dm'
