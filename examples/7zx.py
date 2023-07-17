@@ -59,7 +59,7 @@ def main():
         for s in range(2):  # size|compressed totals
             totals_s = sum(map(int, (inf[s] for inf in finfo[:-1])))
             if totals_s != totals[s]:
-                log.warn("%s: individual total %d != 7z total %d",
+                log.warning("%s: individual total %d != 7z total %d",
                          fn, totals_s, totals[s])
         fcomp = {n: int(c if args.compressed else u) for (u, c, n) in finfo[:-1]}
         # log.debug(fcomp)
