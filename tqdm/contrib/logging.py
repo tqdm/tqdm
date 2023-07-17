@@ -18,7 +18,7 @@ class _TqdmLoggingHandler(logging.StreamHandler):
         self,
         tqdm_class=std_tqdm  # type: Type[std_tqdm]
     ):
-        super(_TqdmLoggingHandler, self).__init__()
+        super().__init__()
         self.tqdm_class = tqdm_class
 
     def emit(self, record):

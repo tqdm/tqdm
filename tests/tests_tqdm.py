@@ -107,7 +107,7 @@ def cpu_timify(t, timer=None):
 class UnicodeIO(IOBase):
     """Unicode version of StringIO"""
     def __init__(self, *args, **kwargs):
-        super(UnicodeIO, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.encoding = 'U8'  # io.StringIO supports unicode, but no encoding
         self.text = ''
         self.cursor = 0
@@ -340,7 +340,7 @@ def test_all_defaults():
 class WriteTypeChecker(BytesIO):
     """File-like to assert the expected type is written"""
     def __init__(self, expected_type):
-        super(WriteTypeChecker, self).__init__()
+        super().__init__()
         self.expected_type = expected_type
 
     def write(self, s):
@@ -1093,7 +1093,7 @@ def test_custom_format():
         """Provides a `total_time` format parameter"""
         @property
         def format_dict(self):
-            d = super(TqdmExtraFormat, self).format_dict
+            d = super().format_dict
             total_time = d["elapsed"] * (d["total"] or 0) / max(d["n"], 1)
             d.update(total_time=self.format_interval(total_time) + " in total")
             return d
