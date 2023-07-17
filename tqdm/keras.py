@@ -17,7 +17,7 @@ __all__ = ['TqdmCallback']
 class TqdmCallback(keras.callbacks.Callback):
     """Keras callback for epoch and batch progress."""
     @staticmethod
-    def bar2callback(bar, pop=None, delta=(lambda logs: 1)):
+    def bar2callback(bar, pop=None, delta=lambda logs: 1):
         def callback(_, logs=None):
             n = delta(logs)
             if logs:
