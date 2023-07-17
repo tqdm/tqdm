@@ -9,7 +9,7 @@ Usage:
 import re
 import sys
 import tkinter
-import tkinter.ttk as ttk
+from tkinter import ttk
 from warnings import warn
 
 from .std import TqdmExperimentalWarning, TqdmWarning
