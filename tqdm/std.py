@@ -72,7 +72,7 @@ def TRLock(*args, **kwargs):
         pass
 
 
-class TqdmDefaultWriteLock(object):
+class TqdmDefaultWriteLock():
     """
     Provide a default write lock for thread and multiprocessing safety.
     Works only on platforms supporting `fork` (so Windows is excluded).
@@ -127,7 +127,7 @@ class TqdmDefaultWriteLock(object):
         warn("create_th_lock not needed anymore", TqdmDeprecationWarning, stacklevel=2)
 
 
-class Bar(object):
+class Bar():
     """
     `str.format`-able bar with format specifiers: `[width][type]`
 
@@ -210,7 +210,7 @@ class Bar(object):
         return self.colour + res + self.COLOUR_RESET if self.colour else res
 
 
-class EMA(object):
+class EMA():
     """
     Exponential moving average: smoothing to give progressively lower
     weights to older values.

@@ -80,7 +80,7 @@ def pos_line_diff(res_list, expected_list, raise_nonempty=True):
     return res
 
 
-class DiscreteTimer(object):
+class DiscreteTimer():
     """Virtual discrete time manager, to precisely control time for tests"""
     def __init__(self):
         self.t = 0.0

@@ -30,7 +30,7 @@ else:
         colorama.init()
 
 
-class FormatReplace(object):
+class FormatReplace():
     """
     >>> a = FormatReplace('something')
     >>> "{:5d}".format(a)
@@ -45,7 +45,7 @@ class FormatReplace(object):
         return self.replace
 
 
-class Comparable(object):
+class Comparable():
     """Assumes child has self._comparable attr/@property"""
     def __lt__(self, other):
         return self._comparable < other._comparable
@@ -66,7 +66,7 @@ class Comparable(object):
         return not self < other
 
 
-class ObjectWrapper(object):
+class ObjectWrapper():
     def __getattr__(self, name):
         return getattr(self._wrapped, name)
 
