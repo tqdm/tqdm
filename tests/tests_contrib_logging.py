@@ -1,5 +1,5 @@
 # pylint: disable=missing-module-docstring, missing-class-docstring
-# pylint: disable=missing-function-docstring, no-self-use
+# pylint: disable=missing-function-docstring
 import logging
 import logging.handlers
 import sys
