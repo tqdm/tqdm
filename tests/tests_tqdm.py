@@ -47,7 +47,7 @@ if os.name == 'nt':
 CTRLCHR = [r'\r', r'\n', r'\x1b\[A']  # Need to escape [ for regex
 # Regular expressions compilation
 RE_rate = re.compile(r'[^\d](\d[.\d]+)it/s')
-RE_ctrlchr = re.compile("(%s)" % '|'.join(CTRLCHR))  # Match control chars
+RE_ctrlchr = re.compile(f"({'|'.join(CTRLCHR)})")  # Match control chars
 RE_ctrlchr_excl = re.compile('|'.join(CTRLCHR))  # Match and exclude ctrl chars
 RE_pos = re.compile(r'([\r\n]+((pos\d+) bar:\s+\d+%|\s{3,6})?[^\r\n]*)')
 
@@ -315,11 +315,11 @@ def test_si_format():
 
 def test_bar_formatspec():
     """Test Bar.__format__ spec"""
-    assert "{0:5a}".format(Bar(0.3)) == "#5   "
-    assert "{0:2}".format(Bar(0.5, charset=" .oO0")) == "0 "
-    assert "{0:2a}".format(Bar(0.5, charset=" .oO0")) == "# "
-    assert "{0:-6a}".format(Bar(0.5, 10)) == '##  '
-    assert "{0:2b}".format(Bar(0.5, 10)) == '  '
+    assert f"{Bar(0.3):5a}" == "#5   "
+    assert f"{Bar(0.5, charset=' .oO0'):2}" == "0 "
+    assert f"{Bar(0.5, charset=' .oO0'):2a}" == "# "
+    assert f"{Bar(0.5, 10):-6a}" == '##  '
+    assert f"{Bar(0.5, 10):2b}" == '  '
 
 
 def test_all_defaults():
@@ -1113,7 +1113,7 @@ def test_eta(capsys):
                     bar_format='{l_bar}{eta:%Y-%m-%d}'):
         pass
     _, err = capsys.readouterr()
-    assert "\r100%|{eta:%Y-%m-%d}\n".format(eta=dt.now()) in err
+    assert f"\r100%|{dt.now():%Y-%m-%d}\n" in err
 
 
 def test_unpause():
@@ -1824,14 +1824,14 @@ def test_wrapattr():
             res = writer.getvalue()
             assert data == res
         res = our_file.getvalue()
-        assert '%.1fB [' % len(data) in res
+        assert f'{len(data):.1f}B [' in res
 
     with closing(StringIO()) as our_file:
         with closing(StringIO()) as writer:
             with tqdm.wrapattr(writer, "write", file=our_file, bytes=False) as wrap:
                 wrap.write(data)
         res = our_file.getvalue()
-        assert '%dit [' % len(data) in res
+        assert f'{len(data)}it [' in res
 
 
 def test_float_progress():
