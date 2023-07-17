@@ -97,9 +97,9 @@ def simple_progress(iterable=None, total=None, file=sys.stdout, desc='',
         mins, s = divmod(int(t), 60)
         h, m = divmod(mins, 60)
         if h:
-            return '{0:d}:{1:02d}:{2:02d}'.format(h, m, s)
+            return f'{h:d}:{m:02d}:{s:02d}'
         else:
-            return '{0:02d}:{1:02d}'.format(m, s)
+            return f'{m:02d}:{s:02d}'
 
     def update_and_print(i=1):
         n[0] += i
@@ -112,7 +112,7 @@ def simple_progress(iterable=None, total=None, file=sys.stdout, desc='',
                 spent = last_t[0] - start_t[0]
                 spent_fmt = format_interval(spent)
                 rate = n[0] / spent if spent > 0 else 0
-                rate_fmt = "%.2fs/it" % (1.0 / rate) if 0.0 < rate < 1.0 else "%.2fit/s" % rate
+                rate_fmt = f"{1.0 / rate:.2f}s/it" if 0.0 < rate < 1.0 else f"{rate:.2f}it/s"
 
                 frac = n[0] / total
                 percentage = int(frac * 100)

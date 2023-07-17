@@ -47,7 +47,7 @@ if os.name == 'nt':
 CTRLCHR = [r'\r', r'\n', r'\x1b\[A']  # Need to escape [ for regex
 # Regular expressions compilation
 RE_rate = re.compile(r'[^\d](\d[.\d]+)it/s')
-RE_ctrlchr = re.compile("(%s)" % '|'.join(CTRLCHR))  # Match control chars
+RE_ctrlchr = re.compile(f"({'|'.join(CTRLCHR)})")  # Match control chars
 RE_ctrlchr_excl = re.compile('|'.join(CTRLCHR))  # Match and exclude ctrl chars
 RE_pos = re.compile(r'([\r\n]+((pos\d+) bar:\s+\d+%|\s{3,6})?[^\r\n]*)')
 
@@ -80,7 +80,7 @@ def pos_line_diff(res_list, expected_list, raise_nonempty=True):
     return res
 
 
-class DiscreteTimer(object):
+class DiscreteTimer():
     """Virtual discrete time manager, to precisely control time for tests"""
     def __init__(self):
         self.t = 0.0
@@ -107,7 +107,7 @@ def cpu_timify(t, timer=None):
 class UnicodeIO(IOBase):
     """Unicode version of StringIO"""
     def __init__(self, *args, **kwargs):
-        super(UnicodeIO, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.encoding = 'U8'  # io.StringIO supports unicode, but no encoding
         self.text = ''
         self.cursor = 0
@@ -315,11 +315,11 @@ def test_si_format():
 
 def test_bar_formatspec():
     """Test Bar.__format__ spec"""
-    assert "{0:5a}".format(Bar(0.3)) == "#5   "
-    assert "{0:2}".format(Bar(0.5, charset=" .oO0")) == "0 "
-    assert "{0:2a}".format(Bar(0.5, charset=" .oO0")) == "# "
-    assert "{0:-6a}".format(Bar(0.5, 10)) == '##  '
-    assert "{0:2b}".format(Bar(0.5, 10)) == '  '
+    assert f"{Bar(0.3):5a}" == "#5   "
+    assert f"{Bar(0.5, charset=' .oO0'):2}" == "0 "
+    assert f"{Bar(0.5, charset=' .oO0'):2a}" == "# "
+    assert f"{Bar(0.5, 10):-6a}" == '##  '
+    assert f"{Bar(0.5, 10):2b}" == '  '
 
 
 def test_all_defaults():
@@ -340,7 +340,7 @@ def test_all_defaults():
 class WriteTypeChecker(BytesIO):
     """File-like to assert the expected type is written"""
     def __init__(self, expected_type):
-        super(WriteTypeChecker, self).__init__()
+        super().__init__()
         self.expected_type = expected_type
 
     def write(self, s):
@@ -363,7 +363,7 @@ def test_native_string_io_for_default_file():
 
 def test_unicode_string_io_for_specified_file():
     """Unicode strings written to specified files"""
-    for _ in tqdm(range(3), file=WriteTypeChecker(expected_type=type(u''))):
+    for _ in tqdm(range(3), file=WriteTypeChecker(expected_type=type(''))):
         pass
 
 
@@ -376,7 +376,7 @@ def test_write_bytes():
     # unspecified file (and unicode)
     stderr = sys.stderr
     try:
-        sys.stderr = WriteTypeChecker(expected_type=type(u''))
+        sys.stderr = WriteTypeChecker(expected_type=type(''))
         for _ in tqdm(range(3), write_bytes=False):
             pass
     finally:
@@ -867,9 +867,9 @@ def test_ascii():
             for _ in range(3):
                 t.update()
         res = our_file.getvalue().strip("\r").split("\r")
-    assert u"7%|\u258b" in res[1]
-    assert u"13%|\u2588\u258e" in res[2]
-    assert u"20%|\u2588\u2588" in res[3]
+    assert "7%|\u258b" in res[1]
+    assert "13%|\u2588\u258e" in res[2]
+    assert "20%|\u2588\u2588" in res[3]
 
     # Test custom bar
     for bars in [" .oO0", " #"]:
@@ -1093,7 +1093,7 @@ def test_custom_format():
         """Provides a `total_time` format parameter"""
         @property
         def format_dict(self):
-            d = super(TqdmExtraFormat, self).format_dict
+            d = super().format_dict
             total_time = d["elapsed"] * (d["total"] or 0) / max(d["n"], 1)
             d.update(total_time=self.format_interval(total_time) + " in total")
             return d
@@ -1113,7 +1113,7 @@ def test_eta(capsys):
                     bar_format='{l_bar}{eta:%Y-%m-%d}'):
         pass
     _, err = capsys.readouterr()
-    assert "\r100%|{eta:%Y-%m-%d}\n".format(eta=dt.now()) in err
+    assert f"\r100%|{dt.now():%Y-%m-%d}\n" in err
 
 
 def test_unpause():
@@ -1321,7 +1321,7 @@ def test_set_description():
     # unicode
     with closing(StringIO()) as our_file:
         with tqdm(total=10, file=our_file) as t:
-            t.set_description(u"\xe1\xe9\xed\xf3\xfa")
+            t.set_description("\xe1\xe9\xed\xf3\xfa")
 
 
 def test_deprecated_gui():
@@ -1444,8 +1444,8 @@ def test_refresh():
         t2.close()
 
         # Check that refreshing indeed forced the display to use realtime state
-        assert before == [u'pos0 bar:   0%|', u'pos1 bar:   0%|']
-        assert after == [u'pos0 bar:  10%|', u'pos1 bar:  10%|']
+        assert before == ['pos0 bar:   0%|', 'pos1 bar:   0%|']
+        assert after == ['pos0 bar:  10%|', 'pos1 bar:  10%|']
 
 
 def test_disabled_repr(capsys):
@@ -1824,14 +1824,14 @@ def test_wrapattr():
             res = writer.getvalue()
             assert data == res
         res = our_file.getvalue()
-        assert '%.1fB [' % len(data) in res
+        assert f'{len(data):.1f}B [' in res
 
     with closing(StringIO()) as our_file:
         with closing(StringIO()) as writer:
             with tqdm.wrapattr(writer, "write", file=our_file, bytes=False) as wrap:
                 wrap.write(data)
         res = our_file.getvalue()
-        assert '%dit [' % len(data) in res
+        assert f'{len(data)}it [' in res
 
 
 def test_float_progress():

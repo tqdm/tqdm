@@ -45,7 +45,7 @@ class TqdmWarning(Warning):
         if fp_write is not None:
             fp_write("\n" + self.__class__.__name__ + ": " + str(msg).rstrip() + '\n')
         else:
-            super(TqdmWarning, self).__init__(msg, *a, **k)
+            super().__init__(msg, *a, **k)
 
 
 class TqdmExperimentalWarning(TqdmWarning, FutureWarning):
@@ -72,7 +72,7 @@ def TRLock(*args, **kwargs):
         pass
 
 
-class TqdmDefaultWriteLock(object):
+class TqdmDefaultWriteLock():
     """
     Provide a default write lock for thread and multiprocessing safety.
     Works only on platforms supporting `fork` (so Windows is excluded).
@@ -127,7 +127,7 @@ class TqdmDefaultWriteLock(object):
         warn("create_th_lock not needed anymore", TqdmDeprecationWarning, stacklevel=2)
 
 
-class Bar(object):
+class Bar():
     """
     `str.format`-able bar with format specifiers: `[width][type]`
 
@@ -141,7 +141,7 @@ class Bar(object):
       + `b`: blank (`charset="  "` override)
     """
     ASCII = " 123456789#"
-    UTF = u" " + u''.join(map(chr, range(0x258F, 0x2587, -1)))
+    UTF = " " + ''.join(map(chr, range(0x258F, 0x2587, -1)))
     BLANK = "  "
     COLOUR_RESET = '\x1b[0m'
     COLOUR_RGB = '\x1b[38;2;%d;%d;%dm'
@@ -210,7 +210,7 @@ class Bar(object):
         return self.colour + res + self.COLOUR_RESET if self.colour else res
 
 
-class EMA(object):
+class EMA():
     """
     Exponential moving average: smoothing to give progressively lower
     weights to older values.
@@ -276,11 +276,11 @@ class tqdm(Comparable):
             if abs(num) < 999.5:
                 if abs(num) < 99.95:
                     if abs(num) < 9.995:
-                        return '{0:1.2f}'.format(num) + unit + suffix
-                    return '{0:2.1f}'.format(num) + unit + suffix
-                return '{0:3.0f}'.format(num) + unit + suffix
+                        return f'{num:1.2f}' + unit + suffix
+                    return f'{num:2.1f}' + unit + suffix
+                return f'{num:3.0f}' + unit + suffix
             num /= divisor
-        return '{0:3.1f}Y'.format(num) + suffix
+        return f'{num:3.1f}Y' + suffix
 
     @staticmethod
     def format_interval(t):
@@ -300,9 +300,9 @@ class tqdm(Comparable):
         mins, s = divmod(int(t), 60)
         h, m = divmod(mins, 60)
         if h:
-            return '{0:d}:{1:02d}:{2:02d}'.format(h, m, s)
+            return f'{h:d}:{m:02d}:{s:02d}'
         else:
-            return '{0:02d}:{1:02d}'.format(m, s)
+            return f'{m:02d}:{s:02d}'
 
     @staticmethod
     def format_num(n):
@@ -319,7 +319,7 @@ class tqdm(Comparable):
         out  : str
             Formatted number.
         """
-        f = '{0:.3g}'.format(n).replace('+0', '+').replace('-0', '-')
+        f = f'{n:.3g}'.replace('+0', '+').replace('-0', '-')
         n = str(n)
         return f if len(f) < len(n) else n
 
@@ -440,9 +440,9 @@ class tqdm(Comparable):
         inv_rate = 1 / rate if rate else None
         format_sizeof = tqdm.format_sizeof
         rate_noinv_fmt = ((format_sizeof(rate) if unit_scale else
-                           '{0:5.2f}'.format(rate)) if rate else '?') + unit + '/s'
+                           f'{rate:5.2f}') if rate else '?') + unit + '/s'
         rate_inv_fmt = (
-            (format_sizeof(inv_rate) if unit_scale else '{0:5.2f}'.format(inv_rate))
+            (format_sizeof(inv_rate) if unit_scale else f'{inv_rate:5.2f}')
             if inv_rate else '?') + 's/' + unit
         rate_fmt = rate_inv_fmt if inv_rate and inv_rate > 1 else rate_noinv_fmt
 
@@ -469,7 +469,7 @@ class tqdm(Comparable):
         # format the stats displayed to the left and right sides of the bar
         if prefix:
             # old prefix setup work around
-            bool_prefix_colon_already = (prefix[-2:] == ": ")
+            bool_prefix_colon_already = prefix[-2:] == ": "
             l_bar = prefix if bool_prefix_colon_already else prefix + ": "
         else:
             l_bar = ''
@@ -500,7 +500,7 @@ class tqdm(Comparable):
             frac = n / total
             percentage = frac * 100
 
-            l_bar += '{0:3.0f}%|'.format(percentage)
+            l_bar += f'{percentage:3.0f}%|'
 
             if ncols == 0:
                 return l_bar[:-1] + r_bar[1:]

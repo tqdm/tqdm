@@ -34,7 +34,7 @@ options.difference_update('--' + i for i in ('name',) + tqdm.cli.UNSUPPORTED_OPT
 options_input &= options
 options_input -= {"--log"}  # manually dealt with
 src_dir = path.abspath(path.dirname(__file__))
-completion = u"""\
+completion = """\
 #!/usr/bin/env bash
 _tqdm(){{
   local cur prv

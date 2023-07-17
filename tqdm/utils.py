@@ -30,7 +30,7 @@ else:
         colorama.init()
 
 
-class FormatReplace(object):
+class FormatReplace():
     """
     >>> a = FormatReplace('something')
     >>> "{:5d}".format(a)
@@ -45,7 +45,7 @@ class FormatReplace(object):
         return self.replace
 
 
-class Comparable(object):
+class Comparable():
     """Assumes child has self._comparable attr/@property"""
     def __lt__(self, other):
         return self._comparable < other._comparable
@@ -66,7 +66,7 @@ class Comparable(object):
         return not self < other
 
 
-class ObjectWrapper(object):
+class ObjectWrapper():
     def __getattr__(self, name):
         return getattr(self._wrapped, name)
 
@@ -98,7 +98,7 @@ class SimpleTextIOWrapper(ObjectWrapper):
     """
     # pylint: disable=too-few-public-methods
     def __init__(self, wrapped, encoding):
-        super(SimpleTextIOWrapper, self).__init__(wrapped)
+        super().__init__(wrapped)
         self.wrapper_setattr('encoding', encoding)
 
     def write(self, s):
@@ -142,7 +142,7 @@ class DisableOnWriteError(ObjectWrapper):
         return inner
 
     def __init__(self, wrapped, tqdm_instance):
-        super(DisableOnWriteError, self).__init__(wrapped)
+        super().__init__(wrapped)
         if hasattr(wrapped, 'write'):
             self.wrapper_setattr(
                 'write', self.disable_on_exception(tqdm_instance, wrapped.write))
@@ -160,7 +160,7 @@ class CallbackIOWrapper(ObjectWrapper):
         Wrap a given `file`-like object's `read()` or `write()` to report
         lengths to the given `callback`
         """
-        super(CallbackIOWrapper, self).__init__(stream)
+        super().__init__(stream)
         func = getattr(stream, method)
         if method == "write":
             @wraps(func)
@@ -182,7 +182,7 @@ class CallbackIOWrapper(ObjectWrapper):
 
 def _is_utf(encoding):
     try:
-        u'\u2588\u2589'.encode(encoding)
+        '\u2588\u2589'.encode(encoding)
     except UnicodeEncodeError:
         return False
     except Exception:

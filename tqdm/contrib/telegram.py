@@ -27,7 +27,7 @@ class TelegramIO(MonoWorker):
 
     def __init__(self, token, chat_id):
         """Creates a new message in the given `chat_id`."""
-        super(TelegramIO, self).__init__()
+        super().__init__()
         self.token = token
         self.chat_id = chat_id
         self.session = Session()
@@ -40,7 +40,7 @@ class TelegramIO(MonoWorker):
             return self._message_id
         try:
             res = self.session.post(
-                self.API + '%s/sendMessage' % self.token,
+                self.API + f'{self.token}/sendMessage',
                 data={'text': '`' + self.text + '`', 'chat_id': self.chat_id,
                       'parse_mode': 'MarkdownV2'}).json()
         except Exception as e:
@@ -66,7 +66,7 @@ class TelegramIO(MonoWorker):
         self.text = s
         try:
             future = self.submit(
-                self.session.post, self.API + '%s/editMessageText' % self.token,
+                self.session.post, self.API + f'{self.token}/editMessageText',
                 data={'text': '`' + s + '`', 'chat_id': self.chat_id,
                       'message_id': message_id, 'parse_mode': 'MarkdownV2'})
         except Exception as e:
@@ -78,7 +78,7 @@ class TelegramIO(MonoWorker):
         """Deletes internal `message_id`."""
         try:
             future = self.submit(
-                self.session.post, self.API + '%s/deleteMessage' % self.token,
+                self.session.post, self.API + f'{self.token}/deleteMessage',
                 data={'chat_id': self.chat_id, 'message_id': self.message_id})
         except Exception as e:
             tqdm_auto.write(str(e))
@@ -118,10 +118,10 @@ class tqdm_telegram(tqdm_auto):
             self.tgio = TelegramIO(
                 kwargs.pop('token', getenv('TQDM_TELEGRAM_TOKEN')),
                 kwargs.pop('chat_id', getenv('TQDM_TELEGRAM_CHAT_ID')))
-        super(tqdm_telegram, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def display(self, **kwargs):
-        super(tqdm_telegram, self).display(**kwargs)
+        super().display(**kwargs)
         fmt = self.format_dict
         if fmt.get('bar_format', None):
             fmt['bar_format'] = fmt['bar_format'].replace(
@@ -131,14 +131,14 @@ class tqdm_telegram(tqdm_auto):
         self.tgio.write(self.format_meter(**fmt))
 
     def clear(self, *args, **kwargs):
-        super(tqdm_telegram, self).clear(*args, **kwargs)
+        super().clear(*args, **kwargs)
         if not self.disable:
             self.tgio.write("")
 
     def close(self):
         if self.disable:
             return
-        super(tqdm_telegram, self).close()
+        super().close()
         if not (self.leave or (self.leave is None and self.pos == 0)):
             self.tgio.delete()
 
