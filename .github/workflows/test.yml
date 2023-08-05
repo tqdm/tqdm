@@ -42,7 +42,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu]
-        python: [3.7, 3.8, 3.9, '3.10', 3.11]
+        python: [3.7, 3.8, 3.9, '3.10', 3.11, 3.12]
         include:
         - os: macos
           python: 3.11
@@ -60,6 +60,7 @@ jobs:
     - uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python }}
+        allow-prereleases: true
     - name: install
       run: |
         pip install -U tox tox-gh-actions
