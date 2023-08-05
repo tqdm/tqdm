@@ -39,7 +39,7 @@ repos:
     - pytest-timeout
     - pytest-asyncio
 - repo: https://github.com/PyCQA/flake8
-  rev: 5.0.4
+  rev: 6.1.0
   hooks:
   - id: flake8
     args: [-j8]

@@ -135,7 +135,7 @@ class tqdm_tk(std_tqdm):  # pragma: no cover
             "{bar}", "<bar/>")
         msg = self.format_meter(**d)
         if '<bar/>' in msg:
-            msg = "".join(re.split(r'\|?<bar/>\|?', msg, 1))
+            msg = "".join(re.split(r'\|?<bar/>\|?', msg, maxsplit=1))
         self._tk_text_var.set(msg)
         if not self._tk_dispatching:
             self._tk_window.update()

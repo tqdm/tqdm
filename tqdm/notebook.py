@@ -164,7 +164,7 @@ class tqdm_notebook(std_tqdm):
         if msg:
             # html escape special characters (like '&')
             if '<bar/>' in msg:
-                left, right = map(escape, re.split(r'\|?<bar/>\|?', msg, 1))
+                left, right = map(escape, re.split(r'\|?<bar/>\|?', msg, maxsplit=1))
             else:
                 left, right = '', escape(msg)
 
