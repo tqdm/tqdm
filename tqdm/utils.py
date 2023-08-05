@@ -75,13 +75,14 @@ def envwrap(prefix, case_sensitive=False, literal_eval=False, is_method=False):
         # use `func` signature to infer env override `type` (fallback to `str`)
         params = signature(func).parameters
         for k in overrides:
-            param = params[k]
-            if param.annotation is not param.empty:
-                typ = param.annotation
-                # TODO: parse type in {Union, Any, Optional, ...}
-            else:
-                typ = str if param.default is None else type(param.default)
-            overrides[k] = typ(overrides[k])
+            param = params.get(k, None)
+            if param is not None:
+                if param.annotation is not param.empty:
+                    typ = param.annotation
+                    # TODO: parse type in {Union, Any, Optional, ...}
+                else:
+                    typ = str if param.default is None else type(param.default)
+                overrides[k] = typ(overrides[k])
         return part(func, **overrides)
     return wrap
 
