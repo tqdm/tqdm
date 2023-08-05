@@ -949,7 +949,7 @@ class tqdm(Comparable):
         elif _Rolling_and_Expanding is not None:
             _Rolling_and_Expanding.progress_apply = inner_generator()
 
-    @envwrap("TQDM_", is_method=True)
+    @envwrap("TQDM_", is_method=True)  # override defaults via env vars
     def __init__(self, iterable=None, desc=None, total=None, leave=True, file=None,
                  ncols=None, mininterval=0.1, maxinterval=10.0, miniters=None,
                  ascii=None, disable=False, unit='it', unit_scale=False,
