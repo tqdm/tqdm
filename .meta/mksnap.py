@@ -55,6 +55,7 @@ parts:
     plugin: python
     source: .
     source-commit: '{commit}'
+    python-packages: [.]
     build-packages: [git]
     override-build: |
         craftctl default
