@@ -255,7 +255,7 @@ This can be beautified further:
 
 .. code:: sh
 
-    $ BYTES="$(du -sb docs/ | cut -f1)"
+    $ BYTES=$(du -sb docs/ | cut -f1)
     $ tar -cf - docs/ \
       | tqdm --bytes --total "$BYTES" --desc Processing | gzip \
       | tqdm --bytes --total "$BYTES" --desc Compressed --position 1 \
