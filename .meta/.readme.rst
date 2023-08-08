@@ -1214,13 +1214,13 @@ Citation information: |DOI|
 
 |README-Hits| (Since 19 May 2016)
 
-.. |Logo| image:: https://img.tqdm.ml/logo.gif
-.. |Screenshot| image:: https://img.tqdm.ml/tqdm.gif
-.. |Video| image:: https://img.tqdm.ml/video.jpg
+.. |Logo| image:: https://tqdm.github.io/img/logo.gif
+.. |Screenshot| image:: https://tqdm.github.io/img/tqdm.gif
+.. |Video| image:: https://tqdm.github.io/img/video.jpg
    :target: https://tqdm.github.io/video
-.. |Slides| image:: https://img.tqdm.ml/slides.jpg
+.. |Slides| image:: https://tqdm.github.io/img/slides.jpg
    :target: https://tqdm.github.io/PyData2019/slides.html
-.. |Merch| image:: https://img.tqdm.ml/merch.jpg
+.. |Merch| image:: https://tqdm.github.io/img/merch.jpg
    :target: https://tqdm.github.io/merch
 .. |Build-Status| image:: https://img.shields.io/github/actions/workflow/status/tqdm/tqdm/test.yml?branch=master&label=tqdm&logo=GitHub
    :target: https://github.com/tqdm/tqdm/actions/workflows/test.yml
@@ -1276,8 +1276,8 @@ Citation information: |DOI|
    :target: https://doi.org/10.5281/zenodo.595120
 .. |binder-demo| image:: https://mybinder.org/badge_logo.svg
    :target: https://mybinder.org/v2/gh/tqdm/tqdm/master?filepath=DEMO.ipynb
-.. |Screenshot-Jupyter1| image:: https://img.tqdm.ml/jupyter-1.gif
-.. |Screenshot-Jupyter2| image:: https://img.tqdm.ml/jupyter-2.gif
-.. |Screenshot-Jupyter3| image:: https://img.tqdm.ml/jupyter-3.gif
-.. |README-Hits| image:: https://caspersci.uk.to/cgi-bin/hits.cgi?q=tqdm&style=social&r=https://github.com/tqdm/tqdm&l=https://img.tqdm.ml/favicon.png&f=https://img.tqdm.ml/logo.gif
-   :target: https://caspersci.uk.to/cgi-bin/hits.cgi?q=tqdm&a=plot&r=https://github.com/tqdm/tqdm&l=https://img.tqdm.ml/favicon.png&f=https://img.tqdm.ml/logo.gif&style=social
+.. |Screenshot-Jupyter1| image:: https://tqdm.github.io/img/jupyter-1.gif
+.. |Screenshot-Jupyter2| image:: https://tqdm.github.io/img/jupyter-2.gif
+.. |Screenshot-Jupyter3| image:: https://tqdm.github.io/img/jupyter-3.gif
+.. |README-Hits| image:: https://caspersci.uk.to/cgi-bin/hits.cgi?q=tqdm&style=social&r=https://github.com/tqdm/tqdm&l=https://tqdm.github.io/img/favicon.png&f=https://tqdm.github.io/img/logo.gif
+   :target: https://caspersci.uk.to/cgi-bin/hits.cgi?q=tqdm&a=plot&r=https://github.com/tqdm/tqdm&l=https://tqdm.github.io/img/favicon.png&f=https://tqdm.github.io/img/logo.gif&style=social
