@@ -66,24 +66,24 @@ def envwrap(prefix, case_sensitive=False, literal_eval=False, is_method=False):
     ```
     """
     i = len(prefix)
-    overrides = {k[i:] if case_sensitive else k[i:].lower(): v
-                 for k, v in os.environ.items() if k.startswith(prefix)}
+    env_overrides = {k[i:] if case_sensitive else k[i:].lower(): v
+                     for k, v in os.environ.items() if k.startswith(prefix)}
     part = partialmethod if is_method else partial
 
     def wrap(func):
         params = signature(func).parameters
+        overrides = {k: v for k, v in env_overrides.items() if k in params}
         if literal_eval:
-            return part(func, **{k: safe_eval(v) for k, v in overrides.items() if k in params})
+            return part(func, **{k: safe_eval(v) for k, v in overrides.items()})
         # use `func` signature to infer env override `type` (fallback to `str`)
         for k in overrides:
-            param = params.get(k, None)
-            if param is not None:
-                if param.annotation is not param.empty:
-                    typ = param.annotation
-                    # TODO: parse type in {Union, Any, Optional, ...}
-                else:
-                    typ = str if param.default is None else type(param.default)
-                overrides[k] = typ(overrides[k])
+            param = params[k]
+            if param.annotation is not param.empty:
+                typ = param.annotation
+                # TODO: parse type in {Union, Any, Optional, ...}
+            else:
+                typ = str if param.default is None else type(param.default)
+            overrides[k] = typ(overrides[k])
         return part(func, **overrides)
     return wrap
 

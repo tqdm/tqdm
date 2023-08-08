@@ -1,4 +1,6 @@
-from tqdm.utils import envwrap
+from pytest import mark
+
+from tqdm.utils import IS_WIN, envwrap
 
 
 def test_envwrap(monkeypatch):
@@ -7,6 +9,7 @@ def test_envwrap(monkeypatch):
     env_c = 1337
     monkeypatch.setenv('FUNC_A', str(env_a))
     monkeypatch.setenv('FUNC_TyPe_HiNt', str(env_c))
+    monkeypatch.setenv('FUNC_Unused', "x")
 
     @envwrap("FUNC_")
     def func(a=1, b=2, type_hint: int = None):
@@ -15,11 +18,24 @@ def test_envwrap(monkeypatch):
     assert (env_a, 2, 1337) == func(), "expected env override"
     assert (99, 2, 1337) == func(a=99), "expected manual override"
 
-    env_liTeral = 3.14159
-    monkeypatch.setenv('FUNC_liTeral', str(env_liTeral))
+    env_literal = 3.14159
+    monkeypatch.setenv('FUNC_literal', str(env_literal))
+
+    @envwrap("FUNC_", literal_eval=True)
+    def another_func(literal="some_string"):
+        return literal
+
+    assert env_literal == another_func()
+
+
+@mark.skipif(IS_WIN, reason="no lowercase environ on Windows")
+def test_envwrap_case(monkeypatch):
+    """Test envwrap case-sensitive overrides"""
+    env_liTeRaL = 3.14159
+    monkeypatch.setenv('FUNC_liTeRaL', str(env_liTeRaL))
 
     @envwrap("FUNC_", literal_eval=True, case_sensitive=True)
-    def another_func(liTeral=1):
-        return liTeral
+    def func(liTeRaL="some_string"):
+        return liTeRaL
 
-    assert env_liTeral == another_func()
+    assert env_liTeRaL == func()
