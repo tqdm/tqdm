@@ -153,7 +153,7 @@ jobs:
         tag="${GITHUB_REF#refs/tags/}"
         gh release create --title "tqdm $tag stable" --draft --notes "$changelog" "$tag" dist/${{ steps.dist.outputs.whl }} dist/${{ steps.dist.outputs.whl_asc }}
       env:
-        GH_TOKEN: ${{ github.token }}
+        GH_TOKEN: ${{ secrets.GH_TOKEN }}
     - uses: snapcore/action-build@v1
       id: snap_build
     - if: github.event_name == 'push' && steps.collect_assets.outputs.snap_channel
