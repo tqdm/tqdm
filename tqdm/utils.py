@@ -52,7 +52,8 @@ def envwrap(prefix, case_sensitive=False, literal_eval=False, is_method=False):
     is_method  : bool, optional
         Whether to use `functools.partialmethod`. If (default: False) use `functools.partial`.
 
-    Examples:
+    Examples
+    --------
     ```
     $ cat foo.py
     from tqdm.utils import envwrap
@@ -70,10 +71,10 @@ def envwrap(prefix, case_sensitive=False, literal_eval=False, is_method=False):
     part = partialmethod if is_method else partial
 
     def wrap(func):
-        if literal_eval:
-            return part(func, **{k: safe_eval(v) for k, v in overrides.items()})
-        # use `func` signature to infer env override `type` (fallback to `str`)
         params = signature(func).parameters
+        if literal_eval:
+            return part(func, **{k: safe_eval(v) for k, v in overrides.items() if k in params})
+        # use `func` signature to infer env override `type` (fallback to `str`)
         for k in overrides:
             param = params.get(k, None)
             if param is not None:
