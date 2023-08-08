@@ -7,7 +7,7 @@ write_to = "tqdm/_dist_ver.py"
 write_to_template = "__version__ = '{version}'\n"
 
 [tool.setuptools.packages.find]
-exclude = ["benchmarks", "tests", "wiki", "docs", "feedstock"]
+exclude = ["benchmarks", "examples", "tests", "wiki", "docs", "feedstock"]
 
 [project.urls]
 homepage = "https://tqdm.github.io"
