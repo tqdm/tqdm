@@ -11,7 +11,7 @@ jobs:
     strategy:
       matrix:
         TOXENV:
-        - setup.py
+        - check
         - perf
     runs-on: ubuntu-latest
     steps:
@@ -39,7 +39,7 @@ jobs:
         git checkout master && git checkout -
         asv machine --machine github-actions --yes
     - name: Restore previous results
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: .asv
         key: asv-${{ runner.os }}
@@ -73,7 +73,7 @@ jobs:
         git checkout master && git checkout -
         asv machine --machine github-actions --yes
     - name: Restore previous results
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: .asv
         key: asv-${{ runner.os }}

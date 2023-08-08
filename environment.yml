@@ -33,14 +33,14 @@ dependencies:
 - requests           # contrib.telegram
 - rich               # rich
 - argopt             # `cd wiki && pymake`
-- twine              # `pymake pypi`
-- wheel              # `setup.py bdist_wheel`
+- twine              # `pymake check pypi`
+- build              # `python -m build`
 # `cd docs && pymake`
 - mkdocs-material
 - pydoc-markdown
 - pygments
 - pymdown-extensions
 - pip:
-  - py-make >=0.1.0  # `setup.py make/pymake`
+  - py-make >=0.1.0                                          # `make/pymake`
   - mkdocs-minify-plugin                                     # `cd docs && pymake`
   - git+https://github.com/tqdm/jsmin@python3-only#egg=jsmin # `cd docs && pymake`
