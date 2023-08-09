@@ -4,7 +4,6 @@ General helpers required for `tqdm.std`.
 import os
 import re
 import sys
-from ast import literal_eval as safe_eval
 from functools import partial, partialmethod, wraps
 from inspect import signature
 # TODO consider using wcswidth third-party package for 0-width characters
@@ -32,9 +31,12 @@ else:
         colorama.init()
 
 
-def envwrap(prefix, case_sensitive=False, literal_eval=False, is_method=False):
+def envwrap(prefix, types=None, is_method=False):
     """
     Override parameter defaults via `os.environ[prefix + param_name]`.
+    Maps UPPER_CASE env vars map to lower_case param names.
+    camelCase isn't supported (because Windows ignores case).
+
     Precedence (highest first):
     - call (`foo(a=3)`)
     - environ (`FOO_A=2`)
@@ -44,11 +46,10 @@ def envwrap(prefix, case_sensitive=False, literal_eval=False, is_method=False):
     ----------
     prefix  : str
         Env var prefix, e.g. "FOO_"
-    case_sensitive  : bool, optional
-        If (default: False), treat env var "FOO_Some_ARG" as "FOO_some_arg".
-    literal_eval  : bool, optional
-        Whether to `ast.literal_eval` the detected env var overrides.
-        Otherwise if (default: False), infer types from function signature.
+    types  : dict, optional
+        Fallback mappings `{'param_name': type, ...}` if types cannot be
+        inferred from function signature.
+        Consider using `types=collections.defaultdict(lambda: ast.literal_eval)`.
     is_method  : bool, optional
         Whether to use `functools.partialmethod`. If (default: False) use `functools.partial`.
 
@@ -65,25 +66,34 @@ def envwrap(prefix, case_sensitive=False, literal_eval=False, is_method=False):
     received: a=42, b=2, c=99
     ```
     """
+    if types is None:
+        types = {}
     i = len(prefix)
-    env_overrides = {k[i:] if case_sensitive else k[i:].lower(): v
-                     for k, v in os.environ.items() if k.startswith(prefix)}
+    env_overrides = {k[i:].lower(): v for k, v in os.environ.items() if k.startswith(prefix)}
     part = partialmethod if is_method else partial
 
     def wrap(func):
         params = signature(func).parameters
+        # ignore unknown env vars
         overrides = {k: v for k, v in env_overrides.items() if k in params}
-        if literal_eval:
-            return part(func, **{k: safe_eval(v) for k, v in overrides.items()})
-        # use `func` signature to infer env override `type` (fallback to `str`)
+        # infer overrides' `type`s
         for k in overrides:
             param = params[k]
-            if param.annotation is not param.empty:
-                typ = param.annotation
-                # TODO: parse type in {Union, Any, Optional, ...}
+            if param.annotation is not param.empty:  # typehints
+                for typ in getattr(param.annotation, '__args__', (param.annotation,)):
+                    try:
+                        overrides[k] = typ(overrides[k])
+                    except Exception:
+                        pass
+                    else:
+                        break
+            elif param.default is not None:  # type of default value
+                overrides[k] = type(param.default)(overrides[k])
             else:
-                typ = str if param.default is None else type(param.default)
-            overrides[k] = typ(overrides[k])
+                try:  # `types` fallback
+                    overrides[k] = types[k](overrides[k])
+                except KeyError:  # keep unconverted (`str`)
+                    pass
         return part(func, **overrides)
     return wrap
 

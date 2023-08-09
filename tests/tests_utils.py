@@ -1,41 +1,51 @@
-from pytest import mark
+from ast import literal_eval
+from collections import defaultdict
+from typing import Union  # py<3.10
 
-from tqdm.utils import IS_WIN, envwrap
+from tqdm.utils import envwrap
 
 
 def test_envwrap(monkeypatch):
-    """Test envwrap overrides"""
-    env_a = 42
-    env_c = 1337
-    monkeypatch.setenv('FUNC_A', str(env_a))
-    monkeypatch.setenv('FUNC_TyPe_HiNt', str(env_c))
+    """Test @envwrap (basic)"""
+    monkeypatch.setenv('FUNC_A', "42")
+    monkeypatch.setenv('FUNC_TyPe_HiNt', "1337")
     monkeypatch.setenv('FUNC_Unused', "x")
 
     @envwrap("FUNC_")
     def func(a=1, b=2, type_hint: int = None):
         return a, b, type_hint
 
-    assert (env_a, 2, 1337) == func(), "expected env override"
-    assert (99, 2, 1337) == func(a=99), "expected manual override"
-
-    env_literal = 3.14159
-    monkeypatch.setenv('FUNC_literal', str(env_literal))
-
-    @envwrap("FUNC_", literal_eval=True)
-    def another_func(literal="some_string"):
-        return literal
-
-    assert env_literal == another_func()
+    assert (42, 2, 1337) == func()
+    assert (99, 2, 1337) == func(a=99)
 
 
-@mark.skipif(IS_WIN, reason="no lowercase environ on Windows")
-def test_envwrap_case(monkeypatch):
-    """Test envwrap case-sensitive overrides"""
-    env_liTeRaL = 3.14159
-    monkeypatch.setenv('FUNC_liTeRaL', str(env_liTeRaL))
+def test_envwrap_types(monkeypatch):
+    """Test @envwrap(types)"""
+    monkeypatch.setenv('FUNC_notype', "3.14159")
 
-    @envwrap("FUNC_", literal_eval=True, case_sensitive=True)
-    def func(liTeRaL="some_string"):
-        return liTeRaL
+    @envwrap("FUNC_", types=defaultdict(lambda: literal_eval))
+    def func(notype=None):
+        return notype
 
-    assert env_liTeRaL == func()
+    assert 3.14159 == func()
+
+    monkeypatch.setenv('FUNC_number', "1")
+    monkeypatch.setenv('FUNC_string', "1")
+
+    @envwrap("FUNC_", types={'number': int})
+    def nofallback(number=None, string=None):
+        return number, string
+
+    assert 1, "1" == nofallback()
+
+
+def test_envwrap_annotations(monkeypatch):
+    """Test @envwrap with typehints"""
+    monkeypatch.setenv('FUNC_number', "1.1")
+    monkeypatch.setenv('FUNC_string', "1.1")
+
+    @envwrap("FUNC_")
+    def annotated(number: Union[int, float] = None, string: int = None):
+        return number, string
+
+    assert 1.1, "1.1" == annotated()

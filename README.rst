@@ -291,6 +291,12 @@ The most common issues relate to excessive output on multiple lines, instead
 of a neat one-line progress bar.
 
 - Consoles in general: require support for carriage return (``CR``, ``\r``).
+
+  * Some cloud logging consoles which don't support ``\r`` properly
+    (`cloudwatch <https://github.com/tqdm/tqdm/issues/966>`__,
+    `K8s <https://github.com/tqdm/tqdm/issues/1319>`__) may benefit from
+    ``export TQDM_POSITION=-1``.
+
 - Nested progress bars:
 
   * Consoles in general: require support for moving cursors up to the
@@ -329,8 +335,9 @@ of a neat one-line progress bar.
 
 - `No intermediate output in docker-compose <https://github.com/tqdm/tqdm/issues/771>`__:
   use ``docker-compose run`` instead of ``docker-compose up`` and ``tty: true``.
+
 - Overriding defaults via environment variables:
-  e.g. in CI jobs, ``export TQDM_MININTERVAL=5`` to avoid log spam.
+  e.g. in CI/cloud jobs, ``export TQDM_MININTERVAL=5`` to avoid log spam.
   This override logic is handled by the ``tqdm.utils.envwrap`` decorator
   (useful independent of ``tqdm``).
 
@@ -350,7 +357,7 @@ Documentation
       progressbar every time a value is requested.
       """
 
-      @envwrap("TQDM_", is_method=True)  # override defaults via env vars
+      @envwrap("TQDM_")  # override defaults via env vars
       def __init__(self, iterable=None, desc=None, total=None, leave=True,
                    file=None, ncols=None, mininterval=0.1,
                    maxinterval=10.0, miniters=None, ascii=None, disable=False,
