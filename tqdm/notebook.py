@@ -10,6 +10,7 @@ Usage:
 # import compatibility functions and utilities
 import re
 import sys
+from html import escape
 from weakref import proxy
 
 # to inherit from the tqdm class
@@ -57,12 +58,6 @@ if True:  # pragma: no cover
         from IPython.display import display  # , clear_output
     except ImportError:
         pass
-
-    # HTML encoding
-    try:  # Py3
-        from html import escape
-    except ImportError:  # Py2
-        from cgi import escape
 
 __author__ = {"github.com/": ["lrq3000", "casperdcl", "alexanderkuk"]}
 __all__ = ['tqdm_notebook', 'tnrange', 'tqdm', 'trange']

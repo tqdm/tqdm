@@ -327,9 +327,6 @@ of a neat one-line progress bar.
   * The same applies to ``itertools``.
   * Some useful convenience functions can be found under ``tqdm.contrib``.
 
-- `Hanging pipes in python2 <https://github.com/tqdm/tqdm/issues/359>`__:
-  when using ``tqdm`` on the CLI, you may need to use Python 3.5+ for correct
-  buffering.
 - `No intermediate output in docker-compose <https://github.com/tqdm/tqdm/issues/771>`__:
   use ``docker-compose run`` instead of ``docker-compose up`` and ``tty: true``.
 - Overriding defaults via environment variables:

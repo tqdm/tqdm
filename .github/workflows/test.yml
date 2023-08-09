@@ -69,16 +69,13 @@ jobs:
         echo "$HOME/bin" >> $GITHUB_PATH
     - name: tox
       run: |
-        TIMEOUT=10m
-        if [[ "${{ matrix.python }}" = "2.7" ]]; then
-          TIMEOUT=15m
-        elif [[ "py${{ matrix.python }}-${{ matrix.os }}" = "py3.8-ubuntu" ]]; then
-          export TOXENV="py38-tf,py38-tf-keras"  # full
+        if [[ "py${{ matrix.python }}-${{ matrix.os }}" = "py3.11-ubuntu" ]]; then
+          export TOXENV="py311-tf,py311-tf-keras"  # full
         fi
         if [[ "${{ matrix.os }}" != "ubuntu" ]]; then
-          tox -e py${PYVER/./}                   # basic
+          tox -e py${PYVER/./}                     # basic
         else
-          timeout $TIMEOUT tox || timeout $TIMEOUT tox || timeout $TIMEOUT tox
+          timeout 5m tox || timeout 5m tox || timeout 5m tox
         fi
       env:
         PYVER: ${{ matrix.python }}
