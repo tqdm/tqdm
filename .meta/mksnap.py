@@ -3,14 +3,12 @@
 Auto-generate snapcraft.yaml.
 """
 import sys
-from io import open as io_open
-from os import path
+from pathlib import Path
 from subprocess import check_output  # nosec
 
-sys.path.insert(1, path.dirname(path.dirname(__file__)))
+sys.path.insert(1, str(Path(__file__).parent.parent))
 import tqdm  # NOQA
 
-src_dir = path.abspath(path.dirname(__file__))
 snap_yml = r"""name: tqdm
 summary: A fast, extensible CLI progress bar
 description: |
@@ -65,9 +63,8 @@ apps:
     command: bin/tqdm
     completer: completion.sh
 """.format(version=tqdm.__version__, commit=check_output([
-    'git', 'describe', '--always']).decode('U8').strip())  # nosec
-fname = path.join(path.dirname(src_dir), 'snapcraft.yaml')
+    'git', 'describe', '--always']).decode('utf-8').strip())  # nosec
 
 if __name__ == "__main__":
-    with io_open(fname, mode='w', encoding='utf-8') as fd:
-        fd.write(snap_yml.decode('U8') if hasattr(snap_yml, 'decode') else snap_yml)
+    (Path(__file__).resolve().parent.parent / 'snapcraft.yaml').write_text(
+        snap_yml.decode('utf-8') if hasattr(snap_yml, 'decode') else snap_yml, encoding='utf-8')

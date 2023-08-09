@@ -6,7 +6,7 @@ Usage:
 >>> for i in trange(10, token='{token}', chat_id='{chat_id}'):
 ...     ...
 
-![screenshot](https://img.tqdm.ml/screenshot-telegram.gif)
+![screenshot](https://tqdm.github.io/img/screenshot-telegram.gif)
 """
 from os import getenv
 from warnings import warn

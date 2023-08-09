@@ -6,7 +6,7 @@ Usage:
 >>> for i in trange(10, token='{token}', channel_id='{channel_id}'):
 ...     ...
 
-![screenshot](https://img.tqdm.ml/screenshot-discord.png)
+![screenshot](https://tqdm.github.io/img/screenshot-discord.png)
 """
 import logging
 from os import getenv

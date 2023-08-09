@@ -255,7 +255,7 @@ This can be beautified further:
 
 .. code:: sh
 
-    $ BYTES="$(du -sb docs/ | cut -f1)"
+    $ BYTES=$(du -sb docs/ | cut -f1)
     $ tar -cf - docs/ \
       | tqdm --bytes --total "$BYTES" --desc Processing | gzip \
       | tqdm --bytes --total "$BYTES" --desc Compressed --position 1 \
@@ -332,6 +332,10 @@ of a neat one-line progress bar.
   buffering.
 - `No intermediate output in docker-compose <https://github.com/tqdm/tqdm/issues/771>`__:
   use ``docker-compose run`` instead of ``docker-compose up`` and ``tty: true``.
+- Overriding defaults via environment variables:
+  e.g. in CI jobs, ``export TQDM_MININTERVAL=5`` to avoid log spam.
+  This override logic is handled by the ``tqdm.utils.envwrap`` decorator
+  (useful independent of ``tqdm``).
 
 If you come across any other difficulties, browse and file |GitHub-Issues|.
 
@@ -349,12 +353,14 @@ Documentation
       progressbar every time a value is requested.
       """
 
+      @envwrap("TQDM_", is_method=True)  # override defaults via env vars
       def __init__(self, iterable=None, desc=None, total=None, leave=True,
                    file=None, ncols=None, mininterval=0.1,
                    maxinterval=10.0, miniters=None, ascii=None, disable=False,
                    unit='it', unit_scale=False, dynamic_ncols=False,
                    smoothing=0.3, bar_format=None, initial=0, position=None,
-                   postfix=None, unit_divisor=1000):
+                   postfix=None, unit_divisor=1000, write_bytes=False,
+                   lock_args=None, nrows=None, colour=None, delay=0):
 
 Parameters
 ~~~~~~~~~~
@@ -1400,16 +1406,17 @@ are:
 ==================== ======================================================== ==== ================================
 Name                 ID                                                       SLoC Notes
 ==================== ======================================================== ==== ================================
-Casper da Costa-Luis `casperdcl <https://github.com/casperdcl>`__             ~78% primary maintainer |Gift-Casper|
-Stephen Larroque     `lrq3000 <https://github.com/lrq3000>`__                 ~10% team member
-Martin Zugnoni       `martinzugnoni <https://github.com/martinzugnoni>`__     ~4%
+Casper da Costa-Luis `casperdcl <https://github.com/casperdcl>`__             ~80% primary maintainer |Gift-Casper|
+Stephen Larroque     `lrq3000 <https://github.com/lrq3000>`__                 ~9%  team member
+Martin Zugnoni       `martinzugnoni <https://github.com/martinzugnoni>`__     ~3%
 Daniel Ecer          `de-code <https://github.com/de-code>`__                 ~2%
 Richard Sheridan     `richardsheridan <https://github.com/richardsheridan>`__ ~1%
 Guangshuo Chen       `chengs <https://github.com/chengs>`__                   ~1%
+Helio Machado        `0x2b3bfa0 <https://github.com/0x2b3bfa0>`__             ~1%
 Kyle Altendorf       `altendky <https://github.com/altendky>`__               <1%
+Noam Yorav-Raphael   `noamraph <https://github.com/noamraph>`__               <1%  original author
 Matthew Stevens      `mjstevens777 <https://github.com/mjstevens777>`__       <1%
 Hadrien Mary         `hadim <https://github.com/hadim>`__                     <1%  team member
-Noam Yorav-Raphael   `noamraph <https://github.com/noamraph>`__               <1%  original author
 Mikhail Korobov      `kmike <https://github.com/kmike>`__                     <1%  team member
 ==================== ======================================================== ==== ================================
 
@@ -1429,13 +1436,13 @@ Citation information: |DOI|
 
 |README-Hits| (Since 19 May 2016)
 
-.. |Logo| image:: https://img.tqdm.ml/logo.gif
-.. |Screenshot| image:: https://img.tqdm.ml/tqdm.gif
-.. |Video| image:: https://img.tqdm.ml/video.jpg
+.. |Logo| image:: https://tqdm.github.io/img/logo.gif
+.. |Screenshot| image:: https://tqdm.github.io/img/tqdm.gif
+.. |Video| image:: https://tqdm.github.io/img/video.jpg
    :target: https://tqdm.github.io/video
-.. |Slides| image:: https://img.tqdm.ml/slides.jpg
+.. |Slides| image:: https://tqdm.github.io/img/slides.jpg
    :target: https://tqdm.github.io/PyData2019/slides.html
-.. |Merch| image:: https://img.tqdm.ml/merch.jpg
+.. |Merch| image:: https://tqdm.github.io/img/merch.jpg
    :target: https://tqdm.github.io/merch
 .. |Build-Status| image:: https://img.shields.io/github/actions/workflow/status/tqdm/tqdm/test.yml?branch=master&label=tqdm&logo=GitHub
    :target: https://github.com/tqdm/tqdm/actions/workflows/test.yml
@@ -1491,8 +1498,8 @@ Citation information: |DOI|
    :target: https://doi.org/10.5281/zenodo.595120
 .. |binder-demo| image:: https://mybinder.org/badge_logo.svg
    :target: https://mybinder.org/v2/gh/tqdm/tqdm/master?filepath=DEMO.ipynb
-.. |Screenshot-Jupyter1| image:: https://img.tqdm.ml/jupyter-1.gif
-.. |Screenshot-Jupyter2| image:: https://img.tqdm.ml/jupyter-2.gif
-.. |Screenshot-Jupyter3| image:: https://img.tqdm.ml/jupyter-3.gif
-.. |README-Hits| image:: https://caspersci.uk.to/cgi-bin/hits.cgi?q=tqdm&style=social&r=https://github.com/tqdm/tqdm&l=https://img.tqdm.ml/favicon.png&f=https://img.tqdm.ml/logo.gif
-   :target: https://caspersci.uk.to/cgi-bin/hits.cgi?q=tqdm&a=plot&r=https://github.com/tqdm/tqdm&l=https://img.tqdm.ml/favicon.png&f=https://img.tqdm.ml/logo.gif&style=social
+.. |Screenshot-Jupyter1| image:: https://tqdm.github.io/img/jupyter-1.gif
+.. |Screenshot-Jupyter2| image:: https://tqdm.github.io/img/jupyter-2.gif
+.. |Screenshot-Jupyter3| image:: https://tqdm.github.io/img/jupyter-3.gif
+.. |README-Hits| image:: https://caspersci.uk.to/cgi-bin/hits.cgi?q=tqdm&style=social&r=https://github.com/tqdm/tqdm&l=https://tqdm.github.io/img/favicon.png&f=https://tqdm.github.io/img/logo.gif
+   :target: https://caspersci.uk.to/cgi-bin/hits.cgi?q=tqdm&a=plot&r=https://github.com/tqdm/tqdm&l=https://tqdm.github.io/img/favicon.png&f=https://tqdm.github.io/img/logo.gif&style=social

@@ -4,7 +4,9 @@ General helpers required for `tqdm.std`.
 import os
 import re
 import sys
-from functools import wraps
+from ast import literal_eval as safe_eval
+from functools import partial, partialmethod, wraps
+from inspect import signature
 # TODO consider using wcswidth third-party package for 0-width characters
 from unicodedata import east_asian_width
 from warnings import warn
@@ -28,6 +30,62 @@ else:
         colorama.init(strip=False)
     except TypeError:
         colorama.init()
+
+
+def envwrap(prefix, case_sensitive=False, literal_eval=False, is_method=False):
+    """
+    Override parameter defaults via `os.environ[prefix + param_name]`.
+    Precedence (highest first):
+    - call (`foo(a=3)`)
+    - environ (`FOO_A=2`)
+    - signature (`def foo(a=1)`)
+
+    Parameters
+    ----------
+    prefix  : str
+        Env var prefix, e.g. "FOO_"
+    case_sensitive  : bool, optional
+        If (default: False), treat env var "FOO_Some_ARG" as "FOO_some_arg".
+    literal_eval  : bool, optional
+        Whether to `ast.literal_eval` the detected env var overrides.
+        Otherwise if (default: False), infer types from function signature.
+    is_method  : bool, optional
+        Whether to use `functools.partialmethod`. If (default: False) use `functools.partial`.
+
+    Examples
+    --------
+    ```
+    $ cat foo.py
+    from tqdm.utils import envwrap
+    @envwrap("FOO_")
+    def test(a=1, b=2, c=3):
+        print(f"received: a={a}, b={b}, c={c}")
+
+    $ FOO_A=42 FOO_C=1337 python -c 'import foo; foo.test(c=99)'
+    received: a=42, b=2, c=99
+    ```
+    """
+    i = len(prefix)
+    env_overrides = {k[i:] if case_sensitive else k[i:].lower(): v
+                     for k, v in os.environ.items() if k.startswith(prefix)}
+    part = partialmethod if is_method else partial
+
+    def wrap(func):
+        params = signature(func).parameters
+        overrides = {k: v for k, v in env_overrides.items() if k in params}
+        if literal_eval:
+            return part(func, **{k: safe_eval(v) for k, v in overrides.items()})
+        # use `func` signature to infer env override `type` (fallback to `str`)
+        for k in overrides:
+            param = params[k]
+            if param.annotation is not param.empty:
+                typ = param.annotation
+                # TODO: parse type in {Union, Any, Optional, ...}
+            else:
+                typ = str if param.default is None else type(param.default)
+            overrides[k] = typ(overrides[k])
+        return part(func, **overrides)
+    return wrap
 
 
 class FormatReplace(object):
