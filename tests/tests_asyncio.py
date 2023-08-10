@@ -1,4 +1,4 @@
-"""Tests `tqdm.asyncio` on `python>=3.7`."""
+"""Tests `tqdm.asyncio`."""
 import asyncio
 from functools import partial
 from sys import platform

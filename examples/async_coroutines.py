@@ -1,6 +1,4 @@
-"""
-Asynchronous examples using `asyncio`, `async` and `await` on `python>=3.7`.
-"""
+"""Asynchronous examples using `asyncio`, `async` and `await`."""
 import asyncio
 
 from tqdm.asyncio import tqdm, trange
