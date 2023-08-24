@@ -1281,18 +1281,76 @@ def test_position():
         t3.update(1)
         t4.update(1)
         res = [m[0] for m in RE_pos.findall(our_file.getvalue())]
-        exres = ['\r1.pos0 bar:   0%',
-                 '\n\r2.pos1 bar:   0%',
-                 '\n\n\r3.pos2 bar:   0%',
+        exres = [*exres,
                  '\r2.pos1 bar:   0%',
+                 '\n\n\r3.pos2 bar:   0%',
                  '\n\n\r4.pos2 bar:   0%',
                  '\r1.pos0 bar:  10%',
-                 '\n\n\r3.pos2 bar:  10%',
-                 '\n\r4.pos2 bar:  10%']
+                 '\n\r3.pos2 bar:  10%',
+                 '\n\n\r4.pos2 bar:  10%']
         pos_line_diff(res, exres)
         t4.close()
         t3.close()
         t1.close()
+
+
+@mark.skipif(nt_and_no_colorama, reason="Windows without colorama")
+@mark.parametrize('leave', [
+    True,   # all bars remain
+    False,  # no bars remain
+    None    # only first bar remains
+])
+def test_position_leave(leave: bool):
+    """Test leaving of nested positioned progress bars"""
+    our_file = StringIO()
+    kwargs = {
+        'file': our_file,
+        'miniters': 1,
+        'mininterval': 0,
+        'maxinterval': 0,
+        'leave': leave,
+    }
+    for _ in trange(2, desc='pos0 bar', position=0, **kwargs):
+        t2 = tqdm(total=2, desc='pos1 bar', position=1, **kwargs)
+        t2.update()
+        t3 = tqdm(total=2, desc='pos2 bar', position=2, **kwargs)
+        t3.update()
+        # complete t2 before t3
+        t2.update()
+        t2.close()
+        t3.update()
+        t3.close()
+
+    out = our_file.getvalue()
+    res = [m[0] for m in RE_pos.findall(out)]
+    # Bar 2 being left from the screen means bar 3 needs extra newline when
+    # positioning. If it is not left, then bar 3 needs to be cleared in its old
+    # position and redrawn in gap left by bar 2.
+    if leave:
+        bar2left, bar3move = '\n', []
+    else:
+        bar2left, bar3move = '', ['\n\n\r            ', '\r\x1b[A\x1b[A']
+    innerex = ['\n\rpos1 bar:   0%',
+               '\n\rpos1 bar:  50%',
+               '\n\n\rpos2 bar:   0%',
+               '\n\n\rpos2 bar:  50%',
+               '\n\rpos1 bar: 100%',
+               '\rpos1 bar: 100%' if leave else '\n\r             ',
+               *bar3move,
+               bar2left + '\n\rpos2 bar:  50%',
+               '\n\rpos2 bar: 100%',
+               '\rpos2 bar: 100%' if leave else '\n\r             ']
+    # Bar 1 being left on screen adds an extra newline to the output
+    # that then shows up as part of the next res line.
+    bar1left = '\n' if leave else ''
+    exres = ['\rpos0 bar:   0%',
+             *innerex,
+             bar1left + '\rpos0 bar:  50%',
+             *innerex,
+             bar1left + '\rpos0 bar: 100%',
+             '\rpos0 bar: 100%' if leave is not False else '\r              ',
+             '\n' if leave is not False else '\r']
+    pos_line_diff(res, exres)
 
 
 def test_set_description():
@@ -1895,7 +1953,6 @@ def test_screen_shape():
         assert "one" in res
         assert "two" in res
         assert "three" in res
-        assert "\n\n" not in res
         assert "more hidden" in res
         # double-check ncols
         assert all(len(i) == 50 for i in get_bar(res)
