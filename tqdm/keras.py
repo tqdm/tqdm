@@ -48,6 +48,7 @@ class TqdmCallback(keras.callbacks.Callback):
         tqdm_kwargs  : optional
             Any other arguments used for all bars.
         """
+        self.params = {} # in case `set_params` is not called
         if tqdm_kwargs:
             tqdm_class = partial(tqdm_class, **tqdm_kwargs)
         self.tqdm_class = tqdm_class
