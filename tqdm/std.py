@@ -400,7 +400,7 @@ class tqdm(Comparable):
     @staticmethod
     def format_interval(t):
         """
-        Formats a number of seconds as a clock time, [H:]MM:SS
+        Formats a number of seconds as a clock time, [[Dd ]H:]MM:SS
 
         Parameters
         ----------
@@ -410,11 +410,14 @@ class tqdm(Comparable):
         Returns
         -------
         out  : str
-            [H:]MM:SS
+            [[Dd ]H:]MM:SS
         """
         mins, s = divmod(int(t), 60)
         h, m = divmod(mins, 60)
-        if h:
+        days, h = divmod(h, 24)
+        if days:
+            return '{0:d}d {1:d}:{2:02d}:{3:02d}'.format(days, h, m, s)
+        elif h:
             return '{0:d}:{1:02d}:{2:02d}'.format(h, m, s)
         else:
             return '{0:02d}:{1:02d}'.format(m, s)
