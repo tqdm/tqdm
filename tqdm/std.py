@@ -387,7 +387,7 @@ class tqdm(Comparable):
         out  : str
             Number with Order of Magnitude SI unit postfix.
         """
-        for unit in ['', 'k', 'M', 'G', 'T', 'P', 'E', 'Z']:
+        for unit in ['', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y', 'R']:
             if abs(num) < 999.5:
                 if abs(num) < 99.95:
                     if abs(num) < 9.995:
@@ -395,7 +395,7 @@ class tqdm(Comparable):
                     return '{0:2.1f}'.format(num) + unit + suffix
                 return '{0:3.0f}'.format(num) + unit + suffix
             num /= divisor
-        return '{0:3.1f}Y'.format(num) + suffix
+        return '{0:3.1f}Q'.format(num) + suffix
 
     @staticmethod
     def format_interval(t):
