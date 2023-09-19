@@ -39,8 +39,8 @@ def test_pandas_rolling_expanding():
             our_file.seek(0)
             if our_file.getvalue().count(exres) < 2:
                 our_file.seek(0)
-                raise AssertionError("\nExpected:\n{0}\nIn:\n{1}\n".format(
-                    exres + " at least twice.", our_file.read()))
+                raise AssertionError(
+                    f"\nExpected:\n{exres} at least twice.\nIn:\n{our_file.read()}\n")
 
 
 def test_pandas_series():
@@ -62,8 +62,8 @@ def test_pandas_series():
             our_file.seek(0)
             if our_file.getvalue().count(exres) < 2:
                 our_file.seek(0)
-                raise AssertionError("\nExpected:\n{0}\nIn:\n{1}\n".format(
-                    exres + " at least twice.", our_file.read()))
+                raise AssertionError(
+                    f"\nExpected:\n{exres} at least twice.\nIn:\n{our_file.read()}\n")
 
 
 def test_pandas_data_frame():
@@ -94,8 +94,8 @@ def test_pandas_data_frame():
         our_file.seek(0)
         if our_file.read().count('100%') < 3:
             our_file.seek(0)
-            raise AssertionError("\nExpected:\n{0}\nIn:\n{1}\n".format(
-                '100% at least three times', our_file.read()))
+            raise AssertionError(
+                f"\nExpected:\n100% at least three times\nIn:\n{our_file.read()}\n")
 
         # apply_map, apply axis=0, apply axis=1
         expects = ['20000/20000', '200/200', '100/100']
@@ -103,8 +103,8 @@ def test_pandas_data_frame():
             our_file.seek(0)
             if our_file.getvalue().count(exres) < 1:
                 our_file.seek(0)
-                raise AssertionError("\nExpected:\n{0}\nIn:\n {1}\n".format(
-                    exres + " at least once.", our_file.read()))
+                raise AssertionError(
+                    f"\nExpected:\n{exres} at least once.\nIn:\n{our_file.read()}\n")
 
 
 def test_pandas_groupby_apply():
@@ -130,8 +130,7 @@ def test_pandas_groupby_apply():
         nexres = '100%|##########|'
         if nexres in our_file.read():
             our_file.seek(0)
-            raise AssertionError("\nDid not expect:\n{0}\nIn:{1}\n".format(
-                nexres, our_file.read()))
+            raise AssertionError(f"\nDid not expect:\n{nexres}\nIn:{our_file.read()}\n")
 
     with closing(StringIO()) as our_file:
         tqdm.pandas(file=our_file, leave=True, ascii=True)
@@ -149,15 +148,15 @@ def test_pandas_groupby_apply():
         our_file.seek(0)
         if our_file.read().count('100%') < 4:
             our_file.seek(0)
-            raise AssertionError("\nExpected:\n{0}\nIn:\n{1}\n".format(
-                '100% at least four times', our_file.read()))
+            raise AssertionError(
+                f"\nExpected:\n100% at least four times\nIn:\n{our_file.read()}\n")
 
         for exres in expects:
             our_file.seek(0)
             if our_file.getvalue().count(exres) < 1:
                 our_file.seek(0)
-                raise AssertionError("\nExpected:\n{0}\nIn:\n {1}\n".format(
-                    exres + " at least once.", our_file.read()))
+                raise AssertionError(
+                    f"\nExpected:\n{exres} at least once.\nIn:\n{our_file.read()}\n")
 
 
 def test_pandas_leave():
@@ -172,8 +171,7 @@ def test_pandas_leave():
         exres = '100%|##########| 100/100'
         if exres not in our_file.read():
             our_file.seek(0)
-            raise AssertionError("\nExpected:\n{0}\nIn:{1}\n".format(
-                exres, our_file.read()))
+            raise AssertionError(f"\nExpected:\n{exres}\nIn:{our_file.read()}\n")
 
 
 def test_pandas_apply_args_deprecation():

@@ -2,18 +2,19 @@ name: Test
 on:
   push:
   pull_request:
-  schedule:
-  - cron: '2 1 * * 6'  # M H d m w (Sat 1:02)
+  schedule: [{cron: '2 1 * * 6'}]  # M H d m w (Sat 1:02)
 jobs:
   check:
-    if: github.event_name != 'pull_request' || github.repository_owner != 'tqdm'
+    if: github.event_name != 'pull_request' || !contains('OWNER,MEMBER,COLLABORATOR', github.event.pull_request.author_association)
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-python@v2
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
     - name: set PYSHA
       run: echo "PYSHA=$(python -VV | sha256sum | cut -d' ' -f1)" >> $GITHUB_ENV
-    - uses: actions/cache@v1
+    - uses: actions/cache@v3
       with:
         path: ~/.cache/pre-commit
         key: pre-commit|${{ env.PYSHA }}|${{ hashFiles('.pre-commit-config.yaml') }}
@@ -35,31 +36,28 @@ jobs:
         EVENT: ${{ github.event_name }}
     - run: pre-commit run -a --show-diff-on-failure
   test:
-    if: github.event_name != 'pull_request' || github.repository_owner != 'tqdm'
+    if: github.event_name != 'pull_request' || !contains('OWNER,MEMBER,COLLABORATOR', github.event.pull_request.author_association)
     name: py${{ matrix.python }}-${{ matrix.os }}
+    continue-on-error: ${{ matrix.os == 'windows' }}
     strategy:
       matrix:
         os: [ubuntu]
-        python: [2.7, 3.5, 3.6, 3.7, 3.8, 3.9, '3.10']
+        python: [3.7, 3.8, 3.9, '3.10', 3.11]
         include:
         - os: macos
-          python: 2.7
-        - os: macos
-          python: 3.8
+          python: 3.11
         - os: windows
-          python: 2.7
-        - os: windows
-          python: 3.8
+          python: 3.11
     runs-on: ${{ matrix.os }}-latest
     timeout-minutes: 35
     defaults:
       run:
         shell: bash
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
         fetch-depth: 0
-    - uses: actions/setup-python@v2
+    - uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python }}
     - name: install
@@ -71,16 +69,13 @@ jobs:
         echo "$HOME/bin" >> $GITHUB_PATH
     - name: tox
       run: |
-        TIMEOUT=10m
-        if [[ "${{ matrix.python }}" = "2.7" ]]; then
-          TIMEOUT=15m
-        elif [[ "py${{ matrix.python }}-${{ matrix.os }}" = "py3.8-ubuntu" ]]; then
-          export TOXENV="py38-tf,py38-tf-keras"  # full
+        if [[ "py${{ matrix.python }}-${{ matrix.os }}" = "py3.11-ubuntu" ]]; then
+          export TOXENV="py311-tf,py311-tf-keras"  # full
         fi
         if [[ "${{ matrix.os }}" != "ubuntu" ]]; then
-          tox -e py${PYVER/./}                   # basic
+          tox -e py${PYVER/./}                     # basic
         else
-          timeout $TIMEOUT tox || timeout $TIMEOUT tox || timeout $TIMEOUT tox
+          timeout 5m tox || timeout 5m tox || timeout 5m tox
         fi
       env:
         PYVER: ${{ matrix.python }}
@@ -93,13 +88,14 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
   finish:
-    if: github.event_name != 'pull_request' || github.repository_owner != 'tqdm'
     name: pytest cov
     continue-on-error: ${{ github.event_name != 'push' }}
     needs: test
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/setup-python@v2
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
     - name: Coveralls Finished
       run: |
         pip install -U coveralls
@@ -116,10 +112,13 @@ jobs:
     needs: [check, test]
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
         fetch-depth: 0
-    - uses: actions/setup-python@v2
+        token: ${{ secrets.GH_TOKEN || github.token }}
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
     - name: Install
       run: |
         sudo apt-get install -yqq pandoc
@@ -135,36 +134,32 @@ jobs:
       name: Collect assets
       run: |
         if [[ $GITHUB_REF == refs/tags/v* ]]; then
-          echo ::set-output name=docker_tags::latest,${GITHUB_REF/refs\/tags\/v/}
-          echo ::set-output name=snap_channel::stable,candidate,edge
+          echo docker_tags=latest,${GITHUB_REF/refs\/tags\/v/} >> $GITHUB_OUTPUT
+          echo snap_channel=stable,candidate,edge >> $GITHUB_OUTPUT
         elif [[ $GITHUB_REF == refs/heads/master ]]; then
-          echo ::set-output name=docker_tags::master
-          echo ::set-output name=snap_channel::candidate,edge
+          echo docker_tags=master >> $GITHUB_OUTPUT
+          echo snap_channel=candidate,edge >> $GITHUB_OUTPUT
         elif [[ $GITHUB_REF == refs/heads/devel ]]; then
-          echo ::set-output name=docker_tags::devel
-          echo ::set-output name=snap_channel::edge
+          echo docker_tags=devel >> $GITHUB_OUTPUT
+          echo snap_channel=edge >> $GITHUB_OUTPUT
         fi
-        echo ::set-output name=tag::${GITHUB_REF#refs/tags/}
-        git log --pretty='format:%d%n- %s%n%b---' $(git tag --sort=v:refname | tail -n2 | head -n1)..HEAD > _CHANGES.md
     - if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
-      uses: softprops/action-gh-release@v1
+      name: Release
+      run: |
+        changelog=$(git log --pretty='format:%d%n- %s%n%b---' $(git tag --sort=v:refname | tail -n2 | head -n1)..HEAD)
+        tag="${GITHUB_REF#refs/tags/}"
+        gh release create --title "tqdm $tag stable" --draft --notes "$changelog" "$tag" dist/${{ steps.dist.outputs.whl }} dist/${{ steps.dist.outputs.whl_asc }}
       env:
-        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-      with:
-        name: tqdm ${{ steps.collect_assets.outputs.tag }} stable
-        body_path: _CHANGES.md
-        draft: true
-        files: |
-          dist/${{ steps.dist.outputs.whl }}
-          dist/${{ steps.dist.outputs.whl_asc }}
+        GH_TOKEN: ${{ secrets.GH_TOKEN }}
     - uses: snapcore/action-build@v1
       id: snap_build
     - if: github.event_name == 'push' && steps.collect_assets.outputs.snap_channel
       uses: snapcore/action-publish@v1
       with:
-        store_login: ${{ secrets.SNAP_TOKEN }}
         snap: ${{ steps.snap_build.outputs.snap }}
         release: ${{ steps.collect_assets.outputs.snap_channel }}
+      env:
+        SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAP_TOKEN }}
     - name: Docker build push
       uses: elgohr/Publish-Docker-Github-Action@master
       with:

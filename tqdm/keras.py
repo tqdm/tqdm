@@ -1,5 +1,3 @@
-from __future__ import absolute_import, division
-
 from copy import copy
 from functools import partial
 
