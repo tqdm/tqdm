@@ -10,7 +10,7 @@ Usage:
 import sys
 from collections import OrderedDict, defaultdict
 from contextlib import contextmanager
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from numbers import Number
 from time import time
 from warnings import warn
@@ -577,7 +577,7 @@ class tqdm(Comparable):
         remaining_str = tqdm.format_interval(remaining) if rate else '?'
         try:
             eta_dt = (datetime.now() + timedelta(seconds=remaining)
-                      if rate and total else datetime.utcfromtimestamp(0))
+                      if rate and total else datetime.fromtimestamp(0, timezone.utc))
         except OverflowError:
             eta_dt = datetime.max
 
