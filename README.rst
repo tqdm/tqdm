@@ -215,7 +215,7 @@ Perhaps the most wonderful use of ``tqdm`` is in a script or on the command
 line. Simply inserting ``tqdm`` (or ``python -m tqdm``) between pipes will pass
 through all ``stdin`` to ``stdout`` while printing progress to ``stderr``.
 
-The example below demonstrate counting the number of lines in all Python files
+The example below demonstrates counting the number of lines in all Python files
 in the current directory, with timing information included.
 
 .. code:: sh
@@ -1015,7 +1015,7 @@ Instead, either call ``pbar.close()`` manually or use the context manager syntax
 Pandas Integration
 ~~~~~~~~~~~~~~~~~~
 
-Due to popular demand we've added support for ``pandas`` -- here's an example
+Due to popular demand, we've added support for ``pandas`` -- here's an example
 for ``DataFrame.progress_apply`` and ``DataFrameGroupBy.progress_apply``:
 
 .. code:: python
