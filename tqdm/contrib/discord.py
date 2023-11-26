@@ -2,7 +2,7 @@ import logging
 from os import getenv
 
 try:
-    import discord
+    from discord.ext import commands
 except ImportError:
     raise ImportError("Please `pip install discord.py`")
 
@@ -22,9 +22,16 @@ class DiscordIO(MonoWorker):
         self.channel_id = channel_id
         self.text = self.__class__.__name__
         try:
-            self.client = discord.Client(intents=discord.Intents.default())
-            self.client.run(token)
-            self.message = self.client.get_channel(channel_id).send(self.text)
+            intents = discord.Intents.default()
+            intents.message_content = True
+            self.client = commands.Bot(command_prefix="!", intents=intents)
+            self.loop = asyncio.get_event_loop()
+            self.loop.create_task(self.start_bot())
+            # Wait for the bot to be ready before continuing
+            self.loop.run_until_complete(self.client.wait_until_ready())
+            self.message = self.loop.run_until_complete(
+                self.client.get_channel(channel_id).send(self.text)
+            )
         except Exception as e:
             tqdm_auto.write(str(e))
             self.message = None
