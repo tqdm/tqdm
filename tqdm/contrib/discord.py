@@ -1,7 +1,9 @@
 import logging
 from os import getenv
+import asyncio
 
 try:
+    import discord
     from discord.ext import commands
 except ImportError:
     raise ImportError("Please `pip install discord.py`")
