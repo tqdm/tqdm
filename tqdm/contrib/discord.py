@@ -1,20 +1,10 @@
-"""
-Sends updates to a Discord bot.
-
-Usage:
->>> from tqdm.contrib.discord import tqdm, trange
->>> for i in trange(10, token='{token}', channel_id='{channel_id}'):
-...     ...
-
-![screenshot](https://tqdm.github.io/img/screenshot-discord.png)
-"""
 import logging
 from os import getenv
 
 try:
-    from disco.client import Client, ClientConfig
+    import discord
 except ImportError:
-    raise ImportError("Please `pip install disco-py`")
+    raise ImportError("Please `pip install discord.py`")
 
 from ..auto import tqdm as tqdm_auto
 from .utils_worker import MonoWorker
@@ -28,12 +18,13 @@ class DiscordIO(MonoWorker):
     def __init__(self, token, channel_id):
         """Creates a new message in the given `channel_id`."""
         super(DiscordIO, self).__init__()
-        config = ClientConfig()
-        config.token = token
-        client = Client(config)
+        self.token = token
+        self.channel_id = channel_id
         self.text = self.__class__.__name__
         try:
-            self.message = client.api.channels_messages_create(channel_id, self.text)
+            self.client = discord.Client(intents=discord.Intents.default())
+            self.client.run(token)
+            self.message = self.client.get_channel(channel_id).send(self.text)
         except Exception as e:
             tqdm_auto.write(str(e))
             self.message = None
