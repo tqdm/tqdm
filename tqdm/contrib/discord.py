@@ -4,7 +4,6 @@ import asyncio
 
 try:
     import discord
-    from discord.ext import commands
 except ImportError:
     raise ImportError("Please `pip install discord.py`")
 
@@ -25,7 +24,7 @@ class DiscordIO(MonoWorker):
         self.text = self.__class__.__name__
         try:
             intents = discord.Intents(messages=True, guilds=True)
-            self.client = commands.Bot(command_prefix="!", intents=intents)
+            self.client = discord.Client(intents=intents)
             self.loop = asyncio.get_event_loop()
             self.loop.create_task(self.start_bot())
             # Wait for the bot to be ready before continuing
