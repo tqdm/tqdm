@@ -24,20 +24,29 @@ class DiscordIO(MonoWorker):
         self.channel_id = channel_id
         self.text = self.__class__.__name__
         try:
-            intents = discord.Intents.default()
-            intents.message_content = True
+            intents = discord.Intents(messages=True, guilds=True)
             self.client = commands.Bot(command_prefix="!", intents=intents)
             self.loop = asyncio.get_event_loop()
             self.loop.create_task(self.start_bot())
             # Wait for the bot to be ready before continuing
             self.loop.run_until_complete(self.client.wait_until_ready())
-            self.message = self.loop.run_until_complete(
-                self.client.get_channel(channel_id).send(self.text)
-            )
+            # Attempt to get the channel
+            channel = self.client.get_channel(channel_id)
+            if channel:
+                # Ensure the bot has the necessary permissions to send messages
+                if channel.permissions_for(channel.guild.me).send_messages:
+                    # Send the initial message and store it in self.message
+                    self.message = self.loop.run_until_complete(channel.send(self.text))
+                else:
+                    tqdm_auto.write("Error: Bot doesn't have permission to send messages to the channel.")
+                    self.message = None
+            else:
+                tqdm_auto.write(f"Error: Unable to find channel with ID {channel_id}")
+                self.message = None
         except Exception as e:
             tqdm_auto.write(str(e))
             self.message = None
-    
+
     async def start_bot(self):
         await self.client.start(self.token)
 
@@ -46,18 +55,16 @@ class DiscordIO(MonoWorker):
         if not s:
             s = "..."
         s = s.replace('\r', '').strip()
-        if s == self.text:
-            return  # skip duplicate message
-        message = self.message
-        if message is None:
-            return
-        self.text = s
+        if s == self.text or self.message is None:
+            return  # skip duplicate message or if message is not available
         try:
-            future = self.submit(message.edit, '`' + s + '`')
+            # Edit the existing message with the new text
+            self.loop.run_until_complete(self.message.edit(content='`' + s + '`'))
         except Exception as e:
             tqdm_auto.write(str(e))
         else:
-            return future
+            self.text = s
+
 
 
 class tqdm_discord(tqdm_auto):
