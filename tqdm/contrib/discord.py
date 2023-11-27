@@ -37,6 +37,9 @@ class DiscordIO(MonoWorker):
         except Exception as e:
             tqdm_auto.write(str(e))
             self.message = None
+    
+    async def start_bot(self):
+        await self.client.start(self.token)
 
     def write(self, s):
         """Replaces internal `message`'s text with `s`."""
