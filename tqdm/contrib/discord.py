@@ -10,7 +10,7 @@ except ImportError:
 from ..auto import tqdm as tqdm_auto
 from .utils_worker import MonoWorker
 
-__author__ = {"github.com/": ["casperdcl"]}
+__author__ = {"github.com/": ["casperdcl", "Guigoruiz1", "xx-05"]}
 __all__ = ['DiscordIO', 'tqdm_discord', 'tdrange', 'tqdm', 'trange']
 
 
