@@ -105,10 +105,12 @@ class tqdm_discord(tqdm_auto):
         """
         Parameters
         ----------
-        token  : str, required. Discord token
+        token  : str, required if not using webhook_url. Discord token
             [default: ${TQDM_DISCORD_TOKEN}].
-        channel_id  : int, required. Discord channel ID
+        channel_id  : int, required if not using webhook_url. Discord channel ID
             [default: ${TQDM_DISCORD_CHANNEL_ID}].
+        webhook_url  : str, required if not using token and channel_id. Discord channel webhook url
+            [default: ${TQDM_DISCORD_WEBHOOK_URL}].
         mininterval  : float, optional.
           Minimum of [default: 1.5] to avoid rate limit.
 
@@ -117,9 +119,15 @@ class tqdm_discord(tqdm_auto):
         if not kwargs.get('disable'):
             kwargs = kwargs.copy()
             logging.getLogger("HTTPClient").setLevel(logging.WARNING)
-            self.dio = DiscordIO(
-                kwargs.pop('token', getenv("TQDM_DISCORD_TOKEN")),
-                kwargs.pop('channel_id', getenv("TQDM_DISCORD_CHANNEL_ID")))
+            if "webhook_url" in kwargs:
+                self.dio = DiscordIO(
+                    webhook_url=kwargs.pop('webhook_url', getenv("TQDM_DISCORD_WEBHOOK_URL"))
+                    )
+            else:
+                self.dio = DiscordIO(
+                    kwargs.pop('token', getenv("TQDM_DISCORD_TOKEN")),
+                    kwargs.pop('channel_id', getenv("TQDM_DISCORD_CHANNEL_ID"))
+                    )
             kwargs['mininterval'] = max(1.5, kwargs.get('mininterval', 1.5))
         super(tqdm_discord, self).__init__(*args, **kwargs)
 
