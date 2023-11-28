@@ -16,48 +16,51 @@ __all__ = ['DiscordIO', 'tqdm_discord', 'tdrange', 'tqdm', 'trange']
 
 class DiscordIO(MonoWorker):
     """Non-blocking file-like IO using a Discord Bot."""
-    def __init__(self, token, channel_id):
-        """Creates a new message in the given `channel_id`."""
+    def __init__(self, token=None, channel_id=None, webhook_url=None):
+        """
+        Creates a new message in the given `channel_id` using the bot or via the provided `webhook_url`.
+        
+        Parameters:
+        - token (str): The bot token.
+        - channel_id (int): The ID of the Discord channel.
+        - webhook_url (str): The URL of the webhook.
+        """
         super(DiscordIO, self).__init__()
-        self.token = token
-        self.channel_id = channel_id
         self.text = self.__class__.__name__
-        try:
-            intents = discord.Intents(messages=True, guilds=True)
-            self.client = discord.Client(intents=intents)
-            self.loop = asyncio.get_event_loop()
-            self.loop.create_task(self.start_bot())
-            # Wait for the bot to be ready before continuing
-            self.loop.run_until_complete(self.client.wait_until_ready())
-            # Attempt to get the channel
-            channel = self.client.get_channel(int(channel_id))
-            if channel:
-                # Ensure the bot has the necessary permissions to send messages
-                if channel.permissions_for(channel.guild.me).send_messages:
-                    # Send the initial message and store it in self.message
-                    self.message = self.loop.run_until_complete(channel.send(self.text))
+        self.message = None
+
+        if token and channel_id:
+            # Bot-based initialization
+            try:
+                intents = discord.Intents(messages=True, guilds=True)
+                self.client = discord.Client(intents=intents)
+                self.loop = asyncio.get_event_loop()
+                self.loop.create_task(self.start_bot())
+                # Wait for the bot to be ready before continuing
+                self.loop.run_until_complete(self.client.wait_until_ready())
+                # Attempt to get the channel
+                channel = self.client.get_channel(int(channel_id))
+                if channel:
+                    # Ensure the bot has the necessary permissions to send messages
+                    if channel.permissions_for(channel.guild.me).send_messages:
+                        # Send the initial message and store it in self.message
+                        self.message = self.loop.run_until_complete(channel.send(self.text))
+                    else:
+                        tqdm_auto.write("Error: Bot doesn't have permission to send messages to the channel.")
                 else:
-                    tqdm_auto.write("Error: Bot doesn't have permission to send messages to the channel.")
-                    self.message = None
-            else:
-                tqdm_auto.write(f"Error: Unable to find channel with ID {channel_id}")
-                self.message = None
-        except Exception as e:
-            tqdm_auto.write(str(e))
-            self.message = None
+                    tqdm_auto.write(f"Error: Unable to find channel with ID {channel_id}")
+            except Exception as e:
+                tqdm_auto.write(str(e))
+        elif webhook_url:
+            # Webhook-based initialization
+            try:
+                webhook = discord.SyncWebhook.from_url(webhook_url)
+                self.message = webhook.send(self.text, wait=True)
+            except Exception as e:
+                tqdm_auto.write(str(e))
+        else:
+            tqdm_auto.write("Error: Insufficient parameters provided. Either provide bot token and channel ID or webhook URL.")
 
-    def __init__(self, webhook_url):
-        """Creates a new message on a channel via the given `webhook_url`."""
-        super(DiscordIO, self).__init__()
-
-        webhook = discord.SyncWebhook.from_url(webhook_url)
-        self.text = self.__class__.__name__
-
-        try:
-            self.message = webhook.send(self.text, wait=True)
-        except Exception as e:
-            tqdm_auto.write(str(e))
-            self.message = None
 
     async def start_bot(self):
         await self.client.start(self.token)
