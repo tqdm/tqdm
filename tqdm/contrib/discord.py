@@ -16,54 +16,50 @@ __all__ = ['DiscordIO', 'tqdm_discord', 'tdrange', 'tqdm', 'trange']
 
 class DiscordIO(MonoWorker):
     """Non-blocking file-like IO using a Discord Bot."""
-    def __init__(self, token=None, channel_id=None, webhook_url=None):
-        """
-        Creates a new message in the given `channel_id` using the bot or via the provided `webhook_url`.
-        
-        Parameters:
-        - token (str): The bot token.
-        - channel_id (int): The ID of the Discord channel.
-        - webhook_url (str): The URL of the webhook.
-        """
+    def __init__(self):
         super(DiscordIO, self).__init__()
         self.text = self.__class__.__name__
         self.message = None
 
-        if token and channel_id:
-            # Bot-based initialization
-            self.token = token
-            self.channel_id = channel_id
-            try:
-                intents = discord.Intents(messages=True, guilds=True)
-                self.client = discord.Client(intents=intents)
-                self.loop = asyncio.get_event_loop()
-                self.loop.create_task(self.start_bot())
-                # Wait for the bot to be ready before continuing
-                self.loop.run_until_complete(self.client.wait_until_ready())
-                # Attempt to get the channel
-                channel = self.client.get_channel(int(self.channel_id))
-                if channel:
-                    # Ensure the bot has the necessary permissions to send messages
-                    if channel.permissions_for(channel.guild.me).send_messages:
-                        # Send the initial message and store it in self.message
-                        self.message = self.loop.run_until_complete(channel.send(self.text))
-                    else:
-                        tqdm_auto.write("Error: Bot doesn't have permission to send messages to the channel.")
+    @classmethod
+    def from_token(cls, token, channel_id):
+        """Create a new DiscordIO instance using a bot token and channel ID."""
+        instance = cls()
+        instance.channel_id = channel_id
+        instance.token = token
+        try:
+            intents = discord.Intents(messages=True, guilds=True)
+            instance.client = discord.Client(intents=intents)
+            instance.loop = asyncio.get_event_loop()
+            instance.loop.create_task(instance.start_bot())
+            # Wait for the bot to be ready before continuing
+            instance.loop.run_until_complete(instance.client.wait_until_ready())
+            # Attempt to get the channel
+            channel = instance.client.get_channel(int(channel_id))
+            if channel:
+                # Ensure the bot has the necessary permissions to send messages
+                if channel.permissions_for(channel.guild.me).send_messages:
+                    # Send the initial message and store it in self.message
+                    instance.message = instance.loop.run_until_complete(channel.send(instance.text))
                 else:
-                    tqdm_auto.write(f"Error: Unable to find channel with ID {channel_id}")
-            except Exception as e:
-                tqdm_auto.write(str(e))
-        elif webhook_url:
-            # Webhook-based initialization
-            self.webhook_url = webhook_url
-            try:
-                webhook = discord.SyncWebhook.from_url(webhook_url)
-                self.message = webhook.send(self.text, wait=True)
-            except Exception as e:
-                tqdm_auto.write(str(e))
-        else:
-            tqdm_auto.write("Error: Insufficient parameters provided. Either provide bot token and channel ID or webhook URL.")
+                    tqdm_auto.write("Error: Bot doesn't have permission to send messages to the channel.")
+            else:
+                tqdm_auto.write(f"Error: Unable to find channel with ID {channel_id}")
+        except Exception as e:
+            tqdm_auto.write(str(e))
+        return instance
 
+    @classmethod
+    def from_webhook(cls, webhook_url):
+        """Create a new DiscordIO instance using a webhook URL."""
+        instance = cls()
+        instance.webhook_url = webhook_url
+        try:
+            webhook = discord.SyncWebhook.from_url(webhook_url)
+            instance.message = webhook.send(instance.text, wait=True)
+        except Exception as e:
+            tqdm_auto.write(str(e))
+        return instance
 
     async def start_bot(self):
         await self.client.start(self.token)
@@ -89,10 +85,7 @@ class DiscordIO(MonoWorker):
             tqdm_auto.write(str(e))
         else:
             return future
-    
-
-
-
+        
 class tqdm_discord(tqdm_auto):
     """
     Standard `tqdm.auto.tqdm` but also sends updates to a Discord Bot.
@@ -117,6 +110,7 @@ class tqdm_discord(tqdm_auto):
             [default: ${TQDM_DISCORD_CHANNEL_ID}].
         webhook_url  : str, required if not using token and channel_id. Discord channel webhook url
             [default: ${TQDM_DISCORD_WEBHOOK_URL}].
+        webhook: bool, optional. If True, use a webhook instead of a bot. Defaults to False.
         mininterval  : float, optional.
           Minimum of [default: 1.5] to avoid rate limit.
 
@@ -125,12 +119,12 @@ class tqdm_discord(tqdm_auto):
         if not kwargs.get('disable'):
             kwargs = kwargs.copy()
             logging.getLogger("HTTPClient").setLevel(logging.WARNING)
-            if "webhook_url" in kwargs:
-                self.dio = DiscordIO(
+            if kwargs.get("webhook", False):
+                self.dio = DiscordIO.from_webhook(
                     webhook_url=kwargs.pop('webhook_url', getenv("TQDM_DISCORD_WEBHOOK_URL"))
                     )
             else:
-                self.dio = DiscordIO(
+                self.dio = DiscordIO.from_token(
                     token=kwargs.pop('token', getenv("TQDM_DISCORD_TOKEN")),
                     channel_id=kwargs.pop('channel_id', getenv("TQDM_DISCORD_CHANNEL_ID"))
                     )
