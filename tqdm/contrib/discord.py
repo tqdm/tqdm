@@ -119,7 +119,7 @@ class tqdm_discord(tqdm_auto):
         if not kwargs.get('disable'):
             kwargs = kwargs.copy()
             logging.getLogger("HTTPClient").setLevel(logging.WARNING)
-            if kwargs.get("webhook", False):
+            if kwargs.get("webhook", False) or "webhook_url" in kwargs:
                 self.dio = DiscordIO.from_webhook(
                     webhook_url=kwargs.pop('webhook_url', getenv("TQDM_DISCORD_WEBHOOK_URL"))
                     )
