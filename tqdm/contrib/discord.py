@@ -31,6 +31,8 @@ class DiscordIO(MonoWorker):
 
         if token and channel_id:
             # Bot-based initialization
+            self.token = token
+            self.channel_id = channel_id
             try:
                 intents = discord.Intents(messages=True, guilds=True)
                 self.client = discord.Client(intents=intents)
@@ -39,7 +41,7 @@ class DiscordIO(MonoWorker):
                 # Wait for the bot to be ready before continuing
                 self.loop.run_until_complete(self.client.wait_until_ready())
                 # Attempt to get the channel
-                channel = self.client.get_channel(int(channel_id))
+                channel = self.client.get_channel(int(self.channel_id))
                 if channel:
                     # Ensure the bot has the necessary permissions to send messages
                     if channel.permissions_for(channel.guild.me).send_messages:
@@ -53,6 +55,7 @@ class DiscordIO(MonoWorker):
                 tqdm_auto.write(str(e))
         elif webhook_url:
             # Webhook-based initialization
+            self.webhook_url = webhook_url
             try:
                 webhook = discord.SyncWebhook.from_url(webhook_url)
                 self.message = webhook.send(self.text, wait=True)
