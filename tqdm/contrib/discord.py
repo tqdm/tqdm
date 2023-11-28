@@ -125,8 +125,8 @@ class tqdm_discord(tqdm_auto):
                     )
             else:
                 self.dio = DiscordIO(
-                    kwargs.pop('token', getenv("TQDM_DISCORD_TOKEN")),
-                    kwargs.pop('channel_id', getenv("TQDM_DISCORD_CHANNEL_ID"))
+                    token=kwargs.pop('token', getenv("TQDM_DISCORD_TOKEN")),
+                    channel_id=kwargs.pop('channel_id', getenv("TQDM_DISCORD_CHANNEL_ID"))
                     )
             kwargs['mininterval'] = max(1.5, kwargs.get('mininterval', 1.5))
         super(tqdm_discord, self).__init__(*args, **kwargs)
