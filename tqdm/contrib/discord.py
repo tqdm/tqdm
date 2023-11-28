@@ -46,8 +46,28 @@ class DiscordIO(MonoWorker):
             tqdm_auto.write(str(e))
             self.message = None
 
+    def __init__(self, webhook_url):
+        """Creates a new message on a channel via the given `webhook_url`."""
+        super(DiscordIO, self).__init__()
+
+        webhook = discord.SyncWebhook.from_url(webhook_url)
+        self.text = self.__class__.__name__
+
+        try:
+            self.message = webhook.send(self.text, wait=True)
+        except Exception as e:
+            tqdm_auto.write(str(e))
+            self.message = None
+
     async def start_bot(self):
         await self.client.start(self.token)
+
+    def _edit_message(self, content):
+        """Wraps the `message.edit` method to make the `content` keyword argument positional."""
+        if hasattr(self, "loop"):
+            self.loop.run_until_complete(self.message.edit(content=content))
+        else:
+            self.message.edit(content=content)
 
     def write(self, s):
         """Replaces internal `message`'s text with `s`."""
@@ -56,13 +76,14 @@ class DiscordIO(MonoWorker):
         s = s.replace('\r', '').strip()
         if s == self.text or self.message is None:
             return  # skip duplicate message or if message is not available
+        self.text = s
         try:
-            # Edit the existing message with the new text
-            self.loop.run_until_complete(self.message.edit(content='`' + s + '`'))
+            future = self.submit(self._edit_message, '`' + s + '`')
         except Exception as e:
             tqdm_auto.write(str(e))
         else:
-            self.text = s
+            return future
+    
 
 
 
