@@ -23,25 +23,18 @@ class DiscordIO(MonoWorker):
 
     @classmethod
     def from_token(cls, token, channel_id):
-        """Create a new DiscordIO instance using a bot token and channel ID."""
         instance = cls()
         instance.channel_id = channel_id
         instance.token = token
-
         try:
             intents = discord.Intents(messages=True, guilds=True)
             instance.client = discord.Client(intents=intents)
             instance.loop = asyncio.get_event_loop()
-
-            if instance.loop.is_running():
-                print("loop is running")
-                instance.start_bot()
-            else:
-                print("loop is not running")
-                asyncio.set_event_loop(instance.loop)
-                instance.start_bot()
-                instance.loop.run_until_complete(instance.client.wait_until_ready())
-
+            instance.loop.create_task(instance.start_bot())
+    
+            # Wait for the bot to be ready before continuing
+            instance.loop.run_until_complete(instance.client.wait_until_ready())
+    
             # Attempt to get the channel
             channel = instance.client.get_channel(int(channel_id))
             if channel:
@@ -53,11 +46,10 @@ class DiscordIO(MonoWorker):
                     tqdm_auto.write("Error: Bot doesn't have permission to send messages to the channel.")
             else:
                 tqdm_auto.write(f"Error: Unable to find channel with ID {channel_id}")
-
         except Exception as e:
             tqdm_auto.write(str(e))
-
         return instance
+
 
     @classmethod
     def from_webhook(cls, webhook_url):
@@ -71,13 +63,11 @@ class DiscordIO(MonoWorker):
             tqdm_auto.write(str(e))
         return instance
 
-    def start_bot(self):
-        if self.loop.is_running():
-            asyncio.ensure_future(self.client.start(self.token))
+    async def start_bot(self):
+        if not self.loop.is_running():
+            await self.client.start(self.token)
         else:
-            self.loop.run_until_complete(self.client.start(self.token))
-
-
+            self.client.start(self.token)
 
     def _edit_message(self, content):
         """Wraps the `message.edit` method to make the `content` keyword argument positional."""
