@@ -31,7 +31,7 @@ class DiscordIO(MonoWorker):
             intents = discord.Intents(messages=True, guilds=True)
             instance.client = discord.Client(intents=intents)
             instance.loop = asyncio.get_event_loop()
-            instance.loop.create_task(instance.start_bot())
+            instance.start_bot()
             # Wait for the bot to be ready before continuing
             instance.loop.run_until_complete(instance.client.wait_until_ready())
             # Attempt to get the channel
@@ -62,7 +62,10 @@ class DiscordIO(MonoWorker):
         return instance
 
     async def start_bot(self):
+        if self.loop.is_running():
         await self.client.start(self.token)
+        else:
+            self.loop.create_task(self.client.start(self.token))
 
     def _edit_message(self, content):
         """Wraps the `message.edit` method to make the `content` keyword argument positional."""
