@@ -38,7 +38,7 @@ class DiscordIO(MonoWorker):
             # Wait for the bot to be ready before continuing
             instance.loop.run_until_complete(instance.client.wait_until_ready())
             # Attempt to get the channel
-            channel = instance.client.get_channel(int(channel_id))
+            channel = instance.client.get_channel(channel_id)
             if channel:
                 # Ensure the bot has the necessary permissions to send messages
                 if channel.permissions_for(channel.guild.me).send_messages:
