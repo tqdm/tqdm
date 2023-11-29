@@ -54,7 +54,10 @@ class DiscordIO(MonoWorker):
             tqdm_auto.write(str(e))
         return instance
 
-
+    async def wait_until_bot_ready(self):
+        """Wait until the Discord bot is ready."""
+        while not self.client.is_ready():
+            await asyncio.sleep(1)
 
     @classmethod
     def from_webhook(cls, webhook_url):
