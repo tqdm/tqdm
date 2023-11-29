@@ -30,10 +30,14 @@ class DiscordIO(MonoWorker):
             intents = discord.Intents(messages=True, guilds=True)
             instance.client = discord.Client(intents=intents)
             instance.loop = asyncio.get_event_loop()
-            instance.loop.create_task(instance.start_bot())
     
-            # Wait for the bot to be ready before continuing
-            instance.loop.run_until_complete(instance.client.wait_until_ready())
+            if not instance.loop.is_running():
+                instance.loop.create_task(instance.start_bot())
+                instance.loop.run_until_complete(instance.wait_until_bot_ready())
+            else:
+                # Run the coroutine in the correct thread
+                asyncio.run_coroutine_threadsafe(instance.start_bot(), instance.loop)
+                instance.loop.run_until_complete(instance.wait_until_bot_ready())
     
             # Attempt to get the channel
             channel = instance.client.get_channel(int(channel_id))
@@ -49,6 +53,7 @@ class DiscordIO(MonoWorker):
         except Exception as e:
             tqdm_auto.write(str(e))
         return instance
+
 
 
     @classmethod
