@@ -63,7 +63,7 @@ class DiscordIO(MonoWorker):
 
     async def start_bot(self):
         if self.loop.is_running():
-        await self.client.start(self.token)
+            await self.client.start(self.token)
         else:
             self.loop.create_task(self.client.start(self.token))
 
