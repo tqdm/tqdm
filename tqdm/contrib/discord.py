@@ -23,22 +23,18 @@ class DiscordIO(MonoWorker):
 
     @classmethod
     def from_token(cls, token, channel_id):
+        """Create a new DiscordIO instance using a bot token and channel ID."""
         instance = cls()
         instance.channel_id = channel_id
         instance.token = token
         try:
+            instance.loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(instance.loop)
             intents = discord.Intents(messages=True, guilds=True)
-            instance.client = discord.Client(intents=intents)
-            instance.loop = asyncio.get_event_loop()
-    
-            if not instance.loop.is_running():
-                instance.loop.create_task(instance.start_bot())
-                asyncio.run_coroutine_threadsafe(instance.wait_until_bot_ready(), instance.loop)
-            else:
-                # Run the coroutine in the correct thread
-                asyncio.run_coroutine_threadsafe(instance.start_bot(), instance.loop)
-                asyncio.run_coroutine_threadsafe(instance.wait_until_bot_ready(), instance.loop)
-
+            instance.client = discord.Client(intents=intents, loop=instance.loop)
+            instance.loop.create_task(instance.start_bot())
+            # Wait for the bot to be ready before continuing
+            instance.loop.run_until_complete(instance.client.wait_until_ready())
             # Attempt to get the channel
             channel = instance.client.get_channel(int(channel_id))
             if channel:
@@ -54,11 +50,6 @@ class DiscordIO(MonoWorker):
             tqdm_auto.write(str(e))
         return instance
 
-    async def wait_until_bot_ready(self):
-        """Wait until the Discord bot is ready."""
-        while not self.client.is_ready():
-            await asyncio.sleep(1)
-
     @classmethod
     def from_webhook(cls, webhook_url):
         """Create a new DiscordIO instance using a webhook URL."""
@@ -72,10 +63,7 @@ class DiscordIO(MonoWorker):
         return instance
 
     async def start_bot(self):
-        if not self.loop.is_running():
-            await self.client.start(self.token)
-        else:
-            self.client.start(self.token)
+        await self.client.start(self.token)
 
     def _edit_message(self, content):
         """Wraps the `message.edit` method to make the `content` keyword argument positional."""
