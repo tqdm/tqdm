@@ -13,7 +13,6 @@ from .utils_worker import MonoWorker
 __author__ = {"github.com/": ["casperdcl", "Guigoruiz1", "xx-05"]}
 __all__ = ['DiscordIO', 'tqdm_discord', 'tdrange', 'tqdm', 'trange']
 
-
 class DiscordIO(MonoWorker):
     """Non-blocking file-like IO using a Discord Bot."""
     def __init__(self):
@@ -29,9 +28,10 @@ class DiscordIO(MonoWorker):
         instance.token = token
         try:
             intents = discord.Intents(messages=True, guilds=True)
-            instance.loop = asyncio.new_event_loop()
+            instance.loop = asyncio.get_event_loop()
+            asyncio.set_event_loop(instance.loop)
             instance.client = discord.Client(intents=intents, loop=instance.loop)
-            instance.start_bot()
+            instance.loop.create_task(instance.start_bot())
             # Wait for the bot to be ready before continuing
             instance.loop.run_until_complete(instance.client.wait_until_ready())
             # Attempt to get the channel
@@ -61,11 +61,8 @@ class DiscordIO(MonoWorker):
             tqdm_auto.write(str(e))
         return instance
 
-    def start_bot(self):
-        if not self.client.is_closed():
-            self.loop.run_until_complete(self.client.start(self.token))
-        else:
-            tqdm_auto.write("Error: Client is closed.")
+    async def start_bot(self):
+        await self.client.start(self.token)
 
     def _edit_message(self, content):
         """Wraps the `message.edit` method to make the `content` keyword argument positional."""
@@ -88,7 +85,7 @@ class DiscordIO(MonoWorker):
             tqdm_auto.write(str(e))
         else:
             return future
-
+        
 class tqdm_discord(tqdm_auto):
     """
     Standard `tqdm.auto.tqdm` but also sends updates to a Discord Bot.
@@ -153,6 +150,7 @@ class tqdm_discord(tqdm_auto):
 def tdrange(*args, **kwargs):
     """Shortcut for `tqdm.contrib.discord.tqdm(range(*args), **kwargs)`."""
     return tqdm_discord(range(*args), **kwargs)
+
 
 # Aliases
 tqdm = tqdm_discord
