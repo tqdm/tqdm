@@ -31,7 +31,7 @@ class DiscordIO(MonoWorker):
             intents = discord.Intents(messages=True, guilds=True)
             instance.client = discord.Client(intents=intents)
             instance.loop = asyncio.get_event_loop()
-            instance.start_bot()
+            await instance.start_bot()
             # Wait for the bot to be ready before continuing
             instance.loop.run_until_complete(instance.client.wait_until_ready())
             # Attempt to get the channel
