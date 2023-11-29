@@ -1,7 +1,7 @@
 import logging
 from os import getenv
 import asyncio
-import nest_asyncio  # Import nest_asyncio
+import nest_asyncio
 
 try:
     import discord
@@ -11,7 +11,7 @@ except ImportError:
 from ..auto import tqdm as tqdm_auto
 from .utils_worker import MonoWorker
 
-nest_asyncio.apply()  # Apply nest_asyncio
+nest_asyncio.apply()
 
 __author__ = {"github.com/": ["casperdcl", "Guigoruiz1", "xx-05"]}
 __all__ = ['DiscordIO', 'tqdm_discord', 'tdrange', 'tqdm', 'trange']
@@ -52,7 +52,43 @@ class DiscordIO(MonoWorker):
             tqdm_auto.write(str(e))
         return instance
 
-    # ... (rest of your class definitions remain the same)
+    @classmethod
+    def from_webhook(cls, webhook_url):
+        """Create a new DiscordIO instance using a webhook URL."""
+        instance = cls()
+        instance.webhook_url = webhook_url
+        try:
+            webhook = discord.SyncWebhook.from_url(webhook_url)
+            instance.message = webhook.send(instance.text, wait=True)
+        except Exception as e:
+            tqdm_auto.write(str(e))
+        return instance
+
+    async def start_bot(self):
+        await self.client.start(self.token)
+
+    def _edit_message(self, content):
+        """Wraps the `message.edit` method to make the `content` keyword argument positional."""
+        if hasattr(self, "loop"):
+            self.loop.run_until_complete(self.message.edit(content=content))
+        else:
+            self.message.edit(content=content)
+
+    def write(self, s):
+        """Replaces internal `message`'s text with `s`."""
+        if not s:
+            s = "..."
+        s = s.replace('\r', '').strip()
+        if s == self.text or self.message is None:
+            return  # skip duplicate message or if message is not available
+        self.text = s
+        try:
+            future = self.submit(self._edit_message, '`' + s + '`')
+        except Exception as e:
+            tqdm_auto.write(str(e))
+        else:
+            return future
+
 
 class tqdm_discord(tqdm_auto):
     """
@@ -99,7 +135,26 @@ class tqdm_discord(tqdm_auto):
             kwargs['mininterval'] = max(1.5, kwargs.get('mininterval', 1.5))
         super(tqdm_discord, self).__init__(*args, **kwargs)
 
-    # ... (rest of your class definitions remain the same)
+    def display(self, **kwargs):
+        super(tqdm_discord, self).display(**kwargs)
+        fmt = self.format_dict
+        if fmt.get('bar_format', None):
+            fmt['bar_format'] = fmt['bar_format'].replace(
+                '<bar/>', '{bar:10u}').replace('{bar}', '{bar:10u}')
+        else:
+            fmt['bar_format'] = '{l_bar}{bar:10u}{r_bar}'
+        self.dio.write(self.format_meter(**fmt))
+
+    def clear(self, *args, **kwargs):
+        super(tqdm_discord, self).clear(*args, **kwargs)
+        if not self.disable:
+            self.dio.write("")
+
+
+def tdrange(*args, **kwargs):
+    """Shortcut for `tqdm.contrib.discord.tqdm(range(*args), **kwargs)`."""
+    return tqdm_discord(range(*args), **kwargs)
+
 
 # Aliases
 tqdm = tqdm_discord
