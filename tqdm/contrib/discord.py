@@ -33,12 +33,12 @@ class DiscordIO(MonoWorker):
     
             if not instance.loop.is_running():
                 instance.loop.create_task(instance.start_bot())
-                instance.loop.run_until_complete(instance.wait_until_bot_ready())
+                asyncio.run_coroutine_threadsafe(instance.wait_until_bot_ready(), instance.loop)
             else:
                 # Run the coroutine in the correct thread
                 asyncio.run_coroutine_threadsafe(instance.start_bot(), instance.loop)
-                instance.loop.run_until_complete(instance.wait_until_bot_ready())
-    
+                asyncio.run_coroutine_threadsafe(instance.wait_until_bot_ready(), instance.loop)
+
             # Attempt to get the channel
             channel = instance.client.get_channel(int(channel_id))
             if channel:
