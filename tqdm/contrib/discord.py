@@ -1,7 +1,6 @@
 import logging
 from os import getenv
 import asyncio
-import nest_asyncio
 
 try:
     import discord
@@ -30,24 +29,22 @@ class DiscordIO(MonoWorker):
         instance.token = token
         try:
             intents = discord.Intents(messages=True, guilds=True)
-            instance.client = discord.Client(intents=intents)
-
-            @instance.client.event
-            async def on_ready():
-                nonlocal instance
-                # Attempt to get the channel
-                channel = instance.client.get_channel(int(channel_id))
-                if channel:
-                    # Ensure the bot has the necessary permissions to send messages
-                    if channel.permissions_for(channel.guild.me).send_messages:
-                        # Send the initial message and store it in self.message
-                        instance.message = await channel.send(instance.text)
-                    else:
-                        tqdm_auto.write("Error: Bot doesn't have permission to send messages to the channel.")
+            instance.loop = asyncio.new_event_loop()
+            instance.client = discord.Client(intents=intents, loop=instance.loop)
+            instance.start_bot()
+            # Wait for the bot to be ready before continuing
+            instance.loop.run_until_complete(instance.client.wait_until_ready())
+            # Attempt to get the channel
+            channel = instance.client.get_channel(int(channel_id))
+            if channel:
+                # Ensure the bot has the necessary permissions to send messages
+                if channel.permissions_for(channel.guild.me).send_messages:
+                    # Send the initial message and store it in self.message
+                    instance.message = instance.loop.run_until_complete(channel.send(instance.text))
                 else:
-                    tqdm_auto.write(f"Error: Unable to find channel with ID {channel_id}")
-
-            instance.client.run(instance.token)
+                    tqdm_auto.write("Error: Bot doesn't have permission to send messages to the channel.")
+            else:
+                tqdm_auto.write(f"Error: Unable to find channel with ID {channel_id}")
         except Exception as e:
             tqdm_auto.write(str(e))
         return instance
@@ -64,12 +61,18 @@ class DiscordIO(MonoWorker):
             tqdm_auto.write(str(e))
         return instance
 
-    async def start_bot(self):
-        await self.client.start(self.token)
+    def start_bot(self):
+        if not self.client.is_closed():
+            self.loop.run_until_complete(self.client.start(self.token))
+        else:
+            tqdm_auto.write("Error: Client is closed.")
 
     def _edit_message(self, content):
         """Wraps the `message.edit` method to make the `content` keyword argument positional."""
-        self.message.edit(content=content)
+        if hasattr(self, "loop"):
+            self.loop.run_until_complete(self.message.edit(content=content))
+        else:
+            self.message.edit(content=content)
 
     def write(self, s):
         """Replaces internal `message`'s text with `s`."""
@@ -85,7 +88,7 @@ class DiscordIO(MonoWorker):
             tqdm_auto.write(str(e))
         else:
             return future
-        
+
 class tqdm_discord(tqdm_auto):
     """
     Standard `tqdm.auto.tqdm` but also sends updates to a Discord Bot.
@@ -150,7 +153,6 @@ class tqdm_discord(tqdm_auto):
 def tdrange(*args, **kwargs):
     """Shortcut for `tqdm.contrib.discord.tqdm(range(*args), **kwargs)`."""
     return tqdm_discord(range(*args), **kwargs)
-
 
 # Aliases
 tqdm = tqdm_discord
