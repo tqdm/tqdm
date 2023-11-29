@@ -1,6 +1,8 @@
 import logging
 from os import getenv
 import asyncio
+import nest_asyncio
+nest_asyncio.apply()
 
 try:
     import discord
@@ -28,8 +30,7 @@ class DiscordIO(MonoWorker):
         instance.channel_id = channel_id
         instance.token = token
         try:
-            instance.loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(instance.loop)
+            instance.loop = asyncio.get_event_loop()
             intents = discord.Intents(messages=True, guilds=True)
             instance.client = discord.Client(intents=intents, loop=instance.loop)
             instance.loop.create_task(instance.start_bot())
