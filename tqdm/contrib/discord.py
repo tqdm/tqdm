@@ -71,9 +71,10 @@ class DiscordIO(MonoWorker):
 
     def start_bot(self):
         if self.loop.is_running():
-            self.loop.run_until_complete(self.client.start(self.token))
+            asyncio.ensure_future(self.client.start(self.token))
         else:
-            self.loop.create_task(self.client.start(self.token))
+            self.loop.run_until_complete(self.client.start(self.token))
+
 
 
     def _edit_message(self, content):
