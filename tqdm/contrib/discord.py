@@ -32,7 +32,7 @@ class DiscordIO(MonoWorker):
         try:
             headers = {
                 "Authorization": f"Bot {self.token}",
-                "User-Agent": f"TQDM Discord progress bar (http://github.com/tqdm/tqdm, {__version__})",
+                "User-Agent": f"TQDM Discord progress bar (https://tqdm.github.io, {__version__})",
             }
             data = {"content": "`" + self.text + "`"}
             res = requests.post(
