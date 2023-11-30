@@ -9,7 +9,7 @@ from .utils_worker import MonoWorker
 from ..version import __version__
 
 __author__ = {"github.com/": ["casperdcl","guigoruiz1"]}
-__all__ = ["DiscordIO", "tqdm_discord", "ddrange", "tqdm", "drange"]
+__all__ = ["DiscordIO", "tqdm_discord", "tdrange", "tqdm", "trange"]
 
 
 class DiscordIO(MonoWorker):
@@ -149,11 +149,11 @@ class tqdm_discord(tqdm_auto):
             self.dio.delete()
 
 
-def ddrange(*args, **kwargs):
+def tdrange(*args, **kwargs):
     """Shortcut for `tqdm.contrib.discord.tqdm(range(*args), **kwargs)`."""
     return tqdm_discord(range(*args), **kwargs)
 
 
 # Aliases
 tqdm = tqdm_discord
-drange = ddrange
+trange = tdrange
