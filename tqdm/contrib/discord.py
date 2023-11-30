@@ -8,7 +8,7 @@ from ..std import TqdmWarning
 from .utils_worker import MonoWorker
 from ..version import __version__
 
-__author__ = {"github.com/": ["casperdcl"]}
+__author__ = {"github.com/": ["casperdcl","guigoruiz1"]}
 __all__ = ["DiscordIO", "tqdm_discord", "tdrange", "tqdm", "trange"]
 
 
@@ -16,6 +16,7 @@ class DiscordIO(MonoWorker):
     """Non-blocking file-like IO using a Discord Bot."""
 
     API = "https://discord.com/api/v10"
+    user_agent = f"TQDM Discord progress bar (https://tqdm.github.io, {__version__})"
 
     def __init__(self, token, channel_id):
         """Creates a new message in the given `channel_id`."""
@@ -32,7 +33,7 @@ class DiscordIO(MonoWorker):
         try:
             headers = {
                 "Authorization": f"Bot {self.token}",
-                "User-Agent": f"TQDM Discord progress bar (http://github.com/tqdm/tqdm, {__version__})",
+                "User-Agent": self.user_agent,
             }
             data = {"content": "`" + self.text + "`"}
             res = requests.post(
@@ -61,7 +62,7 @@ class DiscordIO(MonoWorker):
         try:
             headers = {
                 "Authorization": f"Bot {self.token}",
-                "User-Agent": f"TQDM Discord progress bar (http://github.com/tqdm/tqdm, {__version__})",
+                "User-Agent": self.user_agent,
             }
             data = {"content": "`" + s + "`"}
             future = self.submit(
@@ -80,7 +81,7 @@ class DiscordIO(MonoWorker):
         try:
             headers = {
                 "Authorization": f"Bot {self.token}",
-                "User-Agent": f"TQDM Discord progress bar (http://github.com/tqdm/tqdm, {__version__})",
+                "User-Agent": self.user_agent,
             }
             future = self.submit(
                 requests.delete,
