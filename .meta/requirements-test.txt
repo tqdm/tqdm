@@ -1,7 +1,7 @@
 pre-commit
 pytest
+pytest-asyncio
 pytest-cov
 pytest-timeout
 nbval
 ipywidgets
-# py>=37: pytest-asyncio

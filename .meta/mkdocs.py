@@ -1,14 +1,11 @@
 """
 Auto-generate README.rst from .meta/.readme.rst and docstrings.
 """
-from __future__ import print_function
-
 import sys
-from io import open as io_open
-from os import path
+from pathlib import Path
 from textwrap import dedent
 
-sys.path.insert(0, path.dirname(path.dirname(__file__)))
+sys.path.insert(0, str(Path(__file__).parent.parent))
 import tqdm  # NOQA
 import tqdm.cli  # NOQA
 
@@ -44,13 +41,13 @@ def doc2rst(doc, arglist=True, raw=False):
     return doc
 
 
-src_dir = path.abspath(path.dirname(__file__))
-README_rst = path.join(src_dir, '.readme.rst')
-with io_open(README_rst, mode='r', encoding='utf-8') as fd:
-    README_rst = fd.read()
-DOC_tqdm = doc2rst(tqdm.tqdm.__doc__, False).replace('\n', '\n      ')
-DOC_tqdm_init = doc2rst(tqdm.tqdm.__init__.__doc__)
-DOC_tqdm_init_args = DOC_tqdm_init.partition(doc2rst(HEAD_ARGS))[-1].replace('\n      ', '\n    ')
+src_dir = Path(__file__).parent.resolve()
+README_rst = (src_dir / '.readme.rst').read_text("utf-8")
+class_doc, init_doc = tqdm.tqdm.__doc__.split('\n\n', 1)
+DOC_tqdm = doc2rst(class_doc + '\n', False).replace('\n', '\n      ')
+DOC_tqdm_init = doc2rst('\n' + init_doc)
+DOC_tqdm_init_args = DOC_tqdm_init.partition(doc2rst(HEAD_ARGS))[-1].replace(
+    '\n      ', '\n    ').replace('\n      ', '\n    ')
 DOC_tqdm_init_args, _, DOC_tqdm_init_rets = DOC_tqdm_init_args.partition(doc2rst(HEAD_RETS))
 DOC_cli = doc2rst(tqdm.cli.CLI_EXTRA_DOC).partition(doc2rst(HEAD_CLI))[-1]
 DOC_tqdm_tqdm = {}
@@ -72,6 +69,4 @@ for k, v in DOC_tqdm_tqdm.items():
     README_rst = README_rst.replace('{DOC_tqdm.tqdm.%s}' % k, v)
 
 if __name__ == "__main__":
-    fndoc = path.join(path.dirname(src_dir), 'README.rst')
-    with io_open(fndoc, mode='w', encoding='utf-8') as fd:
-        fd.write(README_rst)
+    (src_dir.parent / 'README.rst').write_text(README_rst, encoding='utf-8')
