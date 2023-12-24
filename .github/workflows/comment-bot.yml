@@ -1,25 +1,23 @@
 name: Comment Bot
 on:
-  issue_comment:
-    types: [created]
-  pull_request_review_comment:
-    types: [created]
+  issue_comment: {types: [created]}
+  pull_request_review_comment: {types: [created]}
 jobs:
   tag:  # /tag <tagname> <commit>
     if: startsWith(github.event.comment.body, '/tag ')
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: React Seen
-      uses: actions/github-script@v2
+      uses: actions/github-script@v6
       with:
         script: |
-          const perm = await github.repos.getCollaboratorPermissionLevel({
+          const perm = await github.rest.repos.getCollaboratorPermissionLevel({
             owner: context.repo.owner, repo: context.repo.repo,
             username: context.payload.comment.user.login})
           post = (context.eventName == "issue_comment"
-            ? github.reactions.createForIssueComment
-            : github.reactions.createForPullRequestReviewComment)
+            ? github.rest.reactions.createForIssueComment
+            : github.rest.reactions.createForPullRequestReviewComment)
           if (!["admin", "write"].includes(perm.data.permission)){
             post({
               owner: context.repo.owner, repo: context.repo.repo,
@@ -40,12 +38,12 @@ jobs:
         BODY: ${{ github.event.comment.body }}
         GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
     - name: React Success
-      uses: actions/github-script@v2
+      uses: actions/github-script@v6
       with:
         script: |
           post = (context.eventName == "issue_comment"
-            ? github.reactions.createForIssueComment
-            : github.reactions.createForPullRequestReviewComment)
+            ? github.rest.reactions.createForIssueComment
+            : github.rest.reactions.createForPullRequestReviewComment)
           post({
             owner: context.repo.owner, repo: context.repo.repo,
             comment_id: context.payload.comment.id, content: "rocket"})

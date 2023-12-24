@@ -98,7 +98,7 @@ def posix_pipe(fin, fout, delim=b'\\n', buf_size=256,
 
 
 # ((opt, type), ... )
-RE_OPTS = re.compile(r'\n {8}(\S+)\s{2,}:\s*([^,]+)')
+RE_OPTS = re.compile(r'\n {4}(\S+)\s{2,}:\s*([^,]+)')
 # better split method assuming no positional args
 RE_SHLEX = re.compile(r'\s*(?<!\S)--?([^\s=]+)(\s+|=|$)')
 
@@ -107,37 +107,37 @@ UNSUPPORTED_OPTS = ('iterable', 'gui', 'out', 'file')
 
 # The 8 leading spaces are required for consistency
 CLI_EXTRA_DOC = r"""
-        Extra CLI Options
-        -----------------
-        name  : type, optional
-            TODO: find out why this is needed.
-        delim  : chr, optional
-            Delimiting character [default: '\n']. Use '\0' for null.
-            N.B.: on Windows systems, Python converts '\n' to '\r\n'.
-        buf_size  : int, optional
-            String buffer size in bytes [default: 256]
-            used when `delim` is specified.
-        bytes  : bool, optional
-            If true, will count bytes, ignore `delim`, and default
-            `unit_scale` to True, `unit_divisor` to 1024, and `unit` to 'B'.
-        tee  : bool, optional
-            If true, passes `stdin` to both `stderr` and `stdout`.
-        update  : bool, optional
-            If true, will treat input as newly elapsed iterations,
-            i.e. numbers to pass to `update()`. Note that this is slow
-            (~2e5 it/s) since every input must be decoded as a number.
-        update_to  : bool, optional
-            If true, will treat input as total elapsed iterations,
-            i.e. numbers to assign to `self.n`. Note that this is slow
-            (~2e5 it/s) since every input must be decoded as a number.
-        null  : bool, optional
-            If true, will discard input (no stdout).
-        manpath  : str, optional
-            Directory in which to install tqdm man pages.
-        comppath  : str, optional
-            Directory in which to place tqdm completion.
-        log  : str, optional
-            CRITICAL|FATAL|ERROR|WARN(ING)|[default: 'INFO']|DEBUG|NOTSET.
+    Extra CLI Options
+    -----------------
+    name  : type, optional
+        TODO: find out why this is needed.
+    delim  : chr, optional
+        Delimiting character [default: '\n']. Use '\0' for null.
+        N.B.: on Windows systems, Python converts '\n' to '\r\n'.
+    buf_size  : int, optional
+        String buffer size in bytes [default: 256]
+        used when `delim` is specified.
+    bytes  : bool, optional
+        If true, will count bytes, ignore `delim`, and default
+        `unit_scale` to True, `unit_divisor` to 1024, and `unit` to 'B'.
+    tee  : bool, optional
+        If true, passes `stdin` to both `stderr` and `stdout`.
+    update  : bool, optional
+        If true, will treat input as newly elapsed iterations,
+        i.e. numbers to pass to `update()`. Note that this is slow
+        (~2e5 it/s) since every input must be decoded as a number.
+    update_to  : bool, optional
+        If true, will treat input as total elapsed iterations,
+        i.e. numbers to assign to `self.n`. Note that this is slow
+        (~2e5 it/s) since every input must be decoded as a number.
+    null  : bool, optional
+        If true, will discard input (no stdout).
+    manpath  : str, optional
+        Directory in which to install tqdm man pages.
+    comppath  : str, optional
+        Directory in which to place tqdm completion.
+    log  : str, optional
+        CRITICAL|FATAL|ERROR|WARN(ING)|[default: 'INFO']|DEBUG|NOTSET.
 """
 
 
@@ -166,7 +166,7 @@ def main(fp=sys.stderr, argv=None):
     logging.basicConfig(level=getattr(logging, logLevel),
                         format="%(levelname)s:%(module)s:%(lineno)d:%(message)s")
 
-    d = tqdm.__init__.__doc__ + CLI_EXTRA_DOC
+    d = tqdm.__doc__ + CLI_EXTRA_DOC
 
     opt_types = dict(RE_OPTS.findall(d))
     # opt_types['delim'] = 'chr'
@@ -199,8 +199,7 @@ Options:
         sys.stdout.write(d + '\n')
         sys.exit(0)
     elif argv and argv[0][:2] != '--':
-        sys.stderr.write(
-            "Error:Unknown argument:{0}\n{1}".format(argv[0], help_short))
+        sys.stderr.write(f"Error:Unknown argument:{argv[0]}\n{help_short}")
 
     argv = RE_SHLEX.split(' '.join(["tqdm"] + argv))
     opts = dict(zip(argv[1::3], argv[3::3]))
@@ -245,12 +244,9 @@ Options:
             stdout = getattr(stdout, 'buffer', stdout)
         stdin = getattr(sys.stdin, 'buffer', sys.stdin)
         if manpath or comppath:
+            from importlib import resources
             from os import path
             from shutil import copyfile
-            try:  # py<3.7
-                import importlib_resources as resources
-            except ImportError:
-                from importlib import resources
 
             def cp(name, dst):
                 """copy resource `name` to `dst`"""

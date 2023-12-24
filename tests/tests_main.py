@@ -8,17 +8,17 @@ from os import linesep
 from tqdm.cli import TqdmKeyError, TqdmTypeError, main
 from tqdm.utils import IS_WIN
 
-from .tests_tqdm import BytesIO, _range, closing, mark, raises
+from .tests_tqdm import BytesIO, closing, mark, raises
 
 
 def restore_sys(func):
-    """Decorates `func(capsysbin)` to save & restore `sys.(stdin|argv)`."""
+    """Decorates `func(capsysbinary)` to save & restore `sys.(stdin|argv)`."""
     @wraps(func)
-    def inner(capsysbin):
-        """function requiring capsysbin which may alter `sys.(stdin|argv)`"""
+    def inner(capsysbinary):
+        """function requiring capsysbinary which may alter `sys.(stdin|argv)`"""
         _SYS = sys.stdin, sys.argv
         try:
-            res = func(capsysbin)
+            res = func(capsysbinary)
         finally:
             sys.stdin, sys.argv = _SYS
         return res
@@ -58,7 +58,7 @@ def test_main_import():
     N = 123
     _SYS = sys.stdin, sys.argv
     # test direct import
-    sys.stdin = [str(i).encode() for i in _range(N)]
+    sys.stdin = [str(i).encode() for i in range(N)]
     sys.argv = ['', '--desc', 'Test CLI import',
                 '--ascii', 'True', '--unit_scale', 'True']
     try:
@@ -68,19 +68,19 @@ def test_main_import():
 
 
 @restore_sys
-def test_main_bytes(capsysbin):
+def test_main_bytes(capsysbinary):
     """Test CLI --bytes"""
     N = 123
 
     # test --delim
-    IN_DATA = '\0'.join(map(str, _range(N))).encode()
+    IN_DATA = '\0'.join(map(str, range(N))).encode()
     with closing(BytesIO()) as sys.stdin:
         sys.stdin.write(IN_DATA)
         # sys.stdin.write(b'\xff')  # TODO
         sys.stdin.seek(0)
         main(sys.stderr, ['--desc', 'Test CLI delim', '--ascii', 'True',
                           '--delim', r'\0', '--buf_size', '64'])
-        out, err = capsysbin.readouterr()
+        out, err = capsysbinary.readouterr()
         assert out == IN_DATA
         assert str(N) + "it" in err.decode("U8")
 
@@ -90,27 +90,26 @@ def test_main_bytes(capsysbin):
         sys.stdin.write(IN_DATA)
         sys.stdin.seek(0)
         main(sys.stderr, ['--ascii', '--bytes=True', '--unit_scale', 'False'])
-        out, err = capsysbin.readouterr()
+        out, err = capsysbinary.readouterr()
         assert out == IN_DATA
         assert str(len(IN_DATA)) + "B" in err.decode("U8")
 
 
-@mark.skipif(sys.version_info[0] == 2, reason="no caplog on py2")
-def test_main_log(capsysbin, caplog):
+def test_main_log(capsysbinary, caplog):
     """Test CLI --log"""
     _SYS = sys.stdin, sys.argv
     N = 123
-    sys.stdin = [(str(i) + '\n').encode() for i in _range(N)]
+    sys.stdin = [(str(i) + '\n').encode() for i in range(N)]
     IN_DATA = b''.join(sys.stdin)
     try:
         with caplog.at_level(logging.INFO):
             main(sys.stderr, ['--log', 'INFO'])
-            out, err = capsysbin.readouterr()
+            out, err = capsysbinary.readouterr()
             assert norm(out) == IN_DATA and b"123/123" in err
             assert not caplog.record_tuples
         with caplog.at_level(logging.DEBUG):
             main(sys.stderr, ['--log', 'DEBUG'])
-            out, err = capsysbin.readouterr()
+            out, err = capsysbinary.readouterr()
             assert norm(out) == IN_DATA and b"123/123" in err
             assert caplog.record_tuples
     finally:
@@ -118,39 +117,39 @@ def test_main_log(capsysbin, caplog):
 
 
 @restore_sys
-def test_main(capsysbin):
+def test_main(capsysbinary):
     """Test misc CLI options"""
     N = 123
-    sys.stdin = [(str(i) + '\n').encode() for i in _range(N)]
+    sys.stdin = [(str(i) + '\n').encode() for i in range(N)]
     IN_DATA = b''.join(sys.stdin)
 
     # test --tee
     main(sys.stderr, ['--mininterval', '0', '--miniters', '1'])
-    out, err = capsysbin.readouterr()
+    out, err = capsysbinary.readouterr()
     assert norm(out) == IN_DATA and b"123/123" in err
     assert N <= len(err.split(b"\r")) < N + 5
 
     len_err = len(err)
     main(sys.stderr, ['--tee', '--mininterval', '0', '--miniters', '1'])
-    out, err = capsysbin.readouterr()
+    out, err = capsysbinary.readouterr()
     assert norm(out) == IN_DATA and b"123/123" in err
     # spaces to clear intermediate lines could increase length
     assert len_err + len(norm(out)) <= len(err)
 
     # test --null
     main(sys.stderr, ['--null'])
-    out, err = capsysbin.readouterr()
+    out, err = capsysbinary.readouterr()
     assert not out and b"123/123" in err
 
     # test integer --update
     main(sys.stderr, ['--update'])
-    out, err = capsysbin.readouterr()
+    out, err = capsysbinary.readouterr()
     assert norm(out) == IN_DATA
     assert (str(N // 2 * N) + "it").encode() in err, "expected arithmetic sum formula"
 
     # test integer --update_to
     main(sys.stderr, ['--update-to'])
-    out, err = capsysbin.readouterr()
+    out, err = capsysbinary.readouterr()
     assert norm(out) == IN_DATA
     assert (str(N - 1) + "it").encode() in err
     assert (str(N) + "it").encode() not in err
@@ -161,23 +160,23 @@ def test_main(capsysbin):
         # test integer --update --delim
         sys.stdin.seek(0)
         main(sys.stderr, ['--update', '--delim', 'D'])
-        out, err = capsysbin.readouterr()
+        out, err = capsysbinary.readouterr()
         assert out == IN_DATA.replace(b'\n', b'D')
         assert (str(N // 2 * N) + "it").encode() in err, "expected arithmetic sum"
 
         # test integer --update_to --delim
         sys.stdin.seek(0)
         main(sys.stderr, ['--update-to', '--delim', 'D'])
-        out, err = capsysbin.readouterr()
+        out, err = capsysbinary.readouterr()
         assert out == IN_DATA.replace(b'\n', b'D')
         assert (str(N - 1) + "it").encode() in err
         assert (str(N) + "it").encode() not in err
 
     # test float --update_to
-    sys.stdin = [(str(i / 2.0) + '\n').encode() for i in _range(N)]
+    sys.stdin = [(str(i / 2.0) + '\n').encode() for i in range(N)]
     IN_DATA = b''.join(sys.stdin)
     main(sys.stderr, ['--update-to'])
-    out, err = capsysbin.readouterr()
+    out, err = capsysbinary.readouterr()
     assert norm(out) == IN_DATA
     assert (str((N - 1) / 2.0) + "it").encode() in err
     assert (str(N / 2.0) + "it").encode() not in err
@@ -213,30 +212,30 @@ def test_comppath(tmp_path):
 
 
 @restore_sys
-def test_exceptions(capsysbin):
+def test_exceptions(capsysbinary):
     """Test CLI Exceptions"""
     N = 123
-    sys.stdin = [str(i) + '\n' for i in _range(N)]
+    sys.stdin = [str(i) + '\n' for i in range(N)]
     IN_DATA = ''.join(sys.stdin).encode()
 
     with raises(TqdmKeyError, match="bad_arg_u_ment"):
         main(sys.stderr, argv=['-ascii', '-unit_scale', '--bad_arg_u_ment', 'foo'])
-    out, _ = capsysbin.readouterr()
+    out, _ = capsysbinary.readouterr()
     assert norm(out) == IN_DATA
 
     with raises(TqdmTypeError, match="invalid_bool_value"):
         main(sys.stderr, argv=['-ascii', '-unit_scale', 'invalid_bool_value'])
-    out, _ = capsysbin.readouterr()
+    out, _ = capsysbinary.readouterr()
     assert norm(out) == IN_DATA
 
     with raises(TqdmTypeError, match="invalid_int_value"):
         main(sys.stderr, argv=['-ascii', '--total', 'invalid_int_value'])
-    out, _ = capsysbin.readouterr()
+    out, _ = capsysbinary.readouterr()
     assert norm(out) == IN_DATA
 
     with raises(TqdmKeyError, match="Can only have one of --"):
         main(sys.stderr, argv=['--update', '--update_to'])
-    out, _ = capsysbin.readouterr()
+    out, _ = capsysbinary.readouterr()
     assert norm(out) == IN_DATA
 
     # test SystemExits

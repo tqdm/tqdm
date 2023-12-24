@@ -10,8 +10,6 @@ any input string to `tqdm.write()`, and supply the arguments
 
 A reusable canonical example is given below:
 """
-from __future__ import print_function
-
 import contextlib
 import sys
 from time import sleep
