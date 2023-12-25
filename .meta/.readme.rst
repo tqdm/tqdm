@@ -998,7 +998,7 @@ are files (rather than folders):
         # total=1 assumes `path` is a file
         t = tqdm(total=1, unit="file", disable=not show_progress)
         if not os.path.exists(path):
-            raise IOError("Cannot find:" + path)
+            raise OSError("Cannot find:" + path)
 
         def append_found_file(f):
             files.append(f)

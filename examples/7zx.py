@@ -89,7 +89,7 @@ def main():
                     while True:
                         try:
                             l_raw = m.readline()
-                        except IOError:
+                        except OSError:
                             break
                         ln = l_raw.strip()
                         if ln.startswith("Extracting"):
