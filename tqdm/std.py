@@ -1263,6 +1263,11 @@ class tqdm(Comparable):
                 self.last_print_t = cur_t
                 return True
 
+    def update_to(self, n, total=None):
+        if total is not None:
+            self.total = total
+        self.update(n - self.n)
+
     def close(self):
         """Cleanup and (if leave=False) close the progressbar."""
         if self.disable:
