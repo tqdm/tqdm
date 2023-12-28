@@ -62,7 +62,6 @@ def thread_map(fn, *iterables, **tqdm_kwargs):
     max_workers  : int, optional
         Maximum number of workers to spawn; passed to
         `concurrent.futures.ThreadPoolExecutor.__init__`.
-        [default: None].
     """
     from concurrent.futures import ThreadPoolExecutor
     return _executor_map(ThreadPoolExecutor, fn, *iterables, **tqdm_kwargs)
@@ -80,7 +79,6 @@ def process_map(fn, *iterables, **tqdm_kwargs):
     max_workers  : int, optional
         Maximum number of workers to spawn; passed to
         `concurrent.futures.ProcessPoolExecutor.__init__`.
-        [default: None].
     chunksize  : int, optional
         Size of chunks sent to worker processes; passed to
         `concurrent.futures.ProcessPoolExecutor.map`. [default: 1].
