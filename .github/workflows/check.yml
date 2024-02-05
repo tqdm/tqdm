@@ -37,7 +37,7 @@ jobs:
         python-version: '3.x'
     - name: Install
       run: |
-        pip install -U wheel
+        pip install -U wheel packaging
         pip install -U virtualenv asv
         git checkout master && git checkout -
         asv machine --machine github-actions --yes
@@ -73,7 +73,7 @@ jobs:
         python-version: '3.x'
     - name: Install
       run: |
-        pip install -U wheel
+        pip install -U wheel packaging
         pip install -U virtualenv asv
         git checkout master && git checkout -
         asv machine --machine github-actions --yes
