@@ -189,6 +189,8 @@ def test_format_num():
     assert float(format_num(1337)) == 1337
     assert format_num(int(1e6)) == '1e+6'
     assert format_num(1239876) == '1' '239' '876'
+    assert format_num(0.00001234) == '1.23e-5'
+    assert format_num(-0.1234) == '-0.123'
 
 
 def test_format_meter():

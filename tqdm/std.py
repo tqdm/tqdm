@@ -434,7 +434,7 @@ class tqdm(Comparable):
         out  : str
             Formatted number.
         """
-        f = '{0:.3g}'.format(n).replace('+0', '+').replace('-0', '-')
+        f = f'{n:.3g}'.replace('e+0', 'e+').replace('e-0', 'e-')
         n = str(n)
         return f if len(f) < len(n) else n
 
