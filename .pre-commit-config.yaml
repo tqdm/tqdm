@@ -2,7 +2,7 @@ default_language_version:
   python: python3
 repos:
 - repo: https://github.com/pre-commit/pre-commit-hooks
-  rev: v4.4.0
+  rev: v4.5.0
   hooks:
   - id: check-added-large-files
   - id: check-case-conflict
@@ -39,7 +39,7 @@ repos:
     - pytest-timeout
     - pytest-asyncio
 - repo: https://github.com/PyCQA/flake8
-  rev: 6.1.0
+  rev: 7.0.0
   hooks:
   - id: flake8
     args: [-j8]
@@ -52,11 +52,11 @@ repos:
     - flake8-pyproject
     - flake8-string-format
 - repo: https://github.com/PyCQA/isort
-  rev: 5.12.0
+  rev: 5.13.2
   hooks:
   - id: isort
 - repo: https://github.com/kynan/nbstripout
-  rev: 0.6.1
+  rev: 0.7.1
   hooks:
   - id: nbstripout
     args: [--keep-count, --keep-output]
