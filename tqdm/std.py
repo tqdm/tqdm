@@ -930,6 +930,8 @@ class tqdm(Comparable):
         DataFrame.progress_apply = inner_generator()
         DataFrameGroupBy.progress_apply = inner_generator()
         DataFrame.progress_applymap = inner_generator('applymap')
+        DataFrame.progress_map = inner_generator('map')
+        DataFrameGroupBy.progress_map = inner_generator('map')
 
         if Panel is not None:
             Panel.progress_apply = inner_generator()
