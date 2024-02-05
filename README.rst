@@ -830,7 +830,7 @@ first.
     def progresser(n):
         interval = 0.001 / (n + 2)
         total = 5000
-        text = "#{}, est. {:<04.2}s".format(n, interval * total)
+        text = f"#{n}, est. {interval * total:<04.2}s"
         for _ in trange(total, desc=text, position=n):
             sleep(interval)
 
@@ -853,7 +853,7 @@ Note that in Python 3, ``tqdm.write`` is thread-safe:
     def progresser(n):
         interval = 0.001 / (n + 2)
         total = 5000
-        text = "#{}, est. {:<04.2}s".format(n, interval * total)
+        text = f"#{n}, est. {interval * total:<04.2}s"
         for _ in trange(total, desc=text):
             sleep(interval)
         if n == 6:

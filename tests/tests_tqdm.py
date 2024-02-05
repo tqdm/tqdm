@@ -317,11 +317,11 @@ def test_si_format():
 
 def test_bar_formatspec():
     """Test Bar.__format__ spec"""
-    assert "{0:5a}".format(Bar(0.3)) == "#5   "
-    assert "{0:2}".format(Bar(0.5, charset=" .oO0")) == "0 "
-    assert "{0:2a}".format(Bar(0.5, charset=" .oO0")) == "# "
-    assert "{0:-6a}".format(Bar(0.5, 10)) == '##  '
-    assert "{0:2b}".format(Bar(0.5, 10)) == '  '
+    assert f"{Bar(0.3):5a}" == "#5   "
+    assert f"{Bar(0.5, charset=' .oO0'):2}" == "0 "
+    assert f"{Bar(0.5, charset=' .oO0'):2a}" == "# "
+    assert f"{Bar(0.5, 10):-6a}" == '##  '
+    assert f"{Bar(0.5, 10):2b}" == '  '
 
 
 def test_all_defaults():
@@ -1115,7 +1115,7 @@ def test_eta(capsys):
                     bar_format='{l_bar}{eta:%Y-%m-%d}'):
         pass
     _, err = capsys.readouterr()
-    assert "\r100%|{eta:%Y-%m-%d}\n".format(eta=dt.now()) in err
+    assert f"\r100%|{dt.now():%Y-%m-%d}\n" in err
 
 
 def test_unpause():
