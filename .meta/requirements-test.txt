@@ -1,0 +1,7 @@
+pre-commit
+pytest
+pytest-asyncio
+pytest-cov
+pytest-timeout
+nbval
+ipywidgets

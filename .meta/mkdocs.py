@@ -1,12 +1,13 @@
-from __future__ import print_function
-from os import path
+"""
+Auto-generate README.rst from .meta/.readme.rst and docstrings.
+"""
 import sys
-sys.path = [path.dirname(path.dirname(__file__))] + sys.path  # NOQA
-import tqdm
-import tqdm.cli
+from pathlib import Path
 from textwrap import dedent
-from io import open as io_open
-from os import path
+
+sys.path.insert(0, str(Path(__file__).parent.parent))
+import tqdm  # NOQA
+import tqdm.cli  # NOQA
 
 HEAD_ARGS = """
 Parameters
@@ -35,21 +36,19 @@ def doc2rst(doc, arglist=True, raw=False):
     else:
         doc = dedent(doc)
         if arglist:
-            doc = '\n'.join([i if not i or i[0] == ' ' else '* ' + i + '  '
-                             for i in doc.split('\n')])
+            doc = '\n'.join(i if not i or i[0] == ' ' else '* ' + i + '  '
+                            for i in doc.split('\n'))
     return doc
 
 
-src_dir = path.abspath(path.dirname(__file__))
-README_rst = path.join(src_dir, '.readme.rst')
-with io_open(README_rst, mode='r', encoding='utf-8') as fd:
-    README_rst = fd.read()
-DOC_tqdm = doc2rst(tqdm.tqdm.__doc__, False).replace('\n', '\n      ')
-DOC_tqdm_init = doc2rst(tqdm.tqdm.__init__.__doc__)
-DOC_tqdm_init_args = DOC_tqdm_init.partition(doc2rst(HEAD_ARGS))[-1]\
-    .replace('\n      ', '\n    ')
-DOC_tqdm_init_args, _, DOC_tqdm_init_rets = DOC_tqdm_init_args\
-    .partition(doc2rst(HEAD_RETS))
+src_dir = Path(__file__).parent.resolve()
+README_rst = (src_dir / '.readme.rst').read_text("utf-8")
+class_doc, init_doc = tqdm.tqdm.__doc__.split('\n\n', 1)
+DOC_tqdm = doc2rst(class_doc + '\n', False).replace('\n', '\n      ')
+DOC_tqdm_init = doc2rst('\n' + init_doc)
+DOC_tqdm_init_args = DOC_tqdm_init.partition(doc2rst(HEAD_ARGS))[-1].replace(
+    '\n      ', '\n    ').replace('\n      ', '\n    ')
+DOC_tqdm_init_args, _, DOC_tqdm_init_rets = DOC_tqdm_init_args.partition(doc2rst(HEAD_RETS))
 DOC_cli = doc2rst(tqdm.cli.CLI_EXTRA_DOC).partition(doc2rst(HEAD_CLI))[-1]
 DOC_tqdm_tqdm = {}
 for i in dir(tqdm.tqdm):
@@ -61,14 +60,13 @@ for i in dir(tqdm.tqdm):
 DOC_tqdm_init_args = DOC_tqdm_init_args.replace(' *,', ' ``*``,')
 DOC_tqdm_init_args = DOC_tqdm_init_args.partition('* gui  : bool, optional')[0]
 
-README_rst = README_rst.replace('{DOC_tqdm}', DOC_tqdm)\
-    .replace('{DOC_tqdm.tqdm.__init__.Parameters}', DOC_tqdm_init_args)\
-    .replace('{DOC_tqdm.cli.CLI_EXTRA_DOC}', DOC_cli)\
-    .replace('{DOC_tqdm.tqdm.__init__.Returns}', DOC_tqdm_init_rets)
+README_rst = (
+    README_rst.replace('{DOC_tqdm}', DOC_tqdm)
+    .replace('{DOC_tqdm.tqdm.__init__.Parameters}', DOC_tqdm_init_args)
+    .replace('{DOC_tqdm.cli.CLI_EXTRA_DOC}', DOC_cli)
+    .replace('{DOC_tqdm.tqdm.__init__.Returns}', DOC_tqdm_init_rets))
 for k, v in DOC_tqdm_tqdm.items():
     README_rst = README_rst.replace('{DOC_tqdm.tqdm.%s}' % k, v)
 
 if __name__ == "__main__":
-    fndoc = path.join(path.dirname(src_dir), 'README.rst')
-    with io_open(fndoc, mode='w', encoding='utf-8') as fd:
-        fd.write(README_rst)
+    (src_dir.parent / 'README.rst').write_text(README_rst, encoding='utf-8')

@@ -1,0 +1,135 @@
+[build-system]
+requires = ["setuptools>=42", "wheel", "setuptools_scm[toml]>=3.4"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools_scm]
+write_to = "tqdm/_dist_ver.py"
+write_to_template = "__version__ = '{version}'\n"
+
+[tool.setuptools.packages.find]
+exclude = ["benchmarks", "examples", "tests", "wiki", "docs", "feedstock"]
+
+[project.urls]
+homepage = "https://tqdm.github.io"
+repository = "https://github.com/tqdm/tqdm"
+changelog = "https://tqdm.github.io/releases"
+wiki = "https://github.com/tqdm/tqdm/wiki"
+
+[project]
+name = "tqdm"
+dynamic = ["version"]
+maintainers = [{name = "tqdm developers", email = "devs@tqdm.ml"}]
+description = "Fast, Extensible Progress Meter"
+readme = "README.rst"
+requires-python = ">=3.7"
+keywords = ["progressbar", "progressmeter", "progress", "bar", "meter", "rate", "eta", "console", "terminal", "time"]
+license = {text = "MPL-2.0 AND MIT"}
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Console",
+    "Environment :: MacOS X",
+    "Environment :: Other Environment",
+    "Environment :: Win32 (MS Windows)",
+    "Environment :: X11 Applications",
+    "Framework :: IPython",
+    "Framework :: Jupyter",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Education",
+    "Intended Audience :: End Users/Desktop",
+    "Intended Audience :: Other Audience",
+    "Intended Audience :: System Administrators",
+    "License :: OSI Approved :: MIT License",
+    "License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)",
+    "Operating System :: MacOS",
+    "Operating System :: MacOS :: MacOS X",
+    "Operating System :: Microsoft",
+    "Operating System :: Microsoft :: MS-DOS",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX",
+    "Operating System :: POSIX :: BSD",
+    "Operating System :: POSIX :: BSD :: FreeBSD",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: POSIX :: SunOS/Solaris",
+    "Operating System :: Unix",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: Implementation",
+    "Programming Language :: Python :: Implementation :: IronPython",
+    "Programming Language :: Python :: Implementation :: PyPy",
+    "Programming Language :: Unix Shell",
+    "Topic :: Desktop Environment",
+    "Topic :: Education :: Computer Aided Instruction (CAI)",
+    "Topic :: Education :: Testing",
+    "Topic :: Office/Business",
+    "Topic :: Other/Nonlisted Topic",
+    "Topic :: Software Development :: Build Tools",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Software Development :: Pre-processors",
+    "Topic :: Software Development :: User Interfaces",
+    "Topic :: System :: Installation/Setup",
+    "Topic :: System :: Logging",
+    "Topic :: System :: Monitoring",
+    "Topic :: System :: Shells",
+    "Topic :: Terminals",
+    "Topic :: Utilities"]
+dependencies = ['colorama; platform_system == "Windows"']
+
+[project.optional-dependencies]
+dev = ["pytest>=6", "pytest-cov", "pytest-timeout", "pytest-xdist"]
+slack = ["slack-sdk"]
+telegram = ["requests"]
+notebook = ["ipywidgets>=6"]
+
+[project.scripts]
+tqdm = "tqdm.cli:main"
+
+[tool.flake8]
+max_line_length = 99
+exclude = [".git", "__pycache__", "build", "dist", ".eggs", ".asv", ".tox", ".ipynb_checkpoints"]
+
+[tool.yapf]
+spaces_before_comment = [15, 20]
+arithmetic_precedence_indication = true
+allow_split_before_dict_value = false
+coalesce_brackets = true
+column_limit = 99
+each_dict_entry_on_separate_line = false
+space_between_ending_comma_and_closing_bracket = false
+split_before_named_assigns = false
+split_before_closing_bracket = false
+blank_line_before_nested_class_or_def = false
+
+[tool.isort]
+line_length = 99
+multi_line_output = 4
+known_first_party = ["tqdm", "tests"]
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+timeout = 30
+log_level = "INFO"
+markers = ["asyncio", "slow"]
+python_files = ["tests_*.py", "tests_*.ipynb"]
+testpaths = ["tests"]
+addopts = "-v --tb=short -rxs -W=error --durations=0 --durations-min=0.1 --asyncio-mode=strict"
+
+[tool.coverage.run]
+branch = true
+include = ["tqdm/*"]
+omit = [
+    "tqdm/contrib/bells.py",
+    "tqdm/contrib/slack.py",
+    "tqdm/contrib/discord.py",
+    "tqdm/contrib/telegram.py",
+    "tqdm/contrib/utils_worker.py"]
+relative_files = true
+disable_warnings = ["include-ignored"]
+[tool.coverage.report]
+show_missing = true

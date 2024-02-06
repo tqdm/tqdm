@@ -1,0 +1,8 @@
+comment:
+  layout: diff
+coverage:
+  status:
+    patch:
+      default:
+        threshold: 80%
+    project: false

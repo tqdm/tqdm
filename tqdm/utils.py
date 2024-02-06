@@ -1,129 +1,101 @@
-from functools import wraps
+"""
+General helpers required for `tqdm.std`.
+"""
 import os
-from platform import system as _curos
 import re
-import subprocess
-CUR_OS = _curos()
-IS_WIN = CUR_OS in ['Windows', 'cli']
-IS_NIX = (not IS_WIN) and any(
-    CUR_OS.startswith(i) for i in
-    ['CYGWIN', 'MSYS', 'Linux', 'Darwin', 'SunOS',
-     'FreeBSD', 'NetBSD', 'OpenBSD'])
+import sys
+from functools import partial, partialmethod, wraps
+from inspect import signature
+# TODO consider using wcswidth third-party package for 0-width characters
+from unicodedata import east_asian_width
+from warnings import warn
+from weakref import proxy
+
+_range, _unich, _unicode, _basestring = range, chr, str, str
+CUR_OS = sys.platform
+IS_WIN = any(CUR_OS.startswith(i) for i in ['win32', 'cygwin'])
+IS_NIX = any(CUR_OS.startswith(i) for i in ['aix', 'linux', 'darwin'])
 RE_ANSI = re.compile(r"\x1b\[[;\d]*[A-Za-z]")
 
-
-# Py2/3 compat. Empty conditional to avoid coverage
-if True:  # pragma: no cover
-    try:
-        _range = xrange
-    except NameError:
-        _range = range
-
-    try:
-        _unich = unichr
-    except NameError:
-        _unich = chr
-
-    try:
-        _unicode = unicode
-    except NameError:
-        _unicode = str
-
-    try:
-        if IS_WIN:
-            import colorama
-        else:
-            raise ImportError
-    except ImportError:
-        colorama = None
+try:
+    if IS_WIN:
+        import colorama
     else:
-        try:
-            colorama.init(strip=False)
-        except TypeError:
-            colorama.init()
-
+        raise ImportError
+except ImportError:
+    colorama = None
+else:
     try:
-        from weakref import WeakSet
-    except ImportError:
-        WeakSet = set
+        colorama.init(strip=False)
+    except TypeError:
+        colorama.init()
 
-    try:
-        _basestring = basestring
-    except NameError:
-        _basestring = str
 
-    try:  # py>=2.7,>=3.1
-        from collections import OrderedDict as _OrderedDict
-    except ImportError:
-        try:  # older Python versions with backported ordereddict lib
-            from ordereddict import OrderedDict as _OrderedDict
-        except ImportError:  # older Python versions without ordereddict lib
-            # Py2.6,3.0 compat, from PEP 372
-            from collections import MutableMapping
+def envwrap(prefix, types=None, is_method=False):
+    """
+    Override parameter defaults via `os.environ[prefix + param_name]`.
+    Maps UPPER_CASE env vars map to lower_case param names.
+    camelCase isn't supported (because Windows ignores case).
 
-            class _OrderedDict(dict, MutableMapping):
-                # Methods with direct access to underlying attributes
-                def __init__(self, *args, **kwds):
-                    if len(args) > 1:
-                        raise TypeError('expected at 1 argument, got %d',
-                                        len(args))
-                    if not hasattr(self, '_keys'):
-                        self._keys = []
-                    self.update(*args, **kwds)
+    Precedence (highest first):
+    - call (`foo(a=3)`)
+    - environ (`FOO_A=2`)
+    - signature (`def foo(a=1)`)
 
-                def clear(self):
-                    del self._keys[:]
-                    dict.clear(self)
+    Parameters
+    ----------
+    prefix  : str
+        Env var prefix, e.g. "FOO_"
+    types  : dict, optional
+        Fallback mappings `{'param_name': type, ...}` if types cannot be
+        inferred from function signature.
+        Consider using `types=collections.defaultdict(lambda: ast.literal_eval)`.
+    is_method  : bool, optional
+        Whether to use `functools.partialmethod`. If (default: False) use `functools.partial`.
 
-                def __setitem__(self, key, value):
-                    if key not in self:
-                        self._keys.append(key)
-                    dict.__setitem__(self, key, value)
+    Examples
+    --------
+    ```
+    $ cat foo.py
+    from tqdm.utils import envwrap
+    @envwrap("FOO_")
+    def test(a=1, b=2, c=3):
+        print(f"received: a={a}, b={b}, c={c}")
 
-                def __delitem__(self, key):
-                    dict.__delitem__(self, key)
-                    self._keys.remove(key)
+    $ FOO_A=42 FOO_C=1337 python -c 'import foo; foo.test(c=99)'
+    received: a=42, b=2, c=99
+    ```
+    """
+    if types is None:
+        types = {}
+    i = len(prefix)
+    env_overrides = {k[i:].lower(): v for k, v in os.environ.items() if k.startswith(prefix)}
+    part = partialmethod if is_method else partial
 
-                def __iter__(self):
-                    return iter(self._keys)
-
-                def __reversed__(self):
-                    return reversed(self._keys)
-
-                def popitem(self):
-                    if not self:
-                        raise KeyError
-                    key = self._keys.pop()
-                    value = dict.pop(self, key)
-                    return key, value
-
-                def __reduce__(self):
-                    items = [[k, self[k]] for k in self]
-                    inst_dict = vars(self).copy()
-                    inst_dict.pop('_keys', None)
-                    return self.__class__, (items,), inst_dict
-
-                # Methods with indirect access via the above methods
-                setdefault = MutableMapping.setdefault
-                update = MutableMapping.update
-                pop = MutableMapping.pop
-                keys = MutableMapping.keys
-                values = MutableMapping.values
-                items = MutableMapping.items
-
-                def __repr__(self):
-                    pairs = ', '.join(map('%r: %r'.__mod__, self.items()))
-                    return '%s({%s})' % (self.__class__.__name__, pairs)
-
-                def copy(self):
-                    return self.__class__(self)
-
-                @classmethod
-                def fromkeys(cls, iterable, value=None):
-                    d = cls()
-                    for key in iterable:
-                        d[key] = value
-                    return d
+    def wrap(func):
+        params = signature(func).parameters
+        # ignore unknown env vars
+        overrides = {k: v for k, v in env_overrides.items() if k in params}
+        # infer overrides' `type`s
+        for k in overrides:
+            param = params[k]
+            if param.annotation is not param.empty:  # typehints
+                for typ in getattr(param.annotation, '__args__', (param.annotation,)):
+                    try:
+                        overrides[k] = typ(overrides[k])
+                    except Exception:
+                        pass
+                    else:
+                        break
+            elif param.default is not None:  # type of default value
+                overrides[k] = type(param.default)(overrides[k])
+            else:
+                try:  # `types` fallback
+                    overrides[k] = types[k](overrides[k])
+                except KeyError:  # keep unconverted (`str`)
+                    pass
+        return part(func, **overrides)
+    return wrap
 
 
 class FormatReplace(object):
@@ -131,7 +103,7 @@ class FormatReplace(object):
     >>> a = FormatReplace('something')
     >>> "{:5d}".format(a)
     'something'
-    """
+    """  # NOQA: P102
     def __init__(self, replace=''):
         self.replace = replace
         self.format_called = 0
@@ -203,6 +175,52 @@ class SimpleTextIOWrapper(ObjectWrapper):
         """
         return self._wrapped.write(s.encode(self.wrapper_getattr('encoding')))
 
+    def __eq__(self, other):
+        return self._wrapped == getattr(other, '_wrapped', other)
+
+
+class DisableOnWriteError(ObjectWrapper):
+    """
+    Disable the given `tqdm_instance` upon `write()` or `flush()` errors.
+    """
+    @staticmethod
+    def disable_on_exception(tqdm_instance, func):
+        """
+        Quietly set `tqdm_instance.miniters=inf` if `func` raises `errno=5`.
+        """
+        tqdm_instance = proxy(tqdm_instance)
+
+        def inner(*args, **kwargs):
+            try:
+                return func(*args, **kwargs)
+            except OSError as e:
+                if e.errno != 5:
+                    raise
+                try:
+                    tqdm_instance.miniters = float('inf')
+                except ReferenceError:
+                    pass
+            except ValueError as e:
+                if 'closed' not in str(e):
+                    raise
+                try:
+                    tqdm_instance.miniters = float('inf')
+                except ReferenceError:
+                    pass
+        return inner
+
+    def __init__(self, wrapped, tqdm_instance):
+        super(DisableOnWriteError, self).__init__(wrapped)
+        if hasattr(wrapped, 'write'):
+            self.wrapper_setattr(
+                'write', self.disable_on_exception(tqdm_instance, wrapped.write))
+        if hasattr(wrapped, 'flush'):
+            self.wrapper_setattr(
+                'flush', self.disable_on_exception(tqdm_instance, wrapped.flush))
+
+    def __eq__(self, other):
+        return self._wrapped == getattr(other, '_wrapped', other)
+
 
 class CallbackIOWrapper(ObjectWrapper):
     def __init__(self, callback, stream, method="read"):
@@ -233,12 +251,12 @@ class CallbackIOWrapper(ObjectWrapper):
 def _is_utf(encoding):
     try:
         u'\u2588\u2589'.encode(encoding)
-    except UnicodeEncodeError:  # pragma: no cover
+    except UnicodeEncodeError:
         return False
-    except Exception:  # pragma: no cover
+    except Exception:
         try:
             return encoding.lower().startswith('utf-') or ('U8' == encoding)
-        except:
+        except Exception:
             return False
     else:
         return True
@@ -260,25 +278,25 @@ def _is_ascii(s):
     return _supports_unicode(s)
 
 
-def _environ_cols_wrapper():  # pragma: no cover
+def _screen_shape_wrapper():  # pragma: no cover
     """
-    Return a function which gets width and height of console
-    (linux,osx,windows,cygwin).
+    Return a function which returns console dimensions (width, height).
+    Supported: linux, osx, windows, cygwin.
     """
-    _environ_cols = None
+    _screen_shape = None
     if IS_WIN:
-        _environ_cols = _environ_cols_windows
-        if _environ_cols is None:
-            _environ_cols = _environ_cols_tput
+        _screen_shape = _screen_shape_windows
+        if _screen_shape is None:
+            _screen_shape = _screen_shape_tput
     if IS_NIX:
-        _environ_cols = _environ_cols_linux
-    return _environ_cols
+        _screen_shape = _screen_shape_linux
+    return _screen_shape
 
 
-def _environ_cols_windows(fp):  # pragma: no cover
+def _screen_shape_windows(fp):  # pragma: no cover
     try:
-        from ctypes import windll, create_string_buffer
         import struct
+        from ctypes import create_string_buffer, windll
         from sys import stdin, stdout
 
         io_handle = -12  # assume stderr
@@ -291,58 +309,69 @@ def _environ_cols_windows(fp):  # pragma: no cover
         csbi = create_string_buffer(22)
         res = windll.kernel32.GetConsoleScreenBufferInfo(h, csbi)
         if res:
-            (_bufx, _bufy, _curx, _cury, _wattr, left, _top, right, _bottom,
+            (_bufx, _bufy, _curx, _cury, _wattr, left, top, right, bottom,
              _maxx, _maxy) = struct.unpack("hhhhHhhhhhh", csbi.raw)
-            # nlines = bottom - top + 1
-            return right - left  # +1
-    except:
+            return right - left, bottom - top  # +1
+    except Exception:  # nosec
         pass
-    return None
+    return None, None
 
 
-def _environ_cols_tput(*_):  # pragma: no cover
+def _screen_shape_tput(*_):  # pragma: no cover
     """cygwin xterm (windows)"""
     try:
         import shlex
-        cols = int(subprocess.check_call(shlex.split('tput cols')))
-        # rows = int(subprocess.check_call(shlex.split('tput lines')))
-        return cols
-    except:
+        from subprocess import check_call  # nosec
+        return [int(check_call(shlex.split('tput ' + i))) - 1
+                for i in ('cols', 'lines')]
+    except Exception:  # nosec
         pass
-    return None
+    return None, None
 
 
-def _environ_cols_linux(fp):  # pragma: no cover
+def _screen_shape_linux(fp):  # pragma: no cover
 
     try:
-        from termios import TIOCGWINSZ
-        from fcntl import ioctl
         from array import array
+        from fcntl import ioctl
+        from termios import TIOCGWINSZ
     except ImportError:
-        return None
+        return None, None
     else:
         try:
-            return array('h', ioctl(fp, TIOCGWINSZ, '\0' * 8))[1]
-        except:
+            rows, cols = array('h', ioctl(fp, TIOCGWINSZ, '\0' * 8))[:2]
+            return cols, rows
+        except Exception:
             try:
-                return int(os.environ["COLUMNS"]) - 1
-            except KeyError:
-                return None
+                return [int(os.environ[i]) - 1 for i in ("COLUMNS", "LINES")]
+            except (KeyError, ValueError):
+                return None, None
+
+
+def _environ_cols_wrapper():  # pragma: no cover
+    """
+    Return a function which returns console width.
+    Supported: linux, osx, windows, cygwin.
+    """
+    warn("Use `_screen_shape_wrapper()(file)[0]` instead of"
+         " `_environ_cols_wrapper()(file)`", DeprecationWarning, stacklevel=2)
+    shape = _screen_shape_wrapper()
+    if not shape:
+        return None
+
+    @wraps(shape)
+    def inner(fp):
+        return shape(fp)[0]
+
+    return inner
 
 
 def _term_move_up():  # pragma: no cover
     return '' if (os.name == 'nt') and (colorama is None) else '\x1b[A'
 
 
-try:
-    # TODO consider using wcswidth third-party package for 0-width characters
-    from unicodedata import east_asian_width
-except ImportError:
-    _text_width = len
-else:
-    def _text_width(s):
-        return sum(
-            2 if east_asian_width(ch) in 'FW' else 1 for ch in _unicode(s))
+def _text_width(s):
+    return sum(2 if east_asian_width(ch) in 'FW' else 1 for ch in str(s))
 
 
 def disp_len(data):

@@ -1,0 +1,179 @@
+name: Test
+on:
+  push:
+  pull_request:
+  schedule: [{cron: '2 1 * * 6'}]  # M H d m w (Sat 1:02)
+jobs:
+  check:
+    if: github.event_name != 'pull_request' || !contains('OWNER,MEMBER,COLLABORATOR', github.event.pull_request.author_association)
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+    - name: set PYSHA
+      run: echo "PYSHA=$(python -VV | sha256sum | cut -d' ' -f1)" >> $GITHUB_ENV
+    - uses: actions/cache@v3
+      with:
+        path: ~/.cache/pre-commit
+        key: pre-commit|${{ env.PYSHA }}|${{ hashFiles('.pre-commit-config.yaml') }}
+    - name: dependencies
+      run: pip install -U pre-commit
+    - uses: reviewdog/action-setup@v1
+    - if: github.event_name == 'push' || github.event_name == 'pull_request'
+      name: comment
+      run: |
+        if [[ $EVENT == pull_request ]]; then
+          REPORTER=github-pr-review
+        else
+          REPORTER=github-check
+        fi
+        pre-commit run -a todo | reviewdog -efm="%f:%l: %m" -name=TODO -tee -reporter=$REPORTER -filter-mode nofilter
+        pre-commit run -a flake8 | reviewdog -f=pep8 -name=flake8 -tee -reporter=$REPORTER -filter-mode nofilter
+      env:
+        REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        EVENT: ${{ github.event_name }}
+    - run: pre-commit run -a --show-diff-on-failure
+  test:
+    if: github.event_name != 'pull_request' || !contains('OWNER,MEMBER,COLLABORATOR', github.event.pull_request.author_association)
+    name: py${{ matrix.python }}-${{ matrix.os }}
+    continue-on-error: ${{ matrix.os == 'windows' }}
+    strategy:
+      matrix:
+        os: [ubuntu]
+        python: [3.7, 3.8, 3.9, '3.10', 3.11]
+        include:
+        - os: macos
+          python: 3.11
+        - os: windows
+          python: 3.11
+    runs-on: ${{ matrix.os }}-latest
+    timeout-minutes: 35
+    defaults:
+      run:
+        shell: bash
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+    - uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python }}
+    - name: install
+      run: |
+        pip install -U tox tox-gh-actions
+        mkdir -p "$HOME/bin"
+        curl -sfL https://coverage.codacy.com/get.sh > "$HOME/bin/codacy"
+        chmod +x "$HOME/bin/codacy"
+        echo "$HOME/bin" >> $GITHUB_PATH
+    - name: tox
+      run: |
+        if [[ "py${{ matrix.python }}-${{ matrix.os }}" = "py3.11-ubuntu" ]]; then
+          export TOXENV="py311-tf,py311-tf-keras"  # full
+        fi
+        if [[ "${{ matrix.os }}" != "ubuntu" ]]; then
+          tox -e py${PYVER/./}                     # basic
+        else
+          timeout 5m tox || timeout 5m tox || timeout 5m tox
+        fi
+      env:
+        PYVER: ${{ matrix.python }}
+        PLATFORM: ${{ matrix.os }}
+        COVERALLS_FLAG_NAME: py${{ matrix.python }}-${{ matrix.os }}
+        COVERALLS_PARALLEL: true
+        COVERALLS_SERVICE_NAME: github
+        # coveralls needs explicit token
+        COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
+  finish:
+    name: pytest cov
+    continue-on-error: ${{ github.event_name != 'push' }}
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+    - name: Coveralls Finished
+      run: |
+        pip install -U coveralls
+        coveralls --finish || :
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Codacy Finished
+      run: |
+        curl -sfL https://coverage.codacy.com/get.sh > codacy
+        bash codacy final || :
+      env:
+        CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
+  deploy:
+    needs: [check, test]
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+        token: ${{ secrets.GH_TOKEN || github.token }}
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+    - name: Install
+      run: |
+        sudo apt-get install -yqq pandoc
+        pip install -r .meta/requirements-build.txt
+        make build .dockerignore Dockerfile snapcraft.yaml
+    - id: dist
+      uses: casperdcl/deploy-pypi@v2
+      with:
+        password: ${{ secrets.PYPI_TOKEN }}
+        gpg_key: ${{ secrets.GPG_KEY }}
+        upload: ${{ github.event_name == 'push' && startsWith(github.ref, 'refs/tags') }}
+    - id: collect_assets
+      name: Collect assets
+      run: |
+        if [[ $GITHUB_REF == refs/tags/v* ]]; then
+          echo docker_tags=latest,${GITHUB_REF/refs\/tags\/v/} >> $GITHUB_OUTPUT
+          echo snap_channel=stable,candidate,edge >> $GITHUB_OUTPUT
+        elif [[ $GITHUB_REF == refs/heads/master ]]; then
+          echo docker_tags=master >> $GITHUB_OUTPUT
+          echo snap_channel=candidate,edge >> $GITHUB_OUTPUT
+        elif [[ $GITHUB_REF == refs/heads/devel ]]; then
+          echo docker_tags=devel >> $GITHUB_OUTPUT
+          echo snap_channel=edge >> $GITHUB_OUTPUT
+        fi
+    - if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
+      name: Release
+      run: |
+        changelog=$(git log --pretty='format:%d%n- %s%n%b---' $(git tag --sort=v:refname | tail -n2 | head -n1)..HEAD)
+        tag="${GITHUB_REF#refs/tags/}"
+        gh release create --title "tqdm $tag stable" --draft --notes "$changelog" "$tag" dist/${{ steps.dist.outputs.whl }} dist/${{ steps.dist.outputs.whl_asc }}
+      env:
+        GH_TOKEN: ${{ secrets.GH_TOKEN }}
+    - uses: snapcore/action-build@v1
+      id: snap_build
+    - if: github.event_name == 'push' && steps.collect_assets.outputs.snap_channel
+      uses: snapcore/action-publish@v1
+      with:
+        snap: ${{ steps.snap_build.outputs.snap }}
+        release: ${{ steps.collect_assets.outputs.snap_channel }}
+      env:
+        SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAP_TOKEN }}
+    - name: Docker build push
+      uses: elgohr/Publish-Docker-Github-Action@master
+      with:
+        name: ${{ github.repository }}
+        tags: ${{ steps.collect_assets.outputs.docker_tags }}
+        password: ${{ secrets.DOCKER_PWD }}
+        username: ${{ secrets.DOCKER_USR }}
+        no_push: ${{ steps.collect_assets.outputs.docker_tags == '' }}
+    - name: Docker push GitHub
+      uses: elgohr/Publish-Docker-Github-Action@master
+      with:
+        name: ${{ github.repository }}/tqdm
+        tags: ${{ steps.collect_assets.outputs.docker_tags }}
+        password: ${{ github.token }}
+        username: ${{ github.actor }}
+        registry: docker.pkg.github.com
+        no_push: ${{ steps.collect_assets.outputs.docker_tags == '' }}

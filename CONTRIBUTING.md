@@ -1,16 +1,18 @@
 # HOW TO CONTRIBUTE TO TQDM
 
+**TL;DR: Skip to [QUICK DEV SUMMARY]**
+
 This file describes how to
 
 - contribute changes to the project, and
-- upload released to the pypi repository.
+- upload released to the PyPI repository.
 
 Most of the management commands have been directly placed inside the
 Makefile:
 
 ```
 make [<alias>]  # on UNIX-like environments
-python setup.py make [<alias>]  # if make is unavailable
+python -m pymake [<alias>]  # if make is unavailable
 ```
 
 The latter depends on [`py-make>=0.1.0`](https://github.com/tqdm/py-make).
@@ -24,7 +26,7 @@ Contributions to the project are made using the "Fork & Pull" model. The
 typical steps would be:
 
 1. create an account on [github](https://github.com)
-2. fork [tqdm](https://github.com/tqdm/tqdm)
+2. fork [`tqdm`](https://github.com/tqdm/tqdm)
 3. make a local clone: `git clone https://github.com/your_account/tqdm.git`
 4. make changes on the local copy
 5. test (see below) and commit changes `git commit -a -m "my message"`
@@ -46,21 +48,24 @@ However it would be helpful to bear in mind:
     + should be appropriately commented
     + should have well-formatted docstrings for functions
         * under 76 chars (incl. initial spaces) to avoid linebreaks in terminal pagers
-        * use two spaces between variable name and colon
+        * use two spaces between variable name and colon, specify a type, and most likely state that it's optional: `VAR<space><space>:<space>TYPE[, optional]`
         * use [default: ...] for default values of keyword arguments
     + will not break backward compatibility unless there is a very good reason
-        * e.g. breaking py26 compatibility purely in favour of readability (such as converting `dict(a=1)` to `{'a': 1}`) is not a good enough reason
+        * e.g. breaking py26 compatibility purely in favour of minor readability changes (such as converting `dict(a=1)` to `{'a': 1}`) is not a good enough reason
     + API changes should be discussed carefully
     + remember, with millions of downloads per month, `tqdm` must be extremely fast and reliable
 - Any other kind of change may be included in a (possibly new) submodule
     + submodules are likely single python files under the main [tqdm/](tqdm/) directory
-        * large submodules requiring a sub-folder should be included in [`MANIFEST.in`](MANIFEST.in)
     + submodules extending `tqdm.std.tqdm` or any other module (e.g. [`tqdm.notebook.tqdm`](tqdm/notebook.py), [`tqdm.gui.tqdm`](tqdm/gui.py))
+    + CLI wrapper `tqdm.cli`
+        * if a newly added `tqdm.std.tqdm` option is not supported by the CLI, append to `tqdm.cli.UNSUPPORTED_OPTS`
     + can implement anything from experimental new features to support for third-party libraries such as `pandas`, `numpy`, etc.
     + submodule maturity
         * alpha: experimental; missing unit tests, comments, and/or feedback; raises `tqdm.TqdmExperimentalWarning`
         * beta: well-used; commented, perhaps still missing tests
         * stable: >10 users; commented, 80% coverage
+- `.meta/`
+    + A "hidden" folder containing helper utilities not strictly part of the `tqdm` distribution itself
 
 
 ## TESTING
@@ -80,7 +85,7 @@ The standard way to run the tests:
 - run the following command:
 
 ```
-[python setup.py] make test
+[python -m py]make test
 # or:
 tox --skip-missing-interpreters
 ```
@@ -91,20 +96,20 @@ interpreters errors - these are due to the local machine missing certain
 versions of Python.)
 
 Note: to install all versions of the Python interpreter that are specified
-in [tox.ini](https://raw.githubusercontent.com/tqdm/tqdm/master/tox.ini),
-you can use `MiniConda` to install a minimal setup. You must also make sure
-that each distribution has an alias to call the Python interpreter:
-`python27` for Python 2.7's interpreter, `python32` for Python 3.2's, etc.
+in [tox.ini](https://github.com/tqdm/tqdm/blob/master/tox.ini),
+you can use `MiniConda` to install a minimal setup. You must also ensure
+that each distribution has an alias to call the Python interpreter
+(e.g. `python311` for Python 3.11's interpreter).
 
-### Alternative unit tests with Nose
+### Alternative unit tests with pytest
 
-Alternatively, use `nose` to run the tests just for the current Python version:
+Alternatively, use `pytest` to run the tests just for the current Python version:
 
-- install `nose` and `flake8`
+- install test requirements: `[python -m py]make install_test`
 - run the following command:
 
 ```
-[python setup.py] make alltests
+[python -m py]make alltests
 ```
 
 
@@ -113,40 +118,39 @@ Alternatively, use `nose` to run the tests just for the current Python version:
 
 This section is intended for the project's maintainers and describes
 how to build and upload a new release. Once again,
-`[python setup.py] make [<alias>]` will help.
+`[python -m py]make [<alias>]` will help.
 Also consider `pip install`ing development utilities:
-`-r requirements-dev.txt` or `tqdm[dev]`.
+`[python -m py]make install_build` at a minimum, or a more thorough `conda env create`.
+
+
+## Pre-commit Hook
+
+It's probably a good idea to use the `pre-commit` (`pip install pre-commit`) helper.
+
+Run `pre-commit install` for convenient local sanity-checking.
 
 
 ## Semantic Versioning
 
-The tqdm repository managers should:
+The `tqdm` repository managers should:
 
-- regularly bump the version number in the file
-[_version.py](https://raw.githubusercontent.com/tqdm/tqdm/master/tqdm/_version.py)
-- follow the [Semantic Versioning](https://semver.org/) convention
-- take care of this (instead of users) to avoid PR conflicts
-solely due to the version file bumping
-
-Note: tools can be used to automate this process, such as
-[bumpversion](https://github.com/peritus/bumpversion) or
-[python-semanticversion](https://github.com/rbarrois/python-semanticversion/).
+- follow the [Semantic Versioning](https://semver.org) convention for tagging
 
 
-## Checking setup.py
+## Checking `pyproject.toml`
 
-To check that the `setup.py` file is compliant with PyPI requirements (e.g.
-version number; reStructuredText in `README.rst`) use:
+To check that the `pyproject.toml` file is compliant with PyPI
+requirements (e.g. version number; reStructuredText in `README.rst`) use:
 
 ```
-[python setup.py] make testsetup
+[python -m py]make testsetup
 ```
 
 To upload just metadata (including overwriting mistakenly uploaded metadata)
 to PyPI, use:
 
 ```
-[python setup.py] make pypimeta
+[python -m py]make pypimeta
 ```
 
 
@@ -195,19 +199,10 @@ git merge --no-ff pr-branch-name
 ### 4 Test
 
 ```
-[python setup.py] make alltests
+[python -m py]make alltests
 ```
 
-### 5 Version
-
-Modify `tqdm/_version.py` and amend the last (merge) commit:
-
-```
-git add tqdm/_version.py
-git commit --amend  # Add "+ bump version" in the commit message
-```
-
-### 6 Push to master
+### 5 Push to master
 
 ```
 git push origin master
@@ -220,44 +215,41 @@ Formally publishing requires additional steps: testing and tagging.
 
 ### Test
 
-- ensure that all online CI tests have passed
-- check `setup.py` and `MANIFEST.in` - which define the packaging
-process and info that will be uploaded to [PyPI](https://pypi.org) -
-using `[python setup.py] make installdev`
+Ensure that all online CI tests have passed.
 
 ### Tag
 
-- ensure the version has been bumped, committed **and** tagged.
+- ensure the version has been tagged.
 The tag format is `v{major}.{minor}.{patch}`, for example: `v4.4.1`.
 The current commit's tag is used in the version checking process.
 If the current commit is not tagged appropriately, the version will
-display as `v{major}.{minor}.{patch}-{commit_hash}`.
+display as `v{major}.{minor}.{patch}.dev{N}+g{commit_hash}`.
 
 ### Upload
 
-Travis CI should automatically do this after pushing tags.
+GitHub Actions (GHA) CI should automatically do this after pushing tags.
 Manual instructions are given below in case of failure.
 
 Build `tqdm` into a distributable python package:
 
 ```
-[python setup.py] make build
+[python -m py]make build
 ```
 
 This will generate several builds in the `dist/` folder. On non-windows
 machines the windows `exe` installer may fail to build. This is normal.
 
-Finally, upload everything to pypi. This can be done easily using the
+Finally, upload everything to PyPI. This can be done easily using the
 [twine](https://github.com/pypa/twine) module:
 
 ```
-[python setup.py] make pypi
+[python -m py]make pypi
 ```
 
 Also, the new release can (should) be added to GitHub by creating a new
 release from the [web interface](https://github.com/tqdm/tqdm/releases);
 uploading packages from the `dist/` folder
-created by `[python setup.py] make build`.
+created by `[python -m py]make build`.
 The [wiki] can be automatically updated with GitHub release notes by
 running `make` within the wiki repository.
 
@@ -290,7 +282,7 @@ before the real deployment
 - in case of a mistake, you can delete an uploaded release on PyPI, but you
 cannot re-upload another with the same version number
 - in case of a mistake in the metadata on PyPI (e.g. bad README),
-updating just the metadata is possible: `[python setup.py] make pypimeta`
+updating just the metadata is possible: `[python -m py]make pypimeta`
 
 
 ## Updating Websites
@@ -311,47 +303,67 @@ following:
 Additionally (less maintained), there exists:
 
 - A [wiki] which is publicly editable.
-- The [gh-pages project](https://tqdm.github.io/tqdm/) which is built from the
+- The [gh-pages project] which is built from the
   [gh-pages branch](https://github.com/tqdm/tqdm/tree/gh-pages), which is
-  built using [asv](https://github.com/spacetelescope/asv/).
-- The [gh-pages root](https://tqdm.github.io/) which is built from a separate
+  built using [asv](https://github.com/airspeed-velocity/asv).
+- The [gh-pages root] which is built from a separate
   [github.io repo](https://github.com/tqdm/tqdm.github.io).
+
+[gh-pages project]: https://tqdm.github.io/tqdm/
+[gh-pages root]: https://tqdm.github.io/
+
+
+## Helper Bots
+
+There are some helpers in
+[.github/workflows](https://github.com/tqdm/tqdm/tree/master/.github/workflows)
+to assist with maintenance.
+
+- Comment Bot
+    + allows maintainers to write `/tag vM.m.p commit_hash` in an issue/PR to create a tag
+- Post Release
+    + automatically updates the [wiki]
+    + automatically updates the [gh-pages root]
+- Benchmark
+    + automatically updates the [gh-pages project]
 
 
 ## QUICK DEV SUMMARY
 
-For experienced devs, once happy with local master:
+For experienced devs, once happy with local master, follow the steps below.
+Much is automated so really it's steps 1-5, then 11(a).
 
-1. bump version in `tqdm/_version.py`
-2. test (`[python setup.py] make alltests`)
-3. `git commit [--amend]  # -m "bump version"`
-4. `git push`
-5. wait for tests to pass
-    a) in case of failure, fix and go back to (2)
-6. `git tag vM.m.p && git push --tags`
-7. **`[AUTO:TravisCI]`** `[python setup.py] make distclean`
-8. **`[AUTO:TravisCI]`** `[python setup.py] make build`
-9. **`[AUTO:TravisCI]`** upload to PyPI. either:
-    a) `[python setup.py] make pypi`, or
+1. test (`[python -m py]make alltests` or rely on `pre-commit`)
+2. `git commit [--amend]  # -m "bump version"`
+3. `git push`
+4. wait for tests to pass
+    a) in case of failure, fix and go back to (1)
+5. `git tag vM.m.p && git push --tags` or comment `/tag vM.m.p commit_hash`
+6. **`[AUTO:GHA]`** `[python -m py]make distclean`
+7. **`[AUTO:GHA]`** `[python -m py]make build`
+8. **`[AUTO:GHA]`** upload to PyPI. either:
+    a) `[python -m py]make pypi`, or
     b) `twine upload -s -i $(git config user.signingkey) dist/tqdm-*`
-10. **`[AUTO:TravisCI]`** upload to docker hub:
+9. **`[AUTO:GHA]`** upload to docker hub:
     a) `make -B docker`
     b) `docker push tqdm/tqdm:latest`
     c) `docker push tqdm/tqdm:$(docker run -i --rm tqdm/tqdm -v)`
-11. **`[AUTO:TravisCI]`** upload to snapcraft:
+10. **`[AUTO:GHA]`** upload to snapcraft:
     a) `make snap`, and
     b) `snapcraft push tqdm*.snap --release stable`
-12. Wait for travis to draft a new release on <https://github.com/tqdm/tqdm/releases>
-    a) add helpful release notes
-    b) **`[AUTO:TravisCI]`** attach `dist/tqdm-*` binaries
+11. Wait for GHA to draft a new release on <https://github.com/tqdm/tqdm/releases>
+    a) replace the commit history with helpful release notes, and click publish
+    b) **`[AUTO:GHA]`** attach `dist/tqdm-*` binaries
        (usually only `*.whl*`)
-13. **`[SUB]`** run `make` in the `wiki` submodule to update release notes
-14. **`[SUB]`** run `make deploy` in the `docs` submodule to update website
-15. **`[SUB]`** accept the automated PR in the `feedstock` submodule to update conda
+12. **`[SUB][AUTO:GHA-rel]`** run `make` in the `wiki` submodule to update release notes
+13. **`[SUB][AUTO:GHA-rel]`** run `make deploy` in the `docs` submodule to update website
+14. **`[SUB][AUTO:GHA-rel]`** accept the automated PR in the `feedstock` submodule to update conda
+15. **`[AUTO:GHA-rel]`** update the [gh-pages project] benchmarks
+    a) `[python -m py]make testasvfull`
+    b) `asv gh-pages`
 
 Key:
 
-- **`[AUTO:TravisCI]`**: Travis CI should automatically do this after
-  `git push --tags` (6)
-- **`[SUB]`**:  Requires one-time `make submodules` to clone
-  `docs`, `wiki`, and `feedstock`
+- **`[AUTO:GHA]`**: GitHub Actions CI should automatically do this after `git push --tags` (5)
+- **`[AUTO:GHA-rel]`**: GitHub Actions CI should automatically do this after release (11a)
+- **`[SUB]`**:  Requires one-time `make submodules` to clone `docs`, `wiki`, and `feedstock`
