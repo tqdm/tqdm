@@ -137,9 +137,9 @@ clean:
 	@+python -c "import os, glob; [os.remove(i) for i in glob.glob('*.py[co]')]"
 	@+python -c "import os, glob; [os.remove(i) for i in glob.glob('tests/*.py[co]')]"
 	@+python -c "import os, glob; [os.remove(i) for i in glob.glob('benchmarks/*.py[co]')]"
+	@+python -c "import os, glob; [os.remove(i) for i in glob.glob('examples/*.py[co]')]"
 	@+python -c "import os, glob; [os.remove(i) for i in glob.glob('tqdm/*.py[co]')]"
 	@+python -c "import os, glob; [os.remove(i) for i in glob.glob('tqdm/contrib/*.py[co]')]"
-	@+python -c "import os, glob; [os.remove(i) for i in glob.glob('tqdm/examples/*.py[co]')]"
 toxclean:
 	@+python -c "import shutil; shutil.rmtree('.tox', True)"
 
