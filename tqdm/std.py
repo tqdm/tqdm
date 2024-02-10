@@ -10,7 +10,7 @@ Usage:
 import sys
 from collections import OrderedDict, defaultdict
 from contextlib import contextmanager
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from numbers import Number
 from time import time
 from warnings import warn
@@ -391,11 +391,11 @@ class tqdm(Comparable):
             if abs(num) < 999.5:
                 if abs(num) < 99.95:
                     if abs(num) < 9.995:
-                        return '{0:1.2f}'.format(num) + unit + suffix
-                    return '{0:2.1f}'.format(num) + unit + suffix
-                return '{0:3.0f}'.format(num) + unit + suffix
+                        return f'{num:1.2f}{unit}{suffix}'
+                    return f'{num:2.1f}{unit}{suffix}'
+                return f'{num:3.0f}{unit}{suffix}'
             num /= divisor
-        return '{0:3.1f}Y'.format(num) + suffix
+        return f'{num:3.1f}Y{suffix}'
 
     @staticmethod
     def format_interval(t):
@@ -414,10 +414,7 @@ class tqdm(Comparable):
         """
         mins, s = divmod(int(t), 60)
         h, m = divmod(mins, 60)
-        if h:
-            return '{0:d}:{1:02d}:{2:02d}'.format(h, m, s)
-        else:
-            return '{0:02d}:{1:02d}'.format(m, s)
+        return f'{h:d}:{m:02d}:{s:02d}' if h else f'{m:02d}:{s:02d}'
 
     @staticmethod
     def format_num(n):
@@ -434,7 +431,7 @@ class tqdm(Comparable):
         out  : str
             Formatted number.
         """
-        f = '{0:.3g}'.format(n).replace('+0', '+').replace('-0', '-')
+        f = f'{n:.3g}'.replace('e+0', 'e+').replace('e-0', 'e-')
         n = str(n)
         return f if len(f) < len(n) else n
 
@@ -554,10 +551,10 @@ class tqdm(Comparable):
             rate = (n - initial) / elapsed
         inv_rate = 1 / rate if rate else None
         format_sizeof = tqdm.format_sizeof
-        rate_noinv_fmt = ((format_sizeof(rate) if unit_scale else
-                           '{0:5.2f}'.format(rate)) if rate else '?') + unit + '/s'
+        rate_noinv_fmt = ((format_sizeof(rate) if unit_scale else f'{rate:5.2f}')
+                          if rate else '?') + unit + '/s'
         rate_inv_fmt = (
-            (format_sizeof(inv_rate) if unit_scale else '{0:5.2f}'.format(inv_rate))
+            (format_sizeof(inv_rate) if unit_scale else f'{inv_rate:5.2f}')
             if inv_rate else '?') + 's/' + unit
         rate_fmt = rate_inv_fmt if inv_rate and inv_rate > 1 else rate_noinv_fmt
 
@@ -577,7 +574,7 @@ class tqdm(Comparable):
         remaining_str = tqdm.format_interval(remaining) if rate else '?'
         try:
             eta_dt = (datetime.now() + timedelta(seconds=remaining)
-                      if rate and total else datetime.utcfromtimestamp(0))
+                      if rate and total else datetime.fromtimestamp(0, timezone.utc))
         except OverflowError:
             eta_dt = datetime.max
 
@@ -615,7 +612,7 @@ class tqdm(Comparable):
             frac = n / total
             percentage = frac * 100
 
-            l_bar += '{0:3.0f}%|'.format(percentage)
+            l_bar += f'{percentage:3.0f}%|'
 
             if ncols == 0:
                 return l_bar[:-1] + r_bar[1:]
@@ -933,6 +930,8 @@ class tqdm(Comparable):
         DataFrame.progress_apply = inner_generator()
         DataFrameGroupBy.progress_apply = inner_generator()
         DataFrame.progress_applymap = inner_generator('applymap')
+        DataFrame.progress_map = inner_generator('map')
+        DataFrameGroupBy.progress_map = inner_generator('map')
 
         if Panel is not None:
             Panel.progress_apply = inner_generator()

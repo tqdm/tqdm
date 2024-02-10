@@ -157,6 +157,7 @@ class tqdm_notebook(std_tqdm):
         pbar.value = self.n
 
         if msg:
+            msg = msg.replace(' ', u'\u2007')  # fix html space padding
             # html escape special characters (like '&')
             if '<bar/>' in msg:
                 left, right = map(escape, re.split(r'\|?<bar/>\|?', msg, maxsplit=1))

@@ -38,6 +38,7 @@ def envwrap(prefix, types=None, is_method=False):
     camelCase isn't supported (because Windows ignores case).
 
     Precedence (highest first):
+
     - call (`foo(a=3)`)
     - environ (`FOO_A=2`)
     - signature (`def foo(a=1)`)
@@ -101,7 +102,7 @@ def envwrap(prefix, types=None, is_method=False):
 class FormatReplace(object):
     """
     >>> a = FormatReplace('something')
-    >>> "{:5d}".format(a)
+    >>> f"{a:5d}"
     'something'
     """  # NOQA: P102
     def __init__(self, replace=''):

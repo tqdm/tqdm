@@ -94,7 +94,7 @@ class TqdmCallback(keras.callbacks.Callback):
                 raise KeyError('Unknown verbosity')
 
     def on_train_end(self, *_, **__):
-        if self.verbose:
+        if hasattr(self, 'batch_bar'):
             self.batch_bar.close()
         self.epoch_bar.close()
 
