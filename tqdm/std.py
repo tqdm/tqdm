@@ -1,5 +1,5 @@
 """
-Customisable progressbar decorator for iterators.
+Customizable progressbar decorator for iterators.
 Includes a default `range` iterator printing to `stderr`.
 
 Usage:
@@ -690,7 +690,7 @@ class tqdm(Comparable):
         to fill the new gap.
 
         This means that by default (where all nested bars are unfixed),
-        order is not maintained but screen flicker/blank space is minimised.
+        order is not maintained but screen flicker/blank space is minimized.
         (tqdm<=4.44.1 moved ALL subsequent unfixed bars up.)
         """
         with cls._lock:
@@ -1160,7 +1160,7 @@ class tqdm(Comparable):
     def __iter__(self):
         """Backward-compatibility to use: for x in tqdm(iterable)"""
 
-        # Inlining instance variables as locals (speed optimisation)
+        # Inlining instance variables as locals (speed optimization)
         iterable = self.iterable
 
         # If the bar is disabled, then just walk the iterable
