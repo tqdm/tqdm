@@ -584,7 +584,7 @@ Returns
               Forces refresh [default: True].
           """
 
-      def set_postfix(self, ordered_dict=None, refresh=True, **tqdm_kwargs):
+      def set_postfix(self, ordered_dict=None, refresh=True, strip=True, **tqdm_kwargs):
           """
           Set/modify postfix (additional stats)
           with automatic formatting based on datatype.
