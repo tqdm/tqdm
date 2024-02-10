@@ -116,6 +116,11 @@ class tqdm_rich(std_tqdm):  # pragma: no cover
     def close(self):
         if self.disable:
             return
+
+        # Add call display to print 100%
+        # https://github.com/tqdm/tqdm/issues/1306#issuecomment-1322762835
+        self.display()
+
         super(tqdm_rich, self).close()
         self._prog.__exit__(None, None, None)
 
