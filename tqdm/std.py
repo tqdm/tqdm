@@ -1166,8 +1166,7 @@ class tqdm(Comparable):
         # If the bar is disabled, then just walk the iterable
         # (note: keep this check outside the loop for performance)
         if self.disable:
-            for obj in iterable:
-                yield obj
+            yield from iterable
             return
 
         mininterval = self.mininterval
@@ -1233,7 +1232,6 @@ class tqdm(Comparable):
             cur_t = self._time()
             dt = cur_t - self.last_print_t
             if dt >= self.mininterval and cur_t >= self.start_t + self.delay:
-                cur_t = self._time()
                 dn = self.n - self.last_print_n  # >= n
                 if self.smoothing and dt and dn:
                     # EMA (not just overall average)
