@@ -975,7 +975,10 @@ class tqdm(Comparable):
 
         if total is None and iterable is not None:
             try:
-                total = len(iterable)
+                if isinstance(iterable, enumerate):
+                    total = len(list(iterable))
+                else:
+                    total = len(iterable)
             except (TypeError, AttributeError):
                 total = None
         if total == float("inf"):
