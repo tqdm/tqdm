@@ -8,9 +8,9 @@ from io import StringIO
 import pytest
 
 from tqdm import tqdm
-from tqdm.contrib.logging import _get_first_found_console_logging_handler
-from tqdm.contrib.logging import _TqdmLoggingHandler as TqdmLoggingHandler
-from tqdm.contrib.logging import logging_redirect_tqdm, tqdm_logging_redirect
+from tqdm.contrib.logging import (
+    TqdmLoggingHandler, _get_first_found_console_logging_handler, logging_redirect_tqdm,
+    tqdm_logging_redirect)
 
 from .tests_tqdm import importorskip
 
