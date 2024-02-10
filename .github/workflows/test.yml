@@ -111,6 +111,8 @@ jobs:
   deploy:
     needs: [check, test]
     runs-on: ubuntu-latest
+    environment: pypi
+    permissions: {contents: write, id-token: write, packages: write}
     steps:
     - uses: actions/checkout@v4
       with:
@@ -127,7 +129,6 @@ jobs:
     - id: dist
       uses: casperdcl/deploy-pypi@v2
       with:
-        password: ${{ secrets.PYPI_TOKEN }}
         gpg_key: ${{ secrets.GPG_KEY }}
         upload: ${{ github.event_name == 'push' && startsWith(github.ref, 'refs/tags') }}
     - id: collect_assets
