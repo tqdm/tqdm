@@ -9,7 +9,7 @@ __author__ = {"github.com/": ["casperdcl"]}
 __all__ = ['product']
 
 
-def product(*iterables, **tqdm_kwargs):
+def product(*iterables, repeat=1, **tqdm_kwargs):
     """
     Equivalent of `itertools.product`.
 
@@ -29,7 +29,7 @@ def product(*iterables, **tqdm_kwargs):
             total *= i
         kwargs.setdefault("total", total)
     with tqdm_class(**kwargs) as t:
-        it = itertools.product(*iterables)
+        it = itertools.product(*iterables, repeat=repeat)
         for i in it:
             yield i
             t.update()
