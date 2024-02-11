@@ -24,3 +24,5 @@ def test_product():
         assert list(product(a, a[::-1], file=our_file)) == list(it.product(a, a[::-1]))
 
         assert list(product(a, NoLenIter(a), file=our_file)) == list(it.product(a, NoLenIter(a)))
+
+        assert list(product(a, repeat=2, file=our_file)) == list(it.product(a, repeat=2))
