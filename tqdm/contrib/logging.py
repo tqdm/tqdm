@@ -1,14 +1,12 @@
 """
 Helper functionality for interoperability with stdlib `logging`.
 """
-from __future__ import absolute_import
-
 import logging
 import sys
 from contextlib import contextmanager
 
 try:
-    from typing import Iterator, List, Optional, Type  # pylint: disable=unused-import
+    from typing import Iterator, List, Optional, Type  # noqa: F401
 except ImportError:
     pass
 

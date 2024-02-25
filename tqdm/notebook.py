@@ -7,18 +7,14 @@ Usage:
 >>> for i in trange(10):
 ...     ...
 """
-# future division is important to divide integers and get as
-# a result precise floating numbers (instead of truncated int)
-from __future__ import absolute_import, division
-
 # import compatibility functions and utilities
 import re
 import sys
+from html import escape
 from weakref import proxy
 
 # to inherit from the tqdm class
 from .std import tqdm as std_tqdm
-from .utils import _range
 
 if True:  # pragma: no cover
     # import IPython/Jupyter base widget and display utilities
@@ -62,12 +58,6 @@ if True:  # pragma: no cover
         from IPython.display import display  # , clear_output
     except ImportError:
         pass
-
-    # HTML encoding
-    try:  # Py3
-        from html import escape
-    except ImportError:  # Py2
-        from cgi import escape
 
 __author__ = {"github.com/": ["lrq3000", "casperdcl", "alexanderkuk"]}
 __all__ = ['tqdm_notebook', 'tnrange', 'tqdm', 'trange']
@@ -167,9 +157,10 @@ class tqdm_notebook(std_tqdm):
         pbar.value = self.n
 
         if msg:
+            msg = msg.replace(' ', u'\u2007')  # fix html space padding
             # html escape special characters (like '&')
             if '<bar/>' in msg:
-                left, right = map(escape, re.split(r'\|?<bar/>\|?', msg, 1))
+                left, right = map(escape, re.split(r'\|?<bar/>\|?', msg, maxsplit=1))
             else:
                 left, right = '', escape(msg)
 
@@ -317,11 +308,8 @@ class tqdm_notebook(std_tqdm):
 
 
 def tnrange(*args, **kwargs):
-    """
-    A shortcut for `tqdm.notebook.tqdm(xrange(*args), **kwargs)`.
-    On Python3+, `range` is used instead of `xrange`.
-    """
-    return tqdm_notebook(_range(*args), **kwargs)
+    """Shortcut for `tqdm.notebook.tqdm(range(*args), **kwargs)`."""
+    return tqdm_notebook(range(*args), **kwargs)
 
 
 # Aliases

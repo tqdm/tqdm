@@ -20,11 +20,8 @@ Options:
     The local file path in which to save the url [default: /dev/null].
 """
 
-try:
-    from urllib import request as urllib
-except ImportError:  # py2
-    import urllib
 from os import devnull
+from urllib import request as urllib
 
 from docopt import docopt
 

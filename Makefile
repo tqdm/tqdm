@@ -1,4 +1,4 @@
-# IMPORTANT: for compatibility with `python setup.py make [alias]`, ensure:
+# IMPORTANT: for compatibility with `python -m pymake [alias]`, ensure:
 # 1. Every alias is preceded by @[+]make (eg: @make alias)
 # 2. A maximum of one @make alias or command per line
 # see: https://github.com/tqdm/py-make/issues/1
@@ -31,7 +31,7 @@
 	run
 
 help:
-	@python setup.py make -p
+	@python -m pymake -p
 
 alltests:
 	@+make testcoverage
@@ -58,15 +58,14 @@ testsetup:
 	@make README.rst
 	@make tqdm/tqdm.1
 	@make tqdm/completion.sh
-	python setup.py check --metadata --restructuredtext --strict
-	python setup.py make none
+	@make help
 
 testnb:
-	pytest tests_notebook.ipynb --nbval --nbval-current-env -W=ignore --nbval-sanitize-with=setup.cfg --cov=tqdm.notebook --cov-report=term
+	pytest tests_notebook.ipynb --cov=tqdm.notebook --cov-report=term -W=ignore --nbval --current-env --sanitize-with=.meta/nbval.ini
 
 testcoverage:
 	@make coverclean
-	pytest tests_notebook.ipynb --cov=tqdm --cov-report= --nbval --nbval-current-env --nbval-sanitize-with=setup.cfg -W=ignore
+	pytest tests_notebook.ipynb --cov=tqdm --cov-report= -W=ignore --nbval --current-env --sanitize-with=.meta/nbval.ini
 	pytest -k "not perf" --cov=tqdm --cov-report=xml --cov-report=term --cov-append --cov-fail-under=80
 
 testperf:
@@ -138,9 +137,9 @@ clean:
 	@+python -c "import os, glob; [os.remove(i) for i in glob.glob('*.py[co]')]"
 	@+python -c "import os, glob; [os.remove(i) for i in glob.glob('tests/*.py[co]')]"
 	@+python -c "import os, glob; [os.remove(i) for i in glob.glob('benchmarks/*.py[co]')]"
+	@+python -c "import os, glob; [os.remove(i) for i in glob.glob('examples/*.py[co]')]"
 	@+python -c "import os, glob; [os.remove(i) for i in glob.glob('tqdm/*.py[co]')]"
 	@+python -c "import os, glob; [os.remove(i) for i in glob.glob('tqdm/contrib/*.py[co]')]"
-	@+python -c "import os, glob; [os.remove(i) for i in glob.glob('tqdm/examples/*.py[co]')]"
 toxclean:
 	@+python -c "import shutil; shutil.rmtree('.tox', True)"
 
@@ -152,12 +151,11 @@ submodules:
 	cd feedstock && git remote add autotick-bot git@github.com:regro-cf-autotick-bot/tqdm-feedstock
 
 install:
-	python setup.py install
+	python -m pip install .
 install_dev:
-	python setup.py develop --uninstall
-	python setup.py develop
+	python -m pip install -e .
 install_build:
-	python -m pip install -r .meta/requirements-dev.txt
+	python -m pip install -r .meta/requirements-build.txt
 install_test:
 	python -m pip install -r .meta/requirements-test.txt
 	pre-commit install
@@ -165,11 +163,11 @@ install_test:
 build:
 	@make prebuildclean
 	@make testsetup
-	python setup.py sdist bdist_wheel
-	# python setup.py bdist_wininst
+	python -m build
+	python -m twine check dist/*
 
 pypi:
-	twine upload dist/*
+	python -m twine upload dist/*
 
 buildupload:
 	@make build

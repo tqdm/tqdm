@@ -1,8 +1,6 @@
 """
 Thin wrappers around `itertools`.
 """
-from __future__ import absolute_import
-
 import itertools
 
 from ..auto import tqdm as tqdm_auto

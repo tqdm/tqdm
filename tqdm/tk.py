@@ -6,22 +6,14 @@ Usage:
 >>> for i in trange(10):
 ...     ...
 """
-from __future__ import absolute_import, division
-
 import re
 import sys
+import tkinter
+import tkinter.ttk as ttk
 from warnings import warn
-
-try:
-    import tkinter
-    import tkinter.ttk as ttk
-except ImportError:
-    import Tkinter as tkinter
-    import ttk as ttk
 
 from .std import TqdmExperimentalWarning, TqdmWarning
 from .std import tqdm as std_tqdm
-from .utils import _range
 
 __author__ = {"github.com/": ["richardsheridan", "casperdcl"]}
 __all__ = ['tqdm_tk', 'ttkrange', 'tqdm', 'trange']
@@ -143,7 +135,7 @@ class tqdm_tk(std_tqdm):  # pragma: no cover
             "{bar}", "<bar/>")
         msg = self.format_meter(**d)
         if '<bar/>' in msg:
-            msg = "".join(re.split(r'\|?<bar/>\|?', msg, 1))
+            msg = "".join(re.split(r'\|?<bar/>\|?', msg, maxsplit=1))
         self._tk_text_var.set(msg)
         if not self._tk_dispatching:
             self._tk_window.update()
@@ -195,11 +187,8 @@ class tqdm_tk(std_tqdm):  # pragma: no cover
 
 
 def ttkrange(*args, **kwargs):
-    """
-    A shortcut for `tqdm.tk.tqdm(xrange(*args), **kwargs)`.
-    On Python3+, `range` is used instead of `xrange`.
-    """
-    return tqdm_tk(_range(*args), **kwargs)
+    """Shortcut for `tqdm.tk.tqdm(range(*args), **kwargs)`."""
+    return tqdm_tk(range(*args), **kwargs)
 
 
 # Aliases

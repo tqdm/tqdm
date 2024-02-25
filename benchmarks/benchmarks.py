@@ -1,7 +1,5 @@
 # Write the benchmarking functions here.
 # See "Writing benchmarks" in the asv docs for more information.
-from __future__ import division
-
 from functools import partial
 
 
@@ -14,10 +12,7 @@ class Comparison:
         except ImportError:
             from time import clock
             self.time = clock
-        try:
-            self.iterable = xrange(int(length))
-        except NameError:
-            self.iterable = range(int(length))
+        self.iterable = range(int(length))
 
     def run(self, cls):
         pbar = cls(self.iterable)

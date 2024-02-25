@@ -255,7 +255,7 @@ This can be beautified further:
 
 .. code:: sh
 
-    $ BYTES="$(du -sb docs/ | cut -f1)"
+    $ BYTES=$(du -sb docs/ | cut -f1)
     $ tar -cf - docs/ \
       | tqdm --bytes --total "$BYTES" --desc Processing | gzip \
       | tqdm --bytes --total "$BYTES" --desc Compressed --position 1 \
@@ -291,6 +291,12 @@ The most common issues relate to excessive output on multiple lines, instead
 of a neat one-line progress bar.
 
 - Consoles in general: require support for carriage return (``CR``, ``\r``).
+
+  * Some cloud logging consoles which don't support ``\r`` properly
+    (`cloudwatch <https://github.com/tqdm/tqdm/issues/966>`__,
+    `K8s <https://github.com/tqdm/tqdm/issues/1319>`__) may benefit from
+    ``export TQDM_POSITION=-1``.
+
 - Nested progress bars:
 
   * Consoles in general: require support for moving cursors up to the
@@ -327,11 +333,13 @@ of a neat one-line progress bar.
   * The same applies to ``itertools``.
   * Some useful convenience functions can be found under ``tqdm.contrib``.
 
-- `Hanging pipes in python2 <https://github.com/tqdm/tqdm/issues/359>`__:
-  when using ``tqdm`` on the CLI, you may need to use Python 3.5+ for correct
-  buffering.
 - `No intermediate output in docker-compose <https://github.com/tqdm/tqdm/issues/771>`__:
   use ``docker-compose run`` instead of ``docker-compose up`` and ``tty: true``.
+
+- Overriding defaults via environment variables:
+  e.g. in CI/cloud jobs, ``export TQDM_MININTERVAL=5`` to avoid log spam.
+  This override logic is handled by the ``tqdm.utils.envwrap`` decorator
+  (useful independent of ``tqdm``).
 
 If you come across any other difficulties, browse and file |GitHub-Issues|.
 
@@ -349,12 +357,14 @@ Documentation
       progressbar every time a value is requested.
       """
 
+      @envwrap("TQDM_")  # override defaults via env vars
       def __init__(self, iterable=None, desc=None, total=None, leave=True,
                    file=None, ncols=None, mininterval=0.1,
                    maxinterval=10.0, miniters=None, ascii=None, disable=False,
                    unit='it', unit_scale=False, dynamic_ncols=False,
                    smoothing=0.3, bar_format=None, initial=0, position=None,
-                   postfix=None, unit_divisor=1000):
+                   postfix=None, unit_divisor=1000, write_bytes=False,
+                   lock_args=None, nrows=None, colour=None, delay=0):
 
 Parameters
 ~~~~~~~~~~
@@ -450,9 +460,7 @@ Parameters
 * unit_divisor  : float, optional  
     [default: 1000], ignored unless ``unit_scale`` is True.
 * write_bytes  : bool, optional  
-    If (default: None) and ``file`` is unspecified,
-    bytes will be written in Python 2. If ``True`` will also write
-    bytes. In all other cases will default to unicode.
+    Whether to write bytes. If (default: False) will write unicode.
 * lock_args  : tuple, optional  
     Passed to ``refresh`` for intermediate output
     (initialisation, iterating, and updating).
@@ -631,10 +639,7 @@ Returns
           """Registers the current `tqdm` class with `pandas`."""
 
     def trange(*args, **tqdm_kwargs):
-        """
-        A shortcut for `tqdm(xrange(*args), **tqdm_kwargs)`.
-        On Python3+, `range` is used instead of `xrange`.
-        """
+        """Shortcut for `tqdm(range(*args), **tqdm_kwargs)`."""
 
 Convenience Functions
 ~~~~~~~~~~~~~~~~~~~~~
@@ -737,7 +742,7 @@ with the ``desc`` and ``postfix`` arguments:
             sleep(0.1)
 
     with tqdm(total=10, bar_format="{postfix[0]} {postfix[1][value]:>8.2g}",
-              postfix=["Batch", dict(value=0)]) as t:
+              postfix=["Batch", {"value": 0}]) as t:
         for i in range(10):
             sleep(0.1)
             t.postfix[1]["value"] = i / 2
@@ -825,7 +830,7 @@ first.
     def progresser(n):
         interval = 0.001 / (n + 2)
         total = 5000
-        text = "#{}, est. {:<04.2}s".format(n, interval * total)
+        text = f"#{n}, est. {interval * total:<04.2}s"
         for _ in trange(total, desc=text, position=n):
             sleep(interval)
 
@@ -848,7 +853,7 @@ Note that in Python 3, ``tqdm.write`` is thread-safe:
     def progresser(n):
         interval = 0.001 / (n + 2)
         total = 5000
-        text = "#{}, est. {:<04.2}s".format(n, interval * total)
+        text = f"#{n}, est. {interval * total:<04.2}s"
         for _ in trange(total, desc=text):
             sleep(interval)
         if n == 6:
@@ -1405,16 +1410,17 @@ are:
 ==================== ======================================================== ==== ================================
 Name                 ID                                                       SLoC Notes
 ==================== ======================================================== ==== ================================
-Casper da Costa-Luis `casperdcl <https://github.com/casperdcl>`__             ~78% primary maintainer |Gift-Casper|
-Stephen Larroque     `lrq3000 <https://github.com/lrq3000>`__                 ~10% team member
-Martin Zugnoni       `martinzugnoni <https://github.com/martinzugnoni>`__     ~4%
+Casper da Costa-Luis `casperdcl <https://github.com/casperdcl>`__             ~80% primary maintainer |Gift-Casper|
+Stephen Larroque     `lrq3000 <https://github.com/lrq3000>`__                 ~9%  team member
+Martin Zugnoni       `martinzugnoni <https://github.com/martinzugnoni>`__     ~3%
 Daniel Ecer          `de-code <https://github.com/de-code>`__                 ~2%
 Richard Sheridan     `richardsheridan <https://github.com/richardsheridan>`__ ~1%
 Guangshuo Chen       `chengs <https://github.com/chengs>`__                   ~1%
+Helio Machado        `0x2b3bfa0 <https://github.com/0x2b3bfa0>`__             ~1%
 Kyle Altendorf       `altendky <https://github.com/altendky>`__               <1%
+Noam Yorav-Raphael   `noamraph <https://github.com/noamraph>`__               <1%  original author
 Matthew Stevens      `mjstevens777 <https://github.com/mjstevens777>`__       <1%
 Hadrien Mary         `hadim <https://github.com/hadim>`__                     <1%  team member
-Noam Yorav-Raphael   `noamraph <https://github.com/noamraph>`__               <1%  original author
 Mikhail Korobov      `kmike <https://github.com/kmike>`__                     <1%  team member
 ==================== ======================================================== ==== ================================
 
@@ -1434,16 +1440,16 @@ Citation information: |DOI|
 
 |README-Hits| (Since 19 May 2016)
 
-.. |Logo| image:: https://img.tqdm.ml/logo.gif
-.. |Screenshot| image:: https://img.tqdm.ml/tqdm.gif
-.. |Video| image:: https://img.tqdm.ml/video.jpg
+.. |Logo| image:: https://tqdm.github.io/img/logo.gif
+.. |Screenshot| image:: https://tqdm.github.io/img/tqdm.gif
+.. |Video| image:: https://tqdm.github.io/img/video.jpg
    :target: https://tqdm.github.io/video
-.. |Slides| image:: https://img.tqdm.ml/slides.jpg
+.. |Slides| image:: https://tqdm.github.io/img/slides.jpg
    :target: https://tqdm.github.io/PyData2019/slides.html
-.. |Merch| image:: https://img.tqdm.ml/merch.jpg
+.. |Merch| image:: https://tqdm.github.io/img/merch.jpg
    :target: https://tqdm.github.io/merch
-.. |Build-Status| image:: https://img.shields.io/github/workflow/status/tqdm/tqdm/Test/master?logo=GitHub
-   :target: https://github.com/tqdm/tqdm/actions?query=workflow%3ATest
+.. |Build-Status| image:: https://img.shields.io/github/actions/workflow/status/tqdm/tqdm/test.yml?branch=master&label=tqdm&logo=GitHub
+   :target: https://github.com/tqdm/tqdm/actions/workflows/test.yml
 .. |Coverage-Status| image:: https://img.shields.io/coveralls/github/tqdm/tqdm/master?logo=coveralls
    :target: https://coveralls.io/github/tqdm/tqdm
 .. |Branch-Coverage-Status| image:: https://codecov.io/gh/tqdm/tqdm/branch/master/graph/badge.svg
@@ -1496,8 +1502,8 @@ Citation information: |DOI|
    :target: https://doi.org/10.5281/zenodo.595120
 .. |binder-demo| image:: https://mybinder.org/badge_logo.svg
    :target: https://mybinder.org/v2/gh/tqdm/tqdm/master?filepath=DEMO.ipynb
-.. |Screenshot-Jupyter1| image:: https://img.tqdm.ml/jupyter-1.gif
-.. |Screenshot-Jupyter2| image:: https://img.tqdm.ml/jupyter-2.gif
-.. |Screenshot-Jupyter3| image:: https://img.tqdm.ml/jupyter-3.gif
-.. |README-Hits| image:: https://caspersci.uk.to/cgi-bin/hits.cgi?q=tqdm&style=social&r=https://github.com/tqdm/tqdm&l=https://img.tqdm.ml/favicon.png&f=https://img.tqdm.ml/logo.gif
-   :target: https://caspersci.uk.to/cgi-bin/hits.cgi?q=tqdm&a=plot&r=https://github.com/tqdm/tqdm&l=https://img.tqdm.ml/favicon.png&f=https://img.tqdm.ml/logo.gif&style=social
+.. |Screenshot-Jupyter1| image:: https://tqdm.github.io/img/jupyter-1.gif
+.. |Screenshot-Jupyter2| image:: https://tqdm.github.io/img/jupyter-2.gif
+.. |Screenshot-Jupyter3| image:: https://tqdm.github.io/img/jupyter-3.gif
+.. |README-Hits| image:: https://caspersci.uk.to/cgi-bin/hits.cgi?q=tqdm&style=social&r=https://github.com/tqdm/tqdm&l=https://tqdm.github.io/img/favicon.png&f=https://tqdm.github.io/img/logo.gif
+   :target: https://caspersci.uk.to/cgi-bin/hits.cgi?q=tqdm&a=plot&r=https://github.com/tqdm/tqdm&l=https://tqdm.github.io/img/favicon.png&f=https://tqdm.github.io/img/logo.gif&style=social

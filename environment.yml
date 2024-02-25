@@ -5,7 +5,7 @@ channels:
 - defaults
 dependencies:
 # base
-- python=3
+- python >=3.7
 - pip
 - ipykernel
 - ipywidgets
@@ -20,7 +20,7 @@ dependencies:
 - pytest
 - pytest-cov
 - pytest-timeout
-- pytest-asyncio  # [py>=3.7]
+- pytest-asyncio
 - nbval
 - coverage
 # extras
@@ -28,19 +28,20 @@ dependencies:
 - matplotlib         # gui
 - numpy              # pandas, keras, contrib.tenumerate
 - pandas
+- pyarrow            # pandas
 - tensorflow         # keras
 - slack-sdk          # contrib.slack
 - requests           # contrib.telegram
 - rich               # rich
 - argopt             # `cd wiki && pymake`
-- twine              # `pymake pypi`
-- wheel              # `setup.py bdist_wheel`
+- twine              # `pymake check pypi`
+- build              # `python -m build`
 # `cd docs && pymake`
 - mkdocs-material
 - pydoc-markdown
 - pygments
 - pymdown-extensions
 - pip:
-  - py-make >=0.1.0  # `setup.py make/pymake`
+  - py-make >=0.1.0                                          # `make/pymake`
   - mkdocs-minify-plugin                                     # `cd docs && pymake`
   - git+https://github.com/tqdm/jsmin@python3-only#egg=jsmin # `cd docs && pymake`
