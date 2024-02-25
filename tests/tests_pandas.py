@@ -4,6 +4,7 @@ from .tests_tqdm import StringIO, closing, importorskip, mark, skip
 
 pytestmark = mark.slow
 
+np = importorskip('numpy')
 random = importorskip('numpy.random')
 rand = random.rand
 randint = random.randint
@@ -66,6 +67,7 @@ def test_pandas_series():
                     f"\nExpected:\n{exres} at least twice.\nIn:\n{our_file.read()}\n")
 
 
+@mark.filterwarnings("ignore:DataFrame.applymap has been deprecated:FutureWarning")
 def test_pandas_data_frame():
     """Test pandas.DataFrame.progress_apply and .progress_applymap"""
     with closing(StringIO()) as our_file:
@@ -79,6 +81,12 @@ def test_pandas_data_frame():
         res1 = df.progress_applymap(task_func)
         res2 = df.applymap(task_func)
         assert res1.equals(res2)
+
+        # map
+        if hasattr(df, 'map'):  # pandas>=2.1.0
+            res1 = df.progress_map(task_func)
+            res2 = df.map(task_func)
+            assert res1.equals(res2)
 
         # apply unhashable
         res1 = []
@@ -107,6 +115,8 @@ def test_pandas_data_frame():
                     f"\nExpected:\n{exres} at least once.\nIn:\n{our_file.read()}\n")
 
 
+@mark.filterwarnings(
+    "ignore:DataFrameGroupBy.apply operated on the grouping columns:DeprecationWarning")
 def test_pandas_groupby_apply():
     """Test pandas.DataFrame.groupby(...).progress_apply"""
     with closing(StringIO()) as our_file:
@@ -119,8 +129,8 @@ def test_pandas_groupby_apply():
         dfs.groupby(['a']).progress_apply(lambda x: None)
 
         df2 = df = pd.DataFrame({'a': randint(1, 8, 10000), 'b': rand(10000)})
-        res1 = df2.groupby("a").apply(max)
-        res2 = df2.groupby("a").progress_apply(max)
+        res1 = df2.groupby("a").apply(np.maximum.reduce)
+        res2 = df2.groupby("a").progress_apply(np.maximum.reduce)
         assert res1.equals(res2)
 
         our_file.seek(0)
@@ -139,11 +149,11 @@ def test_pandas_groupby_apply():
         dfs.loc[0] = [2, 1, 1]
         dfs['d'] = 100
 
-        expects = ['500/500', '1/1', '4/4', '2/2']
+        expects = ['500/500', '1/1', '4/4', '4/4']
         dfs.groupby(dfs.index).progress_apply(lambda x: None)
         dfs.groupby('d').progress_apply(lambda x: None)
-        dfs.groupby(dfs.columns, axis=1).progress_apply(lambda x: None)
-        dfs.groupby([2, 2, 1, 1], axis=1).progress_apply(lambda x: None)
+        dfs.T.groupby(dfs.columns).progress_apply(lambda x: None)
+        dfs.T.groupby([2, 2, 1, 1]).progress_apply(lambda x: None)
 
         our_file.seek(0)
         if our_file.read().count('100%') < 4:
@@ -159,6 +169,8 @@ def test_pandas_groupby_apply():
                     f"\nExpected:\n{exres} at least once.\nIn:\n{our_file.read()}\n")
 
 
+@mark.filterwarnings(
+    "ignore:DataFrameGroupBy.apply operated on the grouping columns:DeprecationWarning")
 def test_pandas_leave():
     """Test pandas with `leave=True`"""
     with closing(StringIO()) as our_file:
@@ -193,6 +205,8 @@ def test_pandas_apply_args_deprecation():
             "keyword arguments instead"))
 
 
+@mark.filterwarnings(
+    "ignore:DataFrameGroupBy.apply operated on the grouping columns:DeprecationWarning")
 def test_pandas_deprecation():
     """Test bar object instance as argument deprecation"""
     try:
