@@ -28,6 +28,7 @@ dependencies:
 - matplotlib         # gui
 - numpy              # pandas, keras, contrib.tenumerate
 - pandas
+- pyarrow            # pandas
 - tensorflow         # keras
 - slack-sdk          # contrib.slack
 - requests           # contrib.telegram
