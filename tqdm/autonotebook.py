@@ -23,7 +23,7 @@ except Exception:
     from .std import tqdm, trange
 else:  # pragma: no cover
     if "SPY_TESTING" in os.environ:
-        # we are running in the Spyder environment, 
+        # we are running in the Spyder environment
         from .std import tqdm, trange
     else:
         from .notebook import tqdm, trange
