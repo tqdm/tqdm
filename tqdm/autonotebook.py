@@ -6,6 +6,7 @@ Usage:
 >>> for i in trange(10):
 ...     ...
 """
+import os
 import sys
 from warnings import warn
 
@@ -21,7 +22,11 @@ try:
 except Exception:
     from .std import tqdm, trange
 else:  # pragma: no cover
-    from .notebook import tqdm, trange
+    if "SPY_TESTING" in os.environ:
+        # we are running in the Spyder environment, 
+        from .std import tqdm, trange
+    else:
+        from .notebook import tqdm, trange
     from .std import TqdmExperimentalWarning
     warn("Using `tqdm.autonotebook.tqdm` in notebook mode."
          " Use `tqdm.tqdm` instead to force console mode"
