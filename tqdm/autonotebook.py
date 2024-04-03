@@ -6,7 +6,6 @@ Usage:
 >>> for i in trange(10):
 ...     ...
 """
-import os
 import sys
 from warnings import warn
 
@@ -22,8 +21,9 @@ try:
 except Exception:
     from .std import tqdm, trange
 else:  # pragma: no cover
-    if "SPY_TESTING" in os.environ:
-        # we are running in the Spyder environment
+    if get_ipython().__class__.__name__ == 'SpyderShell':
+        # we are running in the Spyder environment,
+        # see https://github.com/spyder-ide/spyder/issues/21929
         from .std import tqdm, trange
     else:
         from .notebook import tqdm, trange
