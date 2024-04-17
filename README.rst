@@ -348,6 +348,8 @@ Documentation
 
 |Py-Versions| |README-Hits| (Since 19 May 2016)
 
+**Online Documentation:** https://pypi.org/project/tqdm/#documentation
+
 .. code:: python
 
     class tqdm():
