@@ -21,23 +21,34 @@ def cast(val, typ):
                 return cast(val, t)
             except TqdmTypeError:
                 pass
-        raise TqdmTypeError(val + ' : ' + typ)
+        raise TqdmTypeError(f"{val} : {typ}")
 
     # sys.stderr.write('\ndebug | `val:type`: `' + val + ':' + typ + '`.\n')
     if typ == 'bool':
         if (val == 'True') or (val == ''):
             return True
-        elif val == 'False':
+        if val == 'False':
             return False
-        else:
-            raise TqdmTypeError(val + ' : ' + typ)
-    try:
-        return eval(typ + '("' + val + '")')
-    except Exception:
-        if typ == 'chr':
-            return chr(ord(eval('"' + val + '"'))).encode()
-        else:
-            raise TqdmTypeError(val + ' : ' + typ)
+        raise TqdmTypeError(val + ' : ' + typ)
+    if typ == 'chr':
+        if len(val) == 1:
+            return val.encode()
+        if re.match(r"^\\\w+$", val):
+            return eval(f'"{val}"').encode()
+        raise TqdmTypeError(f"{val} : {typ}")
+    if typ == 'str':
+        return val
+    if typ == 'int':
+        try:
+            return int(val)
+        except ValueError as exc:
+            raise TqdmTypeError(f"{val} : {typ}") from exc
+    if typ == 'float':
+        try:
+            return float(val)
+        except ValueError as exc:
+            raise TqdmTypeError(f"{val} : {typ}") from exc
+    raise TqdmTypeError(f"{val} : {typ}")
 
 
 def posix_pipe(fin, fout, delim=b'\\n', buf_size=256,
