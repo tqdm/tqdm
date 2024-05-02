@@ -46,7 +46,7 @@ class TqdmWarning(Warning):
         if fp_write is not None:
             fp_write("\n" + self.__class__.__name__ + ": " + str(msg).rstrip() + '\n')
         else:
-            super(TqdmWarning, self).__init__(msg, *a, **k)
+            super().__init__(msg, *a, **k)
 
 
 class TqdmExperimentalWarning(TqdmWarning, FutureWarning):
