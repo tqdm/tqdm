@@ -21,7 +21,7 @@ class tqdm_asyncio(std_tqdm):
     Asynchronous-friendly version of tqdm.
     """
     def __init__(self, iterable=None, *args, **kwargs):
-        super(tqdm_asyncio, self).__init__(iterable, *args, **kwargs)
+        super().__init__(iterable, *args, **kwargs)
         self.iterable_awaitable = False
         if iterable is not None:
             if hasattr(iterable, "__anext__"):

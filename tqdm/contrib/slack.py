@@ -27,7 +27,7 @@ class SlackIO(MonoWorker):
     """Non-blocking file-like IO using a Slack app."""
     def __init__(self, token, channel):
         """Creates a new message in the given `channel`."""
-        super(SlackIO, self).__init__()
+        super().__init__()
         self.client = WebClient(token=token)
         self.text = self.__class__.__name__
         try:
@@ -88,10 +88,10 @@ class tqdm_slack(tqdm_auto):
                 kwargs.pop('token', getenv("TQDM_SLACK_TOKEN")),
                 kwargs.pop('channel', getenv("TQDM_SLACK_CHANNEL")))
             kwargs['mininterval'] = max(1.5, kwargs.get('mininterval', 1.5))
-        super(tqdm_slack, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def display(self, **kwargs):
-        super(tqdm_slack, self).display(**kwargs)
+        super().display(**kwargs)
         fmt = self.format_dict
         if fmt.get('bar_format', None):
             fmt['bar_format'] = fmt['bar_format'].replace(
@@ -105,7 +105,7 @@ class tqdm_slack(tqdm_auto):
         self.sio.write(self.format_meter(**fmt))
 
     def clear(self, *args, **kwargs):
-        super(tqdm_slack, self).clear(*args, **kwargs)
+        super().clear(*args, **kwargs)
         if not self.disable:
             self.sio.write("")
 
