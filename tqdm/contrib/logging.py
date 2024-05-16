@@ -86,6 +86,7 @@ def logging_redirect_tqdm(
             orig_handler = _get_first_found_console_logging_handler(logger.handlers)
             if orig_handler is not None:
                 tqdm_handler.setFormatter(orig_handler.formatter)
+                tqdm_handler.setLevel(orig_handler.level)
                 tqdm_handler.stream = orig_handler.stream
             logger.handlers = [
                 handler for handler in logger.handlers
