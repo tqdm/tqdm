@@ -154,6 +154,7 @@ class tqdm_notebook(std_tqdm):
             msg = self.format_meter(**d)
 
         ltext, pbar, rtext = self.container.children
+        pbar.max = self.total
         pbar.value = self.n
 
         if msg:
