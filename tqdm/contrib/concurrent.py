@@ -63,7 +63,7 @@ def thread_map(fn, *iterables, **tqdm_kwargs):
     max_workers  : int, optional
         Maximum number of workers to spawn; passed to
         `concurrent.futures.ThreadPoolExecutor.__init__`.
-        [default: max(32, cpu_count() + 4)].
+        [default: min(32, cpu_count() + 4)].
     """
     from concurrent.futures import ThreadPoolExecutor
     return _executor_map(ThreadPoolExecutor, fn, *iterables, **tqdm_kwargs)
