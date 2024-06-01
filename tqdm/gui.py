@@ -32,7 +32,7 @@ class tqdm_gui(std_tqdm):  # pragma: no cover
         kwargs = kwargs.copy()
         kwargs['gui'] = True
         colour = kwargs.pop('colour', 'g')
-        super(tqdm_gui, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         if self.disable:
             return
