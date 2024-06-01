@@ -21,7 +21,12 @@ try:
 except Exception:
     from .std import tqdm, trange
 else:  # pragma: no cover
-    from .notebook import tqdm, trange
+    if get_ipython().__class__.__name__ == 'SpyderShell':
+        # we are running in the Spyder environment,
+        # see https://github.com/spyder-ide/spyder/issues/21929
+        from .std import tqdm, trange
+    else:
+        from .notebook import tqdm, trange
     from .std import TqdmExperimentalWarning
     warn("Using `tqdm.autonotebook.tqdm` in notebook mode."
          " Use `tqdm.tqdm` instead to force console mode"
