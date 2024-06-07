@@ -15,6 +15,7 @@ from numbers import Number
 from time import time
 from warnings import warn
 from weakref import WeakSet
+import copy
 
 from ._monitor import TMonitor
 from .utils import (
@@ -1118,13 +1119,15 @@ class tqdm(Comparable):
             else getattr(self, "total", None))
 
     def __reversed__(self):
+         # Uses the built-in `copy.copy` to shallow copy the object, replaces the original iterable as the reverse one.
         try:
             orig = self.iterable
         except AttributeError:
             raise TypeError("'tqdm' object is not reversible")
         else:
-            self.iterable = reversed(self.iterable)
-            return self.__iter__()
+            reversed_iterator = copy.copy(self)
+            reversed_iterator.iterable = reversed(self.iterable)
+            return reversed_iterator
         finally:
             self.iterable = orig
 
