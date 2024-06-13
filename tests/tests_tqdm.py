@@ -1965,8 +1965,11 @@ def test_closed():
 
 def test_reversed(capsys):
     """Test reversed()"""
-    for _ in reversed(tqdm(range(9))):
-        pass
+    expected_result = list(reversed(range(9)))
+    real_result = list(reversed(tqdm(range(9))))
+
+    assert expected_result == real_result
+
     out, err = capsys.readouterr()
     assert not out
     assert '  0%' in err
