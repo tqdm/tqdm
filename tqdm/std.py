@@ -1119,13 +1119,14 @@ class tqdm(Comparable):
             else getattr(self, "total", None))
 
     def __reversed__(self):
-         # Uses the built-in `copy.copy` to shallow copy the object, replaces the original iterable as the reverse one.
         try:
             orig = self.iterable
         except AttributeError:
             raise TypeError("'tqdm' object is not reversible")
         else:
+            # Uses the built-in `copy.copy` to shallow copy the object.
             reversed_iterator = copy.copy(self)
+            # Replaces the original iterable as the reverse one.
             reversed_iterator.iterable = reversed(self.iterable)
             return reversed_iterator
         finally:
