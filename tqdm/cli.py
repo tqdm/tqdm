@@ -4,6 +4,7 @@ Module version for monitoring CLI pipes (`... | python -m tqdm | ...`).
 import logging
 import re
 import sys
+import textwrap
 from ast import literal_eval as numeric
 
 from .std import TqdmKeyError, TqdmTypeError, tqdm
@@ -177,7 +178,11 @@ def main(fp=sys.stderr, argv=None):
     logging.basicConfig(level=getattr(logging, logLevel),
                         format="%(levelname)s:%(module)s:%(lineno)d:%(message)s")
 
-    d = tqdm.__doc__ + CLI_EXTRA_DOC
+    d = tqdm.__doc__
+    if sys.version_info >= (3, 13):
+        # Python 3.13+ automatically dedents docstrings
+        d = textwrap.indent(d, "    ")
+    d += CLI_EXTRA_DOC
 
     opt_types = dict(RE_OPTS.findall(d))
     # opt_types['delim'] = 'chr'
