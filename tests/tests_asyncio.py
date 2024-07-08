@@ -48,10 +48,14 @@ async def test_generators(capsys):
     _, err = capsys.readouterr()
     assert '9it' in err
 
-    with tqdm(acount(), desc="async_counter") as pbar:
-        async for i in pbar:
-            if i >= 8:
-                break
+    acounter = acount()
+    try:
+        with tqdm(acounter, desc="async_counter") as pbar:
+            async for i in pbar:
+                if i >= 8:
+                    break
+    finally:
+        await acounter.aclose()
     _, err = capsys.readouterr()
     assert '9it' in err
 
