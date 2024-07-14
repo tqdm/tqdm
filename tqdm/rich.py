@@ -55,8 +55,8 @@ class RateColumn(UnitScaleColumn):
     def render(self, task: Task):
         """Show data transfer speed."""
         speed = task.fields["rate"]
-        if task.elapsed and speed is None:
-            speed = task.completed / task.elapsed
+        if task.fields["elapsed"] and speed is None:
+            speed = task.completed / task.fields["elapsed"]
         if speed is not None:
             inv_speed = 1 / speed if speed != 0 else None
             if inv_speed and inv_speed > 1:
@@ -85,7 +85,7 @@ class UnitCompletedColumn(UnitScaleColumn):
 
 class CompactTimeElapsedColumn(ProgressColumn):
     def render(self, task: Task) -> Text:
-        elapsed = task.finished_time if task.finished else task.elapsed
+        elapsed = task.fields["elapsed"]
         formatted = std_tqdm.format_interval(int(elapsed)) if elapsed else "--:--"
         return Text(formatted, style="progress.elapsed")
 
