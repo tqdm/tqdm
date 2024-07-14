@@ -272,7 +272,7 @@ class tqdm_rich(std_tqdm):  # pragma: no cover
                 cls._progress.stop_task(self._task.id)
                 self._task.finished_time = self._task.stop_time
             if all(t.finished for t in cls._progress.tasks):
-                self.display(refresh=True)   # print 100%, vis #1306
+                self.display(refresh=cls._progress.console.is_jupyter)   # print 100%, vis #1306
                 cls._progress.__exit__(None, None, None)
                 cls._progress = None
 
