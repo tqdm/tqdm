@@ -260,19 +260,19 @@ class tqdm_rich(std_tqdm):  # pragma: no cover
     def close(self):
         if self.disable:
             return
-
         cls = self.__class__
-        if not self._task.finished:
-            self.display()  # print 100%, vis #1306
-            if not self.leave:
-                self._task.visible = False
-            cls._progress.stop_task(self._task.id)
-            self._task.finished_time = self._task.stop_time
 
+        if cls._progress is None or self._task is None:
+            return
         with cls._progress._lock:
-            if cls._progress is not None and all(
-                t.finished for t in cls._progress.tasks
-            ):
+            if not self._task.finished:
+                self.display()
+                if not self.leave:
+                    self._task.visible = False
+                cls._progress.stop_task(self._task.id)
+                self._task.finished_time = self._task.stop_time
+            if all(t.finished for t in cls._progress.tasks):
+                self.display(refresh=True)   # print 100%, vis #1306
                 cls._progress.__exit__(None, None, None)
                 cls._progress = None
 
