@@ -42,10 +42,10 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu]
-        python: [3.7, 3.8, 3.9, '3.10', 3.11, 3.12]
+        python: [3.7, 3.8, 3.9, '3.10', 3.11, 3.12, 3.13]
         include:
-        - {os: macos, python: 3.12}
-        - {os: windows, python: 3.12}
+        - {os: macos, python: 3.13}
+        - {os: windows, python: 3.13}
     runs-on: ${{ matrix.os }}-${{ matrix.python == 3.7 && '22.04' || 'latest' }}
     timeout-minutes: 35
     defaults: {run: {shell: bash}}

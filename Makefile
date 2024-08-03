@@ -113,7 +113,7 @@ snapcraft.yaml: .meta/mksnap.py
 	@+python -c "fd=open('.dockerignore', 'w'); fd.write('*\n!dist/*.whl\n')"
 
 Dockerfile:
-	@+python -c 'fd=open("Dockerfile", "w"); fd.write("FROM python:3.8-alpine\nCOPY dist/*.whl .\nRUN pip install -U $$(ls ./*.whl) && rm ./*.whl\nENTRYPOINT [\"tqdm\"]\n")'
+	@+python -c 'fd=open("Dockerfile", "w"); fd.write("FROM python:3.13-alpine\nCOPY dist/*.whl .\nRUN pip install -U $$(ls ./*.whl) && rm ./*.whl\nENTRYPOINT [\"tqdm\"]\n")'
 
 distclean:
 	@+make coverclean
