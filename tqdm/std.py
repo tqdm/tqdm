@@ -10,6 +10,7 @@ Usage:
 import sys
 from collections import OrderedDict, defaultdict
 from contextlib import contextmanager
+import copy
 from datetime import datetime, timedelta, timezone
 from numbers import Number
 from time import time
@@ -1123,8 +1124,13 @@ class tqdm(Comparable):
         except AttributeError:
             raise TypeError("'tqdm' object is not reversible")
         else:
-            self.iterable = reversed(self.iterable)
-            return self.__iter__()
+            # Shallow copies the object.
+            reversed_obj = copy.copy(self)
+
+            # Replaces the iterable with the reversed iterable.
+            reversed_obj.iterable = reversed(self.iterable)
+
+            return reversed_obj
         finally:
             self.iterable = orig
 
