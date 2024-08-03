@@ -5,6 +5,7 @@ import logging
 import re
 import sys
 from ast import literal_eval as numeric
+from textwrap import indent
 
 from .std import TqdmKeyError, TqdmTypeError, tqdm
 from .version import __version__
@@ -177,7 +178,9 @@ def main(fp=sys.stderr, argv=None):
     logging.basicConfig(level=getattr(logging, logLevel),
                         format="%(levelname)s:%(module)s:%(lineno)d:%(message)s")
 
-    d = tqdm.__doc__ + CLI_EXTRA_DOC
+    # py<3.13 doesn't dedent docstrings
+    d = (tqdm.__doc__ if sys.version_info < (3, 13)
+         else indent(tqdm.__doc__, "    ")) + CLI_EXTRA_DOC
 
     opt_types = dict(RE_OPTS.findall(d))
     # opt_types['delim'] = 'chr'
