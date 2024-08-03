@@ -99,7 +99,7 @@ Note: to install all versions of the Python interpreter that are specified
 in [tox.ini](https://github.com/tqdm/tqdm/blob/master/tox.ini),
 you can use `MiniConda` to install a minimal setup. You must also ensure
 that each distribution has an alias to call the Python interpreter
-(e.g. `python311` for Python 3.11's interpreter).
+(e.g. `python312` for Python 3.12's interpreter).
 
 ### Alternative unit tests with pytest
 
