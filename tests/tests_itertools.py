@@ -13,8 +13,7 @@ class NoLenIter(object):
         self._it = iterable
 
     def __iter__(self):
-        for i in self._it:
-            yield i
+        yield from self._it
 
 
 def test_product():
