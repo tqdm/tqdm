@@ -18,6 +18,7 @@ def product(*iterables, **tqdm_kwargs):
     tqdm_class  : [default: tqdm.auto.tqdm].
     """
     kwargs = tqdm_kwargs.copy()
+    repeat = kwargs.pop('repeat', 1)
     tqdm_class = kwargs.pop("tqdm_class", tqdm_auto)
     try:
         lens = list(map(len, iterables))
@@ -27,9 +28,10 @@ def product(*iterables, **tqdm_kwargs):
         total = 1
         for i in lens:
             total *= i
+        total = total ** repeat
         kwargs.setdefault("total", total)
     with tqdm_class(**kwargs) as t:
-        it = itertools.product(*iterables)
+        it = itertools.product(*iterables, repeat=repeat)
         for i in it:
             yield i
             t.update()
