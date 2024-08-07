@@ -721,6 +721,7 @@ class tqdm(Comparable):
             # Write the message
             fp.write(s)
             fp.write(end)
+            fp.flush()
 
     @classmethod
     @contextmanager
