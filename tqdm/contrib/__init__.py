@@ -17,7 +17,7 @@ class DummyTqdmFile(ObjectWrapper):
     """Dummy file-like that will write to tqdm"""
 
     def __init__(self, wrapped):
-        super(DummyTqdmFile, self).__init__(wrapped)
+        super().__init__(wrapped)
         self._buf = []
 
     def write(self, x, nolock=False):

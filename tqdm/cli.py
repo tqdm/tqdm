@@ -5,6 +5,7 @@ import logging
 import re
 import sys
 from ast import literal_eval as numeric
+from textwrap import indent
 
 from .std import TqdmKeyError, TqdmTypeError, tqdm
 from .version import __version__
@@ -21,23 +22,34 @@ def cast(val, typ):
                 return cast(val, t)
             except TqdmTypeError:
                 pass
-        raise TqdmTypeError(val + ' : ' + typ)
+        raise TqdmTypeError(f"{val} : {typ}")
 
     # sys.stderr.write('\ndebug | `val:type`: `' + val + ':' + typ + '`.\n')
     if typ == 'bool':
         if (val == 'True') or (val == ''):
             return True
-        elif val == 'False':
+        if val == 'False':
             return False
-        else:
-            raise TqdmTypeError(val + ' : ' + typ)
-    try:
-        return eval(typ + '("' + val + '")')
-    except Exception:
-        if typ == 'chr':
-            return chr(ord(eval('"' + val + '"'))).encode()
-        else:
-            raise TqdmTypeError(val + ' : ' + typ)
+        raise TqdmTypeError(val + ' : ' + typ)
+    if typ == 'chr':
+        if len(val) == 1:
+            return val.encode()
+        if re.match(r"^\\\w+$", val):
+            return eval(f'"{val}"').encode()
+        raise TqdmTypeError(f"{val} : {typ}")
+    if typ == 'str':
+        return val
+    if typ == 'int':
+        try:
+            return int(val)
+        except ValueError as exc:
+            raise TqdmTypeError(f"{val} : {typ}") from exc
+    if typ == 'float':
+        try:
+            return float(val)
+        except ValueError as exc:
+            raise TqdmTypeError(f"{val} : {typ}") from exc
+    raise TqdmTypeError(f"{val} : {typ}")
 
 
 def posix_pipe(fin, fout, delim=b'\\n', buf_size=256,
@@ -166,7 +178,9 @@ def main(fp=sys.stderr, argv=None):
     logging.basicConfig(level=getattr(logging, logLevel),
                         format="%(levelname)s:%(module)s:%(lineno)d:%(message)s")
 
-    d = tqdm.__doc__ + CLI_EXTRA_DOC
+    # py<3.13 doesn't dedent docstrings
+    d = (tqdm.__doc__ if sys.version_info < (3, 13)
+         else indent(tqdm.__doc__, "    ")) + CLI_EXTRA_DOC
 
     opt_types = dict(RE_OPTS.findall(d))
     # opt_types['delim'] = 'chr'
