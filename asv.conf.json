@@ -6,7 +6,7 @@
     "environment_type": "virtualenv",
     "build_command": ["PIP_NO_BUILD_ISOLATION=false python -mpip wheel --no-deps --no-index -w {build_cache_dir} ."],
     "show_commit_url": "https://github.com/tqdm/tqdm/commit/",
-    // "pythons": ["3.7", "3.11"],
+    // "pythons": ["3.7", "3.12"],
     // "conda_channels": ["conda-forge", "defaults"],
     "matrix": {
         "alive-progress": [""],

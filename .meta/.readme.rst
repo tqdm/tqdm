@@ -549,7 +549,7 @@ Additional ``bar_format`` parameters may also be defined by overriding
         """Provides a `total_time` format parameter"""
         @property
         def format_dict(self):
-            d = super(TqdmExtraFormat, self).format_dict
+            d = super().format_dict
             total_time = d["elapsed"] * (d["total"] or 0) / max(d["n"], 1)
             d.update(total_time=self.format_interval(total_time) + " in total")
             return d
@@ -765,7 +765,7 @@ custom callback take advantage of this, simply use the return value of
 
     class TqdmExt(std_tqdm):
         def update(self, n=1):
-            displayed = super(TqdmExt, self).update(n)
+            displayed = super().update(n)
             if displayed:
                 external_callback(**self.format_dict)
             return displayed
