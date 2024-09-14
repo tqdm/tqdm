@@ -579,10 +579,17 @@ class tqdm(Comparable):
             eta_dt = datetime.max
 
         # format the stats displayed to the left and right sides of the bar
-        if prefix:
+        if prefix and isinstance(prefix, str):
             # old prefix setup work around
             bool_prefix_colon_already = (prefix[-2:] == ": ")
             l_bar = prefix if bool_prefix_colon_already else prefix + ": "
+        elif prefix:
+            try:
+                iter_prefix = str(next(prefix))
+            except StopIteration:
+                iter_prefix = "StopIteration"
+            bool_prefix_colon_already = (iter_prefix[-2:] == ": ")
+            l_bar = iter_prefix if bool_prefix_colon_already else iter_prefix + ": "
         else:
             l_bar = ''
 
@@ -1023,6 +1030,13 @@ class tqdm(Comparable):
                     if nrows is None:
                         nrows = _nrows
 
+        if desc is None:
+            desc = ''
+        elif not isinstance(desc, str):
+            desc = iter(desc)
+        else:
+            desc = desc or ''
+
         if miniters is None:
             miniters = 0
             dynamic_miniters = True
@@ -1047,7 +1061,7 @@ class tqdm(Comparable):
 
         # Store the arguments
         self.iterable = iterable
-        self.desc = desc or ''
+        self.desc = desc
         self.total = total
         self.leave = leave
         self.fp = file
