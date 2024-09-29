@@ -10,10 +10,10 @@ try:
 except (ImportError, AttributeError) as keras_import_exception:
     try:
         from tensorflow import keras
-    except ImportError as tensorflow_import_exception:
+    except ImportError:
         raise ImportError(
             "Could not import `keras` or `tensorflow.keras`."
-        ) from tensorflow_import_exception
+        ) from keras_import_exception
 __author__ = {"github.com/": ["casperdcl"]}
 __all__ = ["TqdmCallback"]
 
