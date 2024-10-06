@@ -258,22 +258,21 @@ Options:
             stdout = getattr(stdout, 'buffer', stdout)
         stdin = getattr(sys.stdin, 'buffer', sys.stdin)
         if manpath or comppath:
-            from importlib import resources
-            from os import path
-            from shutil import copyfile
+            try:  # py<3.9
+                import importlib_resources as resources
+            except ImportError:
+                from importlib import resources
+            from pathlib import Path
 
             def cp(name, dst):
                 """copy resource `name` to `dst`"""
-                if hasattr(resources, 'files'):
-                    copyfile(str(resources.files('tqdm') / name), dst)
-                else:  # py<3.9
-                    with resources.path('tqdm', name) as src:
-                        copyfile(str(src), dst)
+                fi = resources.files('tqdm') / name
+                dst.write_bytes(fi.read_bytes())
                 log.info("written:%s", dst)
             if manpath is not None:
-                cp('tqdm.1', path.join(manpath, 'tqdm.1'))
+                cp('tqdm.1', Path(manpath) / 'tqdm.1')
             if comppath is not None:
-                cp('completion.sh', path.join(comppath, 'tqdm_completion.sh'))
+                cp('completion.sh', Path(comppath) / 'tqdm_completion.sh')
             sys.exit(0)
         if tee:
             stdout_write = stdout.write
