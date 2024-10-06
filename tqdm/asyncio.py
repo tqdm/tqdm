@@ -10,6 +10,9 @@ Usage:
 import asyncio
 from sys import version_info
 
+from copy import copy
+from multiprocessing import active_children
+
 from .std import tqdm as std_tqdm
 
 __author__ = {"github.com/": ["casperdcl"]}
@@ -24,6 +27,8 @@ class tqdm_asyncio(std_tqdm):
         super().__init__(iterable, *args, **kwargs)
         self.iterable_awaitable = False
         if iterable is not None:
+            curr_processes = active_children()
+            iterable = copy(iterable)
             if hasattr(iterable, "__anext__"):
                 self.iterable_next = iterable.__anext__
                 self.iterable_awaitable = True
@@ -32,6 +37,13 @@ class tqdm_asyncio(std_tqdm):
             else:
                 self.iterable_iterator = iter(iterable)
                 self.iterable_next = self.iterable_iterator.__next__
+            new_processes = active_children()
+            # get only freshly spawned processes
+            processes_on_termination = [x for x in new_processes if x not in curr_processes]
+            # if we don't need anything from them, we can terminate immediately
+            # (Maybe it can cause some problems, but this solution is better than processes filling up memory)
+            for child in processes_on_termination:
+                child.terminate()
 
     def __aiter__(self):
         return self
