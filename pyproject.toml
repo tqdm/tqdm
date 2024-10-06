@@ -24,6 +24,7 @@ readme = "README.rst"
 requires-python = ">=3.7"
 keywords = ["progressbar", "progressmeter", "progress", "bar", "meter", "rate", "eta", "console", "terminal", "time"]
 license = {text = "MPL-2.0 AND MIT"}
+# Trove classifiers (https://pypi.org/pypi?%3Aaction=list_classifiers)
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Environment :: Console",

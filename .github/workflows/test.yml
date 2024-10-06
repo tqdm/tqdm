@@ -44,19 +44,14 @@ jobs:
         os: [ubuntu]
         python: [3.7, 3.8, 3.9, '3.10', 3.11, 3.12]
         include:
-        - os: macos
-          python: 3.12
-        - os: windows
-          python: 3.12
+        - {os: macos, python: 3.12}
+        - {os: windows, python: 3.12}
     runs-on: ${{ matrix.os }}-latest
     timeout-minutes: 35
-    defaults:
-      run:
-        shell: bash
+    defaults: {run: {shell: bash}}
     steps:
     - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
+      with: {fetch-depth: 0}
     - uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python }}
