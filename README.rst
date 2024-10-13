@@ -2,7 +2,8 @@
 
 tqdm
 ====
-
+hi I'm negar...
+chibe kago shipo.
 |Py-Versions| |Versions| |Conda-Forge-Status| |Docker| |Snapcraft|
 
 |Build-Status| |Coverage-Status| |Branch-Coverage-Status| |Codacy-Grade| |Libraries-Rank| |PyPI-Downloads|
