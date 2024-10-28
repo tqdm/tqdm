@@ -37,7 +37,7 @@ repos:
     - numpy
     - pandas
     - pytest-timeout
-    - pytest-asyncio
+    - pytest-asyncio>0.21
 - repo: https://github.com/PyCQA/flake8
   rev: 7.1.1
   hooks:

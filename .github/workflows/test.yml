@@ -64,6 +64,9 @@ jobs:
         echo "$HOME/bin" >> $GITHUB_PATH
     - name: tox
       run: |
+        if test "py${{ matrix.python }}" = py3.7; then
+          sed -i /asyncio_default_fixture_loop_scope/d pyproject.toml
+        fi
         if [[ "py${{ matrix.python }}-${{ matrix.os }}" = "py3.11-ubuntu" ]]; then
           export TOXENV="py311-tf,py311-tf-keras"  # full
         fi
