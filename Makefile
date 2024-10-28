@@ -61,11 +61,11 @@ testsetup:
 	@make help
 
 testnb:
-	pytest tests_notebook.ipynb --cov=tqdm.notebook --cov-report=term -W=ignore --nbval --current-env --sanitize-with=.meta/nbval.ini
+	pytest tests_notebook.ipynb --cov=tqdm.notebook --cov-report=term -W=ignore --nbval --nbval-current-env --nbval-sanitize-with=.meta/nbval.ini
 
 testcoverage:
 	@make coverclean
-	pytest tests_notebook.ipynb --cov=tqdm --cov-report= -W=ignore --nbval --current-env --sanitize-with=.meta/nbval.ini
+	pytest tests_notebook.ipynb --cov=tqdm --cov-report= -W=ignore --nbval --nbval-current-env --nbval-sanitize-with=.meta/nbval.ini
 	pytest -k "not perf" --cov=tqdm --cov-report=xml --cov-report=term --cov-append --cov-fail-under=80
 
 testperf:
