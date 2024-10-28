@@ -85,6 +85,7 @@ dependencies = ['colorama; platform_system == "Windows"']
 
 [project.optional-dependencies]
 dev = ["pytest>=6", "pytest-cov", "pytest-timeout", "pytest-xdist"]
+discord = ["requests"]
 slack = ["slack-sdk"]
 telegram = ["requests"]
 notebook = ["ipywidgets>=6"]
