@@ -11,7 +11,7 @@ Usage:
 from os import getenv
 from warnings import warn
 
-import requests
+from requests import Session
 
 from ..auto import tqdm as tqdm_auto
 from ..std import TqdmWarning
@@ -32,6 +32,7 @@ class DiscordIO(MonoWorker):
         super().__init__()
         self.token = token
         self.channel_id = channel_id
+        self.session = Session()
         self.text = self.__class__.__name__
         self.message_id
 
@@ -40,7 +41,7 @@ class DiscordIO(MonoWorker):
         if hasattr(self, '_message_id'):
             return self._message_id
         try:
-            res = requests.post(
+            res = self.session.post(
                 f'{self.API}/channels/{self.channel_id}/messages',
                 headers={'Authorization': f'Bot {self.token}', 'User-Agent': self.UA},
                 json={'content': f"`{self.text}`"}).json()
@@ -66,7 +67,7 @@ class DiscordIO(MonoWorker):
         self.text = s
         try:
             future = self.submit(
-                requests.patch,
+                self.session.patch,
                 f'{self.API}/channels/{self.channel_id}/messages/{message_id}',
                 headers={'Authorization': f'Bot {self.token}', 'User-Agent': self.UA},
                 json={'content': f"`{self.text}`"})
@@ -79,7 +80,7 @@ class DiscordIO(MonoWorker):
         """Deletes internal `message_id`."""
         try:
             future = self.submit(
-                requests.delete,
+                self.session.delete,
                 f'{self.API}/channels/{self.channel_id}/messages/{self.message_id}',
                 headers={'Authorization': f'Bot {self.token}', 'User-Agent': self.UA})
         except Exception as e:
