@@ -12,6 +12,7 @@ from os import getenv
 from warnings import warn
 
 from requests import Session
+from requests.utils import default_user_agent
 
 from ..auto import tqdm as tqdm_auto
 from ..std import TqdmWarning
@@ -25,7 +26,7 @@ __all__ = ['DiscordIO', 'tqdm_discord', 'tdrange', 'tqdm', 'trange']
 class DiscordIO(MonoWorker):
     """Non-blocking file-like IO using a Discord Bot."""
     API = "https://discord.com/api/v10"
-    user_agent = f"TQDM Discord progress bar (https://tqdm.github.io, {__version__})"
+    UA = f"tqdm (https://tqdm.github.io, {__version__}) {default_user_agent()}"
 
     def __init__(self, token, channel_id):
         """Creates a new message in the given `channel_id`."""
