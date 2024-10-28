@@ -48,8 +48,9 @@ class DiscordIO(MonoWorker):
         except Exception as e:
             tqdm_auto.write(str(e))
         else:
-            if 'id' not in res:
-                warn("Message not sent", TqdmWarning, stacklevel=2)
+            if res.get('error_code') == 429:
+                warn("Creation rate limit: try increasing `mininterval`.",
+                     TqdmWarning, stacklevel=2)
             else:
                 self._message_id = res['id']
                 return self._message_id
