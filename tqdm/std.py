@@ -1099,6 +1099,7 @@ class tqdm(Comparable):
 
         # Init the time counter
         self.last_print_t = self._time()
+        self.last_pause_t = 0.0
         # NB: Avoid race conditions by setting start_t at the very end of init
         self.start_t = self.last_print_t
 
@@ -1349,13 +1350,41 @@ class tqdm(Comparable):
             self._lock.release()
         return True
 
-    def unpause(self):
-        """Restart tqdm timer from last print time."""
+    def pause(self, refresh=True):
+        """Pause the tqdm timer.
+
+        Refresh the progress bar by default.
+        """
         if self.disable:
             return
-        cur_t = self._time()
-        self.start_t += cur_t - self.last_print_t
-        self.last_print_t = cur_t
+
+        if self.last_pause_t != 0.0:
+            warn("The progress bar is already paused")
+            return
+
+        if refresh:  # By default refresh before doing a pause
+            self.refresh()
+
+        self.last_pause_t = self._time()
+
+    def unpause(self):
+        """Restart tqdm timer from last pause."""
+        if self.disable:
+            return
+
+        if self.last_pause_t == 0.0:
+            warn("The progress bar is not paused")
+            return
+
+        dt = self._time() - self.last_pause_t
+        self.last_pause_t = 0.0
+
+        if dt < 0.0:
+            return
+
+        self.start_t += dt
+        self.last_print_t += dt
+
 
     def reset(self, total=None):
         """
