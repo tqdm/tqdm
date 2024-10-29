@@ -372,7 +372,7 @@ Parameters
 * iterable  : iterable, optional  
     Iterable to decorate with a progressbar.
     Leave blank to manually manage the updates.
-* desc  : str, optional  
+* desc  : str or iterator, optional  
     Prefix for the progressbar.
 * total  : int or float, optional  
     The number of expected iterations. If unspecified,
@@ -748,6 +748,10 @@ with the ``desc`` and ``postfix`` arguments:
             t.postfix[1]["value"] = i / 2
             t.update()
 
+    iterdata = {"A":1, "B":2, "C":3, "D":4}
+    for i in tqdm(iterdata.values(), desc=iterdata.keys()):
+        time.sleep(0.1)
+
 Points to remember when using ``{postfix[...]}`` in the ``bar_format`` string:
 
 - ``postfix`` also needs to be passed as an initial argument in a compatible
@@ -755,6 +759,9 @@ Points to remember when using ``{postfix[...]}`` in the ``bar_format`` string:
 - ``postfix`` will be auto-converted to a string if it is a ``dict``-like
   object. To prevent this behaviour, insert an extra item into the dictionary
   where the key is not a string.
+
+Another simple way of ``set_description`` is to set ``desc`` iterable, in the loops
+``set_description`` also may reset desc as const string.
 
 Additional ``bar_format`` parameters may also be defined by overriding
 ``format_dict``, and the bar itself may be modified using ``ascii``:
