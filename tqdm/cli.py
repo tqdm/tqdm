@@ -301,7 +301,7 @@ Options:
                             t.update(numeric(i.decode()))
                     else:  # update_to
                         def callback(i):
-                            t.update(numeric(i.decode()) - t.n)
+                            t.update_to(numeric(i.decode()))
                     for i in stdin:
                         write(i)
                         callback(i)
@@ -317,7 +317,7 @@ Options:
                         t.update(numeric(i.decode()))
                 elif update_to:
                     def callback(i):
-                        t.update(numeric(i.decode()) - t.n)
+                        t.update_to(numeric(i.decode()))
                 else:
                     callback = t.update
                     callback_len = True
