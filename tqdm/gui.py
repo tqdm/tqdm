@@ -122,6 +122,7 @@ class tqdm_gui(std_tqdm):  # pragma: no cover
         ax = self.ax
         line1 = self.line1
         line2 = self.line2
+        hspan = getattr(self, 'hspan', None)
         # instantaneous rate
         y = delta_it / delta_t
         # overall rate
@@ -148,18 +149,10 @@ class tqdm_gui(std_tqdm):  # pragma: no cover
         if total:
             line1.set_data(xdata, ydata)
             line2.set_data(xdata, zdata)
-            try:
-                poly_lims = self.hspan.get_xy()
-            except AttributeError:
-                self.hspan = self.plt.axhspan(0, 0.001, xmin=0, xmax=0, color='g')
-                poly_lims = self.hspan.get_xy()
-            poly_lims[0, 1] = ymin
-            poly_lims[1, 1] = ymax
-            poly_lims[2] = [n / total, ymax]
-            poly_lims[3] = [poly_lims[2, 0], ymin]
-            if len(poly_lims) > 4:
-                poly_lims[4, 1] = ymin
-            self.hspan.set_xy(poly_lims)
+            if hspan:
+                hspan.set_xy((0, ymin))
+                hspan.set_height(ymax - ymin)
+                hspan.set_width(n / total)
         else:
             t_ago = [cur_t - i for i in xdata]
             line1.set_data(t_ago, ydata)
