@@ -6,7 +6,7 @@ import sys
 from contextlib import contextmanager
 
 try:
-    from typing import Iterator, List, Optional, Type  # pylint: disable=unused-import
+    from typing import Iterator, List, Optional, Type  # noqa: F401
 except ImportError:
     pass
 
@@ -18,7 +18,7 @@ class _TqdmLoggingHandler(logging.StreamHandler):
         self,
         tqdm_class=std_tqdm  # type: Type[std_tqdm]
     ):
-        super(_TqdmLoggingHandler, self).__init__()
+        super().__init__()
         self.tqdm_class = tqdm_class
 
     def emit(self, record):

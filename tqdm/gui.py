@@ -32,7 +32,7 @@ class tqdm_gui(std_tqdm):  # pragma: no cover
         kwargs = kwargs.copy()
         kwargs['gui'] = True
         colour = kwargs.pop('colour', 'g')
-        super(tqdm_gui, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         if self.disable:
             return
@@ -171,7 +171,7 @@ class tqdm_gui(std_tqdm):  # pragma: no cover
             "{bar}", "<bar/>")
         msg = self.format_meter(**d)
         if '<bar/>' in msg:
-            msg = "".join(re.split(r'\|?<bar/>\|?', msg, 1))
+            msg = "".join(re.split(r'\|?<bar/>\|?', msg, maxsplit=1))
         ax.set_title(msg, fontname="DejaVu Sans Mono", fontsize=11)
         self.plt.pause(1e-9)
 

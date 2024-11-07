@@ -21,8 +21,7 @@ def progresser(n, auto_position=True, write_safe=False, blocking=True, progress=
         sleep(interval)
     # NB: may not clear instances with higher `position` upon completion
     # since this worker may not know about other bars #796
-    if write_safe:
-        # we think we know about other bars (currently only py3 threading)
+    if write_safe:  # we think we know about other bars
         if n == 6:
             tqdm.write("n == 6 completed")
     return n + 1

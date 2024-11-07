@@ -53,7 +53,7 @@ class tqdm_tk(std_tqdm):  # pragma: no cover
         grab = kwargs.pop('grab', False)
         tk_parent = kwargs.pop('tk_parent', None)
         self._cancel_callback = kwargs.pop('cancel_callback', None)
-        super(tqdm_tk, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         if self.disable:
             return
@@ -135,7 +135,7 @@ class tqdm_tk(std_tqdm):  # pragma: no cover
             "{bar}", "<bar/>")
         msg = self.format_meter(**d)
         if '<bar/>' in msg:
-            msg = "".join(re.split(r'\|?<bar/>\|?', msg, 1))
+            msg = "".join(re.split(r'\|?<bar/>\|?', msg, maxsplit=1))
         self._tk_text_var.set(msg)
         if not self._tk_dispatching:
             self._tk_window.update()
@@ -172,7 +172,7 @@ class tqdm_tk(std_tqdm):  # pragma: no cover
                 self._tk_pbar.configure(maximum=100, mode="indeterminate")
             else:
                 self._tk_pbar.configure(maximum=total, mode="determinate")
-        super(tqdm_tk, self).reset(total=total)
+        super().reset(total=total)
 
     @staticmethod
     def _tk_dispatching_helper():
