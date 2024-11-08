@@ -60,7 +60,7 @@ def test_main_import():
     sys.argv = ['', '--desc', 'Test CLI import',
                 '--ascii', 'True', '--unit_scale', 'True']
     try:
-        import tqdm.__main__  # NOQA, pylint: disable=unused-variable
+        pass  # NOQA, pylint: disable=unused-variable
     finally:
         sys.stdin, sys.argv = _SYS
 

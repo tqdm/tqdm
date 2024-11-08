@@ -17,7 +17,6 @@ Options:
                          NOTSET
   -d, --debug-trace      Print lots of debugging information (-D NOTSET)
 """
-import io
 import logging
 import os
 import pty
