@@ -47,10 +47,8 @@ def test_pipes():
     assert b"it/s" in err
     assert b"Error" not in err
 
-
-if sys.version_info[:2] >= (3, 8):
-    test_pipes = mark.filterwarnings("ignore:unclosed file:ResourceWarning")(
-        test_pipes)
+test_pipes = mark.filterwarnings("ignore:unclosed file:ResourceWarning")(
+    test_pipes)
 
 
 def test_main_import():
