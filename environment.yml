@@ -21,7 +21,6 @@ dependencies:
 - pytest-cov
 - pytest-timeout
 - pytest-asyncio
-- nbval
 - coverage
 # extras
 - dask               # dask
@@ -41,6 +40,7 @@ dependencies:
 - pygments
 - pymdown-extensions
 - pip:
+  - git+https://github.com/casperdcl/nbval.git@master#egg=nbval # tests (native)
   - py-make >=0.1.0                                          # `make/pymake`
   - mkdocs-minify-plugin                                     # `cd docs && pymake`
   - git+https://github.com/tqdm/jsmin@fix-pip#egg=jsmin      # `cd docs && pymake`
