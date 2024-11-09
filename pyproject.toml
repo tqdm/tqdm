@@ -84,7 +84,7 @@ classifiers = [
 dependencies = ['colorama; platform_system == "Windows"']
 
 [project.optional-dependencies]
-dev = ["pytest>=6", "pytest-cov", "pytest-timeout", "pytest-xdist"]
+dev = ["pytest>=6", "pytest-cov", "pytest-timeout", "pytest-asyncio", "nbval"]
 discord = ["requests"]
 slack = ["slack-sdk"]
 telegram = ["requests"]

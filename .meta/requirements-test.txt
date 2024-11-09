@@ -3,5 +3,5 @@ pytest
 pytest-asyncio
 pytest-cov
 pytest-timeout
-nbval
+git+https://github.com/casperdcl/nbval.git@master#egg=nbval
 ipywidgets
