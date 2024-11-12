@@ -34,7 +34,7 @@ dependencies:
 - rich               # rich
 - argopt             # `cd wiki && pymake`
 - twine              # `pymake check pypi`
-- build              # `python -m build`
+- python-build       # `python -m build`
 # `cd docs && pymake`
 - mkdocs-material
 - pygments
