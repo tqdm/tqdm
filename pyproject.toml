@@ -104,7 +104,7 @@ dev = [
     "pytest-cov",
     "pytest-timeout",
     "pytest-xdist",
-    "pytest-asyncio",
+    "pytest-asyncio>=0.24",
     "py-make",
     "ruff>=0.8.1",
     "tox>=4.23.2",

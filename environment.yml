@@ -20,7 +20,7 @@ dependencies:
 - pytest
 - pytest-cov
 - pytest-timeout
-- pytest-asyncio
+- pytest-asyncio>=0.24
 - coverage
 # extras
 - dask               # dask
