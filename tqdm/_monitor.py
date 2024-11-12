@@ -74,7 +74,7 @@ class TMonitor(Thread):
                     # Only if mininterval > 1 (else iterations are just slow)
                     # and last refresh exceeded maxinterval
                     if (
-                        instance.miniters > 1
+                        instance.mininterval > 1
                         and (cur_t - instance.last_print_t) >= instance.maxinterval
                     ):
                         # force bypassing miniters on next iteration
