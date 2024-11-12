@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Advice: use repr(our_file.read()) to print the full output of tqdm
 # (else '\r' will replace the previous lines and you'll see only the latest.
 import csv
@@ -80,7 +79,7 @@ def pos_line_diff(res_list, expected_list, raise_nonempty=True):
     return res
 
 
-class DiscreteTimer(object):
+class DiscreteTimer:
     """Virtual discrete time manager, to precisely control time for tests"""
     def __init__(self):
         self.t = 0.0
@@ -353,7 +352,7 @@ def test_native_string_io_for_default_file():
     """Native strings written to unspecified files"""
     stderr = sys.stderr
     try:
-        sys.stderr = WriteTypeChecker(expected_type=type(''))
+        sys.stderr = WriteTypeChecker(expected_type=str)
         for _ in tqdm(range(3)):
             pass
         sys.stderr.encoding = None  # py2 behaviour
@@ -365,20 +364,20 @@ def test_native_string_io_for_default_file():
 
 def test_unicode_string_io_for_specified_file():
     """Unicode strings written to specified files"""
-    for _ in tqdm(range(3), file=WriteTypeChecker(expected_type=type(u''))):
+    for _ in tqdm(range(3), file=WriteTypeChecker(expected_type=str)):
         pass
 
 
 def test_write_bytes():
     """Test write_bytes argument with and without `file`"""
     # specified file (and bytes)
-    for _ in tqdm(range(3), file=WriteTypeChecker(expected_type=type(b'')),
+    for _ in tqdm(range(3), file=WriteTypeChecker(expected_type=bytes),
                   write_bytes=True):
         pass
     # unspecified file (and unicode)
     stderr = sys.stderr
     try:
-        sys.stderr = WriteTypeChecker(expected_type=type(u''))
+        sys.stderr = WriteTypeChecker(expected_type=str)
         for _ in tqdm(range(3), write_bytes=False):
             pass
     finally:
@@ -869,9 +868,9 @@ def test_ascii():
             for _ in range(3):
                 t.update()
         res = our_file.getvalue().strip("\r").split("\r")
-    assert u"7%|\u258b" in res[1]
-    assert u"13%|\u2588\u258e" in res[2]
-    assert u"20%|\u2588\u2588" in res[3]
+    assert "7%|\u258b" in res[1]
+    assert "13%|\u2588\u258e" in res[2]
+    assert "20%|\u2588\u2588" in res[3]
 
     # Test custom bar
     for bars in [" .oO0", " #"]:
@@ -1323,7 +1322,7 @@ def test_set_description():
     # unicode
     with closing(StringIO()) as our_file:
         with tqdm(total=10, file=our_file) as t:
-            t.set_description(u"\xe1\xe9\xed\xf3\xfa")
+            t.set_description("\xe1\xe9\xed\xf3\xfa")
 
 
 def test_deprecated_gui():
@@ -1446,8 +1445,8 @@ def test_refresh():
         t2.close()
 
         # Check that refreshing indeed forced the display to use realtime state
-        assert before == [u'pos0 bar:   0%|', u'pos1 bar:   0%|']
-        assert after == [u'pos0 bar:  10%|', u'pos1 bar:  10%|']
+        assert before == ['pos0 bar:   0%|', 'pos1 bar:   0%|']
+        assert after == ['pos0 bar:  10%|', 'pos1 bar:  10%|']
 
 
 def test_disabled_repr(capsys):

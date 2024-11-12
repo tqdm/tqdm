@@ -21,7 +21,7 @@ dynamic = ["version"]
 maintainers = [{name = "tqdm developers", email = "devs@tqdm.ml"}]
 description = "Fast, Extensible Progress Meter"
 readme = "README.rst"
-requires-python = ">=3.7"
+requires-python = ">=3.8"
 keywords = ["progressbar", "progressmeter", "progress", "bar", "meter", "rate", "eta", "console", "terminal", "time"]
 license = {text = "MPL-2.0 AND MIT"}
 # Trove classifiers (https://pypi.org/pypi?%3Aaction=list_classifiers)
@@ -54,7 +54,6 @@ classifiers = [
     "Operating System :: Unix",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",

@@ -7,7 +7,7 @@ from tqdm import TMonitor, tqdm, trange
 from .tests_tqdm import StringIO, closing, importorskip, patch_lock, skip
 
 
-class Time(object):
+class Time:
     """Fake time class class providing an offset"""
     offset = 0
 
@@ -78,7 +78,7 @@ def cpu_timify(t, timer=Time):
     return timer
 
 
-class FakeTqdm(object):
+class FakeTqdm:
     _instances = set()
     get_lock = tqdm.get_lock
 

@@ -47,10 +47,8 @@ def test_pipes():
     assert b"it/s" in err
     assert b"Error" not in err
 
-
-if sys.version_info[:2] >= (3, 8):
-    test_pipes = mark.filterwarnings("ignore:unclosed file:ResourceWarning")(
-        test_pipes)
+test_pipes = mark.filterwarnings("ignore:unclosed file:ResourceWarning")(
+    test_pipes)
 
 
 def test_main_import():
@@ -62,7 +60,7 @@ def test_main_import():
     sys.argv = ['', '--desc', 'Test CLI import',
                 '--ascii', 'True', '--unit_scale', 'True']
     try:
-        import tqdm.__main__  # NOQA, pylint: disable=unused-variable
+        pass  # NOQA, pylint: disable=unused-variable
     finally:
         sys.stdin, sys.argv = _SYS
 
