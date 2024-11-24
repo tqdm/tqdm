@@ -3,13 +3,14 @@ Sends updates to a Telegram bot.
 
 Usage:
 >>> from tqdm.contrib.telegram import tqdm, trange
->>> for i in trange(10, token='{token}', chat_id='{chat_id}'):
+>>> for i in trange(10, token='{token}', chat_id='{chat_id}', telegram_mininterval=1.0):
 ...     ...
 
 ![screenshot](https://tqdm.github.io/img/screenshot-telegram.gif)
 """
 from os import getenv
 from warnings import warn
+import time  # Import du module time
 
 from requests import Session
 
@@ -99,7 +100,7 @@ class tqdm_telegram(tqdm_auto):
     - paste the `{token}` & `{chat_id}` below
 
     >>> from tqdm.contrib.telegram import tqdm, trange
-    >>> for i in tqdm(iterable, token='{token}', chat_id='{chat_id}'):
+    >>> for i in tqdm(iterable, token='{token}', chat_id='{chat_id}', telegram_mininterval=1.0):
     ...     ...
     """
     def __init__(self, *args, **kwargs):
@@ -110,36 +111,54 @@ class tqdm_telegram(tqdm_auto):
             [default: ${TQDM_TELEGRAM_TOKEN}].
         chat_id  : str, required. Telegram chat ID
             [default: ${TQDM_TELEGRAM_CHAT_ID}].
+        telegram_mininterval : float, optional. Minimum interval in seconds between updates.
+            [default: 1.0]. Regardless, a final update at 100% is always sent.
 
         See `tqdm.auto.tqdm.__init__` for other parameters.
         """
+        kwargs = kwargs.copy()
+        self.telegram_mininterval = kwargs.pop('telegram_mininterval', 1.0)
+        self.last_update_time = 0
+        token = kwargs.pop('token', getenv('TQDM_TELEGRAM_TOKEN'))
+        chat_id = kwargs.pop('chat_id', getenv('TQDM_TELEGRAM_CHAT_ID'))
+        self.tgio = None
         if not kwargs.get('disable'):
-            kwargs = kwargs.copy()
-            self.tgio = TelegramIO(
-                kwargs.pop('token', getenv('TQDM_TELEGRAM_TOKEN')),
-                kwargs.pop('chat_id', getenv('TQDM_TELEGRAM_CHAT_ID')))
+            self.tgio = TelegramIO(token, chat_id)
         super().__init__(*args, **kwargs)
 
     def display(self, **kwargs):
         super().display(**kwargs)
-        fmt = self.format_dict
-        if fmt.get('bar_format', None):
-            fmt['bar_format'] = fmt['bar_format'].replace(
-                '<bar/>', '{bar:10u}').replace('{bar}', '{bar:10u}')
-        else:
-            fmt['bar_format'] = '{l_bar}{bar:10u}{r_bar}'
-        self.tgio.write(self.format_meter(**fmt))
+        now = time.time()
+        if now - self.last_update_time >= self.telegram_mininterval or self.n == self.total:
+            if self.tgio:
+                fmt = self.format_dict
+                if fmt.get('bar_format', None):
+                    fmt['bar_format'] = fmt['bar_format'].replace(
+                        '<bar/>', '{bar:10u}').replace('{bar}', '{bar:10u}')
+                else:
+                    fmt['bar_format'] = '{l_bar}{bar:10u}{r_bar}'
+                self.tgio.write(self.format_meter(**fmt))
+            self.last_update_time = now
 
     def clear(self, *args, **kwargs):
         super().clear(*args, **kwargs)
-        if not self.disable:
+        if not self.disable and self.tgio:
             self.tgio.write("")
 
     def close(self):
         if self.disable:
             return
+        # Send last update, even if telegram_mininterval not reach
+        if self.tgio:
+            fmt = self.format_dict
+            if fmt.get('bar_format', None):
+                fmt['bar_format'] = fmt['bar_format'].replace(
+                    '<bar/>', '{bar:10u}').replace('{bar}', '{bar:10u}')
+            else:
+                fmt['bar_format'] = '{l_bar}{bar:10u}{r_bar}'
+            self.tgio.write(self.format_meter(**fmt))
         super().close()
-        if not (self.leave or (self.leave is None and self.pos == 0)):
+        if self.tgio and not (self.leave or (self.leave is None and self.pos == 0)):
             self.tgio.delete()
 
 
