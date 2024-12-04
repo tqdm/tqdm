@@ -38,23 +38,12 @@ repos:
     - pandas
     - pytest-timeout
     - pytest-asyncio>0.21
-- repo: https://github.com/PyCQA/flake8
-  rev: 7.1.1
+- repo: https://github.com/astral-sh/ruff-pre-commit
+  # Ruff version.
+  rev: v0.8.1
   hooks:
-  - id: flake8
-    args: [-j8]
-    additional_dependencies:
-    - flake8-broken-line
-    - flake8-bugbear
-    - flake8-comprehensions
-    - flake8-debugger
-    - flake8-isort
-    - flake8-pyproject
-    - flake8-string-format
-- repo: https://github.com/PyCQA/isort
-  rev: 5.13.2
-  hooks:
-  - id: isort
+    # Run the linter.
+    - id: ruff
 - repo: https://github.com/kynan/nbstripout
   rev: 0.7.1
   hooks:
