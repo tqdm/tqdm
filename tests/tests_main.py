@@ -6,7 +6,7 @@ from functools import wraps
 from os import linesep
 
 from tqdm.cli import TqdmKeyError, TqdmTypeError, main
-from tqdm.utils import IS_WIN
+from tqdm.utils import IS_WINDOWS
 
 from .tests_tqdm import BytesIO, closing, mark, raises
 
@@ -32,6 +32,7 @@ def norm(bytestr):
 
 
 @mark.slow
+@mark.skipif(sys.platform == "win32", reason="ls does not exist on Windows")
 def test_pipes():
     """Test command line pipes"""
     ls_out = subprocess.check_output(['ls'])  # nosec
@@ -181,7 +182,7 @@ def test_main(capsysbinary):
 
 
 @mark.slow
-@mark.skipif(IS_WIN, reason="no manpages on windows")
+@mark.skipif(IS_WINDOWS, reason="no manpages on windows")
 def test_manpath(tmp_path):
     """Test CLI --manpath"""
     man = tmp_path / "tqdm.1"
@@ -192,7 +193,7 @@ def test_manpath(tmp_path):
 
 
 @mark.slow
-@mark.skipif(IS_WIN, reason="no completion on windows")
+@mark.skipif(IS_WINDOWS, reason="no completion on windows")
 def test_comppath(tmp_path):
     """Test CLI --comppath"""
     man = tmp_path / "tqdm_completion.sh"

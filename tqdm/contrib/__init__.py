@@ -3,21 +3,21 @@ Thin wrappers around common functions.
 
 Subpackages contain potentially unstable extensions.
 """
+from typing import IO, Any
 from warnings import warn
 
 from ..auto import tqdm as tqdm_auto
 from ..std import TqdmDeprecationWarning, tqdm
-from ..utils import ObjectWrapper
 
 __author__ = {"github.com/": ["casperdcl"]}
 __all__ = ['tenumerate', 'tzip', 'tmap']
 
 
-class DummyTqdmFile(ObjectWrapper):
+class DummyTqdmFile:
     """Dummy file-like that will write to tqdm"""
 
-    def __init__(self, wrapped):
-        super().__init__(wrapped)
+    def __init__(self, wrapped: IO[Any]):
+        self._wrapped = wrapped
         self._buf = []
 
     def write(self, x, nolock=False):
