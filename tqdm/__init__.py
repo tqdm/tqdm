@@ -1,3 +1,5 @@
+"""tqdm - fast, extensible progress bar for Python and CLI"""
+
 from ._monitor import TMonitor, TqdmSynchronisationWarning
 from ._tqdm_pandas import tqdm_pandas
 from .cli import main  # TODO: remove in v5.0.0
