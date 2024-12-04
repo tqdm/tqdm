@@ -92,10 +92,22 @@ classifiers = [
     "Topic :: Terminals",
     "Topic :: Utilities",
 ]
-dependencies = ['colorama; platform_system == "Windows"']
+dependencies = [
+    'colorama; platform_system == "Windows"',
+    "typing-extensions>=4.12.2",
+]
 
 [project.optional-dependencies]
-dev = ["pytest>=6", "pytest-cov", "pytest-timeout", "pytest-xdist"]
+dev = [
+    "pytest>=6",
+    "pytest-cov",
+    "pytest-timeout",
+    "pytest-xdist",
+    "pytest-asyncio",
+    "py-make",
+    "ruff>=0.8.1",
+    "tox>=4.23.2",
+]
 discord = ["requests"]
 slack = ["slack-sdk"]
 telegram = ["requests"]
@@ -104,10 +116,10 @@ notebook = ["ipywidgets>=6"]
 [project.scripts]
 tqdm = "tqdm.cli:main"
 
-[tool.flake8]
-max_line_length = 99
-exclude = [
-    ".git",
+[tool.ruff]
+select = ["E", "W", "F", "I", "B", "ARG", "SIM", "PTH", "PL", "TID"]
+line-length = 99
+extend-exclude = [
     "__pycache__",
     "build",
     "dist",
@@ -116,27 +128,18 @@ exclude = [
     ".tox",
     ".ipynb_checkpoints",
 ]
+ignore = ["PLR2004", "PLR0912", "PLR0913", "PLR0913", "PLR0915", "SIM105"]
 
-[tool.yapf]
-spaces_before_comment = [15, 20]
-arithmetic_precedence_indication = true
-allow_split_before_dict_value = false
-coalesce_brackets = true
-column_limit = 99
-each_dict_entry_on_separate_line = false
-space_between_ending_comma_and_closing_bracket = false
-split_before_named_assigns = false
-split_before_closing_bracket = false
-blank_line_before_nested_class_or_def = false
-
-[tool.isort]
-line_length = 99
-multi_line_output = 4
-known_first_party = ["tqdm", "tests"]
+[tool.ruff.isort]
+known-first-party = ["tqdm", "tests"]
 
 [tool.pyright]
-typeCheckingMode = "strict" # strict mode
-pythonVersion = "3.8" # Ensure 3.8 compatible
+typeCheckingMode = "strict"          # strict mode
+pythonVersion = "3.8"                # Ensure 3.8 compatible
+reportUnnecessaryCast = "none"
+reportUnnecessaryComparison = "none"
+reportUnnecessaryIsInstance = "none"
+reportUnnecessaryContains = "none"
 
 [tool.pytest.ini_options]
 minversion = "6.0"
@@ -160,5 +163,6 @@ omit = [
 ]
 relative_files = true
 disable_warnings = ["include-ignored"]
+
 [tool.coverage.report]
 show_missing = true
