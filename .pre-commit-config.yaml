@@ -38,6 +38,7 @@ repos:
     - pandas
     - pytest-timeout
     - pytest-asyncio>0.21
+    - typing-extensions>=4.12.2
 - repo: https://github.com/astral-sh/ruff-pre-commit
   # Ruff version.
   rev: v0.8.1
