@@ -44,7 +44,7 @@ all:
 	@+make build
 
 flake8:
-	@+pre-commit run -a flake8
+	@+pre-commit run -a ruff
 	@+pre-commit run -a nbstripout
 
 test:
