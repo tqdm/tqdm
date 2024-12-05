@@ -128,7 +128,7 @@ extend-exclude = [
     ".tox",
     ".ipynb_checkpoints",
 ]
-ignore = ["PLR2004", "PLR0912", "PLR0913", "PLR0913", "PLR0915", "SIM105"]
+ignore = ["PLR2004", "PLR0911", "PLR0912", "PLR0913", "PLR0913", "PLR0915", "SIM105"]
 
 [tool.ruff.isort]
 known-first-party = ["tqdm", "tests"]
