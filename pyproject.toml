@@ -95,6 +95,7 @@ classifiers = [
 dependencies = [
     'colorama; platform_system == "Windows"',
     "typing-extensions>=4.12.2",
+    "importlib_resources"
 ]
 
 [project.optional-dependencies]
