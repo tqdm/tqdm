@@ -908,9 +908,9 @@ def test_close():
         progressbar = tqdm(total=3, file=our_file, miniters=10)
         progressbar.update(3)
         assert '| 3/3 ' not in our_file.getvalue()  # Should be blank
-        assert len(tqdm._instances) == 1
+        assert len(tqdm.__instances__) == 1
         progressbar.close()
-        assert len(tqdm._instances) == 0
+        assert len(tqdm.__instances__) == 0
         assert '| 3/3 ' in our_file.getvalue()
 
     # Without `leave` option
@@ -922,16 +922,16 @@ def test_close():
 
     # With all updates
     with closing(StringIO()) as our_file:
-        assert len(tqdm._instances) == 0
+        assert len(tqdm.__instances__) == 0
         with tqdm(total=3, file=our_file, miniters=0, mininterval=0,
                   leave=True) as progressbar:
-            assert len(tqdm._instances) == 1
+            assert len(tqdm.__instances__) == 1
             progressbar.update(3)
             res = our_file.getvalue()
             assert '| 3/3 ' in res  # Should be blank
             assert '\n' not in res
         # close() called
-        assert len(tqdm._instances) == 0
+        assert len(tqdm.__instances__) == 0
 
         exres = res.rsplit(', ', 1)[0]
         res = our_file.getvalue()
@@ -993,9 +993,9 @@ def test_smoothing():
                         # (else delta_t is 0!)
                         timer.sleep(0.001)
                     t.update()
-            n_old = len(tqdm._instances)
+            n_old = len(tqdm.__instances__)
             t.close()
-            assert len(tqdm._instances) == n_old - 1
+            assert len(tqdm.__instances__) == n_old - 1
             # Get result for iter-based bar
             a = progressbar_rate(get_bar(our_file.getvalue(), 3))
         # Get result for manually updated bar
@@ -1343,7 +1343,7 @@ def test_deprecated_gui():
             raise DeprecationError('Should not allow manual gui=True without'
                                    ' overriding __iter__() and update()')
         finally:
-            t._instances.clear()
+            t.__instances__.clear()
             # t.close()
             # len(tqdm._instances) += 1  # undo the close() decrement
 
@@ -1361,7 +1361,7 @@ def test_deprecated_gui():
             raise DeprecationError('Should not allow manual gui=True without'
                                    ' overriding __iter__() and update()')
         finally:
-            t._instances.clear()
+            t.__instances__.clear()
             # t.close()
             # len(tqdm._instances) += 1  # undo the close() decrement
 

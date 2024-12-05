@@ -1,10 +1,13 @@
+from __future__ import annotations
+
 import sys
+from typing import Any
 
 __author__ = "github.com/casperdcl"
 __all__ = ['tqdm_pandas']
 
 
-def tqdm_pandas(tclass, **tqdm_kwargs):
+def tqdm_pandas(tclass: type[Any], **tqdm_kwargs: Any) -> Any:
     """
     Registers the given `tqdm` instance with
     `pandas.core.groupby.DataFrameGroupBy.progress_apply`.

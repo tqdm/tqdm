@@ -409,12 +409,12 @@ class tqdm(Comparable):
 
     monitor_interval = 10  # set to 0 to disable the thread
     monitor: TMonitor | None = None
-    _instances: WeakSet["tqdm"] = WeakSet()
+    __instances__: WeakSet["tqdm"] = WeakSet()
 
     def __new__(cls, *args: Any, **kwargs: Any) -> "tqdm":
         instance = object.__new__(cls)
         with cls.get_lock():  # also constructs lock if non-existent
-            cls._instances.add(instance)
+            cls.__instances__.add(instance)
             # create monitoring thread
             if cls.monitor_interval and (cls.monitor is None or not cls.monitor.report()):
                 try:
@@ -434,7 +434,7 @@ class tqdm(Comparable):
         """Skips specified instance."""
         positions = {
             abs(inst.pos)
-            for inst in cls._instances
+            for inst in cls.__instances__
             if inst is not instance and hasattr(inst, "pos")
         }
         return min(set(range(len(positions) + 1)).difference(positions))
@@ -451,7 +451,7 @@ class tqdm(Comparable):
         """
         with cls._lock:
             try:
-                cls._instances.remove(instance)
+                cls.__instances__.remove(instance)
             except KeyError:
                 # if not instance.gui:  # pragma: no cover
                 #     raise
@@ -461,7 +461,7 @@ class tqdm(Comparable):
                 last = (instance.nrows or 20) - 1
                 # find unfixed (`pos >= 0`) overflow (`pos >= nrows - 1`)
                 instances = list(
-                    filter(lambda i: hasattr(i, "pos") and last <= i.pos, cls._instances)
+                    filter(lambda i: hasattr(i, "pos") and last <= i.pos, cls.__instances__)
                 )
                 # set first found to current `pos`
                 if instances:
@@ -779,7 +779,7 @@ class tqdm(Comparable):
             self.disable = disable
             with self._lock:
                 self.pos = self._get_free_pos(self)
-                self._instances.remove(self)
+                self.__instances__.remove(self)
             self.n = initial
             self.total = total
             self.leave = leave
@@ -789,7 +789,7 @@ class tqdm(Comparable):
             self.disable = True
             with self._lock:
                 self.pos = self._get_free_pos(self)
-                self._instances.remove(self)
+                self.__instances__.remove(self)
             raise (
                 TqdmDeprecationWarning(
                     "`nested` is deprecated and automated.\n"

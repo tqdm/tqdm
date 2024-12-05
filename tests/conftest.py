@@ -15,13 +15,13 @@ def pretest_posttest():
         sys.setcheckinterval(100)  # deprecated
 
     if getattr(tqdm, "_instances", False):
-        n = len(tqdm._instances)
+        n = len(tqdm.__instances__)
         if n:
-            tqdm._instances.clear()
+            tqdm.__instances__.clear()
             raise OSError(f"{n} `tqdm` instances still in existence PRE-test")
     yield
     if getattr(tqdm, "_instances", False):
-        n = len(tqdm._instances)
+        n = len(tqdm.__instances__)
         if n:
-            tqdm._instances.clear()
+            tqdm.__instances__.clear()
             raise OSError(f"{n} `tqdm` instances still in existence POST-test")

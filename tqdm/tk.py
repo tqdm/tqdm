@@ -105,7 +105,7 @@ class tqdm_tk(std_tqdm):  # pragma: no cover
         self.disable = True
 
         with self.get_lock():
-            self._instances.remove(self)
+            self.__instances__.remove(self)
 
         def _close():
             self._tk_window.after('idle', self._tk_window.destroy)

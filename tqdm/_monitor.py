@@ -1,7 +1,13 @@
+from __future__ import annotations
+
 import atexit
 from threading import Event, Thread, current_thread
 from time import time
+from typing import TYPE_CHECKING, Any, Dict, List
 from warnings import warn
+
+if TYPE_CHECKING:
+    from .std import tqdm
 
 __all__ = ["TMonitor", "TqdmSynchronisationWarning"]
 
@@ -25,9 +31,9 @@ class TMonitor(Thread):
     sleep_interval  : float
         Time to sleep between monitoring checks.
     """
-    _test = {}  # internal vars for unit testing
+    _test: Dict[Any, Any] = {}  # internal vars for unit testing
 
-    def __init__(self, tqdm_cls, sleep_interval):
+    def __init__(self, tqdm_cls: type[tqdm], sleep_interval: float):
         Thread.__init__(self)
         self.daemon = True  # kill thread when main killed (KeyboardInterrupt)
         self.woken = 0  # last time woken up, to sync with monitor
@@ -44,9 +50,9 @@ class TMonitor(Thread):
             self.join()
         return self.report()
 
-    def get_instances(self):
+    def get_instances(self) -> List[tqdm]:
         # returns a copy of started `tqdm_cls` instances
-        return [i for i in self.tqdm_cls._instances.copy()
+        return [i for i in self.tqdm_cls.__instances__.copy()
                 # Avoid race by checking that the instance started
                 if hasattr(i, 'start_t')]
 
