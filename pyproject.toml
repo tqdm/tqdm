@@ -108,6 +108,7 @@ dev = [
     "py-make",
     "ruff>=0.8.1",
     "tox>=4.23.2",
+    "nbval",
 ]
 discord = ["requests"]
 slack = ["slack-sdk"]
