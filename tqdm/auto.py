@@ -12,7 +12,9 @@ Usage:
 >>> for i in trange(10):
 ...     ...
 """
+
 import warnings
+from typing import Any
 
 from .std import TqdmExperimentalWarning
 
@@ -23,18 +25,21 @@ with warnings.catch_warnings():
 from .asyncio import tqdm as asyncio_tqdm
 from .std import tqdm as std_tqdm
 
-if notebook_tqdm != std_tqdm:
-    class tqdm(notebook_tqdm, asyncio_tqdm):  # pylint: disable=inconsistent-mro
+if notebook_tqdm is not std_tqdm:
+
+    class tqdm(notebook_tqdm, asyncio_tqdm):  # type: ignore
         pass
 else:
-    tqdm = asyncio_tqdm
+
+    class tqdm(asyncio_tqdm):
+        pass
 
 
-def trange(*args, **kwargs):
+def trange(*args: Any, **kwargs: Any) -> tqdm:
     """
     A shortcut for `tqdm.auto.tqdm(range(*args), **kwargs)`.
     """
-    return tqdm(range(*args), **kwargs)
+    return tqdm(range(*args), **kwargs)  # type: ignore
 
 
 __all__ = ["tqdm", "trange"]
