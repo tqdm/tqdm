@@ -1,8 +1,6 @@
 """
 Tests for `tqdm.contrib`.
 """
-import sys
-
 import pytest
 
 from tqdm import tqdm
@@ -47,12 +45,9 @@ def test_zip(tqdm_kwargs):
     with closing(StringIO()) as our_file:
         a = range(9)
         b = [i + 1 for i in a]
-        if sys.version_info[:1] < (3,):
-            assert tzip(a, b, file=our_file, **tqdm_kwargs) == zip(a, b)
-        else:
-            gen = tzip(a, b, file=our_file, **tqdm_kwargs)
-            assert gen != list(zip(a, b))
-            assert list(gen) == list(zip(a, b))
+        gen = tzip(a, b, file=our_file, **tqdm_kwargs)
+        assert gen != list(zip(a, b))
+        assert list(gen) == list(zip(a, b))
 
 
 @pytest.mark.parametrize("tqdm_kwargs", [{}, {"tqdm_class": tqdm}])
@@ -61,11 +56,6 @@ def test_map(tqdm_kwargs):
     with closing(StringIO()) as our_file:
         a = range(9)
         b = [i + 1 for i in a]
-        if sys.version_info[:1] < (3,):
-            assert tmap(lambda x: x + 1, a, file=our_file, **tqdm_kwargs) == map(
-                incr, a
-            )
-        else:
-            gen = tmap(lambda x: x + 1, a, file=our_file, **tqdm_kwargs)
-            assert gen != b
-            assert list(gen) == b
+        gen = tmap(lambda x: x + 1, a, file=our_file, **tqdm_kwargs)
+        assert gen != b
+        assert list(gen) == b

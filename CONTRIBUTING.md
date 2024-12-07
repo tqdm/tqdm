@@ -12,7 +12,7 @@ Makefile:
 
 ```
 make [<alias>]  # on UNIX-like environments
-python setup.py make [<alias>]  # if make is unavailable
+python -m pymake [<alias>]  # if make is unavailable
 ```
 
 The latter depends on [`py-make>=0.1.0`](https://github.com/tqdm/py-make).
@@ -51,7 +51,7 @@ However it would be helpful to bear in mind:
         * use two spaces between variable name and colon, specify a type, and most likely state that it's optional: `VAR<space><space>:<space>TYPE[, optional]`
         * use [default: ...] for default values of keyword arguments
     + will not break backward compatibility unless there is a very good reason
-        * e.g. breaking py26 compatibility purely in favour of readability (such as converting `dict(a=1)` to `{'a': 1}`) is not a good enough reason
+        * e.g. breaking py26 compatibility purely in favour of minor readability changes (such as converting `dict(a=1)` to `{'a': 1}`) is not a good enough reason
     + API changes should be discussed carefully
     + remember, with millions of downloads per month, `tqdm` must be extremely fast and reliable
 - Any other kind of change may be included in a (possibly new) submodule
@@ -85,7 +85,7 @@ The standard way to run the tests:
 - run the following command:
 
 ```
-[python setup.py] make test
+[python -m py]make test
 # or:
 tox --skip-missing-interpreters
 ```
@@ -97,19 +97,19 @@ versions of Python.)
 
 Note: to install all versions of the Python interpreter that are specified
 in [tox.ini](https://github.com/tqdm/tqdm/blob/master/tox.ini),
-you can use `MiniConda` to install a minimal setup. You must also make sure
-that each distribution has an alias to call the Python interpreter:
-`python27` for Python 2.7's interpreter, `python32` for Python 3.2's, etc.
+you can use `MiniConda` to install a minimal setup. You must also ensure
+that each distribution has an alias to call the Python interpreter
+(e.g. `python312` for Python 3.12's interpreter).
 
 ### Alternative unit tests with pytest
 
 Alternatively, use `pytest` to run the tests just for the current Python version:
 
-- install test requirements: `[python setup.py] make install_test`
+- install test requirements: `[python -m py]make install_test`
 - run the following command:
 
 ```
-[python setup.py] make alltests
+[python -m py]make alltests
 ```
 
 
@@ -118,9 +118,9 @@ Alternatively, use `pytest` to run the tests just for the current Python version
 
 This section is intended for the project's maintainers and describes
 how to build and upload a new release. Once again,
-`[python setup.py] make [<alias>]` will help.
+`[python -m py]make [<alias>]` will help.
 Also consider `pip install`ing development utilities:
-`[python setup.py] make install_build` at a minimum, or a more thorough `conda env create`.
+`[python -m py]make install_build` at a minimum, or a more thorough `conda env create`.
 
 
 ## Pre-commit Hook
@@ -137,20 +137,20 @@ The `tqdm` repository managers should:
 - follow the [Semantic Versioning](https://semver.org) convention for tagging
 
 
-## Checking setup.py
+## Checking `pyproject.toml`
 
-To check that the `setup.py`/`setup.cfg`/`pyproject.toml` file is compliant with PyPI
+To check that the `pyproject.toml` file is compliant with PyPI
 requirements (e.g. version number; reStructuredText in `README.rst`) use:
 
 ```
-[python setup.py] make testsetup
+[python -m py]make testsetup
 ```
 
 To upload just metadata (including overwriting mistakenly uploaded metadata)
 to PyPI, use:
 
 ```
-[python setup.py] make pypimeta
+[python -m py]make pypimeta
 ```
 
 
@@ -199,7 +199,7 @@ git merge --no-ff pr-branch-name
 ### 4 Test
 
 ```
-[python setup.py] make alltests
+[python -m py]make alltests
 ```
 
 ### 5 Push to master
@@ -233,7 +233,7 @@ Manual instructions are given below in case of failure.
 Build `tqdm` into a distributable python package:
 
 ```
-[python setup.py] make build
+[python -m py]make build
 ```
 
 This will generate several builds in the `dist/` folder. On non-windows
@@ -243,13 +243,13 @@ Finally, upload everything to PyPI. This can be done easily using the
 [twine](https://github.com/pypa/twine) module:
 
 ```
-[python setup.py] make pypi
+[python -m py]make pypi
 ```
 
 Also, the new release can (should) be added to GitHub by creating a new
 release from the [web interface](https://github.com/tqdm/tqdm/releases);
 uploading packages from the `dist/` folder
-created by `[python setup.py] make build`.
+created by `[python -m py]make build`.
 The [wiki] can be automatically updated with GitHub release notes by
 running `make` within the wiki repository.
 
@@ -282,7 +282,7 @@ before the real deployment
 - in case of a mistake, you can delete an uploaded release on PyPI, but you
 cannot re-upload another with the same version number
 - in case of a mistake in the metadata on PyPI (e.g. bad README),
-updating just the metadata is possible: `[python setup.py] make pypimeta`
+updating just the metadata is possible: `[python -m py]make pypimeta`
 
 
 ## Updating Websites
@@ -333,16 +333,16 @@ to assist with maintenance.
 For experienced devs, once happy with local master, follow the steps below.
 Much is automated so really it's steps 1-5, then 11(a).
 
-1. test (`[python setup.py] make alltests` or rely on `pre-commit`)
+1. test (`[python -m py]make alltests` or rely on `pre-commit`)
 2. `git commit [--amend]  # -m "bump version"`
 3. `git push`
 4. wait for tests to pass
     a) in case of failure, fix and go back to (1)
 5. `git tag vM.m.p && git push --tags` or comment `/tag vM.m.p commit_hash`
-6. **`[AUTO:GHA]`** `[python setup.py] make distclean`
-7. **`[AUTO:GHA]`** `[python setup.py] make build`
+6. **`[AUTO:GHA]`** `[python -m py]make distclean`
+7. **`[AUTO:GHA]`** `[python -m py]make build`
 8. **`[AUTO:GHA]`** upload to PyPI. either:
-    a) `[python setup.py] make pypi`, or
+    a) `[python -m py]make pypi`, or
     b) `twine upload -s -i $(git config user.signingkey) dist/tqdm-*`
 9. **`[AUTO:GHA]`** upload to docker hub:
     a) `make -B docker`
@@ -359,7 +359,7 @@ Much is automated so really it's steps 1-5, then 11(a).
 13. **`[SUB][AUTO:GHA-rel]`** run `make deploy` in the `docs` submodule to update website
 14. **`[SUB][AUTO:GHA-rel]`** accept the automated PR in the `feedstock` submodule to update conda
 15. **`[AUTO:GHA-rel]`** update the [gh-pages project] benchmarks
-    a) `[python setup.py] make testasvfull`
+    a) `[python -m py]make testasvfull`
     b) `asv gh-pages`
 
 Key:

@@ -8,16 +8,14 @@ Usage:
 """
 # future division is important to divide integers and get as
 # a result precise floating numbers (instead of truncated int)
-from __future__ import absolute_import, division
-
 import re
 from warnings import warn
 
 # to inherit from the tqdm class
 from .std import TqdmExperimentalWarning
 from .std import tqdm as std_tqdm
+
 # import compatibility functions and utilities
-from .utils import _range
 
 __author__ = {"github.com/": ["casperdcl", "lrq3000"]}
 __all__ = ['tqdm_gui', 'tgrange', 'tqdm', 'trange']
@@ -34,7 +32,7 @@ class tqdm_gui(std_tqdm):  # pragma: no cover
         kwargs = kwargs.copy()
         kwargs['gui'] = True
         colour = kwargs.pop('colour', 'g')
-        super(tqdm_gui, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         if self.disable:
             return
@@ -124,6 +122,7 @@ class tqdm_gui(std_tqdm):  # pragma: no cover
         ax = self.ax
         line1 = self.line1
         line2 = self.line2
+        hspan = getattr(self, 'hspan', None)
         # instantaneous rate
         y = delta_it / delta_t
         # overall rate
@@ -150,18 +149,10 @@ class tqdm_gui(std_tqdm):  # pragma: no cover
         if total:
             line1.set_data(xdata, ydata)
             line2.set_data(xdata, zdata)
-            try:
-                poly_lims = self.hspan.get_xy()
-            except AttributeError:
-                self.hspan = self.plt.axhspan(0, 0.001, xmin=0, xmax=0, color='g')
-                poly_lims = self.hspan.get_xy()
-            poly_lims[0, 1] = ymin
-            poly_lims[1, 1] = ymax
-            poly_lims[2] = [n / total, ymax]
-            poly_lims[3] = [poly_lims[2, 0], ymin]
-            if len(poly_lims) > 4:
-                poly_lims[4, 1] = ymin
-            self.hspan.set_xy(poly_lims)
+            if hspan:
+                hspan.set_xy((0, ymin))
+                hspan.set_height(ymax - ymin)
+                hspan.set_width(n / total)
         else:
             t_ago = [cur_t - i for i in xdata]
             line1.set_data(t_ago, ydata)
@@ -173,17 +164,14 @@ class tqdm_gui(std_tqdm):  # pragma: no cover
             "{bar}", "<bar/>")
         msg = self.format_meter(**d)
         if '<bar/>' in msg:
-            msg = "".join(re.split(r'\|?<bar/>\|?', msg, 1))
+            msg = "".join(re.split(r'\|?<bar/>\|?', msg, maxsplit=1))
         ax.set_title(msg, fontname="DejaVu Sans Mono", fontsize=11)
         self.plt.pause(1e-9)
 
 
 def tgrange(*args, **kwargs):
-    """
-    A shortcut for `tqdm.gui.tqdm(xrange(*args), **kwargs)`.
-    On Python3+, `range` is used instead of `xrange`.
-    """
-    return tqdm_gui(_range(*args), **kwargs)
+    """Shortcut for `tqdm.gui.tqdm(range(*args), **kwargs)`."""
+    return tqdm_gui(range(*args), **kwargs)
 
 
 # Aliases

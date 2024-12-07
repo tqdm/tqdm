@@ -18,8 +18,6 @@ Options:
                          NOTSET
   -d, --debug-trace      Print lots of debugging information (-D NOTSET)
 """
-from __future__ import print_function
-
 import io
 import logging
 import os

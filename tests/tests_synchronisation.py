@@ -1,13 +1,9 @@
-from __future__ import division
-
-import sys
 from functools import wraps
 from threading import Event
 from time import sleep, time
 
 from tqdm import TMonitor, tqdm, trange
 
-from .tests_perf import retry_on_except
 from .tests_tqdm import StringIO, closing, importorskip, patch_lock, skip
 
 
@@ -37,18 +33,13 @@ class Time(object):
         sleep(0.000001)  # sleep to allow interrupt (instead of pass)
 
 
-def FakeEvent():
+class FakeEvent(Event):
     """patched `threading.Event` where `wait()` uses `Time.fake_sleep()`"""
-    event = Event()  # not a class in py2 so can't inherit
-
-    def wait(timeout=None):
+    def wait(self, timeout=None):
         """uses Time.fake_sleep"""
         if timeout is not None:
             Time.fake_sleep(timeout)
-        return event.is_set()
-
-    event.wait = wait
-    return event
+        return self.is_set()
 
 
 def patch_sleep(func):
@@ -206,19 +197,11 @@ def test_imap():
     assert res[-1] == 100
 
 
-# py2: locks won't propagate to incr_bar so may cause `AttributeError`
-@retry_on_except(n=3 if sys.version_info < (3,) else 1, check_cpu_time=False)
 @patch_lock(thread=True)
 def test_threadpool():
     """Test concurrent.futures.ThreadPoolExecutor"""
     ThreadPoolExecutor = importorskip('concurrent.futures').ThreadPoolExecutor
 
     with ThreadPoolExecutor(8) as pool:
-        try:
-            res = list(tqdm(pool.map(incr_bar, range(100)), disable=True))
-        except AttributeError:
-            if sys.version_info < (3,):
-                skip("not supported on py2")
-            else:
-                raise
+        res = list(tqdm(pool.map(incr_bar, range(100)), disable=True))
     assert sum(res) == sum(range(1, 101))

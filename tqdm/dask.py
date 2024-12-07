@@ -1,5 +1,3 @@
-from __future__ import absolute_import
-
 from functools import partial
 
 from dask.callbacks import Callback
@@ -22,7 +20,7 @@ class TqdmCallback(Callback):
         tqdm_kwargs  : optional
             Any other arguments used for all bars.
         """
-        super(TqdmCallback, self).__init__(start=start, pretask=pretask)
+        super().__init__(start=start, pretask=pretask)
         if tqdm_kwargs:
             tqdm_class = partial(tqdm_class, **tqdm_kwargs)
         self.tqdm_class = tqdm_class
