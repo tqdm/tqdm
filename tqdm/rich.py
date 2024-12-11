@@ -281,7 +281,7 @@ class tqdm_rich(std_tqdm):  # pragma: no cover
 
     def display(self, refresh=False, *_, **__):
         cls = self.__class__
-        if cls._progress is None or self._task is None:
+        if not hasattr(cls, "_progress") or cls._progress is None or self._task is None:
             return
         if not self._task.started and self.n > 0:
             cls._progress.start_task(self._task.id)
