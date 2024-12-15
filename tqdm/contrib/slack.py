@@ -6,10 +6,8 @@ Usage:
 >>> for i in trange(10, token='{token}', channel='{channel}'):
 ...     ...
 
-![screenshot](https://img.tqdm.ml/screenshot-slack.png)
+![screenshot](https://tqdm.github.io/img/screenshot-slack.png)
 """
-from __future__ import absolute_import
-
 import logging
 from os import getenv
 
@@ -19,7 +17,6 @@ except ImportError:
     raise ImportError("Please `pip install slack-sdk`")
 
 from ..auto import tqdm as tqdm_auto
-from ..utils import _range
 from .utils_worker import MonoWorker
 
 __author__ = {"github.com/": ["0x2b3bfa0", "casperdcl"]}
@@ -30,7 +27,7 @@ class SlackIO(MonoWorker):
     """Non-blocking file-like IO using a Slack app."""
     def __init__(self, token, channel):
         """Creates a new message in the given `channel`."""
-        super(SlackIO, self).__init__()
+        super().__init__()
         self.client = WebClient(token=token)
         self.text = self.__class__.__name__
         try:
@@ -91,10 +88,10 @@ class tqdm_slack(tqdm_auto):
                 kwargs.pop('token', getenv("TQDM_SLACK_TOKEN")),
                 kwargs.pop('channel', getenv("TQDM_SLACK_CHANNEL")))
             kwargs['mininterval'] = max(1.5, kwargs.get('mininterval', 1.5))
-        super(tqdm_slack, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def display(self, **kwargs):
-        super(tqdm_slack, self).display(**kwargs)
+        super().display(**kwargs)
         fmt = self.format_dict
         if fmt.get('bar_format', None):
             fmt['bar_format'] = fmt['bar_format'].replace(
@@ -108,17 +105,14 @@ class tqdm_slack(tqdm_auto):
         self.sio.write(self.format_meter(**fmt))
 
     def clear(self, *args, **kwargs):
-        super(tqdm_slack, self).clear(*args, **kwargs)
+        super().clear(*args, **kwargs)
         if not self.disable:
             self.sio.write("")
 
 
 def tsrange(*args, **kwargs):
-    """
-    A shortcut for `tqdm.contrib.slack.tqdm(xrange(*args), **kwargs)`.
-    On Python3+, `range` is used instead of `xrange`.
-    """
-    return tqdm_slack(_range(*args), **kwargs)
+    """Shortcut for `tqdm.contrib.slack.tqdm(range(*args), **kwargs)`."""
+    return tqdm_slack(range(*args), **kwargs)
 
 
 # Aliases

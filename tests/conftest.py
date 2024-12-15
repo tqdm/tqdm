@@ -18,24 +18,10 @@ def pretest_posttest():
         n = len(tqdm._instances)
         if n:
             tqdm._instances.clear()
-            raise EnvironmentError(
-                "{0} `tqdm` instances still in existence PRE-test".format(n))
+            raise EnvironmentError(f"{n} `tqdm` instances still in existence PRE-test")
     yield
     if getattr(tqdm, "_instances", False):
         n = len(tqdm._instances)
         if n:
             tqdm._instances.clear()
-            raise EnvironmentError(
-                "{0} `tqdm` instances still in existence POST-test".format(n))
-
-
-if sys.version_info[0] > 2:
-    @fixture
-    def capsysbin(capsysbinary):
-        """alias for capsysbinary (py3)"""
-        return capsysbinary
-else:
-    @fixture
-    def capsysbin(capsys):
-        """alias for capsys (py2)"""
-        return capsys
+            raise EnvironmentError(f"{n} `tqdm` instances still in existence POST-test")

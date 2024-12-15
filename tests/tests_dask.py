@@ -1,5 +1,3 @@
-from __future__ import division
-
 from time import sleep
 
 from .tests_tqdm import importorskip, mark

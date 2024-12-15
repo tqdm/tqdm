@@ -7,12 +7,10 @@ Usage:
 >>> for i in trange(10):
 ...     ...
 """
-from __future__ import absolute_import, division
-
 import sys
 from collections import OrderedDict, defaultdict
 from contextlib import contextmanager
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from numbers import Number
 from time import time
 from warnings import warn
@@ -21,8 +19,8 @@ from weakref import WeakSet
 from ._monitor import TMonitor
 from .utils import (
     CallbackIOWrapper, Comparable, DisableOnWriteError, FormatReplace, SimpleTextIOWrapper,
-    _basestring, _is_ascii, _range, _screen_shape_wrapper, _supports_unicode, _term_move_up,
-    _unich, _unicode, disp_len, disp_trim)
+    _is_ascii, _screen_shape_wrapper, _supports_unicode, _term_move_up, disp_len, disp_trim,
+    envwrap)
 
 __author__ = "https://github.com/tqdm/tqdm#contributions"
 __all__ = ['tqdm', 'trange',
@@ -48,7 +46,7 @@ class TqdmWarning(Warning):
         if fp_write is not None:
             fp_write("\n" + self.__class__.__name__ + ": " + str(msg).rstrip() + '\n')
         else:
-            super(TqdmWarning, self).__init__(msg, *a, **k)
+            super().__init__(msg, *a, **k)
 
 
 class TqdmExperimentalWarning(TqdmWarning, FutureWarning):
@@ -144,7 +142,7 @@ class Bar(object):
       + `b`: blank (`charset="  "` override)
     """
     ASCII = " 123456789#"
-    UTF = u" " + u''.join(map(_unich, range(0x258F, 0x2587, -1)))
+    UTF = u" " + u''.join(map(chr, range(0x258F, 0x2587, -1)))
     BLANK = "  "
     COLOUR_RESET = '\x1b[0m'
     COLOUR_RGB = '\x1b[38;2;%d;%d;%dm'
@@ -249,6 +247,120 @@ class tqdm(Comparable):
     Decorate an iterable object, returning an iterator which acts exactly
     like the original iterable, but prints a dynamically updating
     progressbar every time a value is requested.
+
+    Parameters
+    ----------
+    iterable  : iterable, optional
+        Iterable to decorate with a progressbar.
+        Leave blank to manually manage the updates.
+    desc  : str, optional
+        Prefix for the progressbar.
+    total  : int or float, optional
+        The number of expected iterations. If unspecified,
+        len(iterable) is used if possible. If float("inf") or as a last
+        resort, only basic progress statistics are displayed
+        (no ETA, no progressbar).
+        If `gui` is True and this parameter needs subsequent updating,
+        specify an initial arbitrary large positive number,
+        e.g. 9e9.
+    leave  : bool, optional
+        If [default: True], keeps all traces of the progressbar
+        upon termination of iteration.
+        If `None`, will leave only if `position` is `0`.
+    file  : `io.TextIOWrapper` or `io.StringIO`, optional
+        Specifies where to output the progress messages
+        (default: sys.stderr). Uses `file.write(str)` and `file.flush()`
+        methods.  For encoding, see `write_bytes`.
+    ncols  : int, optional
+        The width of the entire output message. If specified,
+        dynamically resizes the progressbar to stay within this bound.
+        If unspecified, attempts to use environment width. The
+        fallback is a meter width of 10 and no limit for the counter and
+        statistics. If 0, will not print any meter (only stats).
+    mininterval  : float, optional
+        Minimum progress display update interval [default: 0.1] seconds.
+    maxinterval  : float, optional
+        Maximum progress display update interval [default: 10] seconds.
+        Automatically adjusts `miniters` to correspond to `mininterval`
+        after long display update lag. Only works if `dynamic_miniters`
+        or monitor thread is enabled.
+    miniters  : int or float, optional
+        Minimum progress display update interval, in iterations.
+        If 0 and `dynamic_miniters`, will automatically adjust to equal
+        `mininterval` (more CPU efficient, good for tight loops).
+        If > 0, will skip display of specified number of iterations.
+        Tweak this and `mininterval` to get very efficient loops.
+        If your progress is erratic with both fast and slow iterations
+        (network, skipping items, etc) you should set miniters=1.
+    ascii  : bool or str, optional
+        If unspecified or False, use unicode (smooth blocks) to fill
+        the meter. The fallback is to use ASCII characters " 123456789#".
+    disable  : bool, optional
+        Whether to disable the entire progressbar wrapper
+        [default: False]. If set to None, disable on non-TTY.
+    unit  : str, optional
+        String that will be used to define the unit of each iteration
+        [default: it].
+    unit_scale  : bool or int or float, optional
+        If 1 or True, the number of iterations will be reduced/scaled
+        automatically and a metric prefix following the
+        International System of Units standard will be added
+        (kilo, mega, etc.) [default: False]. If any other non-zero
+        number, will scale `total` and `n`.
+    dynamic_ncols  : bool, optional
+        If set, constantly alters `ncols` and `nrows` to the
+        environment (allowing for window resizes) [default: False].
+    smoothing  : float, optional
+        Exponential moving average smoothing factor for speed estimates
+        (ignored in GUI mode). Ranges from 0 (average speed) to 1
+        (current/instantaneous speed) [default: 0.3].
+    bar_format  : str, optional
+        Specify a custom bar string formatting. May impact performance.
+        [default: '{l_bar}{bar}{r_bar}'], where
+        l_bar='{desc}: {percentage:3.0f}%|' and
+        r_bar='| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, '
+            '{rate_fmt}{postfix}]'
+        Possible vars: l_bar, bar, r_bar, n, n_fmt, total, total_fmt,
+            percentage, elapsed, elapsed_s, ncols, nrows, desc, unit,
+            rate, rate_fmt, rate_noinv, rate_noinv_fmt,
+            rate_inv, rate_inv_fmt, postfix, unit_divisor,
+            remaining, remaining_s, eta.
+        Note that a trailing ": " is automatically removed after {desc}
+        if the latter is empty.
+    initial  : int or float, optional
+        The initial counter value. Useful when restarting a progress
+        bar [default: 0]. If using float, consider specifying `{n:.3f}`
+        or similar in `bar_format`, or specifying `unit_scale`.
+    position  : int, optional
+        Specify the line offset to print this bar (starting from 0)
+        Automatic if unspecified.
+        Useful to manage multiple bars at once (eg, from threads).
+    postfix  : dict or *, optional
+        Specify additional stats to display at the end of the bar.
+        Calls `set_postfix(**postfix)` if possible (dict).
+    unit_divisor  : float, optional
+        [default: 1000], ignored unless `unit_scale` is True.
+    write_bytes  : bool, optional
+        Whether to write bytes. If (default: False) will write unicode.
+    lock_args  : tuple, optional
+        Passed to `refresh` for intermediate output
+        (initialisation, iterating, and updating).
+    nrows  : int, optional
+        The screen height. If specified, hides nested bars outside this
+        bound. If unspecified, attempts to use environment height.
+        The fallback is 20.
+    colour  : str, optional
+        Bar colour (e.g. 'green', '#00ff00').
+    delay  : float, optional
+        Don't display until [default: 0] seconds have elapsed.
+    gui  : bool, optional
+        WARNING: internal parameter - do not use.
+        Use tqdm.gui.tqdm(...) instead. If set, will attempt to use
+        matplotlib animations for a graphical output [default: False].
+
+    Returns
+    -------
+    out  : decorated iterator.
     """
 
     monitor_interval = 10  # set to 0 to disable the thread
@@ -279,11 +391,11 @@ class tqdm(Comparable):
             if abs(num) < 999.5:
                 if abs(num) < 99.95:
                     if abs(num) < 9.995:
-                        return '{0:1.2f}'.format(num) + unit + suffix
-                    return '{0:2.1f}'.format(num) + unit + suffix
-                return '{0:3.0f}'.format(num) + unit + suffix
+                        return f'{num:1.2f}{unit}{suffix}'
+                    return f'{num:2.1f}{unit}{suffix}'
+                return f'{num:3.0f}{unit}{suffix}'
             num /= divisor
-        return '{0:3.1f}Y'.format(num) + suffix
+        return f'{num:3.1f}Y{suffix}'
 
     @staticmethod
     def format_interval(t):
@@ -302,10 +414,7 @@ class tqdm(Comparable):
         """
         mins, s = divmod(int(t), 60)
         h, m = divmod(mins, 60)
-        if h:
-            return '{0:d}:{1:02d}:{2:02d}'.format(h, m, s)
-        else:
-            return '{0:02d}:{1:02d}'.format(m, s)
+        return f'{h:d}:{m:02d}:{s:02d}' if h else f'{m:02d}:{s:02d}'
 
     @staticmethod
     def format_num(n):
@@ -322,7 +431,7 @@ class tqdm(Comparable):
         out  : str
             Formatted number.
         """
-        f = '{0:.3g}'.format(n).replace('+0', '+').replace('-0', '-')
+        f = f'{n:.3g}'.replace('e+0', 'e+').replace('e-0', 'e-')
         n = str(n)
         return f if len(f) < len(n) else n
 
@@ -340,7 +449,7 @@ class tqdm(Comparable):
             getattr(sys.stdout, 'flush', lambda: None)()
 
         def fp_write(s):
-            fp.write(_unicode(s))
+            fp.write(str(s))
             fp_flush()
 
         last_len = [0]
@@ -442,10 +551,10 @@ class tqdm(Comparable):
             rate = (n - initial) / elapsed
         inv_rate = 1 / rate if rate else None
         format_sizeof = tqdm.format_sizeof
-        rate_noinv_fmt = ((format_sizeof(rate) if unit_scale else
-                           '{0:5.2f}'.format(rate)) if rate else '?') + unit + '/s'
+        rate_noinv_fmt = ((format_sizeof(rate) if unit_scale else f'{rate:5.2f}')
+                          if rate else '?') + unit + '/s'
         rate_inv_fmt = (
-            (format_sizeof(inv_rate) if unit_scale else '{0:5.2f}'.format(inv_rate))
+            (format_sizeof(inv_rate) if unit_scale else f'{inv_rate:5.2f}')
             if inv_rate else '?') + 's/' + unit
         rate_fmt = rate_inv_fmt if inv_rate and inv_rate > 1 else rate_noinv_fmt
 
@@ -465,7 +574,7 @@ class tqdm(Comparable):
         remaining_str = tqdm.format_interval(remaining) if rate else '?'
         try:
             eta_dt = (datetime.now() + timedelta(seconds=remaining)
-                      if rate and total else datetime.utcfromtimestamp(0))
+                      if rate and total else datetime.fromtimestamp(0, timezone.utc))
         except OverflowError:
             eta_dt = datetime.max
 
@@ -477,26 +586,25 @@ class tqdm(Comparable):
         else:
             l_bar = ''
 
-        r_bar = '| {0}/{1} [{2}<{3}, {4}{5}]'.format(
-            n_fmt, total_fmt, elapsed_str, remaining_str, rate_fmt, postfix)
+        r_bar = f'| {n_fmt}/{total_fmt} [{elapsed_str}<{remaining_str}, {rate_fmt}{postfix}]'
 
         # Custom bar formatting
         # Populate a dict with all available progress indicators
-        format_dict = dict(
+        format_dict = {
             # slight extension of self.format_dict
-            n=n, n_fmt=n_fmt, total=total, total_fmt=total_fmt,
-            elapsed=elapsed_str, elapsed_s=elapsed,
-            ncols=ncols, desc=prefix or '', unit=unit,
-            rate=inv_rate if inv_rate and inv_rate > 1 else rate,
-            rate_fmt=rate_fmt, rate_noinv=rate,
-            rate_noinv_fmt=rate_noinv_fmt, rate_inv=inv_rate,
-            rate_inv_fmt=rate_inv_fmt,
-            postfix=postfix, unit_divisor=unit_divisor,
-            colour=colour,
+            'n': n, 'n_fmt': n_fmt, 'total': total, 'total_fmt': total_fmt,
+            'elapsed': elapsed_str, 'elapsed_s': elapsed,
+            'ncols': ncols, 'desc': prefix or '', 'unit': unit,
+            'rate': inv_rate if inv_rate and inv_rate > 1 else rate,
+            'rate_fmt': rate_fmt, 'rate_noinv': rate,
+            'rate_noinv_fmt': rate_noinv_fmt, 'rate_inv': inv_rate,
+            'rate_inv_fmt': rate_inv_fmt,
+            'postfix': postfix, 'unit_divisor': unit_divisor,
+            'colour': colour,
             # plus more useful definitions
-            remaining=remaining_str, remaining_s=remaining,
-            l_bar=l_bar, r_bar=r_bar, eta=eta_dt,
-            **extra_kwargs)
+            'remaining': remaining_str, 'remaining_s': remaining,
+            'l_bar': l_bar, 'r_bar': r_bar, 'eta': eta_dt,
+            **extra_kwargs}
 
         # total is known: we can predict some stats
         if total:
@@ -504,7 +612,7 @@ class tqdm(Comparable):
             frac = n / total
             percentage = frac * 100
 
-            l_bar += '{0:3.0f}%|'.format(percentage)
+            l_bar += f'{percentage:3.0f}%|'
 
             if ncols == 0:
                 return l_bar[:-1] + r_bar[1:]
@@ -513,21 +621,16 @@ class tqdm(Comparable):
             if bar_format:
                 format_dict.update(percentage=percentage)
 
-                # auto-remove colon for empty `desc`
+                # auto-remove colon for empty `{desc}`
                 if not prefix:
                     bar_format = bar_format.replace("{desc}: ", '')
             else:
                 bar_format = "{l_bar}{bar}{r_bar}"
 
             full_bar = FormatReplace()
-            try:
-                nobar = bar_format.format(bar=full_bar, **format_dict)
-            except UnicodeEncodeError:
-                bar_format = _unicode(bar_format)
-                nobar = bar_format.format(bar=full_bar, **format_dict)
+            nobar = bar_format.format(bar=full_bar, **format_dict)
             if not full_bar.format_called:
-                # no {bar}, we can just format and return
-                return nobar
+                return nobar  # no `{bar}`; nothing else to do
 
             # Formatting progress bar space available for bar's display
             full_bar = Bar(frac,
@@ -535,7 +638,7 @@ class tqdm(Comparable):
                            charset=Bar.ASCII if ascii is True else ascii or Bar.UTF,
                            colour=colour)
             if not _is_ascii(full_bar.charset) and _is_ascii(bar_format):
-                bar_format = _unicode(bar_format)
+                bar_format = str(bar_format)
             res = bar_format.format(bar=full_bar, **format_dict)
             return disp_trim(res, ncols) if ncols else res
 
@@ -554,8 +657,8 @@ class tqdm(Comparable):
             return disp_trim(res, ncols) if ncols else res
         else:
             # no total: no progressbar, ETA, just progress stats
-            return '{0}{1}{2} [{3}, {4}{5}]'.format(
-                (prefix + ": ") if prefix else '', n_fmt, unit, elapsed_str, rate_fmt, postfix)
+            return (f'{(prefix + ": ") if prefix else ""}'
+                    f'{n_fmt}{unit} [{elapsed_str}, {rate_fmt}{postfix}]')
 
     def __new__(cls, *_, **__):
         instance = object.__new__(cls)
@@ -827,6 +930,8 @@ class tqdm(Comparable):
         DataFrame.progress_apply = inner_generator()
         DataFrameGroupBy.progress_apply = inner_generator()
         DataFrame.progress_applymap = inner_generator('applymap')
+        DataFrame.progress_map = inner_generator('map')
+        DataFrameGroupBy.progress_map = inner_generator('map')
 
         if Panel is not None:
             Panel.progress_apply = inner_generator()
@@ -843,133 +948,17 @@ class tqdm(Comparable):
         elif _Rolling_and_Expanding is not None:
             _Rolling_and_Expanding.progress_apply = inner_generator()
 
+    # override defaults via env vars
+    @envwrap("TQDM_", is_method=True, types={'total': float, 'ncols': int, 'miniters': float,
+                                             'position': int, 'nrows': int})
     def __init__(self, iterable=None, desc=None, total=None, leave=True, file=None,
                  ncols=None, mininterval=0.1, maxinterval=10.0, miniters=None,
                  ascii=None, disable=False, unit='it', unit_scale=False,
                  dynamic_ncols=False, smoothing=0.3, bar_format=None, initial=0,
-                 position=None, postfix=None, unit_divisor=1000, write_bytes=None,
-                 lock_args=None, nrows=None, colour=None, delay=0, gui=False,
+                 position=None, postfix=None, unit_divisor=1000, write_bytes=False,
+                 lock_args=None, nrows=None, colour=None, delay=0.0, gui=False,
                  **kwargs):
-        """
-        Parameters
-        ----------
-        iterable  : iterable, optional
-            Iterable to decorate with a progressbar.
-            Leave blank to manually manage the updates.
-        desc  : str, optional
-            Prefix for the progressbar.
-        total  : int or float, optional
-            The number of expected iterations. If unspecified,
-            len(iterable) is used if possible. If float("inf") or as a last
-            resort, only basic progress statistics are displayed
-            (no ETA, no progressbar).
-            If `gui` is True and this parameter needs subsequent updating,
-            specify an initial arbitrary large positive number,
-            e.g. 9e9.
-        leave  : bool, optional
-            If [default: True], keeps all traces of the progressbar
-            upon termination of iteration.
-            If `None`, will leave only if `position` is `0`.
-        file  : `io.TextIOWrapper` or `io.StringIO`, optional
-            Specifies where to output the progress messages
-            (default: sys.stderr). Uses `file.write(str)` and `file.flush()`
-            methods.  For encoding, see `write_bytes`.
-        ncols  : int, optional
-            The width of the entire output message. If specified,
-            dynamically resizes the progressbar to stay within this bound.
-            If unspecified, attempts to use environment width. The
-            fallback is a meter width of 10 and no limit for the counter and
-            statistics. If 0, will not print any meter (only stats).
-        mininterval  : float, optional
-            Minimum progress display update interval [default: 0.1] seconds.
-        maxinterval  : float, optional
-            Maximum progress display update interval [default: 10] seconds.
-            Automatically adjusts `miniters` to correspond to `mininterval`
-            after long display update lag. Only works if `dynamic_miniters`
-            or monitor thread is enabled.
-        miniters  : int or float, optional
-            Minimum progress display update interval, in iterations.
-            If 0 and `dynamic_miniters`, will automatically adjust to equal
-            `mininterval` (more CPU efficient, good for tight loops).
-            If > 0, will skip display of specified number of iterations.
-            Tweak this and `mininterval` to get very efficient loops.
-            If your progress is erratic with both fast and slow iterations
-            (network, skipping items, etc) you should set miniters=1.
-        ascii  : bool or str, optional
-            If unspecified or False, use unicode (smooth blocks) to fill
-            the meter. The fallback is to use ASCII characters " 123456789#".
-        disable  : bool, optional
-            Whether to disable the entire progressbar wrapper
-            [default: False]. If set to None, disable on non-TTY.
-        unit  : str, optional
-            String that will be used to define the unit of each iteration
-            [default: it].
-        unit_scale  : bool or int or float, optional
-            If 1 or True, the number of iterations will be reduced/scaled
-            automatically and a metric prefix following the
-            International System of Units standard will be added
-            (kilo, mega, etc.) [default: False]. If any other non-zero
-            number, will scale `total` and `n`.
-        dynamic_ncols  : bool, optional
-            If set, constantly alters `ncols` and `nrows` to the
-            environment (allowing for window resizes) [default: False].
-        smoothing  : float, optional
-            Exponential moving average smoothing factor for speed estimates
-            (ignored in GUI mode). Ranges from 0 (average speed) to 1
-            (current/instantaneous speed) [default: 0.3].
-        bar_format  : str, optional
-            Specify a custom bar string formatting. May impact performance.
-            [default: '{l_bar}{bar}{r_bar}'], where
-            l_bar='{desc}: {percentage:3.0f}%|' and
-            r_bar='| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, '
-              '{rate_fmt}{postfix}]'
-            Possible vars: l_bar, bar, r_bar, n, n_fmt, total, total_fmt,
-              percentage, elapsed, elapsed_s, ncols, nrows, desc, unit,
-              rate, rate_fmt, rate_noinv, rate_noinv_fmt,
-              rate_inv, rate_inv_fmt, postfix, unit_divisor,
-              remaining, remaining_s, eta.
-            Note that a trailing ": " is automatically removed after {desc}
-            if the latter is empty.
-        initial  : int or float, optional
-            The initial counter value. Useful when restarting a progress
-            bar [default: 0]. If using float, consider specifying `{n:.3f}`
-            or similar in `bar_format`, or specifying `unit_scale`.
-        position  : int, optional
-            Specify the line offset to print this bar (starting from 0)
-            Automatic if unspecified.
-            Useful to manage multiple bars at once (eg, from threads).
-        postfix  : dict or *, optional
-            Specify additional stats to display at the end of the bar.
-            Calls `set_postfix(**postfix)` if possible (dict).
-        unit_divisor  : float, optional
-            [default: 1000], ignored unless `unit_scale` is True.
-        write_bytes  : bool, optional
-            If (default: None) and `file` is unspecified,
-            bytes will be written in Python 2. If `True` will also write
-            bytes. In all other cases will default to unicode.
-        lock_args  : tuple, optional
-            Passed to `refresh` for intermediate output
-            (initialisation, iterating, and updating).
-        nrows  : int, optional
-            The screen height. If specified, hides nested bars outside this
-            bound. If unspecified, attempts to use environment height.
-            The fallback is 20.
-        colour  : str, optional
-            Bar colour (e.g. 'green', '#00ff00').
-        delay  : float, optional
-            Don't display until [default: 0] seconds have elapsed.
-        gui  : bool, optional
-            WARNING: internal parameter - do not use.
-            Use tqdm.gui.tqdm(...) instead. If set, will attempt to use
-            matplotlib animations for a graphical output [default: False].
-
-        Returns
-        -------
-        out  : decorated iterator.
-        """
-        if write_bytes is None:
-            write_bytes = file is None and sys.version_info < (3,)
-
+        """see tqdm.tqdm for arguments"""
         if file is None:
             file = sys.stderr
 
@@ -1051,7 +1040,7 @@ class tqdm(Comparable):
 
         if bar_format and ascii is not True and not _is_ascii(ascii):
             # Convert bar format into unicode since terminal uses unicode
-            bar_format = _unicode(bar_format)
+            bar_format = str(bar_format)
 
         if smoothing is None:
             smoothing = 0
@@ -1119,9 +1108,6 @@ class tqdm(Comparable):
         if self.iterable is None:
             raise TypeError('bool() undefined when iterable == total == None')
         return bool(self.iterable)
-
-    def __nonzero__(self):
-        return self.__bool__()
 
     def __len__(self):
         return (
@@ -1298,7 +1284,7 @@ class tqdm(Comparable):
 
         # annoyingly, _supports_unicode isn't good enough
         def fp_write(s):
-            self.fp.write(_unicode(s))
+            self.fp.write(str(s))
 
         try:
             fp_write('')
@@ -1435,7 +1421,7 @@ class tqdm(Comparable):
             if isinstance(postfix[key], Number):
                 postfix[key] = self.format_num(postfix[key])
             # Else for any other type, try to get the string conversion
-            elif not isinstance(postfix[key], _basestring):
+            elif not isinstance(postfix[key], str):
                 postfix[key] = str(postfix[key])
             # Else if it's a string, don't need to preprocess anything
         # Stitch together to get the final postfix
@@ -1454,7 +1440,7 @@ class tqdm(Comparable):
 
     def moveto(self, n):
         # TODO: private method
-        self.fp.write(_unicode('\n' * n + _term_move_up() * -n))
+        self.fp.write('\n' * n + _term_move_up() * -n)
         getattr(self.fp, 'flush', lambda: None)()
 
     @property
@@ -1534,8 +1520,5 @@ class tqdm(Comparable):
 
 
 def trange(*args, **kwargs):
-    """
-    A shortcut for tqdm(xrange(*args), **kwargs).
-    On Python3+ range is used instead of xrange.
-    """
-    return tqdm(_range(*args), **kwargs)
+    """Shortcut for tqdm(range(*args), **kwargs)."""
+    return tqdm(range(*args), **kwargs)

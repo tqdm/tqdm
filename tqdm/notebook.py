@@ -7,18 +7,14 @@ Usage:
 >>> for i in trange(10):
 ...     ...
 """
-# future division is important to divide integers and get as
-# a result precise floating numbers (instead of truncated int)
-from __future__ import absolute_import, division
-
 # import compatibility functions and utilities
 import re
 import sys
+from html import escape
 from weakref import proxy
 
 # to inherit from the tqdm class
 from .std import tqdm as std_tqdm
-from .utils import _range
 
 if True:  # pragma: no cover
     # import IPython/Jupyter base widget and display utilities
@@ -63,12 +59,6 @@ if True:  # pragma: no cover
     except ImportError:
         pass
 
-    # HTML encoding
-    try:  # Py3
-        from html import escape
-    except ImportError:  # Py2
-        from cgi import escape
-
 __author__ = {"github.com/": ["lrq3000", "casperdcl", "alexanderkuk"]}
 __all__ = ['tqdm_notebook', 'tnrange', 'tqdm', 'trange']
 WARN_NOIPYW = ("IProgress not found. Please update jupyter and ipywidgets."
@@ -90,7 +80,7 @@ class TqdmHBox(HBox):
     def __repr__(self, pretty=False):
         pbar = getattr(self, 'pbar', None)
         if pbar is None:
-            return super(TqdmHBox, self).__repr__()
+            return super().__repr__()
         return pbar.format_meter(**self._json_(pretty))
 
     def _repr_pretty_(self, pp, *_, **__):
@@ -167,9 +157,10 @@ class tqdm_notebook(std_tqdm):
         pbar.value = self.n
 
         if msg:
+            msg = msg.replace(' ', u'\u2007')  # fix html space padding
             # html escape special characters (like '&')
             if '<bar/>' in msg:
-                left, right = map(escape, re.split(r'\|?<bar/>\|?', msg, 1))
+                left, right = map(escape, re.split(r'\|?<bar/>\|?', msg, maxsplit=1))
             else:
                 left, right = '', escape(msg)
 
@@ -229,7 +220,7 @@ class tqdm_notebook(std_tqdm):
         kwargs['disable'] = bool(kwargs.get('disable', False))
         colour = kwargs.pop('colour', None)
         display_here = kwargs.pop('display', True)
-        super(tqdm_notebook, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         if self.disable or not kwargs['gui']:
             self.disp = lambda *_, **__: None
             return
@@ -255,7 +246,7 @@ class tqdm_notebook(std_tqdm):
 
     def __iter__(self):
         try:
-            it = super(tqdm_notebook, self).__iter__()
+            it = super().__iter__()
             for obj in it:
                 # return super(tqdm...) will not catch exception
                 yield obj
@@ -268,7 +259,7 @@ class tqdm_notebook(std_tqdm):
 
     def update(self, n=1):
         try:
-            return super(tqdm_notebook, self).update(n=n)
+            return super().update(n=n)
         # NB: except ... [ as ...] breaks IPython async KeyboardInterrupt
         except:  # NOQA
             # cannot catch KeyboardInterrupt when using manual tqdm
@@ -281,7 +272,7 @@ class tqdm_notebook(std_tqdm):
     def close(self):
         if self.disable:
             return
-        super(tqdm_notebook, self).close()
+        super().close()
         # Try to detect if there was an error or KeyboardInterrupt
         # in manual mode: if n < total, things probably got wrong
         if self.total and self.n < self.total:
@@ -306,22 +297,19 @@ class tqdm_notebook(std_tqdm):
         total  : int or float, optional. Total to use for the new bar.
         """
         if self.disable:
-            return super(tqdm_notebook, self).reset(total=total)
+            return super().reset(total=total)
         _, pbar, _ = self.container.children
         pbar.bar_style = ''
         if total is not None:
             pbar.max = total
             if not self.total and self.ncols is None:  # no longer unknown total
                 pbar.layout.width = None  # reset width
-        return super(tqdm_notebook, self).reset(total=total)
+        return super().reset(total=total)
 
 
 def tnrange(*args, **kwargs):
-    """
-    A shortcut for `tqdm.notebook.tqdm(xrange(*args), **kwargs)`.
-    On Python3+, `range` is used instead of `xrange`.
-    """
-    return tqdm_notebook(_range(*args), **kwargs)
+    """Shortcut for `tqdm.notebook.tqdm(range(*args), **kwargs)`."""
+    return tqdm_notebook(range(*args), **kwargs)
 
 
 # Aliases

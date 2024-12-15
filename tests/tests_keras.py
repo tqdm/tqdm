@@ -1,5 +1,3 @@
-from __future__ import division
-
 from .tests_tqdm import importorskip, mark
 
 pytestmark = mark.slow
@@ -41,8 +39,8 @@ def test_keras(capsys):
                 verbose=0)])
     _, res = capsys.readouterr()
     assert "training: " in res
-    assert "{epochs}/{epochs}".format(epochs=epochs) in res
-    assert "{batches}/{batches}".format(batches=batches) not in res
+    assert f"{epochs}/{epochs}" in res
+    assert f"{batches}/{batches}" not in res
 
     # full (epoch and batch) progress
     model.fit(
@@ -60,8 +58,8 @@ def test_keras(capsys):
                 verbose=2)])
     _, res = capsys.readouterr()
     assert "training: " in res
-    assert "{epochs}/{epochs}".format(epochs=epochs) in res
-    assert "{batches}/{batches}".format(batches=batches) in res
+    assert f"{epochs}/{epochs}" in res
+    assert f"{batches}/{batches}" in res
 
     # auto-detect epochs and batches
     model.fit(
@@ -73,8 +71,8 @@ def test_keras(capsys):
         callbacks=[TqdmCallback(desc="training", verbose=2)])
     _, res = capsys.readouterr()
     assert "training: " in res
-    assert "{epochs}/{epochs}".format(epochs=epochs) in res
-    assert "{batches}/{batches}".format(batches=batches) in res
+    assert f"{epochs}/{epochs}" in res
+    assert f"{batches}/{batches}" in res
 
     # continue training (start from epoch != 0)
     initial_epoch = 3
@@ -89,5 +87,5 @@ def test_keras(capsys):
                                 miniters=1, mininterval=0, maxinterval=0)])
     _, res = capsys.readouterr()
     assert "training: " in res
-    assert "{epochs}/{epochs}".format(epochs=initial_epoch - 1) not in res
-    assert "{epochs}/{epochs}".format(epochs=epochs) in res
+    assert f"{initial_epoch - 1}/{initial_epoch - 1}" not in res
+    assert f"{epochs}/{epochs}" in res
