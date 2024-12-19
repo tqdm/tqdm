@@ -4,7 +4,6 @@ Auto-generate snapcraft.yaml.
 """
 import sys
 from pathlib import Path
-from subprocess import check_output  # nosec
 
 sys.path.insert(1, str(Path(__file__).parent.parent))
 import tqdm  # NOQA
@@ -52,7 +51,6 @@ parts:
   tqdm:
     plugin: python
     source: .
-    source-commit: '{commit}'
     python-packages: [.]
     build-packages: [git]
     override-build: |
@@ -62,8 +60,7 @@ apps:
   tqdm:
     command: bin/tqdm
     completer: completion.sh
-""".format(version=tqdm.__version__, commit=check_output([
-    'git', 'describe', '--always']).decode('utf-8').strip())  # nosec
+""".format(version=tqdm.__version__)  # nosec
 
 if __name__ == "__main__":
     (Path(__file__).resolve().parent.parent / 'snapcraft.yaml').write_text(

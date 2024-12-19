@@ -2,7 +2,7 @@ default_language_version:
   python: python3
 repos:
 - repo: https://github.com/pre-commit/pre-commit-hooks
-  rev: v4.6.0
+  rev: v5.0.0
   hooks:
   - id: check-added-large-files
   - id: check-case-conflict
@@ -37,9 +37,9 @@ repos:
     - numpy
     - pandas
     - pytest-timeout
-    - pytest-asyncio
+    - pytest-asyncio>=0.24
 - repo: https://github.com/PyCQA/flake8
-  rev: 7.0.0
+  rev: 7.1.1
   hooks:
   - id: flake8
     args: [-j8]
