@@ -29,8 +29,8 @@ __all__ = ['tqdm', 'trange',
            'TqdmMonitorWarning']
 
 
-TITLE = '\x1b]0;'
-TITLE_END = '\7'
+OSC_PROGRESS = '\x1b]9;4;1;'
+OSC_END = '\7'
 
 
 class TqdmTypeError(TypeError):
@@ -617,7 +617,7 @@ class tqdm(Comparable):
             percentage = frac * 100
 
             if title:
-                l_bar += f'{TITLE}{percentage:3.0f}%{TITLE_END}{percentage:3.0f}%|'
+                l_bar += f'{OSC_PROGRESS}{round(percentage)}{OSC_END}{percentage:3.0f}%|'
             else:
                 l_bar += f'{percentage:3.0f}%|'
 
