@@ -78,7 +78,7 @@ class UnitCompletedColumn(UnitScaleColumn):
     def render(self, task: Task) -> Text:
         if task.total is None:
             completed = self.unit_format(task, task.completed)
-            return Text(f"{completed:>3}it", style="progress.percentage")
+            return Text(f"{completed:>3}{task.fields['unit']}", style="progress.percentage")
         else:
             return Text(f"{task.percentage:>3.0f}%", style="progress.percentage")
 
