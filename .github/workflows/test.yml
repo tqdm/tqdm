@@ -46,7 +46,7 @@ jobs:
         include:
         - {os: macos, python: 3.12}
         - {os: windows, python: 3.12}
-    runs-on: ${{ matrix.os }}-latest
+    runs-on: ${{ matrix.os }}-${{ matrix.python == 3.7 && '22.04' || 'latest' }}
     timeout-minutes: 35
     defaults: {run: {shell: bash}}
     steps:
