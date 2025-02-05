@@ -52,11 +52,11 @@ repos:
     - flake8-pyproject
     - flake8-string-format
 - repo: https://github.com/PyCQA/isort
-  rev: 5.13.2
+  rev: 6.0.0
   hooks:
   - id: isort
 - repo: https://github.com/kynan/nbstripout
-  rev: 0.7.1
+  rev: 0.8.1
   hooks:
   - id: nbstripout
     args: [--keep-count, --keep-output]
