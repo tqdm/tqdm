@@ -370,13 +370,12 @@ class tqdm(Comparable):
     @staticmethod
     def format_sizeof(num, suffix='', divisor=1000):
         """
-        Formats a number (greater than unity) with SI Order of Magnitude
-        prefixes.
+        Formats a number (>= 1) with SI Order of Magnitude prefixes.
 
         Parameters
         ----------
         num  : float
-            Number ( >= 1) to format.
+            Number (>= 1) to format.
         suffix  : str, optional
             Post-postfix [default: ''].
         divisor  : float, optional
