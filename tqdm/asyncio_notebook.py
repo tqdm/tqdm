@@ -18,7 +18,6 @@ class tqdm_asyncio_notebook(tqdm_asyncio, tqdm_notebook):
     Asynchronous-friendly version of tqdm for Jupyter notebooks.
     MRO behaviour as if `tqdm_asyncio` is inherited after `tqdm_notebook`, instead of `std_tqdm`.
     """
-    pass
 
 
 def tarange(*args, **kwargs):
