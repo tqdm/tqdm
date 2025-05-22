@@ -73,7 +73,7 @@ def TRLock(*args, **kwargs):
         pass
 
 
-class TqdmDefaultWriteLock(object):
+class TqdmDefaultWriteLock:
     """
     Provide a default write lock for thread and multiprocessing safety.
     Works only on platforms supporting `fork` (so Windows is excluded).
@@ -128,7 +128,7 @@ class TqdmDefaultWriteLock(object):
         warn("create_th_lock not needed anymore", TqdmDeprecationWarning, stacklevel=2)
 
 
-class Bar(object):
+class Bar:
     """
     `str.format`-able bar with format specifiers: `[width][type]`
 
@@ -142,7 +142,7 @@ class Bar(object):
       + `b`: blank (`charset="  "` override)
     """
     ASCII = " 123456789#"
-    UTF = u" " + u''.join(map(chr, range(0x258F, 0x2587, -1)))
+    UTF = " " + ''.join(map(chr, range(0x258F, 0x2587, -1)))
     BLANK = "  "
     COLOUR_RESET = '\x1b[0m'
     COLOUR_RGB = '\x1b[38;2;%d;%d;%dm'
@@ -178,9 +178,8 @@ class Bar(object):
             else:
                 raise KeyError
         except (KeyError, AttributeError):
-            warn("Unknown colour (%s); valid choices: [hex (#00ff00), %s]" % (
-                 value, ", ".join(self.COLOURS)),
-                 TqdmWarning, stacklevel=2)
+            warn(f"Unknown colour ({value}); valid choices:"
+                 f" [hex (#00ff00), {', '.join(self.COLOURS)}]", TqdmWarning, stacklevel=2)
             self._colour = None
 
     def __format__(self, format_spec):
@@ -211,7 +210,7 @@ class Bar(object):
         return self.colour + res + self.COLOUR_RESET if self.colour else res
 
 
-class EMA(object):
+class EMA:
     """
     Exponential moving average: smoothing to give progressively lower
     weights to older values.
