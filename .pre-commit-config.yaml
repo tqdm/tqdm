@@ -51,6 +51,11 @@ repos:
     - flake8-isort
     - flake8-pyproject
     - flake8-string-format
+- repo: https://github.com/asottile/pyupgrade
+  rev: v3.19.1
+  hooks:
+  - id: pyupgrade
+    args: [--py37-plus]
 - repo: https://github.com/PyCQA/isort
   rev: 6.0.1
   hooks:
