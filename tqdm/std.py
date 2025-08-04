@@ -113,6 +113,10 @@ class TqdmDefaultWriteLock(object):
     def __exit__(self, *exc):
         self.release()
 
+    def __del__(self):
+        if TqdmDefaultWriteLock.mp_lock is not None:
+            del TqdmDefaultWriteLock.mp_lock
+        
     @classmethod
     def create_mp_lock(cls):
         if not hasattr(cls, 'mp_lock'):
@@ -1146,6 +1150,8 @@ class tqdm(Comparable):
 
     def __del__(self):
         self.close()
+        if hasattr(tqdm, "_lock"):
+            del tqdm._lock
 
     def __str__(self):
         return self.format_meter(**self.format_dict)

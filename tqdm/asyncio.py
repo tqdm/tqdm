@@ -36,6 +36,12 @@ class tqdm_asyncio(std_tqdm):
     def __aiter__(self):
         return self
 
+    def __del__(self):
+        if hasattr(tqdm_asyncio, "_lock"):
+            del tqdm_asyncio._lock
+        if hasattr(tqdm_asyncio, "monitor") and tqdm_asyncio.monitor is not None:
+            tqdm_asyncio.monitor.exit()
+
     async def __anext__(self):
         try:
             if self.iterable_awaitable:
