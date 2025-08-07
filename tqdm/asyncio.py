@@ -37,6 +37,7 @@ class tqdm_asyncio(std_tqdm):
         return self
 
     def __del__(self):
+        self.close()
         if hasattr(tqdm_asyncio, "_lock"):
             del tqdm_asyncio._lock
         if hasattr(tqdm_asyncio, "monitor") and tqdm_asyncio.monitor is not None:
