@@ -1152,6 +1152,8 @@ class tqdm(Comparable):
         self.close()
         if hasattr(tqdm, "_lock"):
             del tqdm._lock
+        if hasattr(tqdm, "monitor") and tqdm.monitor is not None:
+            tqdm.monitor.exit()
 
     def __str__(self):
         return self.format_meter(**self.format_dict)
