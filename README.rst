@@ -78,6 +78,11 @@ Latest PyPI stable release
 
     pip install tqdm
 
+.. note::
+
+   ``tqdm`` officially supports **Python 3.7 and above**.  
+   For older Python versions, please install an earlier release from PyPI.
+   
 Latest development release on GitHub
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
