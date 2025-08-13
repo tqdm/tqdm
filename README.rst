@@ -1272,7 +1272,7 @@ display, a ``.write()`` method is provided:
             tqdm.write("Done task %i" % i)
         # Can also use bar.write()
 
-By default, this will print to standard output ``sys.stdout``. but you can
+By default, this will print to standard output ``sys.stdout``. But you can
 specify any file-like object using the ``file`` argument. For example, this
 can be used to redirect the messages writing to a log file or class.
 
