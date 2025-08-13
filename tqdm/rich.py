@@ -6,10 +6,14 @@ Usage:
 >>> for i in trange(10):
 ...     ...
 """
+
+from dataclasses import dataclass
+from typing import Any, Optional
 from warnings import warn
 
 from rich.progress import (
-    BarColumn, Progress, ProgressColumn, Text, TimeElapsedColumn, TimeRemainingColumn, filesize)
+    BarColumn, Progress, ProgressColumn, Task, TaskID, Text, TimeElapsedColumn,
+    TimeRemainingColumn, filesize)
 
 from .std import TqdmExperimentalWarning
 from .std import tqdm as std_tqdm
@@ -38,9 +42,8 @@ class FractionColumn(ProgressColumn):
         else:
             unit, suffix = filesize.pick_unit_and_suffix(total, [""], 1)
         precision = 0 if unit == 1 else 1
-        return Text(
-            f"{completed/unit:,.{precision}f}/{total/unit:,.{precision}f} {suffix}",
-            style="progress.download")
+        return Text(f"{completed/unit:,.{precision}f}/{total/unit:,.{precision}f} {suffix}",
+                    style="progress.download")
 
 
 class RateColumn(ProgressColumn):
@@ -69,8 +72,34 @@ class RateColumn(ProgressColumn):
                     style="progress.data.speed")
 
 
-class tqdm_rich(std_tqdm):  # pragma: no cover
+@dataclass
+class EmaTask(Task):
+    @property
+    def speed(self) -> Optional[float]:
+        if 'speed' in self.fields:
+            return self.fields['speed']
+        return super().speed
+
+
+class EmaProgress(Progress):
+    def add_task(self, description: str, start: bool = True, total: Optional[float] = 100.0,
+                 completed: int = 0, visible: bool = True, **fields: Any) -> TaskID:
+
+        with self._lock:
+            task = EmaTask(self._task_index, description, total, completed, visible=visible,
+                           fields=fields, _get_time=self.get_time, _lock=self._lock)
+            self._tasks[self._task_index] = task
+            if start:
+                self.start_task(self._task_index)
+            new_task_index = self._task_index
+            self._task_index = TaskID(int(self._task_index) + 1)
+        self.refresh()
+        return new_task_index
+
+
+class tqdm_rich(std_tqdm): # pragma: no cover
     """Experimental rich.progress GUI version of tqdm!"""
+
     # TODO: @classmethod: write()?
     def __init__(self, *args, **kwargs):
         """
@@ -102,21 +131,25 @@ class tqdm_rich(std_tqdm):  # pragma: no cover
                 "[progress.description]{task.description}"
                 "[progress.percentage]{task.percentage:>4.0f}%",
                 BarColumn(bar_width=None),
-                FractionColumn(
-                    unit_scale=d['unit_scale'], unit_divisor=d['unit_divisor']),
-                "[", TimeElapsedColumn(), "<", TimeRemainingColumn(),
-                ",", RateColumn(unit=d['unit'], unit_scale=d['unit_scale'],
-                                unit_divisor=d['unit_divisor']), "]"
+                FractionColumn(unit_scale=d['unit_scale'], unit_divisor=d['unit_divisor']),
+                "[",
+                TimeElapsedColumn(),
+                "<",
+                TimeRemainingColumn(),
+                ",",
+                RateColumn(unit=d['unit'], unit_scale=d['unit_scale'],
+                           unit_divisor=d['unit_divisor']),
+                "]",
             )
         options.setdefault('transient', not self.leave)
-        self._prog = Progress(*progress, **options)
+        self._prog = EmaProgress(*progress, **options)
         self._prog.__enter__()
         self._task_id = self._prog.add_task(self.desc or "", **d)
 
     def close(self):
         if self.disable:
             return
-        self.display()  # print 100%, vis #1306
+        self.display() # print 100%, vis #1306
         super().close()
         self._prog.__exit__(None, None, None)
 
@@ -126,7 +159,8 @@ class tqdm_rich(std_tqdm):  # pragma: no cover
     def display(self, *_, **__):
         if not hasattr(self, '_prog'):
             return
-        self._prog.update(self._task_id, completed=self.n, description=self.desc)
+        self._prog.update(self._task_id, completed=self.n, description=self.desc,
+                          speed=self.format_dict['rate'])
 
     def reset(self, total=None):
         """
