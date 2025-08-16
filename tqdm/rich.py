@@ -286,19 +286,20 @@ class tqdm_rich(std_tqdm):  # pragma: no cover
         if not self._task.started and self.n > 0:
             cls._progress.start_task(self._task.id)
 
-        self._task.fields["rate"] = self.format_dict["rate"]
-        self._task.fields["postfix"] = self.format_dict["postfix"]
+        d = self.format_dict
+        self._task.fields["rate"] = d["rate"]
+        self._task.fields["postfix"] = d["postfix"]
 
         cls._progress.update(
             self._task.id,
             completed=self.n,
             description=self.desc,
             refresh=refresh,
-            **self.format_dict,
+            **d,
         )
 
-        cls._progress.console.width = self.format_dict["ncols"]
-        cls._progress.console.height = self.format_dict["nrows"]
+        cls._progress.console.width = d["ncols"]
+        cls._progress.console.height = d["nrows"]
         cls._progress.console.file = self.fp
 
     def refresh(self, *_, **__):
