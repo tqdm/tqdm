@@ -327,6 +327,10 @@ class tqdm(Comparable):
             remaining, remaining_s, eta.
         Note that a trailing ": " is automatically removed after {desc}
         if the latter is empty.
+    formatters  : dict, optional
+        Dictionary mapping field names to format specifiers used to
+        customise default numeric representations. Keys include ``n``,
+        ``total``, ``rate``, ``percentage`` and ``postfix_float``.
     initial  : int or float, optional
         The initial counter value. Useful when restarting a progress
         bar [default: 0]. If using float, consider specifying `{n:.3f}`
@@ -463,8 +467,9 @@ class tqdm(Comparable):
 
     @staticmethod
     def format_meter(n, total, elapsed, ncols=None, prefix='', ascii=False, unit='it',
-                     unit_scale=False, rate=None, bar_format=None, postfix=None,
-                     unit_divisor=1000, initial=0, colour=None, **extra_kwargs):
+                     unit_scale=False, rate=None, bar_format=None, formatters=None,
+                     postfix=None, unit_divisor=1000, initial=0, colour=None,
+                     **extra_kwargs):
         """
         Return a string-based progress bar given some parameters
 
@@ -512,6 +517,10 @@ class tqdm(Comparable):
               remaining, remaining_s, eta.
             Note that a trailing ": " is automatically removed after {desc}
             if the latter is empty.
+        formatters  : dict, optional
+            Dictionary mapping field names to format specifiers used to
+            customise default numeric representations. Keys include ``n``,
+            ``total``, ``rate``, and ``percentage``.
         postfix  : *, optional
             Similar to `prefix`, but placed at the end
             (e.g. for additional stats).
@@ -529,6 +538,8 @@ class tqdm(Comparable):
         -------
         out  : Formatted meter and stats, ready to display.
         """
+
+        formatters = formatters or {}
 
         # sanity check: total
         if total and n >= (total + 0.5):  # allow float imprecision (#849)
@@ -551,19 +562,32 @@ class tqdm(Comparable):
             rate = (n - initial) / elapsed
         inv_rate = 1 / rate if rate else None
         format_sizeof = tqdm.format_sizeof
-        rate_noinv_fmt = ((format_sizeof(rate) if unit_scale else f'{rate:5.2f}')
-                          if rate else '?') + unit + '/s'
-        rate_inv_fmt = (
-            (format_sizeof(inv_rate) if unit_scale else f'{inv_rate:5.2f}')
-            if inv_rate else '?') + 's/' + unit
+        rate_fmt_spec = formatters.get('rate', '5.2f')
+        if rate:
+            if unit_scale:
+                rate_noinv_fmt = format_sizeof(rate) + unit + '/s'
+            else:
+                rate_noinv_fmt = f'{rate:{rate_fmt_spec}}{unit}/s'
+            if inv_rate:
+                if unit_scale:
+                    rate_inv_fmt = format_sizeof(inv_rate) + 's/' + unit
+                else:
+                    rate_inv_fmt = f'{inv_rate:{rate_fmt_spec}}s/' + unit
+            else:
+                rate_inv_fmt = '?' + 's/' + unit
+        else:
+            rate_noinv_fmt = '?' + unit + '/s'
+            rate_inv_fmt = '?' + 's/' + unit
         rate_fmt = rate_inv_fmt if inv_rate and inv_rate > 1 else rate_noinv_fmt
 
         if unit_scale:
             n_fmt = format_sizeof(n, divisor=unit_divisor)
             total_fmt = format_sizeof(total, divisor=unit_divisor) if total is not None else '?'
         else:
-            n_fmt = str(n)
-            total_fmt = str(total) if total is not None else '?'
+            n_fmt = f'{n:{formatters.get("n")}}' if 'n' in formatters else str(n)
+            total_fmt = (f'{total:{formatters.get("total")}}'
+                         if total is not None and 'total' in formatters
+                         else str(total) if total is not None else '?')
 
         try:
             postfix = ', ' + postfix if postfix else ''
@@ -611,15 +635,17 @@ class tqdm(Comparable):
             # fractional and percentage progress
             frac = n / total
             percentage = frac * 100
+            percentage_fmt = f'{percentage:{formatters.get("percentage", "3.0f")}}'
 
-            l_bar += f'{percentage:3.0f}%|'
+            l_bar += f'{percentage_fmt}%|'
 
             if ncols == 0:
                 return l_bar[:-1] + r_bar[1:]
 
             format_dict.update(l_bar=l_bar)
             if bar_format:
-                format_dict.update(percentage=percentage)
+                format_dict.update(percentage=percentage,
+                                   percentage_fmt=percentage_fmt)
 
                 # auto-remove colon for empty `{desc}`
                 if not prefix:
@@ -645,7 +671,9 @@ class tqdm(Comparable):
         elif bar_format:
             # user-specified bar_format but no total
             l_bar += '|'
-            format_dict.update(l_bar=l_bar, percentage=0)
+            percentage_fmt = f'{0:{formatters.get("percentage", "3.0f")}}'
+            format_dict.update(l_bar=l_bar, percentage=0,
+                               percentage_fmt=percentage_fmt)
             full_bar = FormatReplace()
             nobar = bar_format.format(bar=full_bar, **format_dict)
             if not full_bar.format_called:
@@ -954,8 +982,9 @@ class tqdm(Comparable):
     def __init__(self, iterable=None, desc=None, total=None, leave=True, file=None,
                  ncols=None, mininterval=0.1, maxinterval=10.0, miniters=None,
                  ascii=None, disable=False, unit='it', unit_scale=False,
-                 dynamic_ncols=False, smoothing=0.3, bar_format=None, initial=0,
-                 position=None, postfix=None, unit_divisor=1000, write_bytes=False,
+                 dynamic_ncols=False, smoothing=0.3, bar_format=None,
+                 formatters=None, initial=0, position=None, postfix=None,
+                 unit_divisor=1000, write_bytes=False,
                  lock_args=None, nrows=None, colour=None, delay=0.0, gui=False,
                  **kwargs):
         """see tqdm.tqdm for arguments"""
@@ -1072,6 +1101,7 @@ class tqdm(Comparable):
         self._ema_dt = EMA(smoothing)
         self._ema_miniters = EMA(smoothing)
         self.bar_format = bar_format
+        self.formatters = formatters or {}
         self.postfix = None
         self.colour = colour
         self._time = time
@@ -1419,7 +1449,11 @@ class tqdm(Comparable):
         for key in postfix.keys():
             # Number: limit the length of the string
             if isinstance(postfix[key], Number):
-                postfix[key] = self.format_num(postfix[key])
+                fmt = self.formatters.get('postfix_float')
+                if fmt:
+                    postfix[key] = f'{postfix[key]:{fmt}}'
+                else:
+                    postfix[key] = self.format_num(postfix[key])
             # Else for any other type, try to get the string conversion
             elif not isinstance(postfix[key], str):
                 postfix[key] = str(postfix[key])
@@ -1459,7 +1493,7 @@ class tqdm(Comparable):
             'rate': self._ema_dn() / self._ema_dt() if self._ema_dt() else None,
             'bar_format': self.bar_format, 'postfix': self.postfix,
             'unit_divisor': self.unit_divisor, 'initial': self.initial,
-            'colour': self.colour}
+            'colour': self.colour, 'formatters': self.formatters}
 
     def display(self, msg=None, pos=None):
         """

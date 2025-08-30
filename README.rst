@@ -446,6 +446,10 @@ Parameters
     remaining, remaining_s, eta.
     Note that a trailing ": " is automatically removed after {desc}
     if the latter is empty.
+* formatters  : dict, optional  
+    Dictionary mapping field names to format specifiers used to
+    customise default numeric representations. Keys include ``n``,
+    ``total``, ``rate``, ``percentage`` and ``postfix_float``.
 * initial  : int or float, optional  
     The initial counter value. Useful when restarting a progress
     bar [default: 0]. If using float, consider specifying ``{n:.3f}``
