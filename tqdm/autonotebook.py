@@ -10,15 +10,15 @@ import sys
 from warnings import warn
 
 try:
+    if 'ipykernel' not in sys.modules:
+        raise ImportError("console")
     get_ipython = sys.modules['IPython'].get_ipython
     ipython = get_ipython()
-    if ipython is None or 'ipykernel' not in sys.modules:
+    if not ipython:
         raise ImportError("console")
-    else:
-        # only import if not in sys.modules
-        from ipykernel.zmqshell import ZMQInteractiveShell
-        if not isinstance(ipython, ZMQInteractiveShell):
-            raise ImportError("console")
+    from ipykernel.zmqshell import ZMQInteractiveShell
+    if not isinstance(ipython, ZMQInteractiveShell):
+        raise ImportError("console")
     from .notebook import WARN_NOIPYW, IProgress
     if IProgress is None:
         from .std import TqdmWarning
