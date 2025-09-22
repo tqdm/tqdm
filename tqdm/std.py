@@ -114,7 +114,7 @@ class TqdmDefaultWriteLock(object):
         self.release()
 
     def __del__(self):
-        if TqdmDefaultWriteLock.mp_lock is not None:
+        if hasattr(TqdmDefaultWriteLock, 'mp_lock') and TqdmDefaultWriteLock.mp_lock is not None:
             del TqdmDefaultWriteLock.mp_lock
 
     @classmethod
