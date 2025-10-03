@@ -61,11 +61,11 @@ testsetup:
 	@make help
 
 testnb:
-	pytest tests_notebook.ipynb --cov=tqdm.notebook --cov-report=term -W=ignore --nbval --current-env --sanitize-with=.meta/nbval.ini
+	pytest tests_notebook.ipynb --cov=tqdm.notebook --cov-report=term -W=ignore --nbval --nbval-current-env --nbval-sanitize-with=.meta/nbval.ini
 
 testcoverage:
 	@make coverclean
-	pytest tests_notebook.ipynb --cov=tqdm --cov-report= -W=ignore --nbval --current-env --sanitize-with=.meta/nbval.ini
+	pytest tests_notebook.ipynb --cov=tqdm --cov-report= -W=ignore --nbval --nbval-current-env --nbval-sanitize-with=.meta/nbval.ini
 	pytest -k "not perf" --cov=tqdm --cov-report=xml --cov-report=term --cov-append --cov-fail-under=80
 
 testperf:
@@ -137,9 +137,9 @@ clean:
 	@+python -c "import os, glob; [os.remove(i) for i in glob.glob('*.py[co]')]"
 	@+python -c "import os, glob; [os.remove(i) for i in glob.glob('tests/*.py[co]')]"
 	@+python -c "import os, glob; [os.remove(i) for i in glob.glob('benchmarks/*.py[co]')]"
+	@+python -c "import os, glob; [os.remove(i) for i in glob.glob('examples/*.py[co]')]"
 	@+python -c "import os, glob; [os.remove(i) for i in glob.glob('tqdm/*.py[co]')]"
 	@+python -c "import os, glob; [os.remove(i) for i in glob.glob('tqdm/contrib/*.py[co]')]"
-	@+python -c "import os, glob; [os.remove(i) for i in glob.glob('tqdm/examples/*.py[co]')]"
 toxclean:
 	@+python -c "import shutil; shutil.rmtree('.tox', True)"
 

@@ -107,7 +107,7 @@ def cpu_timify(t, timer=None):
 class UnicodeIO(IOBase):
     """Unicode version of StringIO"""
     def __init__(self, *args, **kwargs):
-        super(UnicodeIO, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.encoding = 'U8'  # io.StringIO supports unicode, but no encoding
         self.text = ''
         self.cursor = 0
@@ -189,6 +189,8 @@ def test_format_num():
     assert float(format_num(1337)) == 1337
     assert format_num(int(1e6)) == '1e+6'
     assert format_num(1239876) == '1' '239' '876'
+    assert format_num(0.00001234) == '1.23e-5'
+    assert format_num(-0.1234) == '-0.123'
 
 
 def test_format_meter():
@@ -315,11 +317,11 @@ def test_si_format():
 
 def test_bar_formatspec():
     """Test Bar.__format__ spec"""
-    assert "{0:5a}".format(Bar(0.3)) == "#5   "
-    assert "{0:2}".format(Bar(0.5, charset=" .oO0")) == "0 "
-    assert "{0:2a}".format(Bar(0.5, charset=" .oO0")) == "# "
-    assert "{0:-6a}".format(Bar(0.5, 10)) == '##  '
-    assert "{0:2b}".format(Bar(0.5, 10)) == '  '
+    assert f"{Bar(0.3):5a}" == "#5   "
+    assert f"{Bar(0.5, charset=' .oO0'):2}" == "0 "
+    assert f"{Bar(0.5, charset=' .oO0'):2a}" == "# "
+    assert f"{Bar(0.5, 10):-6a}" == '##  '
+    assert f"{Bar(0.5, 10):2b}" == '  '
 
 
 def test_all_defaults():
@@ -340,7 +342,7 @@ def test_all_defaults():
 class WriteTypeChecker(BytesIO):
     """File-like to assert the expected type is written"""
     def __init__(self, expected_type):
-        super(WriteTypeChecker, self).__init__()
+        super().__init__()
         self.expected_type = expected_type
 
     def write(self, s):
@@ -1093,7 +1095,7 @@ def test_custom_format():
         """Provides a `total_time` format parameter"""
         @property
         def format_dict(self):
-            d = super(TqdmExtraFormat, self).format_dict
+            d = super().format_dict
             total_time = d["elapsed"] * (d["total"] or 0) / max(d["n"], 1)
             d.update(total_time=self.format_interval(total_time) + " in total")
             return d
@@ -1113,7 +1115,7 @@ def test_eta(capsys):
                     bar_format='{l_bar}{eta:%Y-%m-%d}'):
         pass
     _, err = capsys.readouterr()
-    assert "\r100%|{eta:%Y-%m-%d}\n".format(eta=dt.now()) in err
+    assert f"\r100%|{dt.now():%Y-%m-%d}\n" in err
 
 
 def test_unpause():

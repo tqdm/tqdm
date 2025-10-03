@@ -549,7 +549,7 @@ Additional ``bar_format`` parameters may also be defined by overriding
         """Provides a `total_time` format parameter"""
         @property
         def format_dict(self):
-            d = super(TqdmExtraFormat, self).format_dict
+            d = super().format_dict
             total_time = d["elapsed"] * (d["total"] or 0) / max(d["n"], 1)
             d.update(total_time=self.format_interval(total_time) + " in total")
             return d
@@ -613,7 +613,7 @@ first.
     def progresser(n):
         interval = 0.001 / (n + 2)
         total = 5000
-        text = "#{}, est. {:<04.2}s".format(n, interval * total)
+        text = f"#{n}, est. {interval * total:<04.2}s"
         for _ in trange(total, desc=text, position=n):
             sleep(interval)
 
@@ -636,7 +636,7 @@ Note that in Python 3, ``tqdm.write`` is thread-safe:
     def progresser(n):
         interval = 0.001 / (n + 2)
         total = 5000
-        text = "#{}, est. {:<04.2}s".format(n, interval * total)
+        text = f"#{n}, est. {interval * total:<04.2}s"
         for _ in trange(total, desc=text):
             sleep(interval)
         if n == 6:
@@ -765,7 +765,7 @@ custom callback take advantage of this, simply use the return value of
 
     class TqdmExt(std_tqdm):
         def update(self, n=1):
-            displayed = super(TqdmExt, self).update(n)
+            displayed = super().update(n)
             if displayed:
                 external_callback(**self.format_dict)
             return displayed
@@ -1288,5 +1288,5 @@ Citation information: |DOI|
 .. |Screenshot-Jupyter1| image:: https://tqdm.github.io/img/jupyter-1.gif
 .. |Screenshot-Jupyter2| image:: https://tqdm.github.io/img/jupyter-2.gif
 .. |Screenshot-Jupyter3| image:: https://tqdm.github.io/img/jupyter-3.gif
-.. |README-Hits| image:: https://caspersci.uk.to/cgi-bin/hits.cgi?q=tqdm&style=social&r=https://github.com/tqdm/tqdm&l=https://tqdm.github.io/img/favicon.png&f=https://tqdm.github.io/img/logo.gif
-   :target: https://caspersci.uk.to/cgi-bin/hits.cgi?q=tqdm&a=plot&r=https://github.com/tqdm/tqdm&l=https://tqdm.github.io/img/favicon.png&f=https://tqdm.github.io/img/logo.gif&style=social
+.. |README-Hits| image:: https://cgi.cdcl.ml/hits?q=tqdm&style=social&r=https://github.com/tqdm/tqdm&l=https://tqdm.github.io/img/favicon.png&f=https://tqdm.github.io/img/logo.gif
+   :target: https://cgi.cdcl.ml/hits?q=tqdm&a=plot&r=https://github.com/tqdm/tqdm&l=https://tqdm.github.io/img/favicon.png&f=https://tqdm.github.io/img/logo.gif&style=social

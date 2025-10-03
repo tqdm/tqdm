@@ -1,7 +1,7 @@
 pre-commit
 pytest
-pytest-asyncio
+pytest-asyncio>=0.24
 pytest-cov
 pytest-timeout
-nbval
+git+https://github.com/casperdcl/nbval.git@master#egg=nbval
 ipywidgets

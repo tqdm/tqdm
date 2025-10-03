@@ -20,27 +20,28 @@ dependencies:
 - pytest
 - pytest-cov
 - pytest-timeout
-- pytest-asyncio
-- nbval
+- pytest-asyncio>=0.24
 - coverage
 # extras
 - dask               # dask
 - matplotlib         # gui
 - numpy              # pandas, keras, contrib.tenumerate
 - pandas
+- pyarrow            # pandas
 - tensorflow         # keras
 - slack-sdk          # contrib.slack
 - requests           # contrib.telegram
 - rich               # rich
 - argopt             # `cd wiki && pymake`
 - twine              # `pymake check pypi`
-- build              # `python -m build`
+- python-build       # `python -m build`
 # `cd docs && pymake`
 - mkdocs-material
-- pydoc-markdown
 - pygments
 - pymdown-extensions
 - pip:
+  - git+https://github.com/casperdcl/nbval.git@master#egg=nbval # tests (native)
   - py-make >=0.1.0                                          # `make/pymake`
   - mkdocs-minify-plugin                                     # `cd docs && pymake`
-  - git+https://github.com/tqdm/jsmin@python3-only#egg=jsmin # `cd docs && pymake`
+  - git+https://github.com/tqdm/jsmin@fix-pip#egg=jsmin      # `cd docs && pymake`
+  - pydoc-markdown >=4.6                                     # `cd docs && pymake`

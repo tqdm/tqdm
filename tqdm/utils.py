@@ -14,7 +14,7 @@ from weakref import proxy
 _range, _unich, _unicode, _basestring = range, chr, str, str
 CUR_OS = sys.platform
 IS_WIN = any(CUR_OS.startswith(i) for i in ['win32', 'cygwin'])
-IS_NIX = any(CUR_OS.startswith(i) for i in ['aix', 'linux', 'darwin'])
+IS_NIX = any(CUR_OS.startswith(i) for i in ['aix', 'linux', 'darwin', 'freebsd'])
 RE_ANSI = re.compile(r"\x1b\[[;\d]*[A-Za-z]")
 
 try:
@@ -38,6 +38,7 @@ def envwrap(prefix, types=None, is_method=False):
     camelCase isn't supported (because Windows ignores case).
 
     Precedence (highest first):
+
     - call (`foo(a=3)`)
     - environ (`FOO_A=2`)
     - signature (`def foo(a=1)`)
@@ -101,7 +102,7 @@ def envwrap(prefix, types=None, is_method=False):
 class FormatReplace(object):
     """
     >>> a = FormatReplace('something')
-    >>> "{:5d}".format(a)
+    >>> f"{a:5d}"
     'something'
     """  # NOQA: P102
     def __init__(self, replace=''):
@@ -166,7 +167,7 @@ class SimpleTextIOWrapper(ObjectWrapper):
     """
     # pylint: disable=too-few-public-methods
     def __init__(self, wrapped, encoding):
-        super(SimpleTextIOWrapper, self).__init__(wrapped)
+        super().__init__(wrapped)
         self.wrapper_setattr('encoding', encoding)
 
     def write(self, s):
@@ -210,7 +211,7 @@ class DisableOnWriteError(ObjectWrapper):
         return inner
 
     def __init__(self, wrapped, tqdm_instance):
-        super(DisableOnWriteError, self).__init__(wrapped)
+        super().__init__(wrapped)
         if hasattr(wrapped, 'write'):
             self.wrapper_setattr(
                 'write', self.disable_on_exception(tqdm_instance, wrapped.write))
@@ -228,7 +229,7 @@ class CallbackIOWrapper(ObjectWrapper):
         Wrap a given `file`-like object's `read()` or `write()` to report
         lengths to the given `callback`
         """
-        super(CallbackIOWrapper, self).__init__(stream)
+        super().__init__(stream)
         func = getattr(stream, method)
         if method == "write":
             @wraps(func)

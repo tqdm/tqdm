@@ -5,6 +5,7 @@ import logging
 import re
 import sys
 from ast import literal_eval as numeric
+from textwrap import indent
 
 from .std import TqdmKeyError, TqdmTypeError, tqdm
 from .version import __version__
@@ -21,23 +22,34 @@ def cast(val, typ):
                 return cast(val, t)
             except TqdmTypeError:
                 pass
-        raise TqdmTypeError(val + ' : ' + typ)
+        raise TqdmTypeError(f"{val} : {typ}")
 
     # sys.stderr.write('\ndebug | `val:type`: `' + val + ':' + typ + '`.\n')
     if typ == 'bool':
         if (val == 'True') or (val == ''):
             return True
-        elif val == 'False':
+        if val == 'False':
             return False
-        else:
-            raise TqdmTypeError(val + ' : ' + typ)
-    try:
-        return eval(typ + '("' + val + '")')
-    except Exception:
-        if typ == 'chr':
-            return chr(ord(eval('"' + val + '"'))).encode()
-        else:
-            raise TqdmTypeError(val + ' : ' + typ)
+        raise TqdmTypeError(val + ' : ' + typ)
+    if typ == 'chr':
+        if len(val) == 1:
+            return val.encode()
+        if re.match(r"^\\\w+$", val):
+            return eval(f'"{val}"').encode()
+        raise TqdmTypeError(f"{val} : {typ}")
+    if typ == 'str':
+        return val
+    if typ == 'int':
+        try:
+            return int(val)
+        except ValueError as exc:
+            raise TqdmTypeError(f"{val} : {typ}") from exc
+    if typ == 'float':
+        try:
+            return float(val)
+        except ValueError as exc:
+            raise TqdmTypeError(f"{val} : {typ}") from exc
+    raise TqdmTypeError(f"{val} : {typ}")
 
 
 def posix_pipe(fin, fout, delim=b'\\n', buf_size=256,
@@ -166,7 +178,9 @@ def main(fp=sys.stderr, argv=None):
     logging.basicConfig(level=getattr(logging, logLevel),
                         format="%(levelname)s:%(module)s:%(lineno)d:%(message)s")
 
-    d = tqdm.__doc__ + CLI_EXTRA_DOC
+    # py<3.13 doesn't dedent docstrings
+    d = (tqdm.__doc__ if sys.version_info < (3, 13)
+         else indent(tqdm.__doc__, "    ")) + CLI_EXTRA_DOC
 
     opt_types = dict(RE_OPTS.findall(d))
     # opt_types['delim'] = 'chr'
@@ -244,22 +258,21 @@ Options:
             stdout = getattr(stdout, 'buffer', stdout)
         stdin = getattr(sys.stdin, 'buffer', sys.stdin)
         if manpath or comppath:
-            from importlib import resources
-            from os import path
-            from shutil import copyfile
+            try:  # py<3.9
+                import importlib_resources as resources
+            except ImportError:
+                from importlib import resources
+            from pathlib import Path
 
             def cp(name, dst):
                 """copy resource `name` to `dst`"""
-                if hasattr(resources, 'files'):
-                    copyfile(str(resources.files('tqdm') / name), dst)
-                else:  # py<3.9
-                    with resources.path('tqdm', name) as src:
-                        copyfile(str(src), dst)
+                fi = resources.files('tqdm') / name
+                dst.write_bytes(fi.read_bytes())
                 log.info("written:%s", dst)
             if manpath is not None:
-                cp('tqdm.1', path.join(manpath, 'tqdm.1'))
+                cp('tqdm.1', Path(manpath) / 'tqdm.1')
             if comppath is not None:
-                cp('completion.sh', path.join(comppath, 'tqdm_completion.sh'))
+                cp('completion.sh', Path(comppath) / 'tqdm_completion.sh')
             sys.exit(0)
         if tee:
             stdout_write = stdout.write
