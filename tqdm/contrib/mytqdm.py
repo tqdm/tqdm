@@ -19,9 +19,9 @@ except ImportError:
 from ..auto import tqdm as tqdm_auto
 
 __author__ = {"github.com/padmalcom"}
-__all__ = ['tqdm_mytqdm', 'mytqdmrange', 'tqdm', 'trange']
+__all__ = ['mytqdm', 'mytqdmrange', 'tqdm', 'trange']
 
-class tqdm_mytqdm(tqdm_auto):
+class mytqdm(tqdm_auto):
     """
     Standard `tqdm.auto.tqdm` but also sends updates to a mytqdm.app.
 
@@ -33,7 +33,7 @@ class tqdm_mytqdm(tqdm_auto):
     >>> for i in tqdm(iterable, api_key='{api_key}', title='{title}'):
     ...     ...
     """
-    
+
     PROGRESS_URL = "https://mytqdm.app/api/v1/p"
     
     def __init__(self, *args, **kwargs):
@@ -52,11 +52,11 @@ class tqdm_mytqdm(tqdm_auto):
             self.api_key = kwargs.pop('api_key', getenv("MYTQDM_API_KEY"))
             self.title = kwargs.pop('title', getenv("MYTQDM_TITLE"))
         super().__init__(*args, **kwargs)
-        
-    def display(self, **kwargs):
-        super().display(**kwargs)
+
+    def display(self, msg=None, pos=None):
+        super().display(msg=msg, pos=pos)
         current = self.n
-        total = self.total    
+        total = self.total
         headers = {
             "Authorization": f"X-API-Key {self.api_key}",
             "Accept": "application/json",
@@ -75,12 +75,12 @@ class tqdm_mytqdm(tqdm_auto):
         except requests.exceptions.Timeout:
             logging.error("The request to mytqdm.app timed out (connect or read).")
         except requests.exceptions.RequestException as e:
-            logging.error(f"An error occured when updating mytqdm state: {e}")      
+            logging.error(f"An error occured when updating mytqdm state: {e}")
 
 def mytqdmrange(*args, **kwargs):
     """Shortcut for `tqdm.contrib.mytqdm.tqdm(range(*args), **kwargs)`."""
-    return tqdm_mytqdm(range(*args), **kwargs)
+    return mytqdm(range(*args), **kwargs)
 
 # Aliases
-tqdm = tqdm_mytqdm
+tqdm = mytqdm
 trange = mytqdmrange
