@@ -214,6 +214,8 @@ def test_format_meter():
         "            | 231/1000 [06:32<21:44,  1.70s/it]")
     assert format_meter(100000, 1000, 13, unit_scale=True,
                         unit='iB') == "100kiB [00:13, 7.69kiB/s]"
+    assert format_meter(102400, 1024, 13, unit_scale=True, unit_divisor=1024,
+                        unit='B') == "100kiB [00:13, 7.88kiB/s]"
     assert format_meter(100, 1000, 12, ncols=0,
                         rate=7.33) == " 10% 100/1000 [00:12<02:02,  7.33it/s]"
     # ncols is small, l_bar is too large
