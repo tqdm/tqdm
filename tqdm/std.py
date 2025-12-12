@@ -267,6 +267,9 @@ class tqdm(Comparable):
         If [default: True], keeps all traces of the progressbar
         upon termination of iteration.
         If `None`, will leave only if `position` is `0`.
+    complete_bar_on_early_finish  : bool, optional
+        If `True` and `total` is set, will complete the progressbar upon
+        exiting iteration or when `close()` is called [default: False].
     file  : `io.TextIOWrapper` or `io.StringIO`, optional
         Specifies where to output the progress messages
         (default: sys.stderr). Uses `file.write(str)` and `file.flush()`
@@ -950,13 +953,15 @@ class tqdm(Comparable):
 
     # override defaults via env vars
     @envwrap("TQDM_", is_method=True, types={'total': float, 'ncols': int, 'miniters': float,
-                                             'position': int, 'nrows': int})
+                                             'position': int, 'nrows': int,
+                                             'complete_bar_on_early_finish': bool})
     def __init__(self, iterable=None, desc=None, total=None, leave=True, file=None,
                  ncols=None, mininterval=0.1, maxinterval=10.0, miniters=None,
                  ascii=None, disable=False, unit='it', unit_scale=False,
                  dynamic_ncols=False, smoothing=0.3, bar_format=None, initial=0,
                  position=None, postfix=None, unit_divisor=1000, write_bytes=False,
                  lock_args=None, nrows=None, colour=None, delay=0.0, gui=False,
+                 complete_bar_on_early_finish=False,
                  **kwargs):
         """see tqdm.tqdm for arguments"""
         if file is None:
@@ -991,6 +996,7 @@ class tqdm(Comparable):
             self.n = initial
             self.total = total
             self.leave = leave
+            self.complete_bar_on_early_finish = complete_bar_on_early_finish
             return
 
         if kwargs:
@@ -1051,6 +1057,7 @@ class tqdm(Comparable):
         self.total = total
         self.leave = leave
         self.fp = file
+        self.complete_bar_on_early_finish = complete_bar_on_early_finish
         self.ncols = ncols
         self.nrows = nrows
         self.mininterval = mininterval
@@ -1262,10 +1269,23 @@ class tqdm(Comparable):
                 self.last_print_t = cur_t
                 return True
 
+    def _complete_bar_on_early_finish(self):
+        if (
+            self.complete_bar_on_early_finish
+            and self.total is not None
+            and self.n < self.total
+        ):
+            self.n = self.total
+            self.last_print_n = self.n
+            return True
+        return False
+
     def close(self):
         """Cleanup and (if leave=False) close the progressbar."""
         if self.disable:
             return
+
+        self._complete_bar_on_early_finish()
 
         # Prevent multiple closures
         self.disable = True

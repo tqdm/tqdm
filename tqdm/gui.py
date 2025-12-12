@@ -89,6 +89,7 @@ class tqdm_gui(std_tqdm):  # pragma: no cover
         if self.disable:
             return
 
+        self._complete_bar_on_early_finish()
         self.disable = True
 
         with self.get_lock():

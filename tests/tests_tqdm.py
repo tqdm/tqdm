@@ -425,6 +425,26 @@ def test_leave_option():
         assert '| 3/3 ' not in our_file2.getvalue()
 
 
+def test_complete_bar_on_early_finish():
+    """Completing bars on early exit when requested."""
+    with closing(StringIO()) as incomplete:
+        with tqdm(total=5, file=incomplete, mininterval=0, miniters=1) as t:
+            for i in range(5):
+                t.update()
+                if i == 1:
+                    break
+        assert '| 2/5 ' in incomplete.getvalue()
+
+    with closing(StringIO()) as completed:
+        with tqdm(total=5, file=completed, mininterval=0, miniters=1,
+                  complete_bar_on_early_finish=True) as t:
+            for i in range(5):
+                t.update()
+                if i == 1:
+                    break
+        assert '| 5/5 ' in completed.getvalue()
+
+
 def test_trange():
     """Test trange"""
     with closing(StringIO()) as our_file:
