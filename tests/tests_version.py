@@ -6,9 +6,17 @@ from ast import literal_eval
 def test_version():
     """Test version string"""
     from tqdm import __version__
-    version_parts = re.split('[.-]', __version__)
     if __version__ != "UNKNOWN":
-        assert 3 <= len(version_parts), "must have at least Major.minor.patch"
+        match = re.match(
+            r"^(?P<major>\d+)\.(?P<minor>\d+)(?:\.(?P<patch>\d+|dev\w*))?",
+            __version__,
+        )
+        assert match, "must start with Major.minor[.patch]"
+        major, minor, patch = match.group("major", "minor", "patch")
         assert all(
-            isinstance(literal_eval(i), int) for i in version_parts[:3]
-        ), "Version Major.minor.patch must be 3 integers"
+            isinstance(literal_eval(i), int) for i in (major, minor)
+        ), "Version Major.minor must be integers"
+        assert (
+            patch is None or patch.startswith("dev")
+            or isinstance(literal_eval(patch), int)
+        ), "Patch must be integer when present unless local dev build"
