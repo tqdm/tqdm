@@ -116,7 +116,7 @@ def test_pandas_data_frame():
 
 
 @mark.filterwarnings(
-    "ignore:DataFrameGroupBy.apply operated on the grouping columns:DeprecationWarning")
+    "ignore:.*operated on the grouping columns.*:FutureWarning")
 def test_pandas_groupby_apply():
     """Test pandas.DataFrame.groupby(...).progress_apply"""
     with closing(StringIO()) as our_file:
@@ -170,7 +170,7 @@ def test_pandas_groupby_apply():
 
 
 @mark.filterwarnings(
-    "ignore:DataFrameGroupBy.apply operated on the grouping columns:DeprecationWarning")
+    "ignore:.*operated on the grouping columns.*:FutureWarning")
 def test_pandas_leave():
     """Test pandas with `leave=True`"""
     with closing(StringIO()) as our_file:
@@ -206,7 +206,7 @@ def test_pandas_apply_args_deprecation():
 
 
 @mark.filterwarnings(
-    "ignore:DataFrameGroupBy.apply operated on the grouping columns:DeprecationWarning")
+    "ignore:.*operated on the grouping columns.*:FutureWarning")
 def test_pandas_deprecation():
     """Test bar object instance as argument deprecation"""
     try:
