@@ -210,7 +210,7 @@ class DisableOnWriteError(ObjectWrapper):
                     pass
         return inner
 
-    def __init__(self, wrapped, tqdm_instance):
+    def __init__(self, wrapped, tqdm_instance):  # noqa: B042
         super().__init__(wrapped)
         if hasattr(wrapped, 'write'):
             self.wrapper_setattr(

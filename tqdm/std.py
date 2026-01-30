@@ -42,11 +42,11 @@ class TqdmWarning(Warning):
 
     Used for non-external-code-breaking errors, such as garbled printing.
     """
-    def __init__(self, msg, fp_write=None, *a, **k):
+    def __init__(self, msg, fp_write=None):  # noqa: B042
         if fp_write is not None:
             fp_write("\n" + self.__class__.__name__ + ": " + str(msg).rstrip() + '\n')
         else:
-            super().__init__(msg, *a, **k)
+            super().__init__(msg)
 
 
 class TqdmExperimentalWarning(TqdmWarning, FutureWarning):
