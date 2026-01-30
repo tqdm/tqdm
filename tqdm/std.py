@@ -42,11 +42,11 @@ class TqdmWarning(Warning):
 
     Used for non-external-code-breaking errors, such as garbled printing.
     """
-    def __init__(self, msg, fp_write=None, *a, **k):
+    def __init__(self, msg, fp_write=None):  # noqa: B042
         if fp_write is not None:
             fp_write("\n" + self.__class__.__name__ + ": " + str(msg).rstrip() + '\n')
         else:
-            super().__init__(msg, *a, **k)
+            super().__init__(msg)
 
 
 class TqdmExperimentalWarning(TqdmWarning, FutureWarning):
@@ -73,7 +73,7 @@ def TRLock(*args, **kwargs):
         pass
 
 
-class TqdmDefaultWriteLock(object):
+class TqdmDefaultWriteLock:
     """
     Provide a default write lock for thread and multiprocessing safety.
     Works only on platforms supporting `fork` (so Windows is excluded).
@@ -128,7 +128,7 @@ class TqdmDefaultWriteLock(object):
         warn("create_th_lock not needed anymore", TqdmDeprecationWarning, stacklevel=2)
 
 
-class Bar(object):
+class Bar:
     """
     `str.format`-able bar with format specifiers: `[width][type]`
 
@@ -142,7 +142,7 @@ class Bar(object):
       + `b`: blank (`charset="  "` override)
     """
     ASCII = " 123456789#"
-    UTF = u" " + u''.join(map(chr, range(0x258F, 0x2587, -1)))
+    UTF = " " + ''.join(map(chr, range(0x258F, 0x2587, -1)))
     BLANK = "  "
     COLOUR_RESET = '\x1b[0m'
     COLOUR_RGB = '\x1b[38;2;%d;%d;%dm'
@@ -178,9 +178,8 @@ class Bar(object):
             else:
                 raise KeyError
         except (KeyError, AttributeError):
-            warn("Unknown colour (%s); valid choices: [hex (#00ff00), %s]" % (
-                 value, ", ".join(self.COLOURS)),
-                 TqdmWarning, stacklevel=2)
+            warn(f"Unknown colour ({value}); valid choices:"
+                 f" [hex (#00ff00), {', '.join(self.COLOURS)}]", TqdmWarning, stacklevel=2)
             self._colour = None
 
     def __format__(self, format_spec):
@@ -211,7 +210,7 @@ class Bar(object):
         return self.colour + res + self.COLOUR_RESET if self.colour else res
 
 
-class EMA(object):
+class EMA:
     """
     Exponential moving average: smoothing to give progressively lower
     weights to older values.
@@ -412,9 +411,10 @@ class tqdm(Comparable):
         out  : str
             [H:]MM:SS
         """
-        mins, s = divmod(int(t), 60)
+        sign = '-' if t < 0 else ''
+        mins, s = divmod(abs(int(t)), 60)
         h, m = divmod(mins, 60)
-        return f'{h:d}:{m:02d}:{s:02d}' if h else f'{m:02d}:{s:02d}'
+        return f'{sign}{h:d}:{m:02d}:{s:02d}' if h else f'{sign}{m:02d}:{s:02d}'
 
     @staticmethod
     def format_num(n):
@@ -893,10 +893,10 @@ class tqdm(Comparable):
                         " Use keyword arguments instead.",
                         fp_write=getattr(t.fp, 'write', sys.stderr.write))
 
-                try:  # pandas>=1.3.0
+                try:  # pandas>=1.3.0,<3.0
                     from pandas.core.common import is_builtin_func
-                except ImportError:
-                    is_builtin_func = df._is_builtin_func
+                except ImportError:  # pandas<1.3.0
+                    is_builtin_func = getattr(df, '_is_builtin_func', lambda f: f)
                 try:
                     func = is_builtin_func(func)
                 except TypeError:

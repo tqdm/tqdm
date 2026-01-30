@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Usage:
   7zx.py [--help | options] <zipfiles>...
 
@@ -18,7 +17,6 @@ Options:
                          NOTSET
   -d, --debug-trace      Print lots of debugging information (-D NOTSET)
 """
-import io
 import logging
 import os
 import pty
@@ -81,7 +79,7 @@ def main():
                 stdout=md,  # subprocess.PIPE,
                 stderr=subprocess.STDOUT)
             os.close(sd)
-            with io.open(md, mode="rU", buffering=1) as m:
+            with open(md, buffering=1) as m:
                 with tqdm(total=sum(fcomp.values()), disable=len(zips) < 2,
                           leave=False, unit="B", unit_scale=True) as t:
                     if not hasattr(t, "start_t"):  # disabled
@@ -89,7 +87,7 @@ def main():
                     while True:
                         try:
                             l_raw = m.readline()
-                        except IOError:
+                        except OSError:
                             break
                         ln = l_raw.strip()
                         if ln.startswith("Extracting"):
