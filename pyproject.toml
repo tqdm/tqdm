@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=42", "wheel", "setuptools-scm[toml]>=3.4"]
+requires = ["setuptools>=42", "setuptools-scm[toml]>=3.4"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools_scm]
@@ -37,8 +37,6 @@ classifiers = [
     "Intended Audience :: End Users/Desktop",
     "Intended Audience :: Other Audience",
     "Intended Audience :: System Administrators",
-    "License :: OSI Approved :: MIT License",
-    "License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)",
     "Operating System :: MacOS",
     "Operating System :: MacOS :: MacOS X",
     "Operating System :: Microsoft",
