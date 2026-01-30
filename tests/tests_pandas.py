@@ -77,16 +77,18 @@ def test_pandas_data_frame():
         def task_func(x):
             return x + 1
 
-        # applymap
-        res1 = df.progress_applymap(task_func)
-        res2 = df.applymap(task_func)
-        assert res1.equals(res2)
-
-        # map
         if hasattr(df, 'map'):  # pandas>=2.1.0
+            # map
             res1 = df.progress_map(task_func)
             res2 = df.map(task_func)
             assert res1.equals(res2)
+            assert '200/200' in our_file.getvalue()
+        else:
+            # applymap
+            res1 = df.progress_applymap(task_func)
+            res2 = df.applymap(task_func)
+            assert res1.equals(res2)
+            assert '20000/20000' in our_file.getvalue()
 
         # apply unhashable
         res1 = []
@@ -98,21 +100,14 @@ def test_pandas_data_frame():
             res3 = df.progress_apply(task_func, axis=axis)
             res4 = df.apply(task_func, axis=axis)
             assert res3.equals(res4)
+        assert '200/200' in our_file.getvalue()  # axis=0
+        assert '100/100' in our_file.getvalue()  # axis=1
 
         our_file.seek(0)
-        if our_file.read().count('100%') < 3:
+        if our_file.read().count('100%') < 6:
             our_file.seek(0)
             raise AssertionError(
-                f"\nExpected:\n100% at least three times\nIn:\n{our_file.read()}\n")
-
-        # apply_map, apply axis=0, apply axis=1
-        expects = ['20000/20000', '200/200', '100/100']
-        for exres in expects:
-            our_file.seek(0)
-            if our_file.getvalue().count(exres) < 1:
-                our_file.seek(0)
-                raise AssertionError(
-                    f"\nExpected:\n{exres} at least once.\nIn:\n{our_file.read()}\n")
+                f"\nExpected:\n100% at least 6 times\nIn:\n{our_file.read()}\n")
 
 
 @mark.filterwarnings(
