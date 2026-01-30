@@ -411,9 +411,12 @@ class tqdm(Comparable):
         out  : str
             [H:]MM:SS
         """
-        mins, s = divmod(int(t), 60)
+        # Handle negative intervals by using absolute value and adding sign prefix
+        sign = '-' if t < 0 else ''
+        t = abs(int(t))
+        mins, s = divmod(t, 60)
         h, m = divmod(mins, 60)
-        return f'{h:d}:{m:02d}:{s:02d}' if h else f'{m:02d}:{s:02d}'
+        return f'{sign}{h:d}:{m:02d}:{s:02d}' if h else f'{sign}{m:02d}:{s:02d}'
 
     @staticmethod
     def format_num(n):
@@ -892,14 +895,20 @@ class tqdm(Comparable):
                         " Use keyword arguments instead.",
                         fp_write=getattr(t.fp, 'write', sys.stderr.write))
 
-                try:  # pandas>=1.3.0
+                # is_builtin_func was removed in pandas 3.0
+                # It was used to resolve aliases like 'sum' -> np.sum
+                # This is no longer needed as pandas handles it internally
+                try:  # pandas>=1.3.0, <3.0
                     from pandas.core.common import is_builtin_func
                 except ImportError:
-                    is_builtin_func = df._is_builtin_func
-                try:
-                    func = is_builtin_func(func)
-                except TypeError:
-                    pass
+                    # pandas<1.3.0 used df._is_builtin_func
+                    # pandas>=3.0 removed this functionality entirely
+                    is_builtin_func = getattr(df, '_is_builtin_func', None)
+                if is_builtin_func is not None:
+                    try:
+                        func = is_builtin_func(func)
+                    except TypeError:
+                        pass
 
                 # Define bar updating wrapper
                 def wrapper(*args, **kwargs):
