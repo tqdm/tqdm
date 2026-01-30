@@ -110,8 +110,7 @@ def test_pandas_data_frame():
                 f"\nExpected:\n100% at least 6 times\nIn:\n{our_file.read()}\n")
 
 
-@mark.filterwarnings(
-    "ignore:DataFrameGroupBy.apply operated on the grouping columns:DeprecationWarning")
+@mark.filterwarnings("ignore:DataFrameGroupBy.apply operated on the grouping columns")
 def test_pandas_groupby_apply():
     """Test pandas.DataFrame.groupby(...).progress_apply"""
     with closing(StringIO()) as our_file:
@@ -164,8 +163,7 @@ def test_pandas_groupby_apply():
                     f"\nExpected:\n{exres} at least once.\nIn:\n{our_file.read()}\n")
 
 
-@mark.filterwarnings(
-    "ignore:DataFrameGroupBy.apply operated on the grouping columns:DeprecationWarning")
+@mark.filterwarnings("ignore:DataFrameGroupBy.apply operated on the grouping columns")
 def test_pandas_leave():
     """Test pandas with `leave=True`"""
     with closing(StringIO()) as our_file:
@@ -200,8 +198,7 @@ def test_pandas_apply_args_deprecation():
             "keyword arguments instead"))
 
 
-@mark.filterwarnings(
-    "ignore:DataFrameGroupBy.apply operated on the grouping columns:DeprecationWarning")
+@mark.filterwarnings("ignore:DataFrameGroupBy.apply operated on the grouping columns")
 def test_pandas_deprecation():
     """Test bar object instance as argument deprecation"""
     try:
