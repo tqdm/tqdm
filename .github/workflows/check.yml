@@ -86,7 +86,7 @@ jobs:
           asv-
     - name: Benchmark
       run: |
-        asv continuous --interleave-processes --only-changed -f 1.25 master HEAD
-        CHANGES=$(asv compare --only-changed -f 1.25 master HEAD)
+        asv continuous --interleave-processes --only-changed -f 1.8 master HEAD
+        CHANGES=$(asv compare --only-changed -f 1.8 master HEAD)
         echo "$CHANGES" >> "$GITHUB_STEP_SUMMARY"
         test -z "$CHANGES" || exit 1
