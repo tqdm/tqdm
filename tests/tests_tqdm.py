@@ -179,6 +179,10 @@ def test_format_interval():
     assert format_interval(60) == '01:00'
     assert format_interval(6160) == '1:42:40'
     assert format_interval(238113) == '66:08:33'
+    assert format_interval(-1) == '-00:01'
+    assert format_interval(-60) == '-01:00'
+    assert format_interval(-100000) == '-27:46:40'
+    assert format_interval(0) == '00:00'
 
 
 def test_format_num():

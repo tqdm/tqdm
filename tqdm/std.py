@@ -411,9 +411,10 @@ class tqdm(Comparable):
         out  : str
             [H:]MM:SS
         """
-        mins, s = divmod(int(t), 60)
+        sign = '-' if t < 0 else ''
+        mins, s = divmod(abs(int(t)), 60)
         h, m = divmod(mins, 60)
-        return f'{h:d}:{m:02d}:{s:02d}' if h else f'{m:02d}:{s:02d}'
+        return f'{sign}{h:d}:{m:02d}:{s:02d}' if h else f'{sign}{m:02d}:{s:02d}'
 
     @staticmethod
     def format_num(n):
@@ -892,10 +893,10 @@ class tqdm(Comparable):
                         " Use keyword arguments instead.",
                         fp_write=getattr(t.fp, 'write', sys.stderr.write))
 
-                try:  # pandas>=1.3.0
+                try:  # pandas>=1.3.0,<3.0
                     from pandas.core.common import is_builtin_func
-                except ImportError:
-                    is_builtin_func = df._is_builtin_func
+                except ImportError:  # pandas<1.3.0
+                    is_builtin_func = getattr(df, '_is_builtin_func', lambda f: f)
                 try:
                     func = is_builtin_func(func)
                 except TypeError:
