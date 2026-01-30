@@ -1,10 +1,8 @@
 [build-system]
-requires = ["setuptools>=42", "wheel", "setuptools_scm[toml]>=3.4"]
+requires = ["setuptools>=42", "wheel", "setuptools-scm[toml]>=3.4"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools_scm]
-write_to = "tqdm/_dist_ver.py"
-write_to_template = "__version__ = '{version}'\n"
 
 [tool.setuptools.packages.find]
 exclude = ["benchmarks", "examples", "tests", "wiki", "docs", "feedstock"]

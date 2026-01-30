@@ -124,7 +124,6 @@ prebuildclean:
 	@+python -c "import shutil; shutil.rmtree('dist', True)"
 	@+python -c "import shutil; shutil.rmtree('tqdm.egg-info', True)"
 	@+python -c "import shutil; shutil.rmtree('.eggs', True)"
-	@+python -c "import os; os.remove('tqdm/_dist_ver.py') if os.path.exists('tqdm/_dist_ver.py') else None"
 coverclean:
 	@+python -c "import os; os.remove('.coverage') if os.path.exists('.coverage') else None"
 	@+python -c "import os, glob; [os.remove(i) for i in glob.glob('.coverage.*')]"
