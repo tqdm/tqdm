@@ -12,6 +12,7 @@ dependencies:
 - setuptools
 - setuptools_scm
 - toml
+- importlib-metadata
 # test env managers
 - pre-commit
 - tox
