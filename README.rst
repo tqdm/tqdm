@@ -364,7 +364,8 @@ Documentation
                    unit='it', unit_scale=False, dynamic_ncols=False,
                    smoothing=0.3, bar_format=None, initial=0, position=None,
                    postfix=None, unit_divisor=1000, write_bytes=False,
-                   lock_args=None, nrows=None, colour=None, delay=0):
+                   lock_args=None, nrows=None, colour=None, delay=0,
+                   complete_bar_on_early_finish=False):
 
 Parameters
 ~~~~~~~~~~
@@ -386,6 +387,9 @@ Parameters
     If [default: True], keeps all traces of the progressbar
     upon termination of iteration.
     If ``None``, will leave only if ``position`` is ``0``.
+* complete_bar_on_early_finish  : bool, optional  
+    If True and ``total`` is set, completes the progressbar on exit/``close()``
+    even if the iteration finished early [default: False].
 * file  : ``io.TextIOWrapper`` or ``io.StringIO``, optional  
     Specifies where to output the progress messages
     (default: sys.stderr). Uses ``file.write(str)`` and ``file.flush()``

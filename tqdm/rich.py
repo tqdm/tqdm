@@ -116,6 +116,7 @@ class tqdm_rich(std_tqdm):  # pragma: no cover
     def close(self):
         if self.disable:
             return
+        self._complete_bar_on_early_finish()
         self.display()  # print 100%, vis #1306
         super().close()
         self._prog.__exit__(None, None, None)
