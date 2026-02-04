@@ -154,7 +154,8 @@ class tqdm_notebook(std_tqdm):
             msg = self.format_meter(**d)
 
         ltext, pbar, rtext = self.container.children
-        pbar.value = self.n
+        unit_scale = 1 if self.unit_scale is True else self.unit_scale or 1
+        pbar.value = self.n * unit_scale
 
         if msg:
             msg = msg.replace(' ', '\u2007')  # fix html space padding
