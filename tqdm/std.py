@@ -7,6 +7,7 @@ Usage:
 >>> for i in trange(10):
 ...     ...
 """
+import signal
 import sys
 from collections import OrderedDict, defaultdict
 from contextlib import contextmanager
@@ -366,6 +367,8 @@ class tqdm(Comparable):
     monitor = None
     _instances = WeakSet()
 
+    registered_classes = set()
+
     @staticmethod
     def format_sizeof(num, suffix='', divisor=1000):
         """
@@ -662,6 +665,7 @@ class tqdm(Comparable):
 
     def __new__(cls, *_, **__):
         instance = object.__new__(cls)
+        tqdm.registered_classes.add(cls)
         with cls.get_lock():  # also constructs lock if non-existent
             cls._instances.add(instance)
             # create monitoring thread
@@ -1007,17 +1011,18 @@ class tqdm(Comparable):
                 TqdmKeyError("Unknown argument(s): " + str(kwargs)))
 
         # Preprocess the arguments
+        keep_original_size = ncols is not None, nrows is not None
+        force_dynamic_ncols_update = dynamic_ncols
         if (
             (ncols is None or nrows is None) and (file in (sys.stderr, sys.stdout))
-        ) or dynamic_ncols:  # pragma: no cover
-            if dynamic_ncols:
-                dynamic_ncols = _screen_shape_wrapper()
-                if dynamic_ncols:
-                    ncols, nrows = dynamic_ncols(file)
+        ) or force_dynamic_ncols_update:  # pragma: no cover
+            dynamic_ncols = _screen_shape_wrapper()
+            if force_dynamic_ncols_update and dynamic_ncols:
+                keep_original_size = False, False
+                ncols, nrows = dynamic_ncols(file)
             else:
-                _dynamic_ncols = _screen_shape_wrapper()
-                if _dynamic_ncols:
-                    _ncols, _nrows = _dynamic_ncols(file)
+                if dynamic_ncols:
+                    _ncols, _nrows = dynamic_ncols(file)
                     if ncols is None:
                         ncols = _ncols
                     if nrows is None:
@@ -1053,6 +1058,7 @@ class tqdm(Comparable):
         self.fp = file
         self.ncols = ncols
         self.nrows = nrows
+        self.keep_original_size = keep_original_size
         self.mininterval = mininterval
         self.maxinterval = maxinterval
         self.miniters = miniters
@@ -1066,6 +1072,7 @@ class tqdm(Comparable):
         self.lock_args = lock_args
         self.delay = delay
         self.gui = gui
+        self.force_dynamic_ncols_update = force_dynamic_ncols_update
         self.dynamic_ncols = dynamic_ncols
         self.smoothing = smoothing
         self._ema_dn = EMA(smoothing)
@@ -1449,7 +1456,7 @@ class tqdm(Comparable):
         if self.disable and not hasattr(self, 'unit'):
             return defaultdict(lambda: None, {
                 'n': self.n, 'total': self.total, 'elapsed': 0, 'unit': 'it'})
-        if self.dynamic_ncols:
+        if self.force_dynamic_ncols_update and self.dynamic_ncols:
             self.ncols, self.nrows = self.dynamic_ncols(self.fp)
         return {
             'n': self.n, 'total': self.total,
@@ -1522,3 +1529,21 @@ class tqdm(Comparable):
 def trange(*args, **kwargs):
     """Shortcut for tqdm(range(*args), **kwargs)."""
     return tqdm(range(*args), **kwargs)
+
+
+def resize_signal_handler(signalnum, frame):
+    for cls in tqdm.registered_classes:
+        with cls.get_lock():
+            for instance in cls._instances:
+                if instance.dynamic_ncols:
+                    ncols, nrows = instance.dynamic_ncols(instance.fp)
+                    if not instance.keep_original_size[0]:
+                        instance.ncols = ncols
+                    if not instance.keep_original_size[1]:
+                        instance.nrows = nrows
+
+
+try:
+    signal.signal(signal.SIGWINCH, resize_signal_handler)
+except AttributeError:
+    pass  # Some systems, like Windows, do not have SIGWINCH
