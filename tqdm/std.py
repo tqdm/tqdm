@@ -15,6 +15,7 @@ from numbers import Number
 from time import time
 from warnings import warn
 from weakref import WeakSet
+import random
 
 from ._monitor import TMonitor
 from .utils import (
@@ -140,10 +141,12 @@ class Bar:
       + `a`: ascii (`charset=self.ASCII` override)
       + `u`: unicode (`charset=self.UTF` override)
       + `b`: blank (`charset="  "` override)
+      + 't': train (`charset=self.TRAIN` override)
     """
     ASCII = " 123456789#"
     UTF = " " + ''.join(map(chr, range(0x258F, 0x2587, -1)))
     BLANK = "  "
+    TRAIN = "ﲫ"
     COLOUR_RESET = '\x1b[0m'
     COLOUR_RGB = '\x1b[38;2;%d;%d;%dm'
     COLOURS = {'BLACK': '\x1b[30m', 'RED': '\x1b[31m', 'GREEN': '\x1b[32m',
@@ -159,6 +162,7 @@ class Bar:
         self.default_len = default_len
         self.charset = charset
         self.colour = colour
+        self.tree_locations = None
 
     @property
     def colour(self):
@@ -186,7 +190,7 @@ class Bar:
         if format_spec:
             _type = format_spec[-1].lower()
             try:
-                charset = {'a': self.ASCII, 'u': self.UTF, 'b': self.BLANK}[_type]
+                charset = {'a': self.ASCII, 'u': self.UTF, 'b': self.BLANK, 't': self.TRAIN}[_type]
             except KeyError:
                 charset = self.charset
             else:
@@ -204,9 +208,41 @@ class Bar:
         nsyms = len(charset) - 1
         bar_length, frac_bar_length = divmod(int(self.frac * N_BARS * nsyms), nsyms)
 
-        res = charset[-1] * bar_length
-        if bar_length < N_BARS:  # whitespace padding
-            res = res + charset[frac_bar_length] + charset[0] * (N_BARS - bar_length - 1)
+        if charset == self.TRAIN:
+            rng = random.Random(1)
+            self.tree_locations = (
+                [rng.randint(0, N_BARS - 1) for _ in range(10)]
+                if self.tree_locations is None
+                else self.tree_locations
+            )
+            tree_locations = [
+                (tree_location - bar_length) % N_BARS
+                for tree_location in self.tree_locations
+            ]
+            tree_types = ""
+            trees = rng.choices(tree_types, k=len(tree_locations))
+
+            pre_tracks = list("‗" * max(bar_length - 10, 0))
+            for j, i in enumerate(tree_locations):
+                if i < len(pre_tracks):
+                    pre_tracks[i] = trees[j]
+
+            track_len = N_BARS - bar_length - 1
+            post_tracks = list("‗" * (track_len))
+            for j, i in enumerate(tree_locations):
+                if N_BARS - i < len(post_tracks) + 1:
+                    post_tracks[i - bar_length - 1] = trees[j]
+
+            res = "".join(pre_tracks)
+            if bar_length <= N_BARS:  # whitespace padding
+                if bar_length == N_BARS:
+                    res = res[:-1]
+                res = res + "ﲫ" * min(bar_length, 10) + "" + "".join(post_tracks)
+        else:
+            res = charset[-1] * bar_length
+            if bar_length < N_BARS:  # whitespace padding
+                res = res + charset[frac_bar_length] + charset[0] * (N_BARS - bar_length - 1)
+
         return self.colour + res + self.COLOUR_RESET if self.colour else res
 
 
