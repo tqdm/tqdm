@@ -37,25 +37,28 @@ if True:  # pragma: no cover
         if IPY == 32:
             from IPython.html.widgets import HTML
             from IPython.html.widgets import FloatProgress as IProgress
-            from IPython.html.widgets import HBox
+            from IPython.html.widgets import HBox, VBox
             IPY = 3
         else:
             from ipywidgets import HTML
             from ipywidgets import FloatProgress as IProgress
-            from ipywidgets import HBox
+            from ipywidgets import HBox, VBox
     except ImportError:
         try:  # IPython 2.x
             from IPython.html.widgets import HTML
             from IPython.html.widgets import ContainerWidget as HBox
+            from IPython.html.widgets import ContainerWidget as VBox
             from IPython.html.widgets import FloatProgressWidget as IProgress
             IPY = 2
         except ImportError:
             IPY = 0
             IProgress = None
             HBox = object
+            VBox = object
 
     try:
-        from IPython.display import display  # , clear_output
+        from IPython.display import clear_output, display
+        clear_output(wait=False)  # Necessary when rerunning cells
     except ImportError:
         pass
 
@@ -91,6 +94,8 @@ class tqdm_notebook(std_tqdm):
     """
     Experimental IPython/Jupyter Notebook widget using tqdm!
     """
+    outer_container = None
+
     @staticmethod
     def status_printer(_, total=None, desc=None, ncols=None):
         """
@@ -143,9 +148,6 @@ class tqdm_notebook(std_tqdm):
         # goal is to keep all infos if error happens so user knows
         # at which iteration the loop failed.
 
-        # Clear previous output (really necessary?)
-        # clear_output(wait=1)
-
         if not msg and not close:
             d = self.format_dict
             # remove {bar}
@@ -179,14 +181,21 @@ class tqdm_notebook(std_tqdm):
 
         # Special signal to close the bar
         if close and pbar.bar_style != 'danger':  # hide only if no error
+            # Remove self.container from the list of children of outer_container
+            tqdm_notebook.outer_container.children = tuple(
+                c for c in tqdm_notebook.outer_container.children if c is not self.container)
             try:
                 self.container.close()
+                if abs(self.pos) == 0:
+                    tqdm_notebook.outer_container.close()
             except AttributeError:
                 self.container.visible = False
             self.container.layout.visibility = 'hidden'  # IPYW>=8
 
         if check_delay and self.delay > 0 and not self.displayed:
-            display(self.container)
+            tqdm_notebook.outer_container.children += (self.container,)
+            if abs(self.pos) == 0:
+                display(tqdm_notebook.outer_container)
             self.displayed = True
 
     @property
@@ -231,11 +240,18 @@ class tqdm_notebook(std_tqdm):
         # Replace with IPython progress bar display (with correct total)
         unit_scale = 1 if self.unit_scale is True else self.unit_scale or 1
         total = self.total * unit_scale if self.total else self.total
+
+        if abs(self.pos) == 0:
+            tqdm_notebook.outer_container = VBox()
+
         self.container = self.status_printer(self.fp, total, self.desc, self.ncols)
+
         self.container.pbar = proxy(self)
         self.displayed = False
         if display_here and self.delay <= 0:
-            display(self.container)
+            tqdm_notebook.outer_container.children += (self.container,)
+            if abs(self.pos) == 0:
+                display(tqdm_notebook.outer_container)
             self.displayed = True
         self.disp = self.display
         self.colour = colour
@@ -273,10 +289,12 @@ class tqdm_notebook(std_tqdm):
         super().close()
         # Try to detect if there was an error or KeyboardInterrupt
         # in manual mode: if n < total, things probably got wrong
+        pos = abs(self.pos)
+        leave = pos == 0 if self.leave is None else self.leave
         if self.total and self.n < self.total:
             self.disp(bar_style='danger', check_delay=False)
         else:
-            if self.leave:
+            if leave:
                 self.disp(bar_style='success', check_delay=False)
             else:
                 self.disp(close=True, check_delay=False)
