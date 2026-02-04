@@ -114,6 +114,15 @@ class TestRedirectLoggingToTqdm:
         with logging_redirect_tqdm(loggers=[logger]):
             assert logger.handlers[0].formatter == formatter
 
+    def test_should_inherit_console_logger_level(self):
+        level = 99
+        logger = logging.Logger('test')
+        console_handler = logging.StreamHandler(sys.stderr)
+        console_handler.setLevel(level)
+        logger.handlers = [console_handler]
+        with logging_redirect_tqdm(loggers=[logger]):
+            assert logger.handlers[0].level == level
+
     def test_should_not_remove_stream_handlers_not_for_stdout_or_stderr(self):
         logger = logging.Logger('test')
         stream_handler = logging.StreamHandler(StringIO())
