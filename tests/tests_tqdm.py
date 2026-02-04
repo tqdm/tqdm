@@ -1985,3 +1985,8 @@ def test_contains(capsys):
     assert not out
     assert '  0%' in err
     assert '100%' not in err
+
+
+def test_enumerate():
+    t = tqdm(enumerate(range(10)))
+    assert t.total == 10
