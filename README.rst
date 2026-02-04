@@ -68,6 +68,7 @@ Python and an environment supporting ``carriage return \r`` and
 
 Installation
 ------------
+tqdm officially supports Python 3.7 and above.
 
 Latest PyPI stable release
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
