@@ -3,7 +3,7 @@ import logging
 import subprocess  # nosec
 import sys
 from functools import wraps
-from os import linesep
+from os import linesep, environ
 
 from tqdm.cli import TqdmKeyError, TqdmTypeError, main
 from tqdm.utils import IS_WIN
@@ -242,3 +242,19 @@ def test_exceptions(capsysbinary):
     for i in ('-h', '--help', '-v', '--version'):
         with raises(SystemExit):
             main(argv=[i])
+
+
+def test_tqdm_notebook_env_set():
+    """Test if TQDM_NOTEBOOK environment variable is set, tqdm uses tqdm.notebook"""
+    environ['TQDM_NOTEBOOK'] = '1'
+    from tqdm import tqdm
+    from tqdm.notebook import tqdm as notebook_tqdm
+    assert tqdm == notebook_tqdm
+    del environ['TQDM_NOTEBOOK']
+
+
+def test_tqdm_notebook_env_not_set():
+    """Test if TQDM_NOTEBOOK environment variable is not set, tqdm uses tqdm"""
+    from tqdm import tqdm
+    from tqdm.std import tqdm as std_tqdm
+    assert tqdm == std_tqdm
