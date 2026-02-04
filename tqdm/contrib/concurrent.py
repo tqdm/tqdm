@@ -3,7 +3,6 @@ Thin wrappers around `concurrent.futures`.
 """
 from contextlib import contextmanager
 from operator import length_hint
-from os import cpu_count
 
 from ..auto import tqdm as tqdm_auto
 from ..std import TqdmWarning
@@ -33,7 +32,7 @@ def _executor_map(PoolExecutor, fn, *iterables, **tqdm_kwargs):
     Parameters
     ----------
     tqdm_class  : [default: tqdm.auto.tqdm].
-    max_workers  : [default: min(32, cpu_count() + 4)].
+    max_workers  : [default: None].
     chunksize  : [default: 1].
     lock_name  : [default: "":str].
     """
@@ -41,7 +40,7 @@ def _executor_map(PoolExecutor, fn, *iterables, **tqdm_kwargs):
     if "total" not in kwargs:
         kwargs["total"] = length_hint(iterables[0])
     tqdm_class = kwargs.pop("tqdm_class", tqdm_auto)
-    max_workers = kwargs.pop("max_workers", min(32, cpu_count() + 4))
+    max_workers = kwargs.pop("max_workers", None)
     chunksize = kwargs.pop("chunksize", 1)
     lock_name = kwargs.pop("lock_name", "")
     with ensure_lock(tqdm_class, lock_name=lock_name) as lk:
@@ -63,7 +62,6 @@ def thread_map(fn, *iterables, **tqdm_kwargs):
     max_workers  : int, optional
         Maximum number of workers to spawn; passed to
         `concurrent.futures.ThreadPoolExecutor.__init__`.
-        [default: max(32, cpu_count() + 4)].
     """
     from concurrent.futures import ThreadPoolExecutor
     return _executor_map(ThreadPoolExecutor, fn, *iterables, **tqdm_kwargs)
@@ -81,7 +79,6 @@ def process_map(fn, *iterables, **tqdm_kwargs):
     max_workers  : int, optional
         Maximum number of workers to spawn; passed to
         `concurrent.futures.ProcessPoolExecutor.__init__`.
-        [default: min(32, cpu_count() + 4)].
     chunksize  : int, optional
         Size of chunks sent to worker processes; passed to
         `concurrent.futures.ProcessPoolExecutor.map`. [default: 1].
