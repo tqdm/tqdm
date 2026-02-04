@@ -1166,8 +1166,7 @@ class tqdm(Comparable):
         # If the bar is disabled, then just walk the iterable
         # (note: keep this check outside the loop for performance)
         if self.disable:
-            for obj in iterable:
-                yield obj
+            yield from iterable
             return
 
         mininterval = self.mininterval
@@ -1511,11 +1510,13 @@ class tqdm(Comparable):
         ...         if not chunk:
         ...             break
         """
+        if bytes:
+            tqdm_kwargs.update(
+                unit="B",
+                unit_scale=True,
+                unit_divisor=1024
+            )
         with cls(total=total, **tqdm_kwargs) as t:
-            if bytes:
-                t.unit = "B"
-                t.unit_scale = True
-                t.unit_divisor = 1024
             yield CallbackIOWrapper(t.update, stream, method)
 
 
