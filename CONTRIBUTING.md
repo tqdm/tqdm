@@ -5,7 +5,7 @@
 This file describes how to
 
 - contribute changes to the project, and
-- upload released to the PyPI repository.
+- upload releases to the PyPI repository.
 
 Most of the management commands have been directly placed inside the
 Makefile:

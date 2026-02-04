@@ -215,7 +215,7 @@ Perhaps the most wonderful use of ``tqdm`` is in a script or on the command
 line. Simply inserting ``tqdm`` (or ``python -m tqdm``) between pipes will pass
 through all ``stdin`` to ``stdout`` while printing progress to ``stderr``.
 
-The example below demonstrate counting the number of lines in all Python files
+The example below demonstrates counting the number of lines in all Python files
 in the current directory, with timing information included.
 
 .. code:: sh
@@ -665,7 +665,7 @@ Submodules
         """IPython/Jupyter Notebook widget."""
 
     class tqdm.auto.tqdm(tqdm.tqdm):
-        """Automatically chooses beween `tqdm.notebook` and `tqdm.tqdm`."""
+        """Automatically chooses between `tqdm.notebook` and `tqdm.tqdm`."""
 
     class tqdm.asyncio.tqdm(tqdm.tqdm):
       """Asynchronous version."""
@@ -1272,7 +1272,7 @@ display, a ``.write()`` method is provided:
             tqdm.write("Done task %i" % i)
         # Can also use bar.write()
 
-By default, this will print to standard output ``sys.stdout``. but you can
+By default, this will print to standard output ``sys.stdout``. But you can
 specify any file-like object using the ``file`` argument. For example, this
 can be used to redirect the messages writing to a log file or class.
 
@@ -1280,7 +1280,7 @@ Redirecting writing
 ~~~~~~~~~~~~~~~~~~~
 
 If using a library that can print messages to the console, editing the library
-by  replacing ``print()`` with ``tqdm.write()`` may not be desirable.
+by replacing ``print()`` with ``tqdm.write()`` may not be desirable.
 In that case, redirecting ``sys.stdout`` to ``tqdm.write()`` is an option.
 
 To redirect ``sys.stdout``, create a file-like class that will write
@@ -1365,7 +1365,7 @@ Monitoring thread, intervals and miniters
   A clever adjustment system ``dynamic_miniters`` will automatically adjust
   ``miniters`` to the amount of iterations that fit into time ``mininterval``.
   Essentially, ``tqdm`` will check if it's time to print without actually
-  checking time. This behaviour can be still be bypassed by manually setting
+  checking time. This behaviour can still be bypassed by manually setting
   ``miniters``.
 
 However, consider a case with a combination of fast and slow iterations.
