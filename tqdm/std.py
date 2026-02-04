@@ -712,6 +712,27 @@ class tqdm(Comparable):
                     inst = min(instances, key=lambda i: i.pos)
                     inst.clear(nolock=True)
                     inst.pos = abs(instance.pos)
+                else:
+                    # renumber remaining bars with positions below this bar so
+                    # they maintain their positions
+                    apos = abs(instance.pos)
+                    readjust = [
+                        (inst.pos, inst)
+                        for inst in cls._instances
+                        if not inst.disable and abs(getattr(inst, "pos", apos)) > apos
+                    ]
+                    for pos, inst in sorted(readjust, key=lambda pi: -abs(pi[0])):
+                        newpos = inst.pos + (1 if pos < 0 else -1)
+                        if newpos == 0 and inst.leave is None:
+                            # any bars now moving to pos=0 should not be left on
+                            # screen if `leave` was set to `None`.
+                            inst.leave = False
+                        if not inst.leave:
+                            # Clear the old position before moving the bar so we
+                            # don't leave any artefacts on screen.
+                            inst.clear(nolock=True)
+                        inst.pos = newpos
+                        inst.display()
 
     @classmethod
     def write(cls, s, file=None, end="\n", nolock=False):
@@ -1270,41 +1291,43 @@ class tqdm(Comparable):
         # Prevent multiple closures
         self.disable = True
 
-        # decrement instance pos and remove from internal set
-        pos = abs(self.pos)
-        self._decr_instances(self)
-
-        if self.last_print_t < self.start_t + self.delay:
-            # haven't ever displayed; nothing to clear
-            return
-
-        # GUI mode
-        if getattr(self, 'sp', None) is None:
-            return
-
-        # annoyingly, _supports_unicode isn't good enough
-        def fp_write(s):
-            self.fp.write(str(s))
-
         try:
-            fp_write('')
-        except ValueError as e:
-            if 'closed' in str(e):
+            if self.last_print_t < self.start_t + self.delay:
+                # haven't ever displayed; nothing to clear
                 return
-            raise  # pragma: no cover
 
-        leave = pos == 0 if self.leave is None else self.leave
+            # GUI mode
+            if getattr(self, 'sp', None) is None:
+                return
 
-        with self._lock:
-            if leave:
-                # stats for overall rate (no weighted average)
-                self._ema_dt = lambda: None
-                self.display(pos=0)
-                fp_write('\n')
-            else:
-                # clear previous display
-                if self.display(msg='', pos=pos) and not pos:
-                    fp_write('\r')
+            # annoyingly, _supports_unicode isn't good enough
+            def fp_write(s):
+                self.fp.write(str(s))
+
+            try:
+                fp_write('')
+            except ValueError as e:
+                if 'closed' in str(e):
+                    return
+                raise  # pragma: no cover
+
+            pos = abs(self.pos)
+            leave = pos == 0 if self.leave is None else self.leave
+
+            with self._lock:
+                if leave:
+                    # stats for overall rate (no weighted average)
+                    self._ema_dt = lambda: None
+                    self.display(pos=0)
+                    fp_write('\n')
+                else:
+                    # clear previous display
+                    if self.display(msg='', pos=pos) and not pos:
+                        fp_write('\r')
+
+        finally:
+            # decrement instance pos and remove from internal set
+            self._decr_instances(self)
 
     def clear(self, nolock=False):
         """Clear current bar display."""
