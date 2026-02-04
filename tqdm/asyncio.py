@@ -68,16 +68,31 @@ class tqdm_asyncio(std_tqdm):
                        total=total, **tqdm_kwargs)
 
     @classmethod
-    async def gather(cls, *fs, loop=None, timeout=None, total=None, **tqdm_kwargs):
+    async def gather(cls, *fs, loop=None, timeout=None, total=None, return_exceptions=False,
+                     **tqdm_kwargs):
         """
         Wrapper for `asyncio.gather`.
         """
-        async def wrap_awaitable(i, f):
-            return i, await f
+        if total is None:
+            total = len(fs)
 
-        ifs = [wrap_awaitable(i, f) for i, f in enumerate(fs)]
-        res = [await f for f in cls.as_completed(ifs, loop=loop, timeout=timeout,
-                                                 total=total, **tqdm_kwargs)]
+        async def wrap_awaitable(i, f):
+            try:
+                return i, await f
+            except Exception as e:
+                if return_exceptions:
+                    return i, e
+                raise
+
+        async def aiter_as_completed():
+            kwargs = {}
+            if version_info[:2] < (3, 10):
+                kwargs['loop'] = loop
+            ifs = [wrap_awaitable(i, f) for i, f in enumerate(fs)]
+            for r in asyncio.as_completed(ifs, timeout=timeout, **kwargs):
+                yield await r
+
+        res = [f async for f in cls(aiter_as_completed(), total=total, **tqdm_kwargs)]
         return [i for _, i in sorted(res)]
 
 

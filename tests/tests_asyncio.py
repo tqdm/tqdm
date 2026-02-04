@@ -6,7 +6,7 @@ from time import time
 
 from tqdm.asyncio import tarange, tqdm_asyncio
 
-from .tests_tqdm import StringIO, closing, mark
+from .tests_tqdm import StringIO, closing, mark, raises
 
 tqdm = partial(tqdm_asyncio, miniters=0, mininterval=0)
 trange = partial(tarange, miniters=0, mininterval=0)
@@ -127,7 +127,17 @@ async def double(i):
 @mark.asyncio
 async def test_gather(capsys):
     """Test asyncio gather"""
+    expected = list(range(0, 30 * 2, 2))
     res = await gather(*map(double, range(30)))
     _, err = capsys.readouterr()
     assert '30/30' in err
-    assert res == list(range(0, 30 * 2, 2))
+    assert res == expected
+
+    res = await gather(*map(double, range(30)), double(time), return_exceptions=True)
+    _, err = capsys.readouterr()
+    assert '31/31' in err
+    assert res[:-1] == expected
+    assert isinstance(res[-1], TypeError)
+
+    with raises(TypeError):
+        await gather(*map(double, range(30)), double(time))
