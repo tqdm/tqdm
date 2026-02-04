@@ -10,8 +10,14 @@ import sys
 from warnings import warn
 
 try:
+    if 'ipykernel' not in sys.modules:
+        raise ImportError("console")
     get_ipython = sys.modules['IPython'].get_ipython
-    if 'IPKernelApp' not in get_ipython().config:  # pragma: no cover
+    ipython = get_ipython()
+    if not ipython:
+        raise ImportError("console")
+    from ipykernel.zmqshell import ZMQInteractiveShell
+    if not isinstance(ipython, ZMQInteractiveShell):
         raise ImportError("console")
     from .notebook import WARN_NOIPYW, IProgress
     if IProgress is None:
