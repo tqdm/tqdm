@@ -723,6 +723,11 @@ class tqdm(Comparable):
             fp.write(end)
 
     @classmethod
+    def print(cls, *values, file=None, sep=' ', end='\n', nolock=False):
+        """Print several heterogeneous values via tqdm (without overlap with bars)."""
+        cls.write(sep.join('{}'.format(v) for v in values), file=file, end=end, nolock=nolock)
+
+    @classmethod
     @contextmanager
     def external_write_mode(cls, file=None, nolock=False):
         """
