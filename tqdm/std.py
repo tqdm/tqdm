@@ -848,16 +848,6 @@ class tqdm(Comparable):
 
         def inner_generator(df_function='apply'):
             def inner(df, func, *args, **kwargs):
-                """
-                Parameters
-                ----------
-                df  : (DataFrame|Series)[GroupBy]
-                    Data (may be grouped).
-                func  : function
-                    To be applied on the (grouped) data.
-                **kwargs  : optional
-                    Transmitted to `df.apply()`.
-                """
 
                 # Precompute total iterations
                 total = tqdm_kwargs.pop("total", getattr(df, 'ngroups', None))
@@ -918,6 +908,16 @@ class tqdm(Comparable):
                 finally:
                     t.close()
 
+            inner.__doc__ = f"""
+                Parameters
+                ----------
+                df  : (DataFrame|Series)[GroupBy]
+                    Data (may be grouped).
+                func  : function
+                    To be applied on the (grouped) data.
+                **kwargs  : optional
+                    Transmitted to `df.{df_function}()`.
+                """
             return inner
 
         # Monkeypatch pandas to provide easy methods
