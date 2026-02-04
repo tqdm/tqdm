@@ -1314,7 +1314,7 @@ A reusable canonical example is given below:
     def some_fun(i):
         print("Fee, fi, fo,".split()[i])
 
-    # Redirect stdout to tqdm.write() (don't forget the `as save_stdout`)
+    # Redirect stdout to tqdm.write() (don't forget the `as orig_stdout`)
     with std_out_err_redirect_tqdm() as orig_stdout:
         # tqdm needs the original stdout
         # and dynamic_ncols=True to autodetect console width
