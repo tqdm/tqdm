@@ -113,6 +113,10 @@ class TqdmDefaultWriteLock:
     def __exit__(self, *exc):
         self.release()
 
+    def __del__(self):
+        if hasattr(TqdmDefaultWriteLock, 'mp_lock') and TqdmDefaultWriteLock.mp_lock is not None:
+            del TqdmDefaultWriteLock.mp_lock
+
     @classmethod
     def create_mp_lock(cls):
         if not hasattr(cls, 'mp_lock'):
@@ -985,7 +989,7 @@ class tqdm(Comparable):
         if disable:
             self.iterable = iterable
             self.disable = disable
-            with self._lock:
+            with self.get_lock():
                 self.pos = self._get_free_pos(self)
                 self._instances.remove(self)
             self.n = initial
@@ -995,7 +999,7 @@ class tqdm(Comparable):
 
         if kwargs:
             self.disable = True
-            with self._lock:
+            with self.get_lock():
                 self.pos = self._get_free_pos(self)
                 self._instances.remove(self)
             raise (
@@ -1087,7 +1091,7 @@ class tqdm(Comparable):
 
         # if nested, at initial sp() call we replace '\r' by '\n' to
         # not overwrite the outer progress bar
-        with self._lock:
+        with self.get_lock():
             # mark fixed positions as negative
             self.pos = self._get_free_pos(self) if position is None else -position
 
@@ -1146,6 +1150,11 @@ class tqdm(Comparable):
 
     def __del__(self):
         self.close()
+        if len(tqdm._instances) == 0:
+            if hasattr(tqdm, "_lock"):
+                del tqdm._lock
+            if hasattr(tqdm, "monitor") and tqdm.monitor is not None:
+                tqdm.monitor.exit()
 
     def __str__(self):
         return self.format_meter(**self.format_dict)
@@ -1295,7 +1304,7 @@ class tqdm(Comparable):
 
         leave = pos == 0 if self.leave is None else self.leave
 
-        with self._lock:
+        with self.get_lock():
             if leave:
                 # stats for overall rate (no weighted average)
                 self._ema_dt = lambda: None
