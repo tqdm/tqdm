@@ -6,12 +6,11 @@ on:
 jobs:
   check:
     if: github.event_name != 'pull_request' || !contains('OWNER,MEMBER,COLLABORATOR', github.event.pull_request.author_association)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     steps:
     - uses: actions/checkout@v6
     - uses: actions/setup-python@v6
-      with:
-        python-version: '3.x'
+      with: {python-version: '3.x'}
     - name: set PYSHA
       run: echo "PYSHA=$(python -VV | sha256sum | cut -d' ' -f1)" >> $GITHUB_ENV
     - uses: actions/cache@v5
@@ -93,8 +92,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/setup-python@v6
-      with:
-        python-version: '3.x'
+      with: {python-version: '3.x'}
     - name: Coveralls Finished
       run: |
         pip install -U coveralls
@@ -118,8 +116,7 @@ jobs:
         fetch-depth: 0
         token: ${{ secrets.GH_TOKEN || github.token }}
     - uses: actions/setup-python@v6
-      with:
-        python-version: '3.x'
+      with: {python-version: '3.x'}
     - name: Install
       run: |
         sudo apt-get install -yqq pandoc

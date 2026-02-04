@@ -5,7 +5,7 @@ on:
   pull_request_review_comment: {types: [created]}
 jobs:
   tag:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     permissions: {contents: write, pull-requests: write, issues: write}
     steps:
     - uses: actions/checkout@v6
