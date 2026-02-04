@@ -38,7 +38,9 @@ def test_process_map():
 
 @mark.parametrize("iterables,should_warn", [([], False), (['x'], False), ([()], False),
                                             (['x', ()], False), (['x' * 1001], True),
-                                            (['x' * 100, ('x',) * 1001], True)])
+                                            (['x' * 100, ('x',) * 1001], False),
+                                            (['x' * 1001, ('x',) * 100], False),
+                                            (['x' * 1001, ('x',) * 1001], True)])
 def test_chunksize_warning(iterables, should_warn):
     """Test contrib.concurrent.process_map chunksize warnings"""
     patch = importorskip('unittest.mock').patch
