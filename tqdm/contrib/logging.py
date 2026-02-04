@@ -33,8 +33,11 @@ class _TqdmLoggingHandler(logging.StreamHandler):
 
 
 def _is_console_logging_handler(handler):
-    return (isinstance(handler, logging.StreamHandler)
-            and handler.stream in {sys.stdout, sys.stderr})
+    is_std_name = False
+    if hasattr(handler.stream, 'name'):
+        is_std_name = handler.stream.name in {'<stdout>', '<stderr>'}
+    return (isinstance(handler, logging.StreamHandler) and
+            (is_std_name or handler.stream in {sys.stdout, sys.stderr}))
 
 
 def _get_first_found_console_logging_handler(handlers):
@@ -86,7 +89,11 @@ def logging_redirect_tqdm(
             orig_handler = _get_first_found_console_logging_handler(logger.handlers)
             if orig_handler is not None:
                 tqdm_handler.setFormatter(orig_handler.formatter)
-                tqdm_handler.stream = orig_handler.stream
+                try:
+                    tqdm_handler.stream = sys.stderr if \
+                        orig_handler.stream.name == '<stderr>' else sys.stdout
+                except AttributeError:
+                    tqdm_handler.stream = orig_handler.stream
             logger.handlers = [
                 handler for handler in logger.handlers
                 if not _is_console_logging_handler(handler)] + [tqdm_handler]
