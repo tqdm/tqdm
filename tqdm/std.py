@@ -520,6 +520,7 @@ class tqdm(Comparable):
             However other types are supported (#382).
         unit_divisor  : float, optional
             [default: 1000], ignored unless `unit_scale` is True.
+            If set to 1024, use binary SI prefixes.
         initial  : int or float, optional
             The initial counter value [default: 0].
         colour  : str, optional
@@ -545,22 +546,24 @@ class tqdm(Comparable):
 
         elapsed_str = tqdm.format_interval(elapsed)
 
+        unit_suffix = 'i' if unit_divisor == 1024 else ''
+
         # if unspecified, attempt to use rate = average speed
         # (we allow manual override since predicting time is an arcane art)
         if rate is None and elapsed:
             rate = (n - initial) / elapsed
         inv_rate = 1 / rate if rate else None
         format_sizeof = tqdm.format_sizeof
-        rate_noinv_fmt = ((format_sizeof(rate) if unit_scale else f'{rate:5.2f}')
+        rate_noinv_fmt = ((format_sizeof(rate, unit_suffix) if unit_scale else f'{rate:5.2f}')
                           if rate else '?') + unit + '/s'
         rate_inv_fmt = (
-            (format_sizeof(inv_rate) if unit_scale else f'{inv_rate:5.2f}')
+            (format_sizeof(inv_rate, unit_suffix) if unit_scale else f'{inv_rate:5.2f}')
             if inv_rate else '?') + 's/' + unit
         rate_fmt = rate_inv_fmt if inv_rate and inv_rate > 1 else rate_noinv_fmt
 
         if unit_scale:
-            n_fmt = format_sizeof(n, divisor=unit_divisor)
-            total_fmt = format_sizeof(total, divisor=unit_divisor) if total is not None else '?'
+            n_fmt = format_sizeof(n, unit_suffix, unit_divisor)
+            total_fmt = format_sizeof(total, unit_suffix, unit_divisor) if total is not None else '?'
         else:
             n_fmt = str(n)
             total_fmt = str(total) if total is not None else '?'
