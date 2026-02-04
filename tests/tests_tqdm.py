@@ -277,6 +277,25 @@ def test_format_meter():
                         bar_format=r'{bar}|test') == unich(0x258f) + "|test"
 
 
+def test_formatters():
+    """Test numeric field formatters"""
+    with closing(StringIO()) as our_file:
+        t = tqdm(total=2.0, file=our_file, mininterval=0, miniters=1,
+                 smoothing=0,
+                 formatters={'n': '.3f', 'total': '.1f', 'rate': '.1f',
+                             'percentage': '3.1f', 'postfix_float': '.2f'})
+        timer = cpu_timify(t)
+        timer.sleep(1)
+        t.update(1.23456)
+        t.set_postfix(v=1.23456)
+        t.close()
+        bar = get_bar(our_file.getvalue())[-1]
+    assert '1.235/2.0' in bar
+    assert '61.7%|' in bar
+    assert '1.2it/s' in bar
+    assert 'v=1.23' in bar
+
+
 def test_ansi_escape_codes():
     """Test stripping of ANSI escape codes"""
     ansi = {'BOLD': '\033[1m', 'RED': '\033[91m', 'END': '\033[0m'}
