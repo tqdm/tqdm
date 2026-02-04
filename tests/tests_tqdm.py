@@ -1597,10 +1597,17 @@ def test_deprecation_exception():
 
 def test_postfix():
     """Test postfix"""
-    postfix = {'float': 0.321034, 'gen': 543, 'str': 'h', 'lst': [2]}
+    postfix = {
+        'float': 0.321034, 'gen': 543, 'str': 'h', 'lst': [2], 'padded': ' data '
+    }
     postfix_order = (('w', 'w'), ('a', 0))  # no need for OrderedDict
-    expected = ['float=0.321', 'gen=543', 'lst=[2]', 'str=h']
-    expected_order = ['w=w', 'a=0', 'float=0.321', 'gen=543', 'lst=[2]', 'str=h']
+    expected = ['float=0.321', 'gen=543', 'lst=[2]', 'str=h', 'padded=data']
+    expected_order = [
+        'w=w', 'a=0', 'float=0.321', 'gen=543', 'lst=[2]', 'padded=data', 'str=h'
+    ]
+    expected_order_no_strip = [
+        'w=w', 'a=0', 'float=0.321', 'gen=543', 'lst=[2]', 'padded= data ', 'str=h'
+    ]
 
     # Test postfix set at init
     with closing(StringIO()) as our_file:
@@ -1655,6 +1662,16 @@ def test_postfix():
     assert "Hello" not in out5
     out5 = out5[1:-1].split(', ')[3:]
     assert out5 == ["World"]
+
+    with closing(StringIO()) as our_file:
+        with trange(10, file=our_file, desc='pos2 bar', bar_format='{r_bar}',
+                    postfix=None) as t6:
+            t6.set_postfix(postfix_order, False, False, **postfix)
+            t6.refresh()
+            out6 = our_file.getvalue()
+
+    out6 = out6[1:-1].split(', ')[3:]
+    assert out6 == expected_order_no_strip
 
 
 def test_postfix_direct():
