@@ -229,8 +229,7 @@ class tqdm_notebook(std_tqdm):
         self.ncols = '100%' if self.dynamic_ncols else kwargs.get("ncols", None)
 
         # Replace with IPython progress bar display (with correct total)
-        unit_scale = 1 if self.unit_scale is True else self.unit_scale or 1
-        total = self.total * unit_scale if self.total else self.total
+        total = self.total
         self.container = self.status_printer(self.fp, total, self.desc, self.ncols)
         self.container.pbar = proxy(self)
         self.displayed = False
