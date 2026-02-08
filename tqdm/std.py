@@ -551,10 +551,10 @@ class tqdm(Comparable):
             rate = (n - initial) / elapsed
         inv_rate = 1 / rate if rate else None
         format_sizeof = tqdm.format_sizeof
-        rate_noinv_fmt = ((format_sizeof(rate) if unit_scale else f'{rate:5.2f}')
+        rate_noinv_fmt = ((format_sizeof(rate, divisor=unit_divisor) if unit_scale else f'{rate:5.2f}')
                           if rate else '?') + unit + '/s'
         rate_inv_fmt = (
-            (format_sizeof(inv_rate) if unit_scale else f'{inv_rate:5.2f}')
+            (format_sizeof(inv_rate, divisor=unit_divisor) if unit_scale else f'{inv_rate:5.2f}')
             if inv_rate else '?') + 's/' + unit
         rate_fmt = rate_inv_fmt if inv_rate and inv_rate > 1 else rate_noinv_fmt
 
