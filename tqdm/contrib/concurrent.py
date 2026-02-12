@@ -48,7 +48,15 @@ def _executor_map(PoolExecutor, fn, *iterables, **tqdm_kwargs):
         # share lock in case workers are already using `tqdm`
         with PoolExecutor(max_workers=max_workers, initializer=tqdm_class.set_lock,
                           initargs=(lk,)) as ex:
-            return list(tqdm_class(ex.map(fn, *iterables, chunksize=chunksize), **kwargs))
+            with tqdm_class(**kwargs) as pbar:
+                orisubmit = ex.submit
+
+                def patchsubmit(*args, **kwargs):
+                    fut = orisubmit(*args, **kwargs)
+                    fut.add_done_callback(lambda _: pbar.update())
+                    return fut
+                ex.submit = patchsubmit
+                return list(ex.map(fn, *iterables, chunksize=chunksize))
 
 
 def thread_map(fn, *iterables, **tqdm_kwargs):
