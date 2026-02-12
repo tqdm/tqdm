@@ -39,19 +39,21 @@ class TelegramIO(MonoWorker):
         if hasattr(self, '_message_id'):
             return self._message_id
         try:
-            res = self.session.post(
-                self.API + '%s/sendMessage' % self.token,
-                data={'text': '`' + self.text + '`', 'chat_id': self.chat_id,
-                      'parse_mode': 'MarkdownV2'}).json()
+            req = self.session.post(
+                f'{self.API}{self.token}/sendMessage',
+                data={'text': f"`{self.text}`", 'chat_id': self.chat_id,
+                      'parse_mode': 'MarkdownV2'})
+            res = req.json()
+            req.raise_for_status()
         except Exception as e:
-            tqdm_auto.write(str(e))
-        else:
-            if res.get('error_code') == 429:
+            if req.status_code == 429:
                 warn("Creation rate limit: try increasing `mininterval`.",
                      TqdmWarning, stacklevel=2)
             else:
-                self._message_id = res['result']['message_id']
-                return self._message_id
+                tqdm_auto.write(str(e))
+        else:
+            self._message_id = res['result']['message_id']
+            return self._message_id
 
     def write(self, s):
         """Replaces internal `message_id`'s text with `s`."""
@@ -66,8 +68,8 @@ class TelegramIO(MonoWorker):
         self.text = s
         try:
             future = self.submit(
-                self.session.post, self.API + '%s/editMessageText' % self.token,
-                data={'text': '`' + s + '`', 'chat_id': self.chat_id,
+                self.session.post, f'{self.API}{self.token}/editMessageText',
+                data={'text': f"`{s}`", 'chat_id': self.chat_id,
                       'message_id': message_id, 'parse_mode': 'MarkdownV2'})
         except Exception as e:
             tqdm_auto.write(str(e))
@@ -78,7 +80,7 @@ class TelegramIO(MonoWorker):
         """Deletes internal `message_id`."""
         try:
             future = self.submit(
-                self.session.post, self.API + '%s/deleteMessage' % self.token,
+                self.session.post, '{self.API}{self.token}/deleteMessage',
                 data={'chat_id': self.chat_id, 'message_id': self.message_id})
         except Exception as e:
             tqdm_auto.write(str(e))

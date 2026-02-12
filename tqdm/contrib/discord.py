@@ -25,7 +25,7 @@ __all__ = ['DiscordIO', 'tqdm_discord', 'tdrange', 'tqdm', 'trange']
 
 class DiscordIO(MonoWorker):
     """Non-blocking file-like IO using a Discord Bot."""
-    API = "https://discord.com/api/v10"
+    API = 'https://discord.com/api/v10'
     UA = f"tqdm (https://tqdm.github.io, {__version__}) {default_user_agent()}"
 
     def __init__(self, token, channel_id):
@@ -42,19 +42,21 @@ class DiscordIO(MonoWorker):
         if hasattr(self, '_message_id'):
             return self._message_id
         try:
-            res = self.session.post(
+            req = self.session.post(
                 f'{self.API}/channels/{self.channel_id}/messages',
                 headers={'Authorization': f'Bot {self.token}', 'User-Agent': self.UA},
-                json={'content': f"`{self.text}`"}).json()
+                json={'content': f"`{self.text}`"})
+            res = req.json()
+            req.raise_for_status()
         except Exception as e:
-            tqdm_auto.write(str(e))
-        else:
-            if res.get('error_code') == 429:
+            if req.status_code == 429:
                 warn("Creation rate limit: try increasing `mininterval`.",
                      TqdmWarning, stacklevel=2)
             else:
-                self._message_id = res['id']
-                return self._message_id
+                tqdm_auto.write(str(e))
+        else:
+            self._message_id = res['id']
+            return self._message_id
 
     def write(self, s):
         """Replaces internal `message_id`'s text with `s`."""
