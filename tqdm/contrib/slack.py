@@ -96,7 +96,7 @@ class tqdm_slack(tqdm_auto):
         if fmt.get('bar_format', None):
             fmt['bar_format'] = fmt['bar_format'].replace(
                 '<bar/>', '`{bar:10}`').replace('{bar}', '`{bar:10u}`')
-        else:
+        elif self.total:
             fmt['bar_format'] = '{l_bar}`{bar:10}`{r_bar}'
         if fmt['ascii'] is False:
             fmt['ascii'] = [":black_square:", ":small_blue_diamond:", ":large_blue_diamond:",

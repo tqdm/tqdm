@@ -131,8 +131,6 @@ class tqdm_discord(tqdm_auto):
         if fmt.get('bar_format', None):
             fmt['bar_format'] = fmt['bar_format'].replace(
                 '<bar/>', '{bar:10u}').replace('{bar}', '{bar:10u}')
-        else:
-            fmt['bar_format'] = '{l_bar}{bar:10u}{r_bar}'
         self.dio.write(self.format_meter(**fmt))
 
     def clear(self, *args, **kwargs):
