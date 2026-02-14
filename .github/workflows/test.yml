@@ -40,8 +40,8 @@ jobs:
     continue-on-error: ${{ matrix.os == 'windows' }}
     strategy:
       matrix:
-        os: [ubuntu]
         python: [3.7, 3.8, 3.9, '3.10', 3.11, 3.12, 3.13]
+        os: [ubuntu]
         include:
         - {os: macos, python: 3.13}
         - {os: windows, python: 3.13}
@@ -66,8 +66,8 @@ jobs:
         if test "py${{ matrix.python }}" = py3.7; then
           sed -i /asyncio_default_fixture_loop_scope/d pyproject.toml
         fi
-        if test "py${{ matrix.python }}-${{ matrix.os }}" = py3.11-ubuntu; then
-          export TOXENV="py311-tf,py311-tf-keras"  # full
+        if test "py${{ matrix.python }}-${{ matrix.os }}" = py3.13-ubuntu; then
+          export TOXENV="py313-tf,py313-tf-keras"  # full
         fi
         if test "${{ matrix.os }}" != ubuntu; then
           tox -e py${PYVER/./}                     # basic
@@ -123,7 +123,7 @@ jobs:
         pip install -r .meta/requirements-build.txt
         make build .dockerignore Dockerfile snapcraft.yaml
     - id: dist
-      uses: casperdcl/deploy-pypi@v2
+      uses: casperdcl/deploy-pypi@v3
       with:
         gpg_key: ${{ secrets.GPG_KEY }}
         upload: ${{ github.event_name == 'push' && startsWith(github.ref, 'refs/tags') }}
@@ -158,7 +158,7 @@ jobs:
       env:
         SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAP_TOKEN }}
     - name: Docker build push
-      uses: elgohr/Publish-Docker-Github-Action@master
+      uses: elgohr/Publish-Docker-Github-Action@v5
       with:
         name: ${{ github.repository }}
         tags: ${{ steps.collect_assets.outputs.docker_tags }}
@@ -166,7 +166,7 @@ jobs:
         username: ${{ secrets.DOCKER_USR }}
         no_push: ${{ steps.collect_assets.outputs.docker_tags == '' }}
     - name: Docker push GitHub
-      uses: elgohr/Publish-Docker-Github-Action@master
+      uses: elgohr/Publish-Docker-Github-Action@v5
       with:
         name: ${{ github.repository }}/tqdm
         tags: ${{ steps.collect_assets.outputs.docker_tags }}
