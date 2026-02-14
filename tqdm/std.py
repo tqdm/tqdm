@@ -12,6 +12,7 @@ from collections import OrderedDict, defaultdict
 from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
 from numbers import Number
+from operator import length_hint
 from time import time
 from warnings import warn
 from weakref import WeakSet
@@ -977,7 +978,10 @@ class tqdm(Comparable):
             try:
                 total = len(iterable)
             except (TypeError, AttributeError):
-                total = None
+                try:
+                    total = length_hint(iterable)
+                except (TypeError, AttributeError):
+                    total = None
         if total == float("inf"):
             # Infinite iterations, behave same as unknown
             total = None
@@ -1114,7 +1118,7 @@ class tqdm(Comparable):
             self.total if self.iterable is None
             else self.iterable.shape[0] if hasattr(self.iterable, "shape")
             else len(self.iterable) if hasattr(self.iterable, "__len__")
-            else self.iterable.__length_hint__() if hasattr(self.iterable, "__length_hint__")
+            else length_hint(self.iterable) if hasattr(self.iterable, "__length_hint__")
             else getattr(self, "total", None))
 
     def __reversed__(self):
