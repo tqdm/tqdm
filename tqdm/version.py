@@ -1,9 +1,10 @@
 """`tqdm` version detector. Precedence: installed dist, git, 'UNKNOWN'."""
 try:
-    from ._dist_ver import __version__
-except ImportError:
-    try:
-        from setuptools_scm import get_version
-        __version__ = get_version(root='..', relative_to=__file__)
-    except (ImportError, LookupError):
-        __version__ = "UNKNOWN"
+    from importlib.metadata import PackageNotFoundError, version
+except ImportError:  # py<3.8
+    from importlib_metadata import PackageNotFoundError, version
+
+try:
+    __version__ = version('tqdm')
+except PackageNotFoundError:
+    __version__ = "UNKNOWN"
