@@ -99,7 +99,7 @@ def envwrap(prefix, types=None, is_method=False):
     return wrap
 
 
-class FormatReplace(object):
+class FormatReplace:
     """
     >>> a = FormatReplace('something')
     >>> f"{a:5d}"
@@ -114,7 +114,7 @@ class FormatReplace(object):
         return self.replace
 
 
-class Comparable(object):
+class Comparable:
     """Assumes child has self._comparable attr/@property"""
     def __lt__(self, other):
         return self._comparable < other._comparable
@@ -135,7 +135,7 @@ class Comparable(object):
         return not self < other
 
 
-class ObjectWrapper(object):
+class ObjectWrapper:
     def __getattr__(self, name):
         return getattr(self._wrapped, name)
 
@@ -210,7 +210,7 @@ class DisableOnWriteError(ObjectWrapper):
                     pass
         return inner
 
-    def __init__(self, wrapped, tqdm_instance):
+    def __init__(self, wrapped, tqdm_instance):  # noqa: B042
         super().__init__(wrapped)
         if hasattr(wrapped, 'write'):
             self.wrapper_setattr(
@@ -251,7 +251,7 @@ class CallbackIOWrapper(ObjectWrapper):
 
 def _is_utf(encoding):
     try:
-        u'\u2588\u2589'.encode(encoding)
+        '\u2588\u2589'.encode(encoding)
     except UnicodeEncodeError:
         return False
     except Exception:
