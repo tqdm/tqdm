@@ -158,7 +158,7 @@ jobs:
       env:
         SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAP_TOKEN }}
     - name: Docker build push
-      uses: elgohr/Publish-Docker-Github-Action@master
+      uses: elgohr/Publish-Docker-Github-Action@v5
       with:
         name: ${{ github.repository }}
         tags: ${{ steps.collect_assets.outputs.docker_tags }}
@@ -166,7 +166,7 @@ jobs:
         username: ${{ secrets.DOCKER_USR }}
         no_push: ${{ steps.collect_assets.outputs.docker_tags == '' }}
     - name: Docker push GitHub
-      uses: elgohr/Publish-Docker-Github-Action@master
+      uses: elgohr/Publish-Docker-Github-Action@v5
       with:
         name: ${{ github.repository }}/tqdm
         tags: ${{ steps.collect_assets.outputs.docker_tags }}
