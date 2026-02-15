@@ -3,8 +3,6 @@ Thin wrappers around `itertools`.
 """
 import itertools
 
-from ..auto import tqdm as tqdm_auto
-
 __author__ = {"github.com/": ["casperdcl"]}
 __all__ = ['product']
 
@@ -18,7 +16,9 @@ def product(*iterables, **tqdm_kwargs):
     tqdm_class  : [default: tqdm.auto.tqdm].
     """
     kwargs = tqdm_kwargs.copy()
-    tqdm_class = kwargs.pop("tqdm_class", tqdm_auto)
+    tqdm_class = kwargs.pop("tqdm_class", None)
+    if tqdm_class is None:
+        from ..auto import tqdm as tqdm_class
     try:
         lens = list(map(len, iterables))
     except TypeError:

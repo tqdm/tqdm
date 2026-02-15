@@ -1,8 +1,6 @@
 from copy import copy
 from functools import partial
 
-from .auto import tqdm as tqdm_auto
-
 try:
     import keras
 except (ImportError, AttributeError) as e:
@@ -30,7 +28,7 @@ class TqdmCallback(keras.callbacks.Callback):
         return callback
 
     def __init__(self, epochs=None, data_size=None, batch_size=None, verbose=1,
-                 tqdm_class=tqdm_auto, **tqdm_kwargs):
+                 tqdm_class=None, **tqdm_kwargs):
         """
         Parameters
         ----------
@@ -48,6 +46,8 @@ class TqdmCallback(keras.callbacks.Callback):
         tqdm_kwargs  : optional
             Any other arguments used for all bars.
         """
+        if tqdm_class is None:
+            from .auto import tqdm as tqdm_class
         if tqdm_kwargs:
             tqdm_class = partial(tqdm_class, **tqdm_kwargs)
         self.tqdm_class = tqdm_class
