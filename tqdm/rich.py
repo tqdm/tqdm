@@ -116,17 +116,18 @@ class tqdm_rich(std_tqdm):  # pragma: no cover
     def close(self):
         if self.disable:
             return
-        self.display()  # print 100%, vis #1306
+        self.display(refresh=True) # print 100%, vis #1306
         super().close()
         self._prog.__exit__(None, None, None)
 
     def clear(self, *_, **__):
         pass
 
-    def display(self, *_, **__):
+    def display(self, refresh=False, *_, **__):
         if not hasattr(self, '_prog'):
             return
-        self._prog.update(self._task_id, completed=self.n, description=self.desc)
+        self._prog.update(self._task_id, completed=self.n, description=self.desc,
+                          refresh=refresh)
 
     def reset(self, total=None):
         """
