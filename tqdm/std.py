@@ -1124,9 +1124,11 @@ class tqdm(Comparable):
             raise TypeError("'tqdm' object is not reversible")
         else:
             self.iterable = reversed(self.iterable)
-            return self.__iter__()
-        finally:
-            self.iterable = orig
+            try:
+                for obj in self.__iter__():
+                    yield obj
+            finally:
+                self.iterable = orig
 
     def __contains__(self, item):
         contains = getattr(self.iterable, '__contains__', None)
