@@ -27,6 +27,10 @@ class tqdm_asyncio(std_tqdm):
             if hasattr(iterable, "__anext__"):
                 self.iterable_next = iterable.__anext__
                 self.iterable_awaitable = True
+            elif hasattr(iterable, "__aiter__"):
+                self.iterable_iterator = iterable.__aiter__()
+                self.iterable_next = self.iterable_iterator.__anext__
+                self.iterable_awaitable = True
             elif hasattr(iterable, "__next__"):
                 self.iterable_next = iterable.__next__
             else:
