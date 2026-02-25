@@ -1985,3 +1985,37 @@ def test_contains(capsys):
     assert not out
     assert '  0%' in err
     assert '100%' not in err
+
+
+def test_disp_trim_all_format_meter_paths():
+    """Regression test for https://github.com/tqdm/tqdm/issues/1658
+
+    disp_trim should be applied to all return paths of format_meter
+    when ncols is set, not just the ones with {bar}.
+    """
+    from tqdm.utils import disp_len
+
+    format_meter = tqdm.format_meter
+    ncols = 20
+
+    # Path 1: bar_format without {bar}, with total
+    # Should be trimmed to ncols
+    result = format_meter(
+        50, 100, 10, ncols=ncols,
+        bar_format="{desc}: {percentage:.0f}% done and some extra long text here")
+    assert disp_len(result) <= ncols, (
+        f"bar_format without {{bar}} (with total) not trimmed: {disp_len(result)} > {ncols}")
+
+    # Path 2: bar_format without {bar}, without total
+    result = format_meter(
+        50, 0, 10, ncols=ncols,
+        bar_format="{desc}: some very long description text that should be trimmed")
+    assert disp_len(result) <= ncols, (
+        f"bar_format without {{bar}} (no total) not trimmed: {disp_len(result)} > {ncols}")
+
+    # Path 3: no bar_format, no total (stats only)
+    result = format_meter(
+        50, 0, 10, ncols=ncols,
+        prefix="a]very]long]description]prefix")
+    assert disp_len(result) <= ncols, (
+        f"no bar_format, no total not trimmed: {disp_len(result)} > {ncols}")
