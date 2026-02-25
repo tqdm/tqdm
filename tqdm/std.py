@@ -630,7 +630,8 @@ class tqdm(Comparable):
             full_bar = FormatReplace()
             nobar = bar_format.format(bar=full_bar, **format_dict)
             if not full_bar.format_called:
-                return nobar  # no `{bar}`; nothing else to do
+                # no `{bar}`; nothing else to do
+                return disp_trim(nobar, ncols) if ncols else nobar
 
             # Formatting progress bar space available for bar's display
             full_bar = Bar(frac,
@@ -649,7 +650,7 @@ class tqdm(Comparable):
             full_bar = FormatReplace()
             nobar = bar_format.format(bar=full_bar, **format_dict)
             if not full_bar.format_called:
-                return nobar
+                return disp_trim(nobar, ncols) if ncols else nobar
             full_bar = Bar(0,
                            max(1, ncols - disp_len(nobar)) if ncols else 10,
                            charset=Bar.BLANK, colour=colour)
@@ -657,8 +658,9 @@ class tqdm(Comparable):
             return disp_trim(res, ncols) if ncols else res
         else:
             # no total: no progressbar, ETA, just progress stats
-            return (f'{(prefix + ": ") if prefix else ""}'
-                    f'{n_fmt}{unit} [{elapsed_str}, {rate_fmt}{postfix}]')
+            res = (f'{(prefix + ": ") if prefix else ""}'
+                   f'{n_fmt}{unit} [{elapsed_str}, {rate_fmt}{postfix}]')
+            return disp_trim(res, ncols) if ncols else res
 
     def __new__(cls, *_, **__):
         instance = object.__new__(cls)
