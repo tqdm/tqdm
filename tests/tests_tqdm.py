@@ -337,7 +337,7 @@ def test_all_defaults():
     # restore stdout/stderr output for `nosetest` interface
     # try:
     #     sys.stderr.write('\x1b[A')
-    # except:
+    # except Exception:
     #     pass
     sys.stderr.write('\rTest default kwargs ... ')
 
