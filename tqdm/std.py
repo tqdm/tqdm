@@ -313,6 +313,10 @@ class tqdm(Comparable):
         Exponential moving average smoothing factor for speed estimates
         (ignored in GUI mode). Ranges from 0 (average speed) to 1
         (current/instantaneous speed) [default: 0.3].
+    eta_smoothing  : float, optional
+        Exponential moving average smoothing factor for ETA display.
+        Ranges from 0 (disabled) to 1 (current/instantaneous ETA)
+        [default: 0].
     bar_format  : str, optional
         Specify a custom bar string formatting. May impact performance.
         [default: '{l_bar}{bar}{r_bar}'], where
@@ -464,7 +468,8 @@ class tqdm(Comparable):
     @staticmethod
     def format_meter(n, total, elapsed, ncols=None, prefix='', ascii=False, unit='it',
                      unit_scale=False, rate=None, bar_format=None, postfix=None,
-                     unit_divisor=1000, initial=0, colour=None, **extra_kwargs):
+                     unit_divisor=1000, initial=0, colour=None, remaining_s=None,
+                     eta=None, **extra_kwargs):
         """
         Return a string-based progress bar given some parameters
 
@@ -570,11 +575,13 @@ class tqdm(Comparable):
         except TypeError:
             pass
 
-        remaining = (total - n) / rate if rate and total else 0
-        remaining_str = tqdm.format_interval(remaining) if rate else '?'
+        remaining_s = (total - n) / rate if remaining_s is None and rate and total else remaining_s
+        remaining_s = remaining_s if remaining_s is not None else 0
+        remaining_str = tqdm.format_interval(remaining_s) if rate else '?'
         try:
-            eta_dt = (datetime.now() + timedelta(seconds=remaining)
-                      if rate and total else datetime.fromtimestamp(0, timezone.utc))
+            eta_dt = (eta if eta is not None else
+                      (datetime.now() + timedelta(seconds=remaining_s)
+                       if rate and total else datetime.fromtimestamp(0, timezone.utc)))
         except OverflowError:
             eta_dt = datetime.max
 
@@ -602,7 +609,7 @@ class tqdm(Comparable):
             'postfix': postfix, 'unit_divisor': unit_divisor,
             'colour': colour,
             # plus more useful definitions
-            'remaining': remaining_str, 'remaining_s': remaining,
+            'remaining': remaining_str, 'remaining_s': remaining_s,
             'l_bar': l_bar, 'r_bar': r_bar, 'eta': eta_dt,
             **extra_kwargs}
 
@@ -954,7 +961,8 @@ class tqdm(Comparable):
     def __init__(self, iterable=None, desc=None, total=None, leave=True, file=None,
                  ncols=None, mininterval=0.1, maxinterval=10.0, miniters=None,
                  ascii=None, disable=False, unit='it', unit_scale=False,
-                 dynamic_ncols=False, smoothing=0.3, bar_format=None, initial=0,
+                 dynamic_ncols=False, smoothing=0.3, eta_smoothing=0,
+                 bar_format=None, initial=0,
                  position=None, postfix=None, unit_divisor=1000, write_bytes=False,
                  lock_args=None, nrows=None, colour=None, delay=0.0, gui=False,
                  **kwargs):
@@ -985,6 +993,8 @@ class tqdm(Comparable):
         if disable:
             self.iterable = iterable
             self.disable = disable
+            self.eta_smoothing = eta_smoothing
+            self._ema_eta = None
             with self._lock:
                 self.pos = self._get_free_pos(self)
                 self._instances.remove(self)
@@ -1068,9 +1078,11 @@ class tqdm(Comparable):
         self.gui = gui
         self.dynamic_ncols = dynamic_ncols
         self.smoothing = smoothing
+        self.eta_smoothing = eta_smoothing
         self._ema_dn = EMA(smoothing)
         self._ema_dt = EMA(smoothing)
         self._ema_miniters = EMA(smoothing)
+        self._ema_eta = EMA(eta_smoothing) if eta_smoothing else None
         self.bar_format = bar_format
         self.postfix = None
         self.colour = colour
@@ -1377,6 +1389,7 @@ class tqdm(Comparable):
         self._ema_dn = EMA(self.smoothing)
         self._ema_dt = EMA(self.smoothing)
         self._ema_miniters = EMA(self.smoothing)
+        self._ema_eta = EMA(self.eta_smoothing) if self.eta_smoothing else None
         self.refresh()
 
     def set_description(self, desc=None, refresh=True):
@@ -1451,12 +1464,24 @@ class tqdm(Comparable):
                 'n': self.n, 'total': self.total, 'elapsed': 0, 'unit': 'it'})
         if self.dynamic_ncols:
             self.ncols, self.nrows = self.dynamic_ncols(self.fp)
+        rate = self._ema_dn() / self._ema_dt() if self._ema_dt() else None
+        remaining_s = (self.total - self.n) / rate if rate and self.total else 0
+        if rate and self.total and self._ema_eta is not None:
+            remaining_s = self._ema_eta(remaining_s)
+        eta = (datetime.now() + timedelta(seconds=remaining_s)
+               if rate and self.total else datetime.fromtimestamp(0, timezone.utc))
+        if rate and self.total:
+            self._last_eta = eta
+        elif self.total and self.n >= self.total and hasattr(self, '_last_eta'):
+            eta = self._last_eta
+        else:
+            self._last_eta = eta
         return {
             'n': self.n, 'total': self.total,
             'elapsed': self._time() - self.start_t if hasattr(self, 'start_t') else 0,
             'ncols': self.ncols, 'nrows': self.nrows, 'prefix': self.desc,
             'ascii': self.ascii, 'unit': self.unit, 'unit_scale': self.unit_scale,
-            'rate': self._ema_dn() / self._ema_dt() if self._ema_dt() else None,
+            'rate': rate, 'remaining_s': remaining_s, 'eta': eta,
             'bar_format': self.bar_format, 'postfix': self.postfix,
             'unit_divisor': self.unit_divisor, 'initial': self.initial,
             'colour': self.colour}

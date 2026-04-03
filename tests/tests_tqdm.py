@@ -2,6 +2,7 @@
 # (else '\r' will replace the previous lines and you'll see only the latest.
 import csv
 import os
+import random
 import re
 import sys
 from contextlib import contextmanager
@@ -1055,6 +1056,40 @@ def test_smoothing():
     # Check that medium smoothing's rate is between no and max smoothing rates
     assert a <= c <= b
     assert a2 <= c2 <= b2
+
+
+def test_eta_smoothing():
+    """Test ETA smoothing for unstable stream timing"""
+    rng = random.Random(1337)
+    delays = [0.001 if rng.random() < 0.5 else 0.03 for _ in range(60)]
+
+    def run(eta_smoothing):
+        timer = DiscreteTimer()
+        with closing(StringIO()) as our_file:
+            with tqdm(
+                total=len(delays), file=our_file, miniters=1, mininterval=0,
+                smoothing=1, eta_smoothing=eta_smoothing,
+                bar_format='{remaining_s:.6f}',
+            ) as t:
+                cpu_timify(t, timer)
+                for delay in delays:
+                    timer.sleep(delay)
+                    t.update()
+            return [float(bar) for bar in get_bar(our_file.getvalue()) if bar.strip()]
+
+    raw = run(0)
+    smooth = run(0.5)
+
+    def volatility(values):
+        tail = values[1:]
+        deltas = [abs(b - a) for a, b in zip(tail, tail[1:])]
+        return max(deltas), sum(deltas)
+
+    raw_peak, raw_total = volatility(raw)
+    smooth_peak, smooth_total = volatility(smooth)
+
+    assert smooth_peak < raw_peak
+    assert smooth_total < raw_total
 
 
 @mark.skipif(nt_and_no_colorama, reason="Windows without colorama")
