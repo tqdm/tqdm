@@ -1466,8 +1466,9 @@ class tqdm(Comparable):
             self.ncols, self.nrows = self.dynamic_ncols(self.fp)
         rate = self._ema_dn() / self._ema_dt() if self._ema_dt() else None
         remaining_s = (self.total - self.n) / rate if rate and self.total else 0
-        if rate and self.total and self._ema_eta is not None:
-            remaining_s = self._ema_eta(remaining_s)
+        eta_smoother = self._ema_eta
+        if rate and self.total and callable(eta_smoother):
+            remaining_s = eta_smoother(remaining_s)
         eta = (datetime.now() + timedelta(seconds=remaining_s)
                if rate and self.total else datetime.fromtimestamp(0, timezone.utc))
         if rate and self.total:
