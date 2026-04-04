@@ -433,6 +433,10 @@ Parameters
     Exponential moving average smoothing factor for speed estimates
     (ignored in GUI mode). Ranges from 0 (average speed) to 1
     (current/instantaneous speed) [default: 0.3].
+* eta_smoothing  : float, optional  
+    Exponential moving average smoothing factor for ETA display.
+    Ranges from 0 (disabled) to 1 (current/instantaneous ETA)
+    [default: 0].
 * bar_format  : str, optional  
     Specify a custom bar string formatting. May impact performance.
     [default: '{l_bar}{bar}{r_bar}'], where
