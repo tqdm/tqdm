@@ -241,6 +241,11 @@ class EMA:
         return self.last / (1 - beta ** self.calls) if self.calls else self.last
 
 
+def _ema_identity(x):
+    """Return `x` unchanged for disabled ETA smoothing."""
+    return x
+
+
 class tqdm(Comparable):
     """
     Decorate an iterable object, returning an iterator which acts exactly
@@ -994,7 +999,7 @@ class tqdm(Comparable):
             self.iterable = iterable
             self.disable = disable
             self.eta_smoothing = eta_smoothing
-            self._ema_eta = None
+            self._ema_eta = _ema_identity
             with self._lock:
                 self.pos = self._get_free_pos(self)
                 self._instances.remove(self)
@@ -1082,7 +1087,7 @@ class tqdm(Comparable):
         self._ema_dn = EMA(smoothing)
         self._ema_dt = EMA(smoothing)
         self._ema_miniters = EMA(smoothing)
-        self._ema_eta = EMA(eta_smoothing) if eta_smoothing else None
+        self._ema_eta = EMA(eta_smoothing) if eta_smoothing else _ema_identity
         self.bar_format = bar_format
         self.postfix = None
         self.colour = colour
@@ -1389,7 +1394,7 @@ class tqdm(Comparable):
         self._ema_dn = EMA(self.smoothing)
         self._ema_dt = EMA(self.smoothing)
         self._ema_miniters = EMA(self.smoothing)
-        self._ema_eta = EMA(self.eta_smoothing) if self.eta_smoothing else None
+        self._ema_eta = EMA(self.eta_smoothing) if self.eta_smoothing else _ema_identity
         self.refresh()
 
     def set_description(self, desc=None, refresh=True):
@@ -1466,9 +1471,8 @@ class tqdm(Comparable):
             self.ncols, self.nrows = self.dynamic_ncols(self.fp)
         rate = self._ema_dn() / self._ema_dt() if self._ema_dt() else None
         remaining_s = (self.total - self.n) / rate if rate and self.total else 0
-        eta_smoother = self._ema_eta
-        if rate and self.total and callable(eta_smoother):
-            remaining_s = eta_smoother(remaining_s)
+        if rate and self.total:
+            remaining_s = self._ema_eta(remaining_s)
         eta = (datetime.now() + timedelta(seconds=remaining_s)
                if rate and self.total else datetime.fromtimestamp(0, timezone.utc))
         if rate and self.total:

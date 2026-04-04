@@ -2,7 +2,6 @@
 # (else '\r' will replace the previous lines and you'll see only the latest.
 import csv
 import os
-import random
 import re
 import sys
 from contextlib import contextmanager
@@ -1060,8 +1059,7 @@ def test_smoothing():
 
 def test_eta_smoothing():
     """Test ETA smoothing for unstable stream timing"""
-    rng = random.Random(1337)
-    delays = [0.001 if rng.random() < 0.5 else 0.03 for _ in range(60)]
+    delays = [0.001 if i % 2 else 0.03 for i in range(60)]
 
     def run(eta_smoothing):
         timer = DiscreteTimer()
