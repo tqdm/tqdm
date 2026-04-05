@@ -466,7 +466,7 @@ class tqdm(Comparable):
                      unit_scale=False, rate=None, bar_format=None, postfix=None,
                      unit_divisor=1000, initial=0, colour=None, **extra_kwargs):
         """
-        Return a string-based progress bar given some parameters
+        Return a string-based progressbar given some parameters
 
         Parameters
         ----------
@@ -632,7 +632,7 @@ class tqdm(Comparable):
             if not full_bar.format_called:
                 return nobar  # no `{bar}`; nothing else to do
 
-            # Formatting progress bar space available for bar's display
+            # Formatting progressbar space available for bar's display
             full_bar = Bar(frac,
                            max(1, ncols - disp_len(nobar)) if ncols else 10,
                            charset=Bar.ASCII if ascii is True else ascii or Bar.UTF,
@@ -1086,7 +1086,7 @@ class tqdm(Comparable):
         self.n = initial
 
         # if nested, at initial sp() call we replace '\r' by '\n' to
-        # not overwrite the outer progress bar
+        # not overwrite the outer progressbar
         with self._lock:
             # mark fixed positions as negative
             self.pos = self._get_free_pos(self) if position is None else -position
@@ -1197,7 +1197,7 @@ class tqdm(Comparable):
 
     def update(self, n=1):
         """
-        Manually update the progress bar, useful for streams
+        Manually update the progressbar, useful for streams
         such as reading files.
         E.g.:
         >>> t = tqdm(total=filesize) # Initialise
@@ -1381,7 +1381,7 @@ class tqdm(Comparable):
 
     def set_description(self, desc=None, refresh=True):
         """
-        Set/modify description of the progress bar.
+        Set/modify description of the progressbar.
 
         Parameters
         ----------
