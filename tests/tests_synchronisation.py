@@ -9,7 +9,7 @@ from .tests_tqdm import StringIO, closing, importorskip, patch_lock, skip
 
 
 class Time:
-    """Fake time class class providing an offset"""
+    """Fake time class providing an offset"""
     offset = 0
 
     @classmethod
