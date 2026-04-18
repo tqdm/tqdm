@@ -578,11 +578,16 @@ class tqdm(Comparable):
         except OverflowError:
             eta_dt = datetime.max
 
+        prefix_colon = extra_kwargs.pop('prefix_colon', True)
+
         # format the stats displayed to the left and right sides of the bar
         if prefix:
             # old prefix setup work around
             bool_prefix_colon_already = (prefix[-2:] == ": ")
-            l_bar = prefix if bool_prefix_colon_already else prefix + ": "
+            if bool_prefix_colon_already or not prefix_colon:
+                l_bar = prefix
+            else:
+                l_bar = prefix + ": "
         else:
             l_bar = ''
 
@@ -657,7 +662,7 @@ class tqdm(Comparable):
             return disp_trim(res, ncols) if ncols else res
         else:
             # no total: no progressbar, ETA, just progress stats
-            return (f'{(prefix + ": ") if prefix else ""}'
+            return (f'{l_bar}'
                     f'{n_fmt}{unit} [{elapsed_str}, {rate_fmt}{postfix}]')
 
     def __new__(cls, *_, **__):
@@ -1048,6 +1053,7 @@ class tqdm(Comparable):
         # Store the arguments
         self.iterable = iterable
         self.desc = desc or ''
+        self._desc_needs_colon = True
         self.total = total
         self.leave = leave
         self.fp = file
@@ -1390,12 +1396,14 @@ class tqdm(Comparable):
             Forces refresh [default: True].
         """
         self.desc = desc + ': ' if desc else ''
+        self._desc_needs_colon = True
         if refresh:
             self.refresh()
 
     def set_description_str(self, desc=None, refresh=True):
         """Set/modify description without ': ' appended."""
         self.desc = desc or ''
+        self._desc_needs_colon = False
         if refresh:
             self.refresh()
 
@@ -1455,6 +1463,7 @@ class tqdm(Comparable):
             'n': self.n, 'total': self.total,
             'elapsed': self._time() - self.start_t if hasattr(self, 'start_t') else 0,
             'ncols': self.ncols, 'nrows': self.nrows, 'prefix': self.desc,
+            'prefix_colon': self._desc_needs_colon,
             'ascii': self.ascii, 'unit': self.unit, 'unit_scale': self.unit_scale,
             'rate': self._ema_dn() / self._ema_dt() if self._ema_dt() else None,
             'bar_format': self.bar_format, 'postfix': self.postfix,

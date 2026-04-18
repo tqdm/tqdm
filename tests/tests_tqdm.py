@@ -1311,7 +1311,17 @@ def test_set_description():
             assert t.desc == ''
             t.set_description('Bye')
             assert t.desc == 'Bye: '
-        assert "World" in our_file.getvalue()
+        out = our_file.getvalue()
+        assert "World" in out
+        assert "World: " not in out
+
+    with closing(StringIO()) as our_file:
+        with tqdm(desc='Hello', total=1, file=our_file) as t:
+            t.set_description_str('World')
+            t.update(1)
+        out = our_file.getvalue()
+        assert "World" in out
+        assert "World: " not in out
 
     # without refresh
     with closing(StringIO()) as our_file:
