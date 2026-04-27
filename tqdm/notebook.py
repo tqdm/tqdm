@@ -257,7 +257,7 @@ class tqdm_notebook(std_tqdm):
 
     def update(self, n=1):
         try:
-            return super().update(n=n)
+            super().update(n=n)
         # NB: except ... [ as ...] breaks IPython async KeyboardInterrupt
         except:  # NOQA
             # cannot catch KeyboardInterrupt when using manual tqdm
