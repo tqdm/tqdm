@@ -8,13 +8,12 @@ from tqdm.contrib.itertools import product
 from .tests_tqdm import StringIO, closing
 
 
-class NoLenIter(object):
+class NoLenIter:
     def __init__(self, iterable):
         self._it = iterable
 
     def __iter__(self):
-        for i in self._it:
-            yield i
+        yield from self._it
 
 
 def test_product():

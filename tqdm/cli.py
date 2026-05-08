@@ -249,7 +249,7 @@ Options:
         manpath = tqdm_args.pop('manpath', None)
         comppath = tqdm_args.pop('comppath', None)
         if tqdm_args.pop('null', False):
-            class stdout(object):
+            class stdout:
                 @staticmethod
                 def write(_):
                     pass
@@ -278,7 +278,7 @@ Options:
             stdout_write = stdout.write
             fp_write = getattr(fp, 'buffer', fp).write
 
-            class stdout(object):  # pylint: disable=function-redefined
+            class stdout:  # pylint: disable=function-redefined
                 @staticmethod
                 def write(x):
                     with tqdm.external_write_mode(file=fp):

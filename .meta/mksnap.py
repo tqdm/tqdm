@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """
 Auto-generate snapcraft.yaml.
 """

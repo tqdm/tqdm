@@ -28,11 +28,12 @@ name  : type, optional
 def doc2rst(doc, arglist=True, raw=False):
     """
     arglist  : bool, whether to create argument lists
-    raw  : bool, ignores arglist and indents by 2 spaces
+    raw  : bool, ignores arglist and indents by 10 spaces
     """
     doc = doc.replace('`', '``')
     if raw:
-        doc = doc.replace('\n ', '\n   ')
+        doc = doc.replace('\n', '\n          ')
+        doc = doc.replace('\n          \n', '\n\n')
     else:
         doc = dedent(doc)
         if arglist:
