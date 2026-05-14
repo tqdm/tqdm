@@ -35,8 +35,22 @@ class TMonitor(Thread):
         self.sleep_interval = sleep_interval
         self._time = self._test.get("time", time)
         self.was_killed = self._test.get("Event", Event)()
-        atexit.register(self.exit)
+        # Register a non-joining shutdown signal. Joining at interpreter exit
+        # can deadlock if the monitor thread is blocked acquiring
+        # tqdm_cls.get_lock() (the lock is composite; mp_lock can be left held
+        # by a forked child that died, or contended by another monitor under
+        # heavy instrumentation). The thread is daemon, so the interpreter
+        # reaps it on shutdown without needing a join.
+        atexit.register(self._atexit_signal)
         self.start()
+
+    def _atexit_signal(self):
+        """
+        Shutdown signal for ``atexit``: set the kill event, no join.
+
+        See ``atexit.register(...)`` in ``__init__`` for the rationale.
+        """
+        self.was_killed.set()
 
     def exit(self):
         self.was_killed.set()
