@@ -362,7 +362,7 @@ Documentation
                    file=None, ncols=None, mininterval=0.1,
                    maxinterval=10.0, miniters=None, ascii=None, disable=False,
                    unit='it', unit_scale=False, dynamic_ncols=False,
-                   smoothing=0.3, bar_format=None, initial=0, position=None,
+                   smoothing=0.1, bar_format=None, initial=0, position=None,
                    postfix=None, unit_divisor=1000, write_bytes=False,
                    lock_args=None, nrows=None, colour=None, delay=0):
 
@@ -432,7 +432,7 @@ Parameters
 * smoothing  : float, optional  
     Exponential moving average smoothing factor for speed estimates
     (ignored in GUI mode). Ranges from 0 (average speed) to 1
-    (current/instantaneous speed) [default: 0.3].
+    (current/instantaneous speed) [default: 0.1].
 * bar_format  : str, optional  
     Specify a custom bar string formatting. May impact performance.
     [default: '{l_bar}{bar}{r_bar}'], where

@@ -218,11 +218,11 @@ class EMA:
     Parameters
     ----------
     smoothing  : float, optional
-        Smoothing factor in range [0, 1], [default: 0.3].
+        Smoothing factor in range [0, 1], [default: 0.1].
         Increase to give more weight to recent values.
         Ranges from 0 (yields old value) to 1 (yields new value).
     """
-    def __init__(self, smoothing=0.3):
+    def __init__(self, smoothing=0.1):
         self.alpha = smoothing
         self.last = 0
         self.calls = 0
@@ -312,7 +312,7 @@ class tqdm(Comparable):
     smoothing  : float, optional
         Exponential moving average smoothing factor for speed estimates
         (ignored in GUI mode). Ranges from 0 (average speed) to 1
-        (current/instantaneous speed) [default: 0.3].
+        (current/instantaneous speed) [default: 0.1].
     bar_format  : str, optional
         Specify a custom bar string formatting. May impact performance.
         [default: '{l_bar}{bar}{r_bar}'], where
@@ -954,7 +954,7 @@ class tqdm(Comparable):
     def __init__(self, iterable=None, desc=None, total=None, leave=True, file=None,
                  ncols=None, mininterval=0.1, maxinterval=10.0, miniters=None,
                  ascii=None, disable=False, unit='it', unit_scale=False,
-                 dynamic_ncols=False, smoothing=0.3, bar_format=None, initial=0,
+                 dynamic_ncols=False, smoothing=0.1, bar_format=None, initial=0,
                  position=None, postfix=None, unit_divisor=1000, write_bytes=False,
                  lock_args=None, nrows=None, colour=None, delay=0.0, gui=False,
                  **kwargs):
