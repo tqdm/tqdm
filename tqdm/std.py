@@ -64,6 +64,13 @@ class TqdmMonitorWarning(TqdmWarning, RuntimeWarning):
     pass
 
 
+class _TqdmPrefix(str):
+    def __new__(cls, value, sep=True):
+        prefix = str.__new__(cls, value)
+        prefix._tqdm_sep = sep
+        return prefix
+
+
 def TRLock(*args, **kwargs):
     """threading RLock"""
     try:
@@ -578,11 +585,14 @@ class tqdm(Comparable):
         except OverflowError:
             eta_dt = datetime.max
 
+        prefix_sep = getattr(prefix, '_tqdm_sep', True)
+
         # format the stats displayed to the left and right sides of the bar
         if prefix:
             # old prefix setup work around
             bool_prefix_colon_already = (prefix[-2:] == ": ")
-            l_bar = prefix if bool_prefix_colon_already else prefix + ": "
+            l_bar = (prefix if bool_prefix_colon_already or not prefix_sep
+                     else prefix + ": ")
         else:
             l_bar = ''
 
@@ -657,7 +667,7 @@ class tqdm(Comparable):
             return disp_trim(res, ncols) if ncols else res
         else:
             # no total: no progressbar, ETA, just progress stats
-            return (f'{(prefix + ": ") if prefix else ""}'
+            return (f'{(prefix + (": " if prefix_sep else "")) if prefix else ""}'
                     f'{n_fmt}{unit} [{elapsed_str}, {rate_fmt}{postfix}]')
 
     def __new__(cls, *_, **__):
@@ -1395,7 +1405,7 @@ class tqdm(Comparable):
 
     def set_description_str(self, desc=None, refresh=True):
         """Set/modify description without ': ' appended."""
-        self.desc = desc or ''
+        self.desc = _TqdmPrefix(desc or '', sep=False)
         if refresh:
             self.refresh()
 

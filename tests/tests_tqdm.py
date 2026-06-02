@@ -1307,6 +1307,7 @@ def test_set_description():
             assert t.desc == 'Hello'
             t.set_description_str('World')
             assert t.desc == 'World'
+            assert "World: " not in our_file.getvalue()
             t.set_description()
             assert t.desc == ''
             t.set_description('Bye')
