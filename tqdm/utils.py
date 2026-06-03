@@ -284,69 +284,16 @@ def _screen_shape_wrapper():  # pragma: no cover
     Return a function which returns console dimensions (width, height).
     Supported: linux, osx, windows, cygwin.
     """
-    _screen_shape = None
-    if IS_WIN:
-        _screen_shape = _screen_shape_windows
-        if _screen_shape is None:
-            _screen_shape = _screen_shape_tput
-    if IS_NIX:
-        _screen_shape = _screen_shape_linux
-    return _screen_shape
+    from os import get_terminal_size
 
-
-def _screen_shape_windows(fp):  # pragma: no cover
-    try:
-        import struct
-        from ctypes import create_string_buffer, windll
-        from sys import stdin, stdout
-
-        io_handle = -12  # assume stderr
-        if fp == stdin:
-            io_handle = -10
-        elif fp == stdout:
-            io_handle = -11
-
-        h = windll.kernel32.GetStdHandle(io_handle)
-        csbi = create_string_buffer(22)
-        res = windll.kernel32.GetConsoleScreenBufferInfo(h, csbi)
-        if res:
-            (_bufx, _bufy, _curx, _cury, _wattr, left, top, right, bottom,
-             _maxx, _maxy) = struct.unpack("hhhhHhhhhhh", csbi.raw)
-            return right - left, bottom - top  # +1
-    except Exception:  # nosec
-        pass
-    return None, None
-
-
-def _screen_shape_tput(*_):  # pragma: no cover
-    """cygwin xterm (windows)"""
-    try:
-        import shlex
-        from subprocess import check_call  # nosec
-        return [int(check_call(shlex.split('tput ' + i))) - 1
-                for i in ('cols', 'lines')]
-    except Exception:  # nosec
-        pass
-    return None, None
-
-
-def _screen_shape_linux(fp):  # pragma: no cover
-
-    try:
-        from array import array
-        from fcntl import ioctl
-        from termios import TIOCGWINSZ
-    except ImportError:
-        return None, None
-    else:
+    def inner(fp):
         try:
-            rows, cols = array('h', ioctl(fp, TIOCGWINSZ, '\0' * 8))[:2]
-            return cols, rows
+            cols, lines = get_terminal_size(getattr(fp, 'fileno', lambda: None)())
+            return cols - 1, lines - 1
         except Exception:
-            try:
-                return [int(os.environ[i]) - 1 for i in ("COLUMNS", "LINES")]
-            except (KeyError, ValueError):
-                return None, None
+            return None, None
+
+    return inner
 
 
 def _environ_cols_wrapper():  # pragma: no cover
