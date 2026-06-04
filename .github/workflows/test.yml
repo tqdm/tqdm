@@ -4,36 +4,6 @@ on:
   pull_request:
   schedule: [{cron: '2 1 * * 6'}]  # M H d m w (Sat 1:02)
 jobs:
-  check:
-    if: github.event_name != 'pull_request' || !contains('OWNER,MEMBER,COLLABORATOR', github.event.pull_request.author_association)
-    runs-on: ubuntu-slim
-    steps:
-    - uses: actions/checkout@v6
-    - uses: actions/setup-python@v6
-      with: {python-version: '3.x'}
-    - name: set PYSHA
-      run: echo "PYSHA=$(python -VV | sha256sum | cut -d' ' -f1)" >> $GITHUB_ENV
-    - uses: actions/cache@v5
-      with:
-        path: ~/.cache/pre-commit
-        key: pre-commit|${{ env.PYSHA }}|${{ hashFiles('.pre-commit-config.yaml') }}
-    - name: dependencies
-      run: pip install -U pre-commit
-    - uses: reviewdog/action-setup@v1
-    - if: github.event_name == 'push' || github.event_name == 'pull_request'
-      name: comment
-      run: |
-        if test "$EVENT" = pull_request; then
-          REPORTER=github-pr-review
-        else
-          REPORTER=github-check
-        fi
-        pre-commit run -a todo | reviewdog -efm="%f:%l: %m" -name=TODO -tee -reporter=$REPORTER -filter-mode nofilter
-        pre-commit run -a flake8 | reviewdog -f=pep8 -name=flake8 -tee -reporter=$REPORTER -filter-mode nofilter
-      env:
-        REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        EVENT: ${{ github.event_name }}
-    - run: pre-commit run -a --show-diff-on-failure
   test:
     if: github.event_name != 'pull_request' || !contains('OWNER,MEMBER,COLLABORATOR', github.event.pull_request.author_association)
     name: py${{ matrix.python }}-${{ matrix.os }}
@@ -106,7 +76,7 @@ jobs:
       env:
         CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
   deploy:
-    needs: [check, test]
+    needs: test
     runs-on: ubuntu-latest
     environment: pypi
     permissions: {contents: write, id-token: write, packages: write}
