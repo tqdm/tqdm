@@ -357,7 +357,7 @@ Documentation
       progressbar every time a value is requested.
       """
 
-      @envwrap("TQDM_")  # override defaults via env vars
+      @envwrap("tqdm")  # override defaults via env vars
       def __init__(self, iterable=None, desc=None, total=None, leave=True,
                    file=None, ncols=None, mininterval=0.1,
                    maxinterval=10.0, miniters=None, ascii=None, disable=False,

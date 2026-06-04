@@ -9,7 +9,6 @@ Usage:
 ![screenshot](https://tqdm.github.io/img/screenshot-slack.png)
 """
 import logging
-from os import getenv
 
 try:
     from slack_sdk import WebClient
@@ -17,6 +16,7 @@ except ImportError:
     raise ImportError("Please `pip install slack-sdk`")
 
 from ..auto import tqdm as tqdm_auto
+from ..utils import envwrap
 from .utils_worker import MonoWorker
 
 __author__ = {"github.com/": ["0x2b3bfa0", "casperdcl"]}
@@ -68,7 +68,8 @@ class tqdm_slack(tqdm_auto):
     >>> for i in tqdm(iterable, token='{token}', channel='{channel}'):
     ...     ...
     """
-    def __init__(self, *args, **kwargs):
+    @envwrap("tqdm", "slack", is_method=True)
+    def __init__(self, *args, token=None, channel=None, **kwargs):
         """
         Parameters
         ----------
@@ -84,9 +85,7 @@ class tqdm_slack(tqdm_auto):
         if not kwargs.get('disable'):
             kwargs = kwargs.copy()
             logging.getLogger("HTTPClient").setLevel(logging.WARNING)
-            self.sio = SlackIO(
-                kwargs.pop('token', getenv("TQDM_SLACK_TOKEN")),
-                kwargs.pop('channel', getenv("TQDM_SLACK_CHANNEL")))
+            self.sio = SlackIO(token, channel)
             kwargs['mininterval'] = max(1.5, kwargs.get('mininterval', 1.5))
         super().__init__(*args, **kwargs)
 

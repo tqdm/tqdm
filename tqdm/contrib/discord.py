@@ -8,7 +8,6 @@ Usage:
 
 ![screenshot](https://tqdm.github.io/img/screenshot-discord.png)
 """
-from os import getenv
 from warnings import warn
 
 from requests import Session
@@ -16,6 +15,7 @@ from requests.utils import default_user_agent
 
 from ..auto import tqdm as tqdm_auto
 from ..std import TqdmWarning
+from ..utils import envwrap
 from ..version import __version__
 from .utils_worker import MonoWorker
 
@@ -107,7 +107,8 @@ class tqdm_discord(tqdm_auto):
     >>> for i in tqdm(iterable, token='{token}', channel_id='{channel_id}'):
     ...     ...
     """
-    def __init__(self, *args, **kwargs):
+    @envwrap("tqdm", "discord", is_method=True)
+    def __init__(self, *args, token=None, channel_id=None, **kwargs):
         """
         Parameters
         ----------
@@ -120,9 +121,7 @@ class tqdm_discord(tqdm_auto):
         """
         if not kwargs.get('disable'):
             kwargs = kwargs.copy()
-            self.dio = DiscordIO(
-                kwargs.pop('token', getenv('TQDM_DISCORD_TOKEN')),
-                kwargs.pop('channel_id', getenv('TQDM_DISCORD_CHANNEL_ID')))
+            self.dio = DiscordIO(token, channel_id)
         super().__init__(*args, **kwargs)
 
     def display(self, **kwargs):

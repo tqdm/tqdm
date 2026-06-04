@@ -8,13 +8,13 @@ Usage:
 
 ![screenshot](https://tqdm.github.io/img/screenshot-telegram.gif)
 """
-from os import getenv
 from warnings import warn
 
 from requests import Session
 
 from ..auto import tqdm as tqdm_auto
 from ..std import TqdmWarning
+from ..utils import envwrap
 from .utils_worker import MonoWorker
 
 __author__ = {"github.com/": ["casperdcl"]}
@@ -104,7 +104,8 @@ class tqdm_telegram(tqdm_auto):
     >>> for i in tqdm(iterable, token='{token}', chat_id='{chat_id}'):
     ...     ...
     """
-    def __init__(self, *args, **kwargs):
+    @envwrap("tqdm", "telegram", is_method=True)
+    def __init__(self, *args, token=None, chat_id=None, **kwargs):
         """
         Parameters
         ----------
@@ -117,9 +118,7 @@ class tqdm_telegram(tqdm_auto):
         """
         if not kwargs.get('disable'):
             kwargs = kwargs.copy()
-            self.tgio = TelegramIO(
-                kwargs.pop('token', getenv('TQDM_TELEGRAM_TOKEN')),
-                kwargs.pop('chat_id', getenv('TQDM_TELEGRAM_CHAT_ID')))
+            self.tgio = TelegramIO(token, chat_id)
         super().__init__(*args, **kwargs)
 
     def display(self, **kwargs):
