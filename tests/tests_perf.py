@@ -58,7 +58,7 @@ def relative_timer():
     yield lambda: elapser()
     spent = elapser()
 
-    def elapser():  # NOQA
+    def elapser():  # pylint: disable=function-redefined
         return spent
 
 

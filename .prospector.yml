@@ -1,0 +1,13 @@
+pydocstyle:
+  disable:
+    - D105
+    - D202
+    - D203
+    - D204
+    - D205
+    - D212 # TODO: pick one
+    - D213 # TODO: pick one
+    - D403
+    - D415
+    - D416
+    - F401

@@ -31,7 +31,7 @@ else:
         colorama.init()
 
 try:
-    from envwrap import envwrap
+    from envwrap import envwrap  # pylint: disable=unused-import
 except ModuleNotFoundError:
     def envwrap(name, app="", types=None, is_method=False):
         """

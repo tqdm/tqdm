@@ -56,7 +56,7 @@ class SlackIO(MonoWorker):
             return future
 
 
-class tqdm_slack(tqdm_auto):
+class tqdm_slack(tqdm_auto):  # pylint: disable=inconsistent-mro
     """
     Standard `tqdm.auto.tqdm` but also sends updates to a Slack app.
     May take a few seconds to create (`__init__`).
@@ -89,7 +89,7 @@ class tqdm_slack(tqdm_auto):
             kwargs['mininterval'] = max(1.5, kwargs.get('mininterval', 1.5))
         super().__init__(*args, **kwargs)
 
-    def display(self, **kwargs):
+    def display(self, **kwargs):  # pylint: disable=arguments-differ
         super().display(**kwargs)
         fmt = self.format_dict
         if fmt.get('bar_format', None):

@@ -51,17 +51,15 @@ class TqdmWarning(Warning):
 
 class TqdmExperimentalWarning(TqdmWarning, FutureWarning):
     """beta feature, unstable API and behaviour"""
-    pass
 
 
 class TqdmDeprecationWarning(TqdmWarning, DeprecationWarning):
+    """may be removed in a future release"""
     # not suppressed if raised
-    pass
 
 
 class TqdmMonitorWarning(TqdmWarning, RuntimeWarning):
     """tqdm monitor errors which do not affect external functionality"""
-    pass
 
 
 def TRLock(*args, **kwargs):
@@ -462,8 +460,9 @@ class tqdm(Comparable):
         return print_status
 
     @staticmethod
-    def format_meter(n, total, elapsed, ncols=None, prefix='', ascii=False, unit='it',
-                     unit_scale=False, rate=None, bar_format=None, postfix=None,
+    def format_meter(n, total, elapsed, ncols=None, prefix='',
+                     ascii=False,  # pylint: disable=redefined-builtin
+                     unit='it', unit_scale=False, rate=None, bar_format=None, postfix=None,
                      unit_divisor=1000, initial=0, colour=None, **extra_kwargs):
         """
         Return a string-based progress bar given some parameters
@@ -953,10 +952,10 @@ class tqdm(Comparable):
                                             'position': int, 'nrows': int})
     def __init__(self, iterable=None, desc=None, total=None, leave=True, file=None,
                  ncols=None, mininterval=0.1, maxinterval=10.0, miniters=None,
-                 ascii=None, disable=False, unit='it', unit_scale=False,
-                 dynamic_ncols=False, smoothing=0.3, bar_format=None, initial=0,
-                 position=None, postfix=None, unit_divisor=1000, write_bytes=False,
-                 lock_args=None, nrows=None, colour=None, delay=0.0, gui=False,
+                 ascii=False,  # pylint: disable=redefined-builtin
+                 disable=False, unit='it', unit_scale=False, dynamic_ncols=False, smoothing=0.3,
+                 bar_format=None, initial=0, position=None, postfix=None, unit_divisor=1000,
+                 write_bytes=False, lock_args=None, nrows=None, colour=None, delay=0.0, gui=False,
                  **kwargs):
         """see tqdm.tqdm for arguments"""
         if file is None:
@@ -1130,7 +1129,8 @@ class tqdm(Comparable):
 
     def __contains__(self, item):
         contains = getattr(self.iterable, '__contains__', None)
-        return contains(item) if contains is not None else item in self.__iter__()
+        return (contains(item) if contains is not None  # pylint: disable=not-callable
+                else item in self.__iter__())
 
     def __enter__(self):
         return self
@@ -1499,7 +1499,8 @@ class tqdm(Comparable):
 
     @classmethod
     @contextmanager
-    def wrapattr(cls, stream, method, total=None, bytes=True, **tqdm_kwargs):
+    def wrapattr(cls, stream, method, total=None, bytes=True,  # pylint: disable=redefined-builtin
+                 **tqdm_kwargs):
         """
         stream  : file-like object.
         method  : str, "read" or "write". The result of `read()` and

@@ -37,7 +37,7 @@ class TelegramIO(MonoWorker):
     @property
     def message_id(self):
         if hasattr(self, '_message_id'):
-            return self._message_id
+            return self._message_id  # pylint: disable=access-member-before-definition
         try:
             req = self.session.post(
                 f'{self.API}{self.token}/sendMessage',
@@ -88,7 +88,7 @@ class TelegramIO(MonoWorker):
             return future
 
 
-class tqdm_telegram(tqdm_auto):
+class tqdm_telegram(tqdm_auto):  # pylint: disable=inconsistent-mro
     """
     Standard `tqdm.auto.tqdm` but also sends updates to a Telegram Bot.
     May take a few seconds to create (`__init__`).
@@ -121,7 +121,7 @@ class tqdm_telegram(tqdm_auto):
             self.tgio = TelegramIO(token, chat_id)
         super().__init__(*args, **kwargs)
 
-    def display(self, **kwargs):
+    def display(self, **kwargs):  # pylint: disable=arguments-differ
         super().display(**kwargs)
         fmt = self.format_dict
         if fmt.get('bar_format', None):
