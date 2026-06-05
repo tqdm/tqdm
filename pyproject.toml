@@ -82,9 +82,9 @@ dependencies = ['colorama; platform_system == "Windows"', 'importlib_metadata; p
 
 [project.optional-dependencies]
 dev = ["pytest>=6", "pytest-cov", "pytest-timeout", "pytest-asyncio>=0.24", "nbval"]
-discord = ["requests"]
-slack = ["slack-sdk"]
-telegram = ["requests"]
+discord = ["requests", "envwrap"]
+slack = ["slack-sdk", "envwrap"]
+telegram = ["requests", "envwrap"]
 notebook = ["ipywidgets>=6"]
 
 [project.scripts]
@@ -123,14 +123,11 @@ asyncio_default_fixture_loop_scope = "function"
 
 [tool.coverage.run]
 branch = true
-include = ["tqdm/*"]
 omit = [
     "tqdm/contrib/bells.py",
     "tqdm/contrib/slack.py",
     "tqdm/contrib/discord.py",
     "tqdm/contrib/telegram.py",
     "tqdm/contrib/utils_worker.py"]
-relative_files = true
-disable_warnings = ["include-ignored"]
 [tool.coverage.report]
 show_missing = true

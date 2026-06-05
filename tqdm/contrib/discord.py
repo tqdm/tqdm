@@ -8,7 +8,6 @@ Usage:
 
 ![screenshot](https://tqdm.github.io/img/screenshot-discord.png)
 """
-from os import getenv
 from warnings import warn
 
 from requests import Session
@@ -16,6 +15,7 @@ from requests.utils import default_user_agent
 
 from ..auto import tqdm as tqdm_auto
 from ..std import TqdmWarning
+from ..utils import envwrap
 from ..version import __version__
 from .utils_worker import MonoWorker
 
@@ -25,7 +25,7 @@ __all__ = ['DiscordIO', 'tqdm_discord', 'tdrange', 'tqdm', 'trange']
 
 class DiscordIO(MonoWorker):
     """Non-blocking file-like IO using a Discord Bot."""
-    API = "https://discord.com/api/v10"
+    API = 'https://discord.com/api/v10'
     UA = f"tqdm (https://tqdm.github.io, {__version__}) {default_user_agent()}"
 
     def __init__(self, token, channel_id):
@@ -40,21 +40,23 @@ class DiscordIO(MonoWorker):
     @property
     def message_id(self):
         if hasattr(self, '_message_id'):
-            return self._message_id
+            return self._message_id  # pylint: disable=access-member-before-definition
         try:
-            res = self.session.post(
+            req = self.session.post(
                 f'{self.API}/channels/{self.channel_id}/messages',
                 headers={'Authorization': f'Bot {self.token}', 'User-Agent': self.UA},
-                json={'content': f"`{self.text}`"}).json()
+                json={'content': f"`{self.text}`"})
+            res = req.json()
+            req.raise_for_status()
         except Exception as e:
-            tqdm_auto.write(str(e))
-        else:
-            if res.get('error_code') == 429:
+            if req.status_code == 429:
                 warn("Creation rate limit: try increasing `mininterval`.",
                      TqdmWarning, stacklevel=2)
             else:
-                self._message_id = res['id']
-                return self._message_id
+                tqdm_auto.write(str(e))
+        else:
+            self._message_id = res['id']
+            return self._message_id
 
     def write(self, s):
         """Replaces internal `message_id`'s text with `s`."""
@@ -91,7 +93,7 @@ class DiscordIO(MonoWorker):
             return future
 
 
-class tqdm_discord(tqdm_auto):
+class tqdm_discord(tqdm_auto):  # pylint: disable=inconsistent-mro
     """
     Standard `tqdm.auto.tqdm` but also sends updates to a Discord Bot.
     May take a few seconds to create (`__init__`).
@@ -105,7 +107,8 @@ class tqdm_discord(tqdm_auto):
     >>> for i in tqdm(iterable, token='{token}', channel_id='{channel_id}'):
     ...     ...
     """
-    def __init__(self, *args, **kwargs):
+    @envwrap("tqdm", "discord", is_method=True)
+    def __init__(self, *args, token=None, channel_id=None, **kwargs):
         """
         Parameters
         ----------
@@ -118,19 +121,15 @@ class tqdm_discord(tqdm_auto):
         """
         if not kwargs.get('disable'):
             kwargs = kwargs.copy()
-            self.dio = DiscordIO(
-                kwargs.pop('token', getenv('TQDM_DISCORD_TOKEN')),
-                kwargs.pop('channel_id', getenv('TQDM_DISCORD_CHANNEL_ID')))
+            self.dio = DiscordIO(token, channel_id)
         super().__init__(*args, **kwargs)
 
-    def display(self, **kwargs):
+    def display(self, **kwargs):  # pylint: disable=arguments-differ
         super().display(**kwargs)
         fmt = self.format_dict
         if fmt.get('bar_format', None):
             fmt['bar_format'] = fmt['bar_format'].replace(
                 '<bar/>', '{bar:10u}').replace('{bar}', '{bar:10u}')
-        else:
-            fmt['bar_format'] = '{l_bar}{bar:10u}{r_bar}'
         self.dio.write(self.format_meter(**fmt))
 
     def clear(self, *args, **kwargs):

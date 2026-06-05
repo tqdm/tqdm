@@ -20,7 +20,7 @@ if True:  # pragma: no cover
     # import IPython/Jupyter base widget and display utilities
     IPY = 0
     try:  # IPython 4.x
-        import ipywidgets
+        import ipywidgets  # noqa: F401, pylint: disable=unused-import
         IPY = 4
     except ImportError:  # IPython 3.x / 2.x
         IPY = 32
@@ -29,7 +29,7 @@ if True:  # pragma: no cover
             warnings.filterwarnings(
                 'ignore', message=".*The `IPython.html` package has been deprecated.*")
             try:
-                import IPython.html.widgets as ipywidgets  # NOQA: F401
+                import IPython.html.widgets as ipywidgets  # noqa: F401
             except ImportError:
                 pass
 
