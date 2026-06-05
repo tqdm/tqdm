@@ -210,18 +210,9 @@ def test_threadpool():
 
 def test_monitor_atexit_does_not_deadlock_on_stuck_get_lock():
     """Regression: atexit shutdown must not deadlock on stuck get_lock."""
-    # Scenario: another holder of the shared write lock (a forked child
-    # that died abnormally, a profiler-instrumented thread that hasn't
-    # released, etc.) prevents the monitor's
-    # ``with self.tqdm_cls.get_lock():`` block from acquiring the lock.
-    # The monitor thread is past its ``was_killed.wait()`` call, so simply
-    # setting ``was_killed`` does not unblock the lock acquire — only
-    # releasing the lock would. If interpreter shutdown then waits for the
-    # monitor thread to join (as the original ``atexit.register(self.exit)``
-    # did via ``self.join()``), the interpreter hangs forever.
-    # Capture the function TMonitor.__init__ passes to atexit.register
-    # without actually registering it (we don't want test residue at
-    # interpreter shutdown).
+    # Scenario: another lock holder (in a dead fork) blocks the monitor's
+    # `self.tqdm_cls.get_lock()`.
+    # The monitor thread's `was_killed.wait()` is insufficient to unblock.
     captured = []
     real_register = atexit.register
 
@@ -231,10 +222,12 @@ def test_monitor_atexit_does_not_deadlock_on_stuck_get_lock():
 
     monitor_in_acquire = Event()
 
-    # RLock wrapper that signals on the first non-setup-thread ``acquire``.
-    # Used to detect (via ``Event.wait``) that the monitor thread reached
-    # the blocking ``acquire`` call without sleeping/polling.
     class SignallingLock:
+        """
+        RLock wrapper signalling on first non-setup-thread ``acquire``.
+        Used to detect (via ``Event.wait``) that the monitor thread reached
+        the blocking ``acquire`` call without sleeping/polling.
+        """
         def __init__(self):
             self._inner = RLock()
             self._setup_thread = current_thread()
