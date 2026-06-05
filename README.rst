@@ -314,7 +314,7 @@ of a neat one-line progress bar.
 - Unicode:
 
   * Environments which report that they support unicode will have solid smooth
-    progressbars. The fallback is an ``ascii``-only bar.
+    progress bars. The fallback is an ``ascii``-only bar.
   * Windows consoles often only partially support unicode and thus
     `often require explicit ascii=True <https://github.com/tqdm/tqdm/issues/454#issuecomment-335416815>`__
     (also `here <https://github.com/tqdm/tqdm/issues/499>`__). This is due to
@@ -354,7 +354,7 @@ Documentation
       """
       Decorate an iterable object, returning an iterator which acts exactly
       like the original iterable, but prints a dynamically updating
-      progressbar every time a value is requested.
+      progress bar every time a value is requested.
       """
 
       @envwrap("tqdm")  # override defaults via env vars
@@ -370,20 +370,20 @@ Parameters
 ~~~~~~~~~~
 
 * iterable  : iterable, optional  
-    Iterable to decorate with a progressbar.
+    Iterable to decorate with a progress bar.
     Leave blank to manually manage the updates.
 * desc  : str, optional  
-    Prefix for the progressbar.
+    Prefix for the progress bar.
 * total  : int or float, optional  
     The number of expected iterations. If unspecified,
     len(iterable) is used if possible. If float("inf") or as a last
     resort, only basic progress statistics are displayed
-    (no ETA, no progressbar).
+    (no ETA, no progress bar).
     If ``gui`` is True and this parameter needs subsequent updating,
     specify an initial arbitrary large positive number,
     e.g. 9e9.
 * leave  : bool, optional  
-    If [default: True], keeps all traces of the progressbar
+    If [default: True], keeps all traces of the progress bar
     upon termination of iteration.
     If ``None``, will leave only if ``position`` is ``0``.
 * file  : ``io.TextIOWrapper`` or ``io.StringIO``, optional  
@@ -392,7 +392,7 @@ Parameters
     methods.  For encoding, see ``write_bytes``.
 * ncols  : int, optional  
     The width of the entire output message. If specified,
-    dynamically resizes the progressbar to stay within this bound.
+    dynamically resizes the progress bar to stay within this bound.
     If unspecified, attempts to use environment width. The
     fallback is a meter width of 10 and no limit for the counter and
     statistics. If 0, will not print any meter (only stats).
@@ -415,7 +415,7 @@ Parameters
     If unspecified or False, use unicode (smooth blocks) to fill
     the meter. The fallback is to use ASCII characters " 123456789#".
 * disable  : bool, optional  
-    Whether to disable the entire progressbar wrapper
+    Whether to disable the entire progress bar wrapper
     [default: False]. If set to None, disable on non-TTY.
 * unit  : str, optional  
     String that will be used to define the unit of each iteration
@@ -540,7 +540,7 @@ Returns
           """
 
       def close(self):
-          """Cleanup and (if leave=False) close the progressbar."""
+          """Cleanup and (if leave=False) close the progress bar."""
 
       def clear(self, nomove=False):
           """Clear current bar display."""
@@ -714,7 +714,7 @@ Examples and Advanced Usage
 
   * this has an
     `excellent article <https://github.com/tqdm/tqdm/wiki/How-to-make-a-great-Progress-Bar>`__
-    on how to make a **great** progressbar;
+    on how to make a **great** progress bar;
 
 - check out the `slides from PyData London <https://tqdm.github.io/PyData2019/slides.html>`__, or
 - run the |binder-demo|.
@@ -1254,7 +1254,7 @@ This is a work in progress (see
 
 Since ``tqdm`` uses a simple printing mechanism to display progress bars,
 you should not write any message in the terminal using ``print()`` while
-a progressbar is open.
+a progress bar is open.
 
 To write messages in the terminal without any collision with ``tqdm`` bar
 display, a ``.write()`` method is provided:

@@ -314,7 +314,7 @@ of a neat one-line progress bar.
 - Unicode:
 
   * Environments which report that they support unicode will have solid smooth
-    progressbars. The fallback is an ``ascii``-only bar.
+    progress bars. The fallback is an ``ascii``-only bar.
   * Windows consoles often only partially support unicode and thus
     `often require explicit ascii=True <https://github.com/tqdm/tqdm/issues/454#issuecomment-335416815>`__
     (also `here <https://github.com/tqdm/tqdm/issues/499>`__). This is due to
@@ -497,7 +497,7 @@ Examples and Advanced Usage
 
   * this has an
     `excellent article <https://github.com/tqdm/tqdm/wiki/How-to-make-a-great-Progress-Bar>`__
-    on how to make a **great** progressbar;
+    on how to make a **great** progress bar;
 
 - check out the `slides from PyData London <https://tqdm.github.io/PyData2019/slides.html>`__, or
 - run the |binder-demo|.
@@ -1037,7 +1037,7 @@ This is a work in progress (see
 
 Since ``tqdm`` uses a simple printing mechanism to display progress bars,
 you should not write any message in the terminal using ``print()`` while
-a progressbar is open.
+a progress bar is open.
 
 To write messages in the terminal without any collision with ``tqdm`` bar
 display, a ``.write()`` method is provided:

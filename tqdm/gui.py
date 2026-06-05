@@ -1,5 +1,5 @@
 """
-Matplotlib GUI progressbar decorator for iterators.
+Matplotlib GUI progress bar decorator for iterators.
 
 Usage:
 >>> from tqdm.gui import trange, tqdm
@@ -65,7 +65,7 @@ class tqdm_gui(std_tqdm):  # pragma: no cover
             ax.set_xlabel("percent")
             self.fig.legend((self.line1, self.line2), ("cur", "est"),
                             loc='center right')
-            # progressbar
+            # progress bar
             self.hspan = plt.axhspan(0, 0.001, xmin=0, xmax=0, color=colour)
         else:
             # ax.set_xlim(-60, 0)
