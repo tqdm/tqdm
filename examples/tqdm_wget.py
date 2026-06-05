@@ -63,7 +63,7 @@ def my_hook(t):
     return update_to
 
 
-class TqdmUpTo(tqdm):
+class TqdmUpTo(tqdm):  # pylint: disable=inconsistent-mro
     """Alternative Class-based version of the above.
 
     Provides `update_to(n)` which uses `tqdm.update(delta_n)`.

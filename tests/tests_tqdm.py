@@ -37,7 +37,7 @@ else:
 nt_and_no_colorama = False
 if os.name == 'nt':
     try:
-        import colorama  # NOQA
+        import colorama  # noqa: F401, pylint: disable=unused-import
     except ImportError:
         nt_and_no_colorama = True
 
