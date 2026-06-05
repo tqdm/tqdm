@@ -7,7 +7,7 @@ tqdm
 
 |Build-Status| |Coverage-Status| |Branch-Coverage-Status| |Codacy-Grade| |Libraries-Rank| |PyPI-Downloads|
 
-|LICENCE| |OpenHub-Status| |binder-demo| |awesome-python|
+|LICENCE| |OpenHub-Status| |colab-demo| |binder-demo| |awesome-python|
 
 ``tqdm`` derives from the Arabic word *taqaddum* (تقدّم) which can mean "progress,"
 and is an abbreviation for "I love you so much" in Spanish (*te quiero demasiado*).
@@ -914,7 +914,7 @@ Here's an example with ``urllib``:
                 self.total = tsize
             return self.update(b * bsize - self.n)  # also sets self.n = b * bsize
 
-    eg_link = "https://caspersci.uk.to/matryoshka.zip"
+    eg_link = "https://cgi.cdcl.ml/matryoshka.zip"
     with TqdmUpTo(unit='B', unit_scale=True, unit_divisor=1024, miniters=1,
                   desc=eg_link.split('/')[-1]) as t:  # all optional kwargs
         urllib.urlretrieve(eg_link, filename=os.devnull,
@@ -958,7 +958,7 @@ down to:
     import urllib, os
     from tqdm import tqdm
 
-    eg_link = "https://caspersci.uk.to/matryoshka.zip"
+    eg_link = "https://cgi.cdcl.ml/matryoshka.zip"
     response = getattr(urllib, 'request', urllib).urlopen(eg_link)
     with tqdm.wrapattr(open(os.devnull, "wb"), "write",
                        miniters=1, desc=eg_link.split('/')[-1],
@@ -973,7 +973,7 @@ The ``requests`` equivalent is nearly identical:
     import requests, os
     from tqdm import tqdm
 
-    eg_link = "https://caspersci.uk.to/matryoshka.zip"
+    eg_link = "https://cgi.cdcl.ml/matryoshka.zip"
     response = requests.get(eg_link, stream=True)
     with tqdm.wrapattr(open(os.devnull, "wb"), "write",
                        miniters=1, desc=eg_link.split('/')[-1],
@@ -1488,7 +1488,7 @@ Citation information: |DOI|
    :target: https://github.com/tqdm/tqdm/graphs/contributors
 .. |GitHub-Updated| image:: https://img.shields.io/github/last-commit/tqdm/tqdm/master.svg?logo=github&logoColor=white&label=pushed
    :target: https://github.com/tqdm/tqdm/pulse
-.. |Gift-Casper| image:: https://img.shields.io/badge/dynamic/json.svg?color=ff69b4&label=gifts%20received&prefix=%C2%A3&query=%24..sum&url=https%3A%2F%2Fcaspersci.uk.to%2Fgifts.json
+.. |Gift-Casper| image:: https://img.shields.io/badge/dynamic/json.svg?color=ff69b4&label=gifts%20received&prefix=%C2%A3&query=%24..sum&url=https%3A%2F%2Fcdcl.ml%2Fgifts.json
    :target: https://cdcl.ml/sponsor
 .. |Versions| image:: https://img.shields.io/pypi/v/tqdm.svg
    :target: https://tqdm.github.io/releases
@@ -1514,6 +1514,8 @@ Citation information: |DOI|
    :target: https://raw.githubusercontent.com/tqdm/tqdm/master/LICENCE
 .. |DOI| image:: https://img.shields.io/badge/DOI-10.5281/zenodo.595120-blue.svg
    :target: https://doi.org/10.5281/zenodo.595120
+.. |colab-demo| image:: https://colab.research.google.com/assets/colab-badge.svg
+   :target: https://colab.research.google.com/github/tqdm/tqdm/blob/master/DEMO.ipynb
 .. |binder-demo| image:: https://mybinder.org/badge_logo.svg
    :target: https://mybinder.org/v2/gh/tqdm/tqdm/master?filepath=DEMO.ipynb
 .. |Screenshot-Jupyter1| image:: https://tqdm.github.io/img/jupyter-1.gif

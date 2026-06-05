@@ -15,7 +15,7 @@ Options:
     Print this help message and exit
 -u URL, --url URL  : string, optional
     The url to fetch.
-    [default: https://caspersci.uk.to/matryoshka.zip]
+    [default: https://cgi.cdcl.ml/matryoshka.zip]
 -o FILE, --output FILE  : string, optional
     The local file path in which to save the url [default: /dev/null].
 """
