@@ -10,4 +10,8 @@ pydocstyle:
     - D403
     - D415
     - D416
+pylint:
+  run: false
+pyflakes:
+  disable:
     - F401

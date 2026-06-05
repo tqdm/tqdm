@@ -1,5 +1,6 @@
+import atexit
 from functools import wraps
-from threading import Event
+from threading import Event, RLock, Thread, current_thread
 from time import sleep, time
 
 from tqdm import TMonitor, tqdm, trange
@@ -205,3 +206,85 @@ def test_threadpool():
     with ThreadPoolExecutor(8) as pool:
         res = list(tqdm(pool.map(incr_bar, range(100)), disable=True))
     assert sum(res) == sum(range(1, 101))
+
+
+def test_monitor_atexit_does_not_deadlock_on_stuck_get_lock():
+    """Regression: atexit shutdown must not deadlock on stuck get_lock."""
+    # Scenario: another lock holder (in a dead fork) blocks the monitor's
+    # `self.tqdm_cls.get_lock()`.
+    # The monitor thread's `was_killed.wait()` is insufficient to unblock.
+    captured = []
+    real_register = atexit.register
+
+    def capture(fn, *a, **k):
+        captured.append((fn, a, k))
+        return fn
+
+    monitor_in_acquire = Event()
+
+    class SignallingLock:
+        """
+        RLock wrapper signalling on first non-setup-thread ``acquire``.
+        Used to detect (via ``Event.wait``) that the monitor thread reached
+        the blocking ``acquire`` call without sleeping/polling.
+        """
+        def __init__(self):
+            self._inner = RLock()
+            self._setup_thread = current_thread()
+
+        def acquire(self, *a, **k):
+            if current_thread() is not self._setup_thread:
+                monitor_in_acquire.set()
+            return self._inner.acquire(*a, **k)
+
+        def release(self):
+            return self._inner.release()
+
+        def __enter__(self):
+            self.acquire()
+            return self
+
+        def __exit__(self, *exc):
+            self.release()
+
+    blocking_lock = SignallingLock()
+    blocking_lock.acquire()  # held by setup thread; SignallingLock skips signal
+    monitor = None
+    try:
+        class StuckTqdm:
+            _instances = set()
+
+            @classmethod
+            def get_lock(cls):
+                return blocking_lock
+
+        atexit.register = capture
+        try:
+            monitor = TMonitor(StuckTqdm, 0.001)  # tiny sleep_interval
+        finally:
+            atexit.register = real_register
+
+        # Wait deterministically for the monitor thread to reach the
+        # blocking ``self.tqdm_cls.get_lock().acquire()`` call.
+        assert monitor_in_acquire.wait(timeout=2.0), (
+            "monitor did not reach tqdm_cls.get_lock().acquire() within 2s"
+        )
+        assert captured, "TMonitor.__init__ should have registered an atexit handler"
+
+        # Invoke the captured handler on a daemon helper thread so the
+        # test runner is not blocked if the assertion fails.
+        fn, args, kwargs = captured[0]
+        helper = Thread(target=fn, args=args, kwargs=kwargs, daemon=True)
+        helper.start()
+        helper.join(timeout=2.0)
+        assert not helper.is_alive(), (
+            "atexit handler did not return within 2s — it appears to be "
+            "joining a monitor thread blocked on tqdm_cls.get_lock(). "
+            "Daemon thread should not be joined from atexit."
+        )
+    finally:
+        # Release the blocking lock so the monitor thread can finish.
+        blocking_lock.release()
+        if monitor is not None:
+            monitor.was_killed.set()
+            monitor.join(timeout=2.0)

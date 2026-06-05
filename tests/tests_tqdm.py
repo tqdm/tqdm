@@ -1762,7 +1762,7 @@ def patch_lock(thread=True):
 @patch_lock(thread=False)
 def test_threading():
     """Test multiprocess/thread-realted features"""
-    pass  # TODO: test interleaved output #445
+    # TODO: test interleaved output #445
 
 
 def test_bool():
