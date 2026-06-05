@@ -28,7 +28,7 @@ class TMonitor(Thread):
     _test = {}  # internal vars for unit testing
 
     def __init__(self, tqdm_cls, sleep_interval):
-        Thread.__init__(self)
+        Thread.__init__(self, name="tqdm_monitor")
         self.daemon = True  # kill thread when main killed (KeyboardInterrupt)
         self.woken = 0  # last time woken up, to sync with monitor
         self.tqdm_cls = tqdm_cls
