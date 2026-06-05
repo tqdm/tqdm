@@ -59,6 +59,17 @@ in any console or in a GUI, and is also friendly with IPython/Jupyter notebooks.
 Python and an environment supporting ``carriage return \r`` and
 ``line feed \n`` control characters.
 
+**Featured Sponsors**
+
+======== ================================================
+|OpenAI|                  Your Logo Here
+======== ================================================
+OpenAI   `Sponsors <https://github.com/sponsors/tqdm>`__
+======== ================================================
+
+.. |OpenAI| image:: https://avatars.githubusercontent.com/u/14957082?s=96
+   :target: https://openai.com
+
 ------------------------------------------
 
 .. contents:: Table of contents
