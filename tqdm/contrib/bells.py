@@ -3,6 +3,8 @@ Even more features than `tqdm.auto` (all the bells & whistles):
 
 - `tqdm.auto`
 - `tqdm.tqdm.pandas`
+- `tqdm.contrib.slack`
+    + uses `${TQDM_SLACK_TOKEN}` and `${TQDM_SLACK_CHANNEL}`
 - `tqdm.contrib.telegram`
     + uses `${TQDM_TELEGRAM_TOKEN}` and `${TQDM_TELEGRAM_CHAT_ID}`
 - `tqdm.contrib.discord`

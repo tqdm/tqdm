@@ -25,12 +25,14 @@ name  : type, optional
 """
 
 
-def doc2rst(doc, arglist=True, raw=False):
+def doc2rst(doc, arglist=True, raw=False, md2rst=True):
     """
     arglist  : bool, whether to create argument lists
     raw  : bool, ignores arglist and indents by 10 spaces
+    md2rst  : bool, converts markdown to reStructuredText
     """
-    doc = doc.replace('`', '``')
+    if md2rst:
+        doc = doc.replace('`', '``')
     if raw:
         doc = doc.replace('\n', '\n          ')
         doc = doc.replace('\n          \n', '\n\n')
@@ -45,7 +47,7 @@ def doc2rst(doc, arglist=True, raw=False):
 src_dir = Path(__file__).parent.resolve()
 README_rst = (src_dir / '.readme.rst').read_text("utf-8")
 class_doc, init_doc = tqdm.tqdm.__doc__.split('\n\n', 1)
-DOC_tqdm = doc2rst(class_doc + '\n', False).replace('\n', '\n      ')
+DOC_tqdm = doc2rst(class_doc + '\n', False, md2rst=False).replace('\n', '\n      ')
 DOC_tqdm_init = doc2rst('\n' + init_doc)
 DOC_tqdm_init_args = DOC_tqdm_init.partition(doc2rst(HEAD_ARGS))[-1].replace(
     '\n      ', '\n    ').replace('\n      ', '\n    ')
@@ -55,7 +57,7 @@ DOC_tqdm_tqdm = {}
 for i in dir(tqdm.tqdm):
     doc = getattr(tqdm.tqdm, i).__doc__
     if doc:
-        DOC_tqdm_tqdm[i] = doc2rst(doc, raw=True)
+        DOC_tqdm_tqdm[i] = doc2rst(doc, raw=True, md2rst=False)
 
 # special cases
 DOC_tqdm_init_args = DOC_tqdm_init_args.replace(' *,', ' ``*``,')

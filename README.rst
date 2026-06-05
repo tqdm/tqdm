@@ -534,20 +534,20 @@ Returns
           ...    t.update(len(current_buffer))
           >>> t.close()
           The last line is highly recommended, but possibly not necessary if
-          ``t.update()`` will be called in such a way that ``filesize`` will be
+          `t.update()` will be called in such a way that `filesize` will be
           exactly reached and printed.
 
           Parameters
           ----------
           n  : int or float, optional
               Increment to add to the internal counter of iterations
-              [default: 1]. If using float, consider specifying ``{n:.3f}``
-              or similar in ``bar_format``, or specifying ``unit_scale``.
+              [default: 1]. If using float, consider specifying `{n:.3f}`
+              or similar in `bar_format`, or specifying `unit_scale`.
 
           Returns
           -------
           out  : bool or None
-              True if a ``display()`` was triggered.
+              True if a `display()` was triggered.
           """
 
       def close(self):
@@ -563,11 +563,11 @@ Returns
           Parameters
           ----------
           nolock  : bool, optional
-              If ``True``, does not lock.
-              If [default: ``False``]: calls ``acquire()`` on internal lock.
+              If `True`, does not lock.
+              If [default: `False`]: calls `acquire()` on internal lock.
           lock_args  : tuple, optional
-              Passed to internal lock's ``acquire()``.
-              If specified, will only ``display()`` if ``acquire()`` returns ``True``.
+              Passed to internal lock's `acquire()`.
+              If specified, will only `display()` if `acquire()` returns `True`.
           """
 
       def unpause(self):
@@ -577,7 +577,7 @@ Returns
           """
           Resets to 0 iterations for repeated use.
 
-          Consider combining with ``leave=True``.
+          Consider combining with `leave=True`.
 
           Parameters
           ----------
@@ -618,16 +618,16 @@ Returns
 
       def display(self, msg=None, pos=None):
           """
-          Use ``self.sp`` to display ``msg`` in the specified ``pos``.
+          Use `self.sp` to display `msg` in the specified `pos`.
 
           Consider overloading this function when inheriting to use e.g.:
-          ``self.some_frontend(**self.format_dict)`` instead of ``self.sp``.
+          `self.some_frontend(**self.format_dict)` instead of `self.sp`.
 
           Parameters
           ----------
-          msg  : str, optional. What to display (default: ``repr(self)``).
-          pos  : int, optional. Position to ``moveto``
-            (default: ``abs(self.pos)``).
+          msg  : str, optional. What to display (default: `repr(self)`).
+          pos  : int, optional. Position to `moveto`
+            (default: `abs(self.pos)`).
           """
 
       @classmethod
@@ -635,8 +635,8 @@ Returns
       def wrapattr(cls, stream, method, total=None, bytes=True, **tqdm_kwargs):
           """
           stream  : file-like object.
-          method  : str, "read" or "write". The result of ``read()`` and
-              the first argument of ``write()`` should have a ``len()``.
+          method  : str, "read" or "write". The result of `read()` and
+              the first argument of `write()` should have a `len()`.
 
           >>> with tqdm.wrapattr(file_obj, "read", total=file_obj.size) as fobj:
           ...     while True:
@@ -706,14 +706,17 @@ Submodules
 
 The ``tqdm.contrib`` package also contains experimental modules:
 
-- ``tqdm.contrib.itertools``: Thin wrappers around ``itertools``
-- ``tqdm.contrib.concurrent``: Thin wrappers around ``concurrent.futures``
-- ``tqdm.contrib.slack``: Posts to `Slack <https://slack.com>`__ bots
-- ``tqdm.contrib.discord``: Posts to `Discord <https://discord.com>`__ bots
-- ``tqdm.contrib.telegram``: Posts to `Telegram <https://telegram.org>`__ bots
-- ``tqdm.contrib.bells``: Automagically enables all optional features
+- `tqdm.contrib.itertools <https://tqdm.github.io/docs/contrib.itertools/>`_: Thin wrappers around ``itertools``
+- `tqdm.contrib.concurrent <https://tqdm.github.io/docs/contrib.concurrent/>`_: Thin wrappers around ``concurrent.futures``
+- `tqdm.contrib.slack <https://tqdm.github.io/docs/contrib.slack/>`_: Posts to `Slack <https://slack.com>`__ bots
+- `tqdm.contrib.discord <https://tqdm.github.io/docs/contrib.discord/>`_: Posts to `Discord <https://discord.com>`__ bots
+- `tqdm.contrib.telegram <https://tqdm.github.io/docs/contrib.telegram/>`_: Posts to `Telegram <https://telegram.org>`__ bots
+- `tqdm.contrib.bells <https://tqdm.github.io/docs/shortcuts/>`_: Automagically enables all optional features
 
   * ``auto``, ``pandas``, ``slack``, ``discord``, ``telegram``
+
+.. image:: https://tqdm.github.io/img/screenshot-discord.png
+   :alt: Screenshot of `tqdm.contrib.discord` in action
 
 Examples and Advanced Usage
 ---------------------------

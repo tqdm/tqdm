@@ -489,14 +489,17 @@ Submodules
 
 The ``tqdm.contrib`` package also contains experimental modules:
 
-- ``tqdm.contrib.itertools``: Thin wrappers around ``itertools``
-- ``tqdm.contrib.concurrent``: Thin wrappers around ``concurrent.futures``
-- ``tqdm.contrib.slack``: Posts to `Slack <https://slack.com>`__ bots
-- ``tqdm.contrib.discord``: Posts to `Discord <https://discord.com>`__ bots
-- ``tqdm.contrib.telegram``: Posts to `Telegram <https://telegram.org>`__ bots
-- ``tqdm.contrib.bells``: Automagically enables all optional features
+- `tqdm.contrib.itertools <https://tqdm.github.io/docs/contrib.itertools/>`_: Thin wrappers around ``itertools``
+- `tqdm.contrib.concurrent <https://tqdm.github.io/docs/contrib.concurrent/>`_: Thin wrappers around ``concurrent.futures``
+- `tqdm.contrib.slack <https://tqdm.github.io/docs/contrib.slack/>`_: Posts to `Slack <https://slack.com>`__ bots
+- `tqdm.contrib.discord <https://tqdm.github.io/docs/contrib.discord/>`_: Posts to `Discord <https://discord.com>`__ bots
+- `tqdm.contrib.telegram <https://tqdm.github.io/docs/contrib.telegram/>`_: Posts to `Telegram <https://telegram.org>`__ bots
+- `tqdm.contrib.bells <https://tqdm.github.io/docs/shortcuts/>`_: Automagically enables all optional features
 
   * ``auto``, ``pandas``, ``slack``, ``discord``, ``telegram``
+
+.. image:: https://tqdm.github.io/img/screenshot-discord.png
+   :alt: Screenshot of `tqdm.contrib.discord` in action
 
 Examples and Advanced Usage
 ---------------------------

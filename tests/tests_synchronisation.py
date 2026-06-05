@@ -224,9 +224,9 @@ def test_monitor_atexit_does_not_deadlock_on_stuck_get_lock():
 
     class SignallingLock:
         """
-        RLock wrapper signalling on first non-setup-thread ``acquire``.
-        Used to detect (via ``Event.wait``) that the monitor thread reached
-        the blocking ``acquire`` call without sleeping/polling.
+        RLock wrapper signalling on first non-setup-thread `acquire`.
+        Used to detect (via `Event.wait`) that the monitor thread reached
+        the blocking `acquire` call without sleeping/polling.
         """
         def __init__(self):
             self._inner = RLock()
@@ -265,7 +265,7 @@ def test_monitor_atexit_does_not_deadlock_on_stuck_get_lock():
             atexit.register = real_register
 
         # Wait deterministically for the monitor thread to reach the
-        # blocking ``self.tqdm_cls.get_lock().acquire()`` call.
+        # blocking `self.tqdm_cls.get_lock().acquire()` call.
         assert monitor_in_acquire.wait(timeout=2.0), (
             "monitor did not reach tqdm_cls.get_lock().acquire() within 2s"
         )
