@@ -961,6 +961,13 @@ class tqdm(Comparable):
         if file is None:
             file = sys.stderr
 
+        if isinstance(iterable, enumerate):
+            warn(
+                "Please use enumerate(tqdm(...)) instead of tqdm(enumerate(...)).", 
+                UserWarning,
+                stacklevel=2
+            )
+
         if write_bytes:
             # Despite coercing unicode into bytes, py2 sys.std* streams
             # should have bytes written to them.
