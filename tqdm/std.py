@@ -963,7 +963,7 @@ class tqdm(Comparable):
 
         if isinstance(iterable, enumerate):
             warn(
-                "Please use enumerate(tqdm(...)) instead of tqdm(enumerate(...)).", 
+                "Please use enumerate(tqdm(...)) instead of tqdm(enumerate(...)).",
                 UserWarning,
                 stacklevel=2
             )
