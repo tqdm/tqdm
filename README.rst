@@ -676,7 +676,7 @@ Submodules
         """IPython/Jupyter Notebook widget."""
 
     class tqdm.auto.tqdm(tqdm.tqdm):
-        """Automatically chooses beween `tqdm.notebook` and `tqdm.tqdm`."""
+        """Automatically chooses between `tqdm.notebook` and `tqdm.tqdm`."""
 
     class tqdm.asyncio.tqdm(tqdm.tqdm):
       """Asynchronous version."""
