@@ -33,6 +33,13 @@ repos:
     args: [.meta/mkdocs.py]
     files: ^(README.rst|.meta/.*)$
     pass_filenames: false
+  - id: completion.sh
+    name: tqdm/completion.sh
+    language: python
+    entry: python
+    args: [.meta/mkcompletion.py]
+    files: ^(tqdm/(std|cli)|.meta/mkcompletion)\.py$
+    pass_filenames: false
   - id: pytest
     name: pytest quick
     language: python
