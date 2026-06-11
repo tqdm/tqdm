@@ -6,8 +6,8 @@ from pathlib import Path
 from textwrap import dedent
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
-import tqdm  # NOQA
-import tqdm.cli  # NOQA
+import tqdm  # noqa: E402
+import tqdm.cli  # noqa: E402
 
 HEAD_ARGS = """
 Parameters

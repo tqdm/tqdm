@@ -26,11 +26,18 @@ repos:
     args: [-i]
     types: [text]
     exclude: ^(.pre-commit-config.yaml|.github/workflows/test.yml)$
+  - id: README.rst
+    name: render README.rst
+    language: python
+    entry: python
+    args: [.meta/mkdocs.py]
+    files: ^(README.rst|.meta/.*)$
+    pass_filenames: false
   - id: pytest
     name: pytest quick
     language: python
     entry: pytest
-    args: [-qq, --durations=1, -k=not slow]
+    args: [-qq, -k=not slow]
     types: [python]
     pass_filenames: false
     additional_dependencies:
