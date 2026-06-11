@@ -27,11 +27,11 @@ repos:
     types: [text]
     exclude: ^(.pre-commit-config.yaml|.github/workflows/test.yml)$
   - id: README.rst
-    name: render README.rst
+    name: README.rst & tqdm/tqdm.1
     language: python
     entry: python
     args: [.meta/mkdocs.py]
-    files: ^(README.rst|.meta/.*)$
+    files: ^(tqdm/((std|cli)\.py|tqdm\.1)|README.rst|.meta/.*)$
     pass_filenames: false
   - id: completion.sh
     name: tqdm/completion.sh
