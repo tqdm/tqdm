@@ -2,6 +2,7 @@
 Thin wrappers around `itertools`.
 """
 import itertools
+import math
 
 from ..auto import tqdm as tqdm_auto
 
@@ -27,13 +28,9 @@ def product(*iterables, repeat=1, total=None, tqdm_class=tqdm_auto, **kwargs):
             lens = list(map(len, iterables))
         except (TypeError, AttributeError):
             pass
-        else:  # py>=3.8: math.prod(lens) ** repeat
-            total = 1
-            for i in lens:
-                total *= i
-            total **= repeat
-    for i in tqdm_class(itertools.product(*iterables, repeat=repeat), total=total, **kwargs):
-        yield i
+        else:
+            total = math.prod(lens) ** repeat
+    yield from tqdm_class(itertools.product(*iterables, repeat=repeat), total=total, **kwargs)
 
 
 def permutations(iterable, r=None, total=None, tqdm_class=tqdm_auto, **kwargs):
@@ -47,10 +44,8 @@ def permutations(iterable, r=None, total=None, tqdm_class=tqdm_auto, **kwargs):
             r = n if r is None else r
             if r > n:
                 total = 0
-            else:  # py>=3.8: math.perm(n, r)
-                total = 1
-                for i in range(n, n-r, -1):
-                    total *= i
+            else:
+                total = math.perm(n, r)
     return tqdm_class(itertools.permutations(iterable, r), total=total, **kwargs)
 
 
@@ -64,12 +59,8 @@ def combinations(iterable, r, total=None, tqdm_class=tqdm_auto, **kwargs):
         else:
             if r > n:
                 total = 0
-            else:  # py>=3.8: math.comb(n, r)
-                total = 1
-                for i in range(n, n-r, -1):
-                    total *= i
-                for i in range(1, r+1):
-                    total //= i
+            else:
+                total = math.comb(n, r)
     return tqdm_class(itertools.combinations(iterable, r), total=total, **kwargs)
 
 
