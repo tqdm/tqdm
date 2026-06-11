@@ -183,7 +183,7 @@ def test_main(capsysbinary):
 
 
 @mark.slow
-@mark.skipif(IS_WIN, reason="no manpages on windows")
+@mark.skipif(IS_WIN, reason="no man pages on windows")
 def test_manpath(tmp_path):
     """Test CLI --manpath"""
     man = tmp_path / "tqdm.1"

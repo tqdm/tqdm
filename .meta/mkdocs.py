@@ -1,7 +1,10 @@
 """
 Auto-generate README.rst from .meta/.readme.rst and docstrings.
 """
+import re
+import subprocess
 import sys
+from io import StringIO
 from pathlib import Path
 from textwrap import dedent
 
@@ -71,5 +74,35 @@ README_rst = (
 for k, v in DOC_tqdm_tqdm.items():
     README_rst = README_rst.replace('{DOC_tqdm.tqdm.%s}' % k, v)
 
+# python -m tqdm --help
+try:
+    sys.stdout, man = StringIO(), sys.stdout
+    tqdm.cli.main(argv=['--help'])
+except SystemExit:
+    sys.stdout, man = man, sys.stdout
+man.seek(0)
+# tail -n+5
+for _ in range(4):
+    man.readline()
+# sed -r
+man = man.read().replace('\\', '\\\\')
+man = re.sub(r'^  (--.*)=<(.*)>  : (.*)$', r'\n\\\1=*\2*\n: \3.', man, flags=re.M)
+man = re.sub(r'^  (--.*)  : (.*)$', r'\n\\\1\n: \2.', man, flags=re.M)
+man = re.sub(r'  (-.*, )(--.*)  ', r'\n\1\\\2\n: ', man, flags=re.M)
+# cat ".meta/.tqdm.1.md" -
+man = (src_dir / '.tqdm.1.md').read_text() + man
+# pandoc -s -t man
+try:
+    p = subprocess.Popen(['pandoc', '-s', '-t', 'man'],
+                         stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+except FileNotFoundError:
+    MAN_1 = None
+else:
+    MAN_1, _ = p.communicate(input=man.encode())
+
 if __name__ == "__main__":
     (src_dir.parent / 'README.rst').write_text(README_rst, encoding='utf-8')
+    if MAN_1:
+        (src_dir.parent / 'tqdm' / 'tqdm.1').write_bytes(MAN_1)
+    else:
+        print("pandoc not found, skipping man page generation", file=sys.stderr)

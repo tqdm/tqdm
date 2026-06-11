@@ -91,14 +91,7 @@ viewasv:
 	asv preview
 
 tqdm/tqdm.1: .meta/.tqdm.1.md tqdm/cli.py tqdm/std.py
-	# TODO: add to mkdocs.py
-	python -m tqdm --help | tail -n+5 |\
-    sed -r -e 's/\\/\\\\/g' \
-      -e 's/^  (--.*)=<(.*)>  : (.*)$$/\n\\\1=*\2*\n: \3./' \
-      -e 's/^  (--.*)  : (.*)$$/\n\\\1\n: \2./' \
-      -e 's/  (-.*, )(--.*)  /\n\1\\\2\n: /' |\
-    cat "$<" - |\
-    pandoc -o "$@" -s -t man
+	@python .meta/mkdocs.py
 
 tqdm/completion.sh: .meta/mkcompletion.py tqdm/std.py tqdm/cli.py
 	@python .meta/mkcompletion.py
