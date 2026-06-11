@@ -1,11 +1,13 @@
 # HOW TO CONTRIBUTE TO TQDM
 
+[![git-fame.cdcl.ml/gh/tqdm/tqdm](https://git-fame.cdcl.ml/gh/tqdm/tqdm?min=5&w=1&M=1&C=1&excl=(png|gif|jpg)$&enum=1)](https://git-fame.cdcl.ml/gh/tqdm/tqdm?w=1&M=1&C=1&excl=(png|gif|jpg)$&enum=1)
+
 **TL;DR: Skip to [QUICK DEV SUMMARY]**
 
-This file describes how to
+This file describes how to:
 
 - contribute changes to the project, and
-- upload released to the PyPI repository.
+- upload releases to the PyPI repository.
 
 Most of the management commands have been directly placed inside the
 Makefile:

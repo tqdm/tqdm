@@ -1416,27 +1416,17 @@ See the
 `CONTRIBUTING <https://github.com/tqdm/tqdm/blob/master/CONTRIBUTING.md>`__
 file for more information.
 
-Developers who have made significant contributions, ranked by *SLoC*
-(surviving lines of code,
-`git fame <https://github.com/casperdcl/git-fame>`__ ``-wMC --excl '\.(png|gif|jpg)$'``),
-are:
+Developers who have contributed more that 5 *loc* (surviving lines of code):
 
-==================== ======================================================== ==== ================================
-Name                 ID                                                       SLoC Notes
-==================== ======================================================== ==== ================================
-Casper da Costa-Luis `casperdcl <https://github.com/casperdcl>`__             ~80% primary maintainer |Gift-Casper|
-Stephen Larroque     `lrq3000 <https://github.com/lrq3000>`__                 ~9%  team member
-Martin Zugnoni       `martinzugnoni <https://github.com/martinzugnoni>`__     ~3%
-Daniel Ecer          `de-code <https://github.com/de-code>`__                 ~2%
-Richard Sheridan     `richardsheridan <https://github.com/richardsheridan>`__ ~1%
-Guangshuo Chen       `chengs <https://github.com/chengs>`__                   ~1%
-Helio Machado        `0x2b3bfa0 <https://github.com/0x2b3bfa0>`__             ~1%
-Kyle Altendorf       `altendky <https://github.com/altendky>`__               <1%
-Noam Yorav-Raphael   `noamraph <https://github.com/noamraph>`__               <1%  original author
-Matthew Stevens      `mjstevens777 <https://github.com/mjstevens777>`__       <1%
-Hadrien Mary         `hadim <https://github.com/hadim>`__                     <1%  team member
-Mikhail Korobov      `kmike <https://github.com/kmike>`__                     <1%  team member
-==================== ======================================================== ==== ================================
+|git-fame|
+
+Honourable mentions:
+
+- Casper da Costa-Luis `casperdcl <https://github.com/casperdcl>`__ primary maintainer |Gift-Casper|
+- Stephen Larroque `lrq3000 <https://github.com/lrq3000>`__ maintainer
+- Hadrien Mary `hadim <https://github.com/hadim>`__ maintainer
+- Mikhail Korobov `kmike <https://github.com/kmike>`__ maintainer
+- Noam Yorav-Raphael `noamraph <https://github.com/noamraph>`__ original author
 
 Ports to Other Languages
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1488,7 +1478,10 @@ Citation information: |DOI|
    :target: https://github.com/tqdm/tqdm/graphs/contributors
 .. |GitHub-Updated| image:: https://img.shields.io/github/last-commit/tqdm/tqdm/master.svg?logo=github&logoColor=white&label=pushed
    :target: https://github.com/tqdm/tqdm/pulse
-.. |Gift-Casper| image:: https://img.shields.io/badge/dynamic/json.svg?color=ff69b4&label=gifts%20received&prefix=%C2%A3&query=%24..sum&url=https%3A%2F%2Fcdcl.ml%2Fgifts.json
+.. |git-fame| image:: https://git-fame.cdcl.ml/gh/tqdm/tqdm?min=5&w=1&M=1&C=1&excl=(png|gif|jpg)$&enum=1
+   :alt: git-fame.cdcl.ml/gh/tqdm/tqdm
+   :target: https://git-fame.cdcl.ml/gh/tqdm/tqdm?w=1&M=1&C=1&excl=(png|gif|jpg)$&enum=1
+.. |Gift-Casper| image:: https://img.shields.io/badge/sponsor-casper-ff69b4.svg
    :target: https://cdcl.ml/sponsor
 .. |Versions| image:: https://img.shields.io/pypi/v/tqdm.svg
    :target: https://tqdm.github.io/releases
