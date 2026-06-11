@@ -5,7 +5,7 @@ channels:
 - defaults
 dependencies:
 # base
-- python >=3.7
+- python >=3.8
 - pip
 - ipykernel
 - ipywidgets
