@@ -26,20 +26,12 @@ jobs:
         python-version: ${{ matrix.python }}
     - name: install
       run: |
-        pip install -U tox tox-gh-actions
+        pip install tox-gh
         mkdir -p "$HOME/bin"
         curl -sfL https://coverage.codacy.com/get.sh > "$HOME/bin/codacy"
         chmod +x "$HOME/bin/codacy"
         echo "$HOME/bin" >> $GITHUB_PATH
-    - name: tox
-      run: |
-        if test "py${{ matrix.python }}-${{ matrix.os }}" = py3.13-ubuntu; then
-          tox -e py313-tf,py313-tf-keras  # full
-        fi
-        tox -e py${PYVER/./},check        # basic
-        if test "${{ matrix.os }}" = ubuntu; then
-          timeout 5m tox -e perf || timeout 5m tox -e perf || timeout 5m tox -e perf
-        fi
+    - run: tox
       env:
         PYVER: ${{ matrix.python }}
         PLATFORM: ${{ matrix.os }}
