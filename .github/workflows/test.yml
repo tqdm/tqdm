@@ -26,7 +26,7 @@ jobs:
         python-version: ${{ matrix.python }}
     - name: install
       run: |
-        pip install tox-gh
+        pip install 'tox>=4' tox-gh
         mkdir -p "$HOME/bin"
         curl -sfL https://coverage.codacy.com/get.sh > "$HOME/bin/codacy"
         chmod +x "$HOME/bin/codacy"

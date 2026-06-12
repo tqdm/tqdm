@@ -81,7 +81,6 @@ classifiers = [
 dependencies = ['colorama; platform_system == "Windows"']
 
 [project.optional-dependencies]
-dev = ["pytest>=6", "pytest-cov", "pytest-timeout", "pytest-asyncio>=0.24", "nbval"]
 discord = ["requests", "envwrap"]
 slack = ["slack-sdk", "envwrap"]
 telegram = ["requests", "envwrap"]
@@ -131,3 +130,76 @@ omit = [
     "tqdm/contrib/utils_worker.py"]
 [tool.coverage.report]
 show_missing = true
+
+[tool.tox]
+legacy_tox_ini = """
+[tox]
+min_version=4
+envlist=3.{8,9,10,11,12,13,14}{,-tf}{,-keras}, perf, check
+isolated_build=True
+
+[gh]
+python=
+    3.8 = 3.8
+    3.9 = 3.9
+    3.10 = 3.10
+    3.11 = 3.11
+    3.12 = 3.12
+    3.13 = 3.13-tf,3.13-tf-keras
+    3.14 = 3.14
+
+[core]
+deps=
+    pytest
+    pytest-cov
+    pytest-timeout
+    pytest-asyncio
+    ipywidgets
+    git+https://github.com/casperdcl/nbval
+    coverage
+    coveralls
+    codecov
+commands=
+    - {envpython} -m coveralls
+    {envpython} -m codecov -X pycov -e TOXENV
+    - codacy report -l Python -r coverage.xml --partial
+
+[testenv]
+passenv=TOXENV,CI,GITHUB_*,CODECOV_*,COVERALLS_*,CODACY_*,HOME
+deps=
+    {[core]deps}
+    cython
+    dask[delayed]
+    matplotlib
+    numpy
+    pandas
+    rich
+    tf: tensorflow!=2.5.0
+    keras: keras
+commands=
+    {envpython} -m pytest --cov=tqdm --cov-report= -k "not perf"
+    {envpython} -m pytest --cov=tqdm --cov-report=xml --cov-report=term --cov-append -W=ignore tests_notebook.ipynb --nbval --nbval-current-env --nbval-sanitize-with=.meta/nbval.ini
+    {[core]commands}
+allowlist_externals=codacy
+
+# no cython/numpy/pandas
+[testenv:pypy3]
+deps={[core]deps}
+
+[testenv:perf]
+deps=
+    pytest
+    pytest-timeout
+    pytest-asyncio
+commands={envpython} -m pytest -k perf
+
+[testenv:check]
+deps=
+    build
+    twine
+    py-make>=0.1.0
+commands=
+    {envpython} -m build
+    {envpython} -m twine check dist/*
+    {envpython} -m pymake -h
+"""

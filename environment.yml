@@ -14,7 +14,7 @@ dependencies:
 - toml
 # test env managers
 - pre-commit
-- tox
+- tox >=4
 - asv >=0.5
 # tests (native)
 - pytest
