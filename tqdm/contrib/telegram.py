@@ -32,7 +32,7 @@ class TelegramIO(MonoWorker):
         self.chat_id = chat_id
         self.session = Session()
         self.text = self.__class__.__name__
-        self.message_id
+        self.message_id  # pylint: disable=pointless-statement
 
     @property
     def message_id(self):

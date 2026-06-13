@@ -6,7 +6,7 @@ import sys
 from contextlib import contextmanager
 
 try:
-    from typing import Iterator, List, Optional, Type  # noqa: F401
+    from typing import Iterator, List, Optional, Type  # noqa: F401, pylint: disable=unused-import
 except ImportError:
     pass
 

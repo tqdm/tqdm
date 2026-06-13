@@ -29,9 +29,11 @@ if True:  # pragma: no cover
             warnings.filterwarnings(
                 'ignore', message=".*The `IPython.html` package has been deprecated.*")
             try:
-                import IPython.html.widgets as ipywidgets  # noqa: F401
+                import IPython.html.widgets
             except ImportError:
                 pass
+            else:
+                ipywidgets = IPython.html.widgets
 
     try:  # IPython 4.x / 3.x
         if IPY == 32:

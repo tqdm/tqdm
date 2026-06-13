@@ -4,7 +4,7 @@ Module version for monitoring CLI pipes (`... | python -m tqdm | ...`).
 import logging
 import re
 import sys
-from ast import literal_eval as numeric
+from ast import literal_eval
 from textwrap import indent
 
 from .std import TqdmKeyError, TqdmTypeError, tqdm
@@ -35,7 +35,7 @@ def cast(val, typ):
         if len(val) == 1:
             return val.encode()
         if re.match(r"^\\\w+$", val):
-            return eval(f'"{val}"').encode()
+            return literal_eval(f'"{val}"').encode()
         raise TqdmTypeError(f"{val} : {typ}")
     if typ == 'str':
         return val
@@ -298,10 +298,10 @@ Options:
                 with tqdm(**tqdm_args) as t:
                     if update:
                         def callback(i):
-                            t.update(numeric(i.decode()))
+                            t.update(literal_eval(i.decode()))
                     else:  # update_to
                         def callback(i):
-                            t.update(numeric(i.decode()) - t.n)
+                            t.update(literal_eval(i.decode()) - t.n)
                     for i in stdin:
                         write(i)
                         callback(i)
@@ -314,10 +314,10 @@ Options:
                 callback_len = False
                 if update:
                     def callback(i):
-                        t.update(numeric(i.decode()))
+                        t.update(literal_eval(i.decode()))
                 elif update_to:
                     def callback(i):
-                        t.update(numeric(i.decode()) - t.n)
+                        t.update(literal_eval(i.decode()) - t.n)
                 else:
                     callback = t.update
                     callback_len = True

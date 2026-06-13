@@ -10,12 +10,12 @@ jobs:
     continue-on-error: ${{ matrix.os == 'windows' }}
     strategy:
       matrix:
-        python: [3.7, 3.8, 3.9, '3.10', 3.11, 3.12, 3.13]
+        python: [3.8, 3.9, '3.10', 3.11, 3.12, 3.13, 3.14]
         os: [ubuntu]
         include:
-        - {os: macos, python: 3.13}
-        - {os: windows, python: 3.13}
-    runs-on: ${{ matrix.os }}-${{ matrix.python == 3.7 && '22.04' || 'latest' }}
+        - {os: macos, python: 3.14}
+        - {os: windows, python: 3.14}
+    runs-on: ${{ matrix.os }}-latest
     timeout-minutes: 35
     defaults: {run: {shell: bash}}
     steps:
@@ -26,24 +26,12 @@ jobs:
         python-version: ${{ matrix.python }}
     - name: install
       run: |
-        pip install -U tox tox-gh-actions
+        pip install 'tox>=4' tox-gh
         mkdir -p "$HOME/bin"
         curl -sfL https://coverage.codacy.com/get.sh > "$HOME/bin/codacy"
         chmod +x "$HOME/bin/codacy"
         echo "$HOME/bin" >> $GITHUB_PATH
-    - name: tox
-      run: |
-        if test "py${{ matrix.python }}" = py3.7; then
-          sed -i /asyncio_default_fixture_loop_scope/d pyproject.toml
-        fi
-        if test "py${{ matrix.python }}-${{ matrix.os }}" = py3.13-ubuntu; then
-          export TOXENV="py313-tf,py313-tf-keras"  # full
-        fi
-        if test "${{ matrix.os }}" != ubuntu; then
-          tox -e py${PYVER/./}                     # basic
-        else
-          timeout 5m tox || timeout 5m tox || timeout 5m tox
-        fi
+    - run: tox
       env:
         PYVER: ${{ matrix.python }}
         PLATFORM: ${{ matrix.os }}

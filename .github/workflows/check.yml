@@ -16,7 +16,7 @@ jobs:
     - uses: actions/checkout@v6
     - uses: actions/setup-python@v6
       with: {python-version: '3.x'}
-    - run: pip install -U tox
+    - run: pip install 'tox>=4'
     - run: tox
       env:
         TOXENV: ${{ matrix.TOXENV }}
