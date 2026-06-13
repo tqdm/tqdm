@@ -26,11 +26,25 @@ repos:
     args: [-i]
     types: [text]
     exclude: ^(.pre-commit-config.yaml|.github/workflows/test.yml)$
+  - id: README.rst
+    name: README.rst & tqdm/tqdm.1
+    language: python
+    entry: python
+    args: [.meta/mkdocs.py]
+    files: ^(tqdm/((std|cli)\.py|tqdm\.1)|README.rst|.meta/.*)$
+    pass_filenames: false
+  - id: completion.sh
+    name: tqdm/completion.sh
+    language: python
+    entry: python
+    args: [.meta/mkcompletion.py]
+    files: ^(tqdm/(std|cli)|.meta/mkcompletion)\.py$
+    pass_filenames: false
   - id: pytest
     name: pytest quick
     language: python
     entry: pytest
-    args: [-qq, --durations=1, -k=not slow]
+    args: [-qq, -k=not slow]
     types: [python]
     pass_filenames: false
     additional_dependencies:
@@ -54,13 +68,13 @@ repos:
   rev: v3.21.2
   hooks:
   - id: pyupgrade
-    args: [--py37-plus]
+    args: [--py38-plus]
 - repo: https://github.com/PyCQA/isort
-  rev: 7.0.0
+  rev: 9.0.0a3
   hooks:
   - id: isort
 - repo: https://github.com/kynan/nbstripout
-  rev: 0.9.0
+  rev: 0.9.1
   hooks:
   - id: nbstripout
     args: [--keep-count, --keep-output]

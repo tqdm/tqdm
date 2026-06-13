@@ -15,7 +15,7 @@ Options:
     Print this help message and exit
 -u URL, --url URL  : string, optional
     The url to fetch.
-    [default: https://caspersci.uk.to/matryoshka.zip]
+    [default: https://cgi.cdcl.ml/matryoshka.zip]
 -o FILE, --output FILE  : string, optional
     The local file path in which to save the url [default: /dev/null].
 """
@@ -63,7 +63,7 @@ def my_hook(t):
     return update_to
 
 
-class TqdmUpTo(tqdm):
+class TqdmUpTo(tqdm):  # pylint: disable=inconsistent-mro
     """Alternative Class-based version of the above.
 
     Provides `update_to(n)` which uses `tqdm.update(delta_n)`.

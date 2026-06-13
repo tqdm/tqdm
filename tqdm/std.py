@@ -1,5 +1,5 @@
 """
-Customisable progressbar decorator for iterators.
+Customisable progress bar decorator for iterators.
 Includes a default `range` iterator printing to `stderr`.
 
 Usage:
@@ -51,17 +51,15 @@ class TqdmWarning(Warning):
 
 class TqdmExperimentalWarning(TqdmWarning, FutureWarning):
     """beta feature, unstable API and behaviour"""
-    pass
 
 
 class TqdmDeprecationWarning(TqdmWarning, DeprecationWarning):
+    """may be removed in a future release"""
     # not suppressed if raised
-    pass
 
 
 class TqdmMonitorWarning(TqdmWarning, RuntimeWarning):
     """tqdm monitor errors which do not affect external functionality"""
-    pass
 
 
 def TRLock(*args, **kwargs):
@@ -245,25 +243,25 @@ class tqdm(Comparable):
     """
     Decorate an iterable object, returning an iterator which acts exactly
     like the original iterable, but prints a dynamically updating
-    progressbar every time a value is requested.
+    progress bar every time a value is requested.
 
     Parameters
     ----------
     iterable  : iterable, optional
-        Iterable to decorate with a progressbar.
+        Iterable to decorate with a progress bar.
         Leave blank to manually manage the updates.
     desc  : str, optional
-        Prefix for the progressbar.
+        Prefix for the progress bar.
     total  : int or float, optional
         The number of expected iterations. If unspecified,
         len(iterable) is used if possible. If float("inf") or as a last
         resort, only basic progress statistics are displayed
-        (no ETA, no progressbar).
+        (no ETA, no progress bar).
         If `gui` is True and this parameter needs subsequent updating,
         specify an initial arbitrary large positive number,
         e.g. 9e9.
     leave  : bool, optional
-        If [default: True], keeps all traces of the progressbar
+        If [default: True], keeps all traces of the progress bar
         upon termination of iteration.
         If `None`, will leave only if `position` is `0`.
     file  : `io.TextIOWrapper` or `io.StringIO`, optional
@@ -272,7 +270,7 @@ class tqdm(Comparable):
         methods.  For encoding, see `write_bytes`.
     ncols  : int, optional
         The width of the entire output message. If specified,
-        dynamically resizes the progressbar to stay within this bound.
+        dynamically resizes the progress bar to stay within this bound.
         If unspecified, attempts to use environment width. The
         fallback is a meter width of 10 and no limit for the counter and
         statistics. If 0, will not print any meter (only stats).
@@ -295,7 +293,7 @@ class tqdm(Comparable):
         If unspecified or False, use unicode (smooth blocks) to fill
         the meter. The fallback is to use ASCII characters " 123456789#".
     disable  : bool, optional
-        Whether to disable the entire progressbar wrapper
+        Whether to disable the entire progress bar wrapper
         [default: False]. If set to None, disable on non-TTY.
     unit  : str, optional
         String that will be used to define the unit of each iteration
@@ -462,8 +460,9 @@ class tqdm(Comparable):
         return print_status
 
     @staticmethod
-    def format_meter(n, total, elapsed, ncols=None, prefix='', ascii=False, unit='it',
-                     unit_scale=False, rate=None, bar_format=None, postfix=None,
+    def format_meter(n, total, elapsed, ncols=None, prefix='',
+                     ascii=False,  # pylint: disable=redefined-builtin
+                     unit='it', unit_scale=False, rate=None, bar_format=None, postfix=None,
                      unit_divisor=1000, initial=0, colour=None, **extra_kwargs):
         """
         Return a string-based progress bar given some parameters
@@ -656,7 +655,7 @@ class tqdm(Comparable):
             res = bar_format.format(bar=full_bar, **format_dict)
             return disp_trim(res, ncols) if ncols else res
         else:
-            # no total: no progressbar, ETA, just progress stats
+            # no total: no bar & ETA, just progress stats
             return (f'{(prefix + ": ") if prefix else ""}'
                     f'{n_fmt}{unit} [{elapsed_str}, {rate_fmt}{postfix}]')
 
@@ -949,14 +948,14 @@ class tqdm(Comparable):
             _Rolling_and_Expanding.progress_apply = inner_generator()
 
     # override defaults via env vars
-    @envwrap("TQDM_", is_method=True, types={'total': float, 'ncols': int, 'miniters': float,
-                                             'position': int, 'nrows': int})
+    @envwrap("tqdm", is_method=True, types={'total': float, 'ncols': int, 'miniters': float,
+                                            'position': int, 'nrows': int})
     def __init__(self, iterable=None, desc=None, total=None, leave=True, file=None,
                  ncols=None, mininterval=0.1, maxinterval=10.0, miniters=None,
-                 ascii=None, disable=False, unit='it', unit_scale=False,
-                 dynamic_ncols=False, smoothing=0.3, bar_format=None, initial=0,
-                 position=None, postfix=None, unit_divisor=1000, write_bytes=False,
-                 lock_args=None, nrows=None, colour=None, delay=0.0, gui=False,
+                 ascii=None,  # pylint: disable=redefined-builtin
+                 disable=False, unit='it', unit_scale=False, dynamic_ncols=False, smoothing=0.3,
+                 bar_format=None, initial=0, position=None, postfix=None, unit_divisor=1000,
+                 write_bytes=False, lock_args=None, nrows=None, colour=None, delay=0.0, gui=False,
                  **kwargs):
         """see tqdm.tqdm for arguments"""
         if file is None:
@@ -1130,7 +1129,8 @@ class tqdm(Comparable):
 
     def __contains__(self, item):
         contains = getattr(self.iterable, '__contains__', None)
-        return contains(item) if contains is not None else item in self.__iter__()
+        return (contains(item) if contains is not None  # pylint: disable=not-callable
+                else item in self.__iter__())
 
     def __enter__(self):
         return self
@@ -1180,7 +1180,7 @@ class tqdm(Comparable):
         try:
             for obj in iterable:
                 yield obj
-                # Update and possibly print the progressbar.
+                # Update and possibly print the progress bar.
                 # Note: does not call self.update(1) for speed optimisation.
                 n += 1
 
@@ -1263,7 +1263,7 @@ class tqdm(Comparable):
                 return True
 
     def close(self):
-        """Cleanup and (if leave=False) close the progressbar."""
+        """Cleanup and (if leave=False) close the progress bar."""
         if self.disable:
             return
 
@@ -1499,7 +1499,8 @@ class tqdm(Comparable):
 
     @classmethod
     @contextmanager
-    def wrapattr(cls, stream, method, total=None, bytes=True, **tqdm_kwargs):
+    def wrapattr(cls, stream, method, total=None, bytes=True,  # pylint: disable=redefined-builtin
+                 **tqdm_kwargs):
         """
         stream  : file-like object.
         method  : str, "read" or "write". The result of `read()` and
