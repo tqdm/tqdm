@@ -77,9 +77,9 @@ jobs:
       with: {python-version: '3.x'}
     - name: Install
       run: |
-        sudo apt-get install -yqq pandoc
         pip install -r .meta/requirements-build.txt
         make build .dockerignore Dockerfile snapcraft.yaml
+        git diff
     - id: dist
       uses: casperdcl/deploy-pypi@v3
       with:

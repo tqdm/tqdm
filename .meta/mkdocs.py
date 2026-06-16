@@ -93,7 +93,7 @@ man = re.sub(r'  (-.*, )(--.*)  ', r'\n\1\\\2\n: ', man, flags=re.M)
 man = (src_dir / '.tqdm.1.md').read_text() + man
 # pandoc -s -t man
 try:
-    p = subprocess.Popen(['pandoc', '-s', '-t', 'man'],  # nosec B603
+    p = subprocess.Popen(['pandoc', '-s', '-t', 'man', '-V', 'pandoc-version='],  # nosec B603
                          stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 except FileNotFoundError:
     MAN_1 = None
