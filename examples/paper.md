@@ -92,7 +92,7 @@ Supported features include:
 - Display customisation via arguments such as `desc`, `postfix` and `bar_format`
 - Automatic limiting of display updates to avoid slowing down due to excessive
   iteration rates [@stdout]
-- Automatic detection of console width to fill  the display
+- Automatic detection of console width to fill the display
 - Automatic use of Unicode to render smooth-filling progress bars on supported
   terminals
 - Support for custom rendering frontends, including:
@@ -105,7 +105,7 @@ Supported features include:
 
 ## Command-line Interface (CLI)
 
-A CLI is also provided, where `tqdm` may be used a pipe:
+A CLI is also provided, where `tqdm` may be used as a pipe:
 
 ```sh
  # count lines of text in all *.txt files
