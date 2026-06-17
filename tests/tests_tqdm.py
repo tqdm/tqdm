@@ -6,6 +6,7 @@ import re
 import sys
 from contextlib import contextmanager
 from functools import wraps
+from unittest.mock import MagicMock, call
 from warnings import catch_warnings, simplefilter
 
 from pytest import importorskip, mark, raises, skip
@@ -1518,6 +1519,19 @@ def test_write():
     # Restore stdout and stderr
     sys.stderr = stde
     sys.stdout = stdo
+
+
+def test_write_flush():
+    """Test that tqdm.write flush argument flushes the stream"""
+    # flush=True: content written then fp.flush() called (order matters)
+    mock_file = MagicMock()
+    tqdm.write("hello", file=mock_file, flush=True)
+    assert mock_file.mock_calls == [
+        call.write("hello"), call.write("\n"), call.flush()]
+    # default (no flush arg): fp.flush() must NOT be called
+    mock_file2 = MagicMock()
+    tqdm.write("hello", file=mock_file2)
+    mock_file2.flush.assert_not_called()
 
 
 def test_len():
