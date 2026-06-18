@@ -1166,8 +1166,7 @@ class tqdm(Comparable):
         # If the bar is disabled, then just walk the iterable
         # (note: keep this check outside the loop for performance)
         if self.disable:
-            for obj in iterable:
-                yield obj
+            yield from iterable
             return
 
         mininterval = self.mininterval
@@ -1399,7 +1398,7 @@ class tqdm(Comparable):
         if refresh:
             self.refresh()
 
-    def set_postfix(self, ordered_dict=None, refresh=True, **kwargs):
+    def set_postfix(self, ordered_dict=None, refresh=True, strip=True, **kwargs):
         """
         Set/modify postfix (additional stats)
         with automatic formatting based on datatype.
@@ -1409,6 +1408,8 @@ class tqdm(Comparable):
         ordered_dict  : dict or OrderedDict, optional
         refresh  : bool, optional
             Forces refresh [default: True].
+        strip  : bool, optional
+            Whitespace-strips values [default: True].
         kwargs  : dict, optional
         """
         # Sort in alphabetical order to be more deterministic
@@ -1424,8 +1425,10 @@ class tqdm(Comparable):
             elif not isinstance(postfix[key], str):
                 postfix[key] = str(postfix[key])
             # Else if it's a string, don't need to preprocess anything
+            if strip:  # strip values if specified
+                postfix[key] = postfix[key].strip()
         # Stitch together to get the final postfix
-        self.postfix = ', '.join(key + '=' + postfix[key].strip()
+        self.postfix = ', '.join(key + '=' + postfix[key]
                                  for key in postfix.keys())
         if refresh:
             self.refresh()
