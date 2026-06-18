@@ -1,0 +1,2 @@
+include tqdm/tqdm.1
+include tqdm/completion.sh
