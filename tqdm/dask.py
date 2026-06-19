@@ -2,15 +2,13 @@ from functools import partial
 
 from dask.callbacks import Callback
 
-from .auto import tqdm as tqdm_auto
-
 __author__ = {"github.com/": ["casperdcl"]}
 __all__ = ['TqdmCallback']
 
 
 class TqdmCallback(Callback):
     """Dask callback for task progress."""
-    def __init__(self, start=None, pretask=None, tqdm_class=tqdm_auto,
+    def __init__(self, start=None, pretask=None, tqdm_class=None,
                  **tqdm_kwargs):
         """
         Parameters
@@ -21,6 +19,8 @@ class TqdmCallback(Callback):
             Any other arguments used for all bars.
         """
         super().__init__(start=start, pretask=pretask)
+        if tqdm_class is None:
+            from .auto import tqdm as tqdm_class
         if tqdm_kwargs:
             tqdm_class = partial(tqdm_class, **tqdm_kwargs)
         self.tqdm_class = tqdm_class

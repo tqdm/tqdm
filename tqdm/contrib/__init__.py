@@ -5,7 +5,6 @@ Subpackages contain potentially unstable extensions.
 """
 from warnings import warn
 
-from ..auto import tqdm as tqdm_auto
 from ..std import TqdmDeprecationWarning, tqdm
 from ..utils import ObjectWrapper
 
@@ -47,7 +46,7 @@ def builtin_iterable(func):
     return func
 
 
-def tenumerate(iterable, start=0, total=None, tqdm_class=tqdm_auto, **tqdm_kwargs):
+def tenumerate(iterable, start=0, total=None, tqdm_class=None, **tqdm_kwargs):
     """
     Equivalent of `numpy.ndenumerate` or builtin `enumerate`.
 
@@ -55,6 +54,8 @@ def tenumerate(iterable, start=0, total=None, tqdm_class=tqdm_auto, **tqdm_kwarg
     ----------
     tqdm_class  : [default: tqdm.auto.tqdm].
     """
+    if tqdm_class is None:
+        from ..auto import tqdm as tqdm_class
     try:
         import numpy as np
     except ImportError:
@@ -75,7 +76,9 @@ def tzip(iter1, *iter2plus, **tqdm_kwargs):
     tqdm_class  : [default: tqdm.auto.tqdm].
     """
     kwargs = tqdm_kwargs.copy()
-    tqdm_class = kwargs.pop("tqdm_class", tqdm_auto)
+    tqdm_class = kwargs.pop("tqdm_class", None)
+    if tqdm_class is None:
+        from ..auto import tqdm as tqdm_class
     yield from zip(tqdm_class(iter1, **kwargs), *iter2plus)
 
 

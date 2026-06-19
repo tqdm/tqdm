@@ -4,15 +4,15 @@ Thin wrappers around `itertools`.
 import itertools
 import math
 
-from ..auto import tqdm as tqdm_auto
-
 __author__ = {"github.com/": ["casperdcl"]}
 __all__ = [
     'chain', 'product', 'permutations', 'combinations', 'combinations_with_replacement', 'batched']
 
 
-def chain(*iterables, total=None, tqdm_class=tqdm_auto, **kwargs):
+def chain(*iterables, total=None, tqdm_class=None, **kwargs):
     """Equivalent of `itertools.chain`."""
+    if tqdm_class is None:
+        from ..auto import tqdm as tqdm_class
     if total is None:
         try:
             total = sum(map(len, iterables))
@@ -21,8 +21,10 @@ def chain(*iterables, total=None, tqdm_class=tqdm_auto, **kwargs):
     return tqdm_class(itertools.chain(*iterables), total=total, **kwargs)
 
 
-def product(*iterables, repeat=1, total=None, tqdm_class=tqdm_auto, **kwargs):
+def product(*iterables, repeat=1, total=None, tqdm_class=None, **kwargs):
     """Equivalent of `itertools.product`."""
+    if tqdm_class is None:
+        from ..auto import tqdm as tqdm_class
     if total is None:
         try:
             lens = list(map(len, iterables))
@@ -33,8 +35,10 @@ def product(*iterables, repeat=1, total=None, tqdm_class=tqdm_auto, **kwargs):
     yield from tqdm_class(itertools.product(*iterables, repeat=repeat), total=total, **kwargs)
 
 
-def permutations(iterable, r=None, total=None, tqdm_class=tqdm_auto, **kwargs):
+def permutations(iterable, r=None, total=None, tqdm_class=None, **kwargs):
     """Equivalent of `itertools.permutations`."""
+    if tqdm_class is None:
+        from ..auto import tqdm as tqdm_class
     if total is None:
         try:
             n = len(iterable)
@@ -49,8 +53,10 @@ def permutations(iterable, r=None, total=None, tqdm_class=tqdm_auto, **kwargs):
     return tqdm_class(itertools.permutations(iterable, r), total=total, **kwargs)
 
 
-def combinations(iterable, r, total=None, tqdm_class=tqdm_auto, **kwargs):
+def combinations(iterable, r, total=None, tqdm_class=None, **kwargs):
     """Equivalent of `itertools.combinations`."""
+    if tqdm_class is None:
+        from ..auto import tqdm as tqdm_class
     if total is None:
         try:
             n = len(iterable)
@@ -64,8 +70,10 @@ def combinations(iterable, r, total=None, tqdm_class=tqdm_auto, **kwargs):
     return tqdm_class(itertools.combinations(iterable, r), total=total, **kwargs)
 
 
-def combinations_with_replacement(iterable, r, total=None, tqdm_class=tqdm_auto, **kwargs):
+def combinations_with_replacement(iterable, r, total=None, tqdm_class=None, **kwargs):
     """Equivalent of `itertools.combinations_with_replacement`."""
+    if tqdm_class is None:
+        from ..auto import tqdm as tqdm_class
     if total is None:
         try:
             n = len(iterable)
@@ -80,8 +88,10 @@ def combinations_with_replacement(iterable, r, total=None, tqdm_class=tqdm_auto,
     return tqdm_class(itertools.combinations_with_replacement(iterable, r), total=total, **kwargs)
 
 
-def batched(iterable, n, total=None, tqdm_class=tqdm_auto, **kwargs):
+def batched(iterable, n, total=None, tqdm_class=None, **kwargs):
     """Equivalent of `itertools.batched`."""
+    if tqdm_class is None:
+        from ..auto import tqdm as tqdm_class
     if total is None:
         try:
             total = len(iterable)
