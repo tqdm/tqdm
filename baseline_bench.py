@@ -4,7 +4,6 @@ Measures tqdm overhead with lightweight per-iteration work.
 import sys
 import time
 import statistics
-from functools import partial
 import tqdm as tqdm_mod
 from tqdm import tqdm
 
