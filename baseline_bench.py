@@ -1,9 +1,10 @@
 """Baseline benchmark for tqdm optimization lab.
 Measures tqdm overhead with lightweight per-iteration work.
 """
+import statistics
 import sys
 import time
-import statistics
+
 import tqdm as tqdm_mod
 from tqdm import tqdm
 
