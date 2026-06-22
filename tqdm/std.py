@@ -571,11 +571,6 @@ class tqdm(Comparable):
 
         remaining = (total - n) / rate if rate and total else 0
         remaining_str = tqdm.format_interval(remaining) if rate else '?'
-        try:
-            eta_dt = (datetime.now() + timedelta(seconds=remaining)
-                      if rate and total else datetime.fromtimestamp(0, timezone.utc))
-        except OverflowError:
-            eta_dt = datetime.max
 
         # format the stats displayed to the left and right sides of the bar
         if prefix:
@@ -602,8 +597,18 @@ class tqdm(Comparable):
             'colour': colour,
             # plus more useful definitions
             'remaining': remaining_str, 'remaining_s': remaining,
-            'l_bar': l_bar, 'r_bar': r_bar, 'eta': eta_dt,
+            'l_bar': l_bar, 'r_bar': r_bar,
             **extra_kwargs}
+
+        # Lazy eta: only compute datetime when {eta} is in bar_format
+        _need_eta = '{eta' in (bar_format or '{l_bar}{bar}{r_bar}')
+        if _need_eta:
+            try:
+                format_dict['eta'] = (datetime.now() + timedelta(seconds=remaining)
+                                      if rate and total
+                                      else datetime.fromtimestamp(0, timezone.utc))
+            except OverflowError:
+                format_dict['eta'] = datetime.max
 
         # total is known: we can predict some stats
         if total:
@@ -1173,6 +1178,7 @@ class tqdm(Comparable):
         mininterval = self.mininterval
         last_print_t = self.last_print_t
         last_print_n = self.last_print_n
+        miniters = self.miniters
         min_start_t = self.start_t + self.delay
         n = self.n
         time = self._time
@@ -1184,13 +1190,14 @@ class tqdm(Comparable):
                 # Note: does not call self.update(1) for speed optimisation.
                 n += 1
 
-                if n - last_print_n >= self.miniters:
+                if n - last_print_n >= miniters:
                     cur_t = time()
                     dt = cur_t - last_print_t
                     if dt >= mininterval and cur_t >= min_start_t:
                         self.update(n - last_print_n)
                         last_print_n = self.last_print_n
                         last_print_t = self.last_print_t
+                        miniters = self.miniters
         finally:
             self.n = n
             self.close()
