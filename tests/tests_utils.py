@@ -53,7 +53,7 @@ def test_envwrap_types(monkeypatch):
     def nofallback(number=None, string=None):
         return number, string
 
-    assert 1, "1" == nofallback()
+    assert (1, "1") == nofallback()
 
 
 def test_envwrap_annotations(monkeypatch):
@@ -65,4 +65,18 @@ def test_envwrap_annotations(monkeypatch):
     def annotated(number: Union[int, float] = None, string: int = None):
         return number, string
 
-    assert 1.1, "1.1" == annotated()
+    assert (1.1, "1.1") == annotated()
+
+
+def test_envwrap_bool(monkeypatch):
+    """Test @envwrap with bool values"""
+    monkeypatch.setenv('FUNC_default_true', "False")
+    monkeypatch.setenv('FUNC_default_false', "1")
+    monkeypatch.setenv('FUNC_annotated', "0")
+    monkeypatch.setenv('FUNC_fallback', "yes")
+
+    @envwrap("func", types={'fallback': bool})
+    def func(default_true=True, default_false=False, annotated: bool = None, fallback=None):
+        return default_true, default_false, annotated, fallback
+
+    assert (False, True, False, True) == func()
