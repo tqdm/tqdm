@@ -1074,6 +1074,23 @@ def test_custom_format():
         assert "00:00 in total" in our_file.getvalue()
 
 
+def test_format_dict_remaining():
+    """`format_dict` exposes `remaining` and `remaining_s` (#1685)."""
+    with closing(StringIO()) as our_file:
+        with tqdm(total=10, file=our_file) as t:
+            t.update(4)
+            fd = t.format_dict
+            assert 'remaining' in fd
+            assert 'remaining_s' in fd
+            assert isinstance(fd['remaining_s'], (int, float))
+            if fd['rate']:
+                assert fd['remaining_s'] == (fd['total'] - fd['n']) / fd['rate']
+                assert fd['remaining'] == tqdm.format_interval(fd['remaining_s'])
+            else:
+                assert fd['remaining_s'] == 0
+                assert fd['remaining'] == '?'
+
+
 def test_eta(capsys):
     """Test eta bar_format"""
     from datetime import datetime as dt
