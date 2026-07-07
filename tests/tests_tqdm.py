@@ -275,6 +275,17 @@ def test_format_meter():
                         bar_format=r'{l_bar}{bar}') == " 20%|" + unich(0x258d) + " "
     assert format_meter(20, 100, 12, ncols=6, rate=8.1,
                         bar_format=r'{bar}|test') == unich(0x258f) + "|test"
+    # Check ncols trimming when `'{bar}' not in bar_format`
+    long_desc = "x" * 50
+    # no {bar}
+    assert format_meter(1, 100, 12, ncols=10, bar_format="{desc}", prefix=long_desc) == "x" * 10
+    # no total, no {bar}
+    assert format_meter(1, None, 12, ncols=10, bar_format="{desc}", prefix=long_desc) == "x" * 10
+    # no total, no bar_format (default stats line)
+    assert len(format_meter(1, None, 12, ncols=10)) == 10
+    # no trimming when ncols=0 or None
+    assert format_meter(1, 100, 12, ncols=None, bar_format="{desc}", prefix=long_desc) == long_desc
+    assert format_meter(1, None, 12, ncols=0, bar_format="{desc}", prefix=long_desc) == long_desc
 
 
 def test_ansi_escape_codes():
