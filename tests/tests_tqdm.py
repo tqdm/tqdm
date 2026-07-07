@@ -21,6 +21,7 @@ except ImportError:
 
 from io import IOBase  # to support unicode strings
 from io import BytesIO
+from unittest import mock
 
 
 class DeprecationError(Exception):
@@ -1969,3 +1970,25 @@ def test_write_stdout_none():
         tqdm.write("test stdout none message")
     finally:
         sys.stdout = orig_stdout
+
+
+def test_marimo_std_newline():
+    """Test std.tqdm uses \\n instead of \\r when marimo is detected"""
+    with mock.patch.dict(sys.modules, {'marimo': mock.MagicMock()}):
+        with closing(StringIO()) as our_file:
+            for _ in tqdm(range(3), file=our_file, ncols=80):
+                pass
+            out = our_file.getvalue()
+            # Should use \n as delimiter, not \r
+            assert '\r\n' not in out  # no \r followed by \n
+            assert out.startswith('\n')  # starts with \n
+
+
+def test_autonotebook_marimo_detection():
+    """Test autonotebook detects marimo module without crashing"""
+    with mock.patch.dict(sys.modules, {'marimo': mock.MagicMock()}):
+        from tqdm import autonotebook
+        tn = autonotebook.tqdm
+        # In test env without ipywidgets, it falls back to std.tqdm
+        from tqdm.std import tqdm as std_tqdm
+        assert tn == std_tqdm
