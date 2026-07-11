@@ -10,10 +10,10 @@ from warnings import catch_warnings, simplefilter
 
 from pytest import importorskip, mark, raises, skip
 
+import tqdm.std as tqdm_std
 from tqdm import TqdmDeprecationWarning, TqdmWarning, tqdm, trange
 from tqdm.contrib import DummyTqdmFile
 from tqdm.std import EMA, Bar
-import tqdm.std as tqdm_std
 
 try:
     from StringIO import StringIO
