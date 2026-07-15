@@ -1,0 +1,9 @@
+Support async iterables with only __aiter__ in tqdm_asyncio
+
+tqdm_asyncio only checked for __anext__ (async iterator) and __next__
+(sync iterator), but did not handle objects that only implement
+__aiter__ (async iterable). Such objects would fall through to the
+sync iter() call and fail.
+
+Added a check for __aiter__ between the __anext__ and __next__ checks,
+calling __aiter__() to get the async iterator and using its __anext__.
