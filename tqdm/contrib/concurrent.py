@@ -50,11 +50,18 @@ def _executor_map(PoolExecutor, fn, *iterables, **tqdm_kwargs):
     with ensure_lock(tqdm_class, lock_name=lock_name) as lk:
         # share lock in case workers are already using `tqdm`
         with PoolExecutor(
-            max_workers=max_workers, initializer=tqdm_class.set_lock, initargs=(lk,)
+            max_workers=max_workers,
+            initializer=tqdm_class.set_lock,
+            initargs=(lk,)
         ) as ex:
             return list(
                 tqdm_class(
-                    ex.map(fn, *iterables, timeout=timeout, chunksize=chunksize),
+                    ex.map(
+                        fn,
+                        *iterables,
+                        timeout=timeout,
+                        chunksize=chunksize
+                    ),
                     **kwargs,
                 )
             )
