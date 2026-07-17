@@ -13,6 +13,34 @@ def incr(x):
     return x + 1
 
 
+def check_lock(args):
+    """Check that another interpreter cannot acquire a held tqdm lock."""
+    from os.path import exists
+    from time import sleep
+
+    from tqdm.auto import tqdm
+
+    held, checked, result, role = args
+    lock = tqdm.get_lock()
+    if role == 'holder':
+        with lock, lock:  # also check that the lock is reentrant
+            with open(held, 'w'):
+                pass
+            while not exists(checked):
+                sleep(0.01)
+    else:
+        while not exists(held):
+            sleep(0.01)
+        acquired = lock.acquire(False)
+        if acquired:
+            lock.release()
+        with open(result, 'w') as result_file:
+            result_file.write(str(acquired))
+        with open(checked, 'w'):
+            pass
+    return role
+
+
 def test_thread_map():
     """Test contrib.concurrent.thread_map"""
     with closing(StringIO()) as our_file:
@@ -46,6 +74,21 @@ def test_interpreter_map():
         a = range(9)
         b = [i + 1 for i in a]
         assert interpreter_map(incr, a, file=our_file) == b
+
+
+def test_interpreter_map_lock(tmp_path):
+    """Test interpreter workers share tqdm's write lock"""
+    try:
+        from concurrent.futures import InterpreterPoolExecutor  # NOQA: F401
+    except ImportError as err:
+        skip(str(err))
+    held = str(tmp_path / 'held')
+    checked = str(tmp_path / 'checked')
+    result = tmp_path / 'result'
+    roles = ['holder', 'contender']
+    args = [(held, checked, str(result), role) for role in roles]
+    assert interpreter_map(check_lock, args, max_workers=2, disable=True) == roles
+    assert result.read_text() == 'False'
 
 
 @mark.parametrize("iterables,should_warn", [([], False), (['x'], False), ([()], False),
