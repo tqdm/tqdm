@@ -153,7 +153,8 @@ def interpreter_map(fn, *iterables, **tqdm_kwargs):
     Notes
     -----
     `fn`, its arguments, and its return values must be pickleable.
-    Worker progress bars using the same `tqdm_class` share a cross-interpreter write lock.
+    Worker progress bars using the same `tqdm_class` share a
+    cross-interpreter write lock.
     """
     from concurrent import interpreters
     from concurrent.futures import InterpreterPoolExecutor
