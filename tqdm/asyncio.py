@@ -68,8 +68,8 @@ class tqdm_asyncio(std_tqdm):
                        total=total, **tqdm_kwargs)
 
     @classmethod
-    async def gather(cls, *fs, loop=None, timeout=None, total=None,
-                     return_exceptions=False, **tqdm_kwargs):
+    async def gather(cls, *fs, loop=None, timeout=None, total=None, return_exceptions=False,
+                     **tqdm_kwargs):
         """
         Wrapper for `asyncio.gather`.
         """

@@ -124,12 +124,6 @@ async def double(i):
     return i * 2
 
 
-async def raise_exc(i):
-    if i == 1:
-        raise ValueError("test")
-    return i * 2
-
-
 @mark.asyncio
 async def test_gather(capsys):
     """Test asyncio gather"""
@@ -137,6 +131,12 @@ async def test_gather(capsys):
     _, err = capsys.readouterr()
     assert '30/30' in err
     assert res == list(range(0, 30 * 2, 2))
+
+
+async def raise_exc(i):
+    if i == 1:
+        raise ValueError("test")
+    return i * 2
 
 
 @mark.asyncio
