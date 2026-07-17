@@ -3,7 +3,7 @@ Tests for `tqdm.contrib.concurrent`.
 """
 from pytest import warns
 
-from tqdm.contrib.concurrent import process_map, thread_map
+from tqdm.contrib.concurrent import interpreter_map, process_map, thread_map
 
 from .tests_tqdm import StringIO, TqdmWarning, closing, importorskip, mark, skip
 
@@ -34,6 +34,18 @@ def test_process_map():
             assert process_map(incr, a, file=our_file) == b
         except ImportError as err:
             skip(str(err))
+
+
+def test_interpreter_map():
+    """Test contrib.concurrent.interpreter_map"""
+    try:
+        from concurrent.futures import InterpreterPoolExecutor  # NOQA: F401
+    except ImportError as err:
+        skip(str(err))
+    with closing(StringIO()) as our_file:
+        a = range(9)
+        b = [i + 1 for i in a]
+        assert interpreter_map(incr, a, file=our_file) == b
 
 
 @mark.parametrize("iterables,should_warn", [([], False), (['x'], False), ([()], False),

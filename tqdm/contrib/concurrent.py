@@ -9,7 +9,7 @@ from ..auto import tqdm as tqdm_auto
 from ..std import TqdmWarning
 
 __author__ = {"github.com/": ["casperdcl"]}
-__all__ = ['thread_map', 'process_map']
+__all__ = ['thread_map', 'process_map', 'interpreter_map']
 
 
 @contextmanager
@@ -26,9 +26,9 @@ def ensure_lock(tqdm_class, lock_name=""):
         tqdm_class.set_lock(old_lock)
 
 
-def _executor_map(PoolExecutor, fn, *iterables, **tqdm_kwargs):
+def _executor_map(PoolExecutor, fn, *iterables, _share_lock=True, **tqdm_kwargs):
     """
-    Implementation of `thread_map` and `process_map`.
+    Implementation of `thread_map`, `process_map` and `interpreter_map`.
 
     Parameters
     ----------
@@ -45,9 +45,11 @@ def _executor_map(PoolExecutor, fn, *iterables, **tqdm_kwargs):
     chunksize = kwargs.pop("chunksize", 1)
     lock_name = kwargs.pop("lock_name", "")
     with ensure_lock(tqdm_class, lock_name=lock_name) as lk:
-        # share lock in case workers are already using `tqdm`
-        with PoolExecutor(max_workers=max_workers, initializer=tqdm_class.set_lock,
-                          initargs=(lk,)) as ex:
+        pool_kwargs = {"max_workers": max_workers}
+        if _share_lock:
+            # share lock in case workers are already using `tqdm`
+            pool_kwargs.update(initializer=tqdm_class.set_lock, initargs=(lk,))
+        with PoolExecutor(**pool_kwargs) as ex:
             return list(tqdm_class(ex.map(fn, *iterables, chunksize=chunksize), **kwargs))
 
 
@@ -67,6 +69,29 @@ def thread_map(fn, *iterables, **tqdm_kwargs):
     """
     from concurrent.futures import ThreadPoolExecutor
     return _executor_map(ThreadPoolExecutor, fn, *iterables, **tqdm_kwargs)
+
+
+def interpreter_map(fn, *iterables, **tqdm_kwargs):
+    """
+    Equivalent of `list(map(fn, *iterables))`
+    driven by `concurrent.futures.InterpreterPoolExecutor` (Python 3.14+).
+
+    Parameters
+    ----------
+    tqdm_class  : optional
+        `tqdm` class to use for bars [default: tqdm.auto.tqdm].
+    max_workers  : int, optional
+        Maximum number of workers to spawn; passed to
+        `concurrent.futures.InterpreterPoolExecutor.__init__`.
+        [default: min(32, cpu_count() + 4)].
+
+    Notes
+    -----
+    `fn`, its arguments, and its return values must be pickleable.
+    """
+    from concurrent.futures import InterpreterPoolExecutor
+    return _executor_map(InterpreterPoolExecutor, fn, *iterables, _share_lock=False,
+                         **tqdm_kwargs)
 
 
 def process_map(fn, *iterables, **tqdm_kwargs):
