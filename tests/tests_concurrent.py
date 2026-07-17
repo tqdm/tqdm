@@ -1,6 +1,8 @@
 """
 Tests for `tqdm.contrib.concurrent`.
 """
+import sys
+
 from pytest import warns
 
 from tqdm.contrib.concurrent import interpreter_map, process_map, thread_map
@@ -66,10 +68,8 @@ def test_process_map():
 
 def test_interpreter_map():
     """Test contrib.concurrent.interpreter_map"""
-    try:
-        from concurrent.futures import InterpreterPoolExecutor  # NOQA: F401
-    except ImportError as err:
-        skip(str(err))
+    if sys.version_info < (3, 14):
+        skip("requires Python 3.14+")
     with closing(StringIO()) as our_file:
         a = range(9)
         b = [i + 1 for i in a]
@@ -78,10 +78,8 @@ def test_interpreter_map():
 
 def test_interpreter_map_lock(tmp_path):
     """Test interpreter workers share tqdm's write lock"""
-    try:
-        from concurrent.futures import InterpreterPoolExecutor  # NOQA: F401
-    except ImportError as err:
-        skip(str(err))
+    if sys.version_info < (3, 14):
+        skip("requires Python 3.14+")
     held = str(tmp_path / 'held')
     checked = str(tmp_path / 'checked')
     result = tmp_path / 'result'
