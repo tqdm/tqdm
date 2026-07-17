@@ -1,6 +1,7 @@
 """
 Thin wrappers around `concurrent.futures`.
 """
+import sys
 from contextlib import contextmanager
 from operator import length_hint
 from os import cpu_count
@@ -82,10 +83,19 @@ def ensure_lock(tqdm_class, lock_name="", lock=None):
         tqdm_class.set_lock(old_lock)
 
 
-def _set_interpreter_lock(tqdm_class, lock_queue_id):
-    """Install an interpreter-local lock backed by a shared queue."""
-    from concurrent import interpreters
-    tqdm_class.set_lock(_InterpreterLock(interpreters.Queue(lock_queue_id)))
+def _get_interpreter_init(tqdm_class, lock_queue_id):
+    """Return an initializer which bootstraps the parent import path and lock."""
+    code = (
+        "import sys\n"
+        f"sys.path[:] = {sys.path!r}\n"
+        "from concurrent import interpreters\n"
+        "from importlib import import_module\n"
+        "from tqdm.contrib.concurrent import _InterpreterLock\n"
+        f"tqdm_class = import_module({tqdm_class.__module__!r})\n"
+        f"for name in {tqdm_class.__qualname__.split('.')!r}:\n"
+        "    tqdm_class = getattr(tqdm_class, name)\n"
+        f"tqdm_class.set_lock(_InterpreterLock(interpreters.Queue({lock_queue_id!r})))")
+    return exec, (code,)
 
 
 def _executor_map(PoolExecutor, fn, *iterables, _lock=None, _initializer=None,
@@ -161,9 +171,10 @@ def interpreter_map(fn, *iterables, **tqdm_kwargs):
     lock_queue = interpreters.create_queue()
     lock_queue.put(None)
     tqdm_class = tqdm_kwargs.get("tqdm_class", tqdm_auto)
+    initializer, initargs = _get_interpreter_init(tqdm_class, lock_queue.id)
     return _executor_map(
         InterpreterPoolExecutor, fn, *iterables, _lock=_InterpreterLock(lock_queue),
-        _initializer=_set_interpreter_lock, _initargs=(tqdm_class, lock_queue.id), **tqdm_kwargs)
+        _initializer=initializer, _initargs=initargs, **tqdm_kwargs)
 
 
 def process_map(fn, *iterables, **tqdm_kwargs):
