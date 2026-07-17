@@ -19,7 +19,7 @@ jobs:
     timeout-minutes: 35
     defaults: {run: {shell: bash}}
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       with: {fetch-depth: 0}
     - uses: actions/setup-python@v6
       with:
@@ -69,7 +69,7 @@ jobs:
     environment: pypi
     permissions: {contents: write, id-token: write, packages: write}
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       with:
         fetch-depth: 0
         token: ${{ secrets.GH_TOKEN || github.token }}

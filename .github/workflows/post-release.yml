@@ -7,14 +7,14 @@ jobs:
     runs-on: ubuntu-slim
     steps:
     - name: Checkout repo
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
     - name: Checkout wiki
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
       with:
         repository: ${{ github.repository }}.wiki
         path: wiki
     - name: Checkout docs
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
       with:
         repository: ${{ github.repository }}.github.io
         path: docs
