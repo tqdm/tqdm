@@ -1270,7 +1270,9 @@ class tqdm(Comparable):
 
     def close(self):
         """Cleanup and (if leave=False) close the progress bar."""
-        if self.disable:
+        # guard against partially-initialised instances (e.g. __init__ failed,
+        # or __del__ triggered by GC before init completed). See GH #1668.
+        if getattr(self, 'disable', True):
             return
 
         # Prevent multiple closures
@@ -1280,6 +1282,9 @@ class tqdm(Comparable):
         pos = abs(self.pos)
         self._decr_instances(self)
 
+        if not hasattr(self, 'last_print_t'):
+            # __init__ did not reach the time-counter initialisation
+            return
         if self.last_print_t < self.start_t + self.delay:
             # haven't ever displayed; nothing to clear
             return
