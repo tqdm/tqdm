@@ -29,6 +29,10 @@ __all__ = ['tqdm', 'trange',
            'TqdmMonitorWarning']
 
 
+OSC_PROGRESS = '\x1b]9;4;1;'
+OSC_END = '\7'
+
+
 class TqdmTypeError(TypeError):
     pass
 
@@ -463,7 +467,7 @@ class tqdm(Comparable):
     def format_meter(n, total, elapsed, ncols=None, prefix='',
                      ascii=False,  # pylint: disable=redefined-builtin
                      unit='it', unit_scale=False, rate=None, bar_format=None, postfix=None,
-                     unit_divisor=1000, initial=0, colour=None, **extra_kwargs):
+                     unit_divisor=1000, initial=0, colour=None, title=False, **extra_kwargs):
         """
         Return a string-based progress bar given some parameters
 
@@ -611,7 +615,10 @@ class tqdm(Comparable):
             frac = n / total
             percentage = frac * 100
 
-            l_bar += f'{percentage:3.0f}%|'
+            if title:
+                l_bar += f'{OSC_PROGRESS}{round(percentage)}{OSC_END}{percentage:3.0f}%|'
+            else:
+                l_bar += f'{percentage:3.0f}%|'
 
             if ncols == 0:
                 return l_bar[:-1] + r_bar[1:]
@@ -962,7 +969,7 @@ class tqdm(Comparable):
                  disable=False, unit='it', unit_scale=False, dynamic_ncols=False, smoothing=0.3,
                  bar_format=None, initial=0, position=None, postfix=None, unit_divisor=1000,
                  write_bytes=False, lock_args=None, nrows=None, colour=None, delay=0.0, gui=False,
-                 **kwargs):
+                 title=False, **kwargs):
         """see tqdm.tqdm for arguments"""
         if file is None:
             file = sys.stderr
@@ -1080,6 +1087,7 @@ class tqdm(Comparable):
         self.postfix = None
         self.colour = colour
         self._time = time
+        self.title = title
         if postfix:
             try:
                 self.set_postfix(refresh=False, **postfix)
@@ -1465,7 +1473,7 @@ class tqdm(Comparable):
             'rate': self._ema_dn() / self._ema_dt() if self._ema_dt() else None,
             'bar_format': self.bar_format, 'postfix': self.postfix,
             'unit_divisor': self.unit_divisor, 'initial': self.initial,
-            'colour': self.colour}
+            'colour': self.colour, 'title': self.title}
 
     def display(self, msg=None, pos=None):
         """
