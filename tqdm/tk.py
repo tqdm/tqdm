@@ -1,5 +1,5 @@
 """
-Tkinter GUI progressbar decorator for iterators.
+Tkinter GUI progress bar decorator for iterators.
 
 Usage:
 >>> from tqdm.tk import trange, tqdm

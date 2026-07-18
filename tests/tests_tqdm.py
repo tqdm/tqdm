@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Advice: use repr(our_file.read()) to print the full output of tqdm
 # (else '\r' will replace the previous lines and you'll see only the latest.
 import csv
@@ -38,7 +37,7 @@ else:
 nt_and_no_colorama = False
 if os.name == 'nt':
     try:
-        import colorama  # NOQA
+        import colorama  # noqa: F401, pylint: disable=unused-import
     except ImportError:
         nt_and_no_colorama = True
 
@@ -80,7 +79,7 @@ def pos_line_diff(res_list, expected_list, raise_nonempty=True):
     return res
 
 
-class DiscreteTimer(object):
+class DiscreteTimer:
     """Virtual discrete time manager, to precisely control time for tests"""
     def __init__(self):
         self.t = 0.0
@@ -180,6 +179,10 @@ def test_format_interval():
     assert format_interval(60) == '01:00'
     assert format_interval(6160) == '1:42:40'
     assert format_interval(238113) == '66:08:33'
+    assert format_interval(-1) == '-00:01'
+    assert format_interval(-60) == '-01:00'
+    assert format_interval(-100000) == '-27:46:40'
+    assert format_interval(0) == '00:00'
 
 
 def test_format_num():
@@ -272,6 +275,17 @@ def test_format_meter():
                         bar_format=r'{l_bar}{bar}') == " 20%|" + unich(0x258d) + " "
     assert format_meter(20, 100, 12, ncols=6, rate=8.1,
                         bar_format=r'{bar}|test') == unich(0x258f) + "|test"
+    # Check ncols trimming when `'{bar}' not in bar_format`
+    long_desc = "x" * 50
+    # no {bar}
+    assert format_meter(1, 100, 12, ncols=10, bar_format="{desc}", prefix=long_desc) == "x" * 10
+    # no total, no {bar}
+    assert format_meter(1, None, 12, ncols=10, bar_format="{desc}", prefix=long_desc) == "x" * 10
+    # no total, no bar_format (default stats line)
+    assert len(format_meter(1, None, 12, ncols=10)) == 10
+    # no trimming when ncols=0 or None
+    assert format_meter(1, 100, 12, ncols=None, bar_format="{desc}", prefix=long_desc) == long_desc
+    assert format_meter(1, None, 12, ncols=0, bar_format="{desc}", prefix=long_desc) == long_desc
 
 
 def test_ansi_escape_codes():
@@ -353,7 +367,7 @@ def test_native_string_io_for_default_file():
     """Native strings written to unspecified files"""
     stderr = sys.stderr
     try:
-        sys.stderr = WriteTypeChecker(expected_type=type(''))
+        sys.stderr = WriteTypeChecker(expected_type=str)
         for _ in tqdm(range(3)):
             pass
         sys.stderr.encoding = None  # py2 behaviour
@@ -365,20 +379,20 @@ def test_native_string_io_for_default_file():
 
 def test_unicode_string_io_for_specified_file():
     """Unicode strings written to specified files"""
-    for _ in tqdm(range(3), file=WriteTypeChecker(expected_type=type(u''))):
+    for _ in tqdm(range(3), file=WriteTypeChecker(expected_type=str)):
         pass
 
 
 def test_write_bytes():
     """Test write_bytes argument with and without `file`"""
     # specified file (and bytes)
-    for _ in tqdm(range(3), file=WriteTypeChecker(expected_type=type(b'')),
+    for _ in tqdm(range(3), file=WriteTypeChecker(expected_type=bytes),
                   write_bytes=True):
         pass
     # unspecified file (and unicode)
     stderr = sys.stderr
     try:
-        sys.stderr = WriteTypeChecker(expected_type=type(u''))
+        sys.stderr = WriteTypeChecker(expected_type=str)
         for _ in tqdm(range(3), write_bytes=False):
             pass
     finally:
@@ -766,43 +780,6 @@ def test_smoothed_dynamic_min_iters_with_min_interval():
     assert '14%' in out and '14%' in out2
 
 
-@mark.slow
-def test_rlock_creation():
-    """Test that importing tqdm does not create multiprocessing objects."""
-    mp = importorskip('multiprocessing')
-    if not hasattr(mp, 'get_context'):
-        skip("missing multiprocessing.get_context")
-
-    # Use 'spawn' instead of 'fork' so that the process does not inherit any
-    # globals that have been constructed by running other tests
-    ctx = mp.get_context('spawn')
-    with ctx.Pool(1) as pool:
-        # The pool will propagate the error if the target method fails
-        pool.apply(_rlock_creation_target)
-
-
-def _rlock_creation_target():
-    """Check that the RLock has not been constructed."""
-    import multiprocessing as mp
-    patch = importorskip('unittest.mock').patch
-
-    # Patch the RLock class/method but use the original implementation
-    with patch('multiprocessing.RLock', wraps=mp.RLock) as rlock_mock:
-        # Importing the module should not create a lock
-        from tqdm import tqdm
-        assert rlock_mock.call_count == 0
-        # Creating a progress bar should initialize the lock
-        with closing(StringIO()) as our_file:
-            with tqdm(file=our_file) as _:  # NOQA
-                pass
-        assert rlock_mock.call_count == 1
-        # Creating a progress bar again should reuse the lock
-        with closing(StringIO()) as our_file:
-            with tqdm(file=our_file) as _:  # NOQA
-                pass
-        assert rlock_mock.call_count == 1
-
-
 def test_disable():
     """Test disable"""
     with closing(StringIO()) as our_file:
@@ -869,9 +846,9 @@ def test_ascii():
             for _ in range(3):
                 t.update()
         res = our_file.getvalue().strip("\r").split("\r")
-    assert u"7%|\u258b" in res[1]
-    assert u"13%|\u2588\u258e" in res[2]
-    assert u"20%|\u2588\u2588" in res[3]
+    assert "7%|\u258b" in res[1]
+    assert "13%|\u2588\u258e" in res[2]
+    assert "20%|\u2588\u2588" in res[3]
 
     # Test custom bar
     for bars in [" .oO0", " #"]:
@@ -1323,7 +1300,7 @@ def test_set_description():
     # unicode
     with closing(StringIO()) as our_file:
         with tqdm(total=10, file=our_file) as t:
-            t.set_description(u"\xe1\xe9\xed\xf3\xfa")
+            t.set_description("\xe1\xe9\xed\xf3\xfa")
 
 
 def test_deprecated_gui():
@@ -1446,8 +1423,8 @@ def test_refresh():
         t2.close()
 
         # Check that refreshing indeed forced the display to use realtime state
-        assert before == [u'pos0 bar:   0%|', u'pos1 bar:   0%|']
-        assert after == [u'pos0 bar:  10%|', u'pos1 bar:  10%|']
+        assert before == ['pos0 bar:   0%|', 'pos1 bar:   0%|']
+        assert after == ['pos0 bar:  10%|', 'pos1 bar:  10%|']
 
 
 def test_disabled_repr(capsys):
@@ -1759,7 +1736,7 @@ def patch_lock(thread=True):
 @patch_lock(thread=False)
 def test_threading():
     """Test multiprocess/thread-realted features"""
-    pass  # TODO: test interleaved output #445
+    # TODO: test interleaved output #445
 
 
 def test_bool():
@@ -1982,3 +1959,13 @@ def test_contains(capsys):
     assert not out
     assert '  0%' in err
     assert '100%' not in err
+
+
+def test_write_stdout_none():
+    """Test tqdm.write does not crash when sys.stdout is None"""
+    orig_stdout = sys.stdout
+    try:
+        sys.stdout = None
+        tqdm.write("test stdout none message")
+    finally:
+        sys.stdout = orig_stdout

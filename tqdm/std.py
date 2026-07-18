@@ -1,5 +1,5 @@
 """
-Customisable progressbar decorator for iterators.
+Customisable progress bar decorator for iterators.
 Includes a default `range` iterator printing to `stderr`.
 
 Usage:
@@ -46,26 +46,24 @@ class TqdmWarning(Warning):
 
     Used for non-external-code-breaking errors, such as garbled printing.
     """
-    def __init__(self, msg, fp_write=None, *a, **k):
+    def __init__(self, msg, fp_write=None):  # noqa: B042
         if fp_write is not None:
             fp_write("\n" + self.__class__.__name__ + ": " + str(msg).rstrip() + '\n')
         else:
-            super().__init__(msg, *a, **k)
+            super().__init__(msg)
 
 
 class TqdmExperimentalWarning(TqdmWarning, FutureWarning):
     """beta feature, unstable API and behaviour"""
-    pass
 
 
 class TqdmDeprecationWarning(TqdmWarning, DeprecationWarning):
+    """may be removed in a future release"""
     # not suppressed if raised
-    pass
 
 
 class TqdmMonitorWarning(TqdmWarning, RuntimeWarning):
     """tqdm monitor errors which do not affect external functionality"""
-    pass
 
 
 def TRLock(*args, **kwargs):
@@ -77,7 +75,7 @@ def TRLock(*args, **kwargs):
         pass
 
 
-class TqdmDefaultWriteLock(object):
+class TqdmDefaultWriteLock:
     """
     Provide a default write lock for thread and multiprocessing safety.
     Works only on platforms supporting `fork` (so Windows is excluded).
@@ -132,7 +130,7 @@ class TqdmDefaultWriteLock(object):
         warn("create_th_lock not needed anymore", TqdmDeprecationWarning, stacklevel=2)
 
 
-class Bar(object):
+class Bar:
     """
     `str.format`-able bar with format specifiers: `[width][type]`
 
@@ -146,7 +144,7 @@ class Bar(object):
       + `b`: blank (`charset="  "` override)
     """
     ASCII = " 123456789#"
-    UTF = u" " + u''.join(map(chr, range(0x258F, 0x2587, -1)))
+    UTF = " " + ''.join(map(chr, range(0x258F, 0x2587, -1)))
     BLANK = "  "
     COLOUR_RESET = '\x1b[0m'
     COLOUR_RGB = '\x1b[38;2;%d;%d;%dm'
@@ -182,9 +180,8 @@ class Bar(object):
             else:
                 raise KeyError
         except (KeyError, AttributeError):
-            warn("Unknown colour (%s); valid choices: [hex (#00ff00), %s]" % (
-                 value, ", ".join(self.COLOURS)),
-                 TqdmWarning, stacklevel=2)
+            warn(f"Unknown colour ({value}); valid choices:"
+                 f" [hex (#00ff00), {', '.join(self.COLOURS)}]", TqdmWarning, stacklevel=2)
             self._colour = None
 
     def __format__(self, format_spec):
@@ -215,7 +212,7 @@ class Bar(object):
         return self.colour + res + self.COLOUR_RESET if self.colour else res
 
 
-class EMA(object):
+class EMA:
     """
     Exponential moving average: smoothing to give progressively lower
     weights to older values.
@@ -250,25 +247,25 @@ class tqdm(Comparable):
     """
     Decorate an iterable object, returning an iterator which acts exactly
     like the original iterable, but prints a dynamically updating
-    progressbar every time a value is requested.
+    progress bar every time a value is requested.
 
     Parameters
     ----------
     iterable  : iterable, optional
-        Iterable to decorate with a progressbar.
+        Iterable to decorate with a progress bar.
         Leave blank to manually manage the updates.
     desc  : str, optional
-        Prefix for the progressbar.
+        Prefix for the progress bar.
     total  : int or float, optional
         The number of expected iterations. If unspecified,
         len(iterable) is used if possible. If float("inf") or as a last
         resort, only basic progress statistics are displayed
-        (no ETA, no progressbar).
+        (no ETA, no progress bar).
         If `gui` is True and this parameter needs subsequent updating,
         specify an initial arbitrary large positive number,
         e.g. 9e9.
     leave  : bool, optional
-        If [default: True], keeps all traces of the progressbar
+        If [default: True], keeps all traces of the progress bar
         upon termination of iteration.
         If `None`, will leave only if `position` is `0`.
     file  : `io.TextIOWrapper` or `io.StringIO`, optional
@@ -277,7 +274,7 @@ class tqdm(Comparable):
         methods.  For encoding, see `write_bytes`.
     ncols  : int, optional
         The width of the entire output message. If specified,
-        dynamically resizes the progressbar to stay within this bound.
+        dynamically resizes the progress bar to stay within this bound.
         If unspecified, attempts to use environment width. The
         fallback is a meter width of 10 and no limit for the counter and
         statistics. If 0, will not print any meter (only stats).
@@ -300,7 +297,7 @@ class tqdm(Comparable):
         If unspecified or False, use unicode (smooth blocks) to fill
         the meter. The fallback is to use ASCII characters " 123456789#".
     disable  : bool, optional
-        Whether to disable the entire progressbar wrapper
+        Whether to disable the entire progress bar wrapper
         [default: False]. If set to None, disable on non-TTY.
     unit  : str, optional
         String that will be used to define the unit of each iteration
@@ -416,9 +413,10 @@ class tqdm(Comparable):
         out  : str
             [H:]MM:SS
         """
-        mins, s = divmod(int(t), 60)
+        sign = '-' if t < 0 else ''
+        mins, s = divmod(abs(int(t)), 60)
         h, m = divmod(mins, 60)
-        return f'{h:d}:{m:02d}:{s:02d}' if h else f'{m:02d}:{s:02d}'
+        return f'{sign}{h:d}:{m:02d}:{s:02d}' if h else f'{sign}{m:02d}:{s:02d}'
 
     @staticmethod
     def format_num(n):
@@ -466,8 +464,9 @@ class tqdm(Comparable):
         return print_status
 
     @staticmethod
-    def format_meter(n, total, elapsed, ncols=None, prefix='', ascii=False, unit='it',
-                     unit_scale=False, rate=None, bar_format=None, postfix=None,
+    def format_meter(n, total, elapsed, ncols=None, prefix='',
+                     ascii=False,  # pylint: disable=redefined-builtin
+                     unit='it', unit_scale=False, rate=None, bar_format=None, postfix=None,
                      unit_divisor=1000, initial=0, colour=None, title=False, **extra_kwargs):
         """
         Return a string-based progress bar given some parameters
@@ -635,9 +634,9 @@ class tqdm(Comparable):
                 bar_format = "{l_bar}{bar}{r_bar}"
 
             full_bar = FormatReplace()
-            nobar = bar_format.format(bar=full_bar, **format_dict)
+            nobar = bar_format.format(bar=full_bar, **format_dict)  # no `{bar}`
             if not full_bar.format_called:
-                return nobar  # no `{bar}`; nothing else to do
+                return disp_trim(nobar, ncols) if ncols else nobar
 
             # Formatting progress bar space available for bar's display
             full_bar = Bar(frac,
@@ -656,16 +655,17 @@ class tqdm(Comparable):
             full_bar = FormatReplace()
             nobar = bar_format.format(bar=full_bar, **format_dict)
             if not full_bar.format_called:
-                return nobar
+                return disp_trim(nobar, ncols) if ncols else nobar
             full_bar = Bar(0,
                            max(1, ncols - disp_len(nobar)) if ncols else 10,
                            charset=Bar.BLANK, colour=colour)
             res = bar_format.format(bar=full_bar, **format_dict)
             return disp_trim(res, ncols) if ncols else res
         else:
-            # no total: no progressbar, ETA, just progress stats
-            return (f'{(prefix + ": ") if prefix else ""}'
-                    f'{n_fmt}{unit} [{elapsed_str}, {rate_fmt}{postfix}]')
+            # no total: no bar & ETA, just progress stats
+            res = (f'{(prefix + ": ") if prefix else ""}'
+                   f'{n_fmt}{unit} [{elapsed_str}, {rate_fmt}{postfix}]')
+            return disp_trim(res, ncols) if ncols else res
 
     def __new__(cls, *_, **__):
         instance = object.__new__(cls)
@@ -724,6 +724,8 @@ class tqdm(Comparable):
     def write(cls, s, file=None, end="\n", nolock=False):
         """Print a message via tqdm (without overlap with bars)."""
         fp = file if file is not None else sys.stdout
+        if fp is None:
+            return
         with cls.external_write_mode(file=file, nolock=nolock):
             # Write the message
             fp.write(s)
@@ -737,6 +739,9 @@ class tqdm(Comparable):
         Useful when writing to standard output stream
         """
         fp = file if file is not None else sys.stdout
+        if fp is None:
+            yield
+            return
 
         try:
             if not nolock:
@@ -900,10 +905,10 @@ class tqdm(Comparable):
                         " Use keyword arguments instead.",
                         fp_write=getattr(t.fp, 'write', sys.stderr.write))
 
-                try:  # pandas>=1.3.0
+                try:  # pandas>=1.3.0,<3.0
                     from pandas.core.common import is_builtin_func
-                except ImportError:
-                    is_builtin_func = df._is_builtin_func
+                except ImportError:  # pandas<1.3.0
+                    is_builtin_func = getattr(df, '_is_builtin_func', lambda f: f)
                 try:
                     func = is_builtin_func(func)
                 except TypeError:
@@ -956,16 +961,15 @@ class tqdm(Comparable):
             _Rolling_and_Expanding.progress_apply = inner_generator()
 
     # override defaults via env vars
-    @envwrap("TQDM_", is_method=True, types={'total': float, 'ncols': int, 'miniters': float,
-                                             'position': int, 'nrows': int})
+    @envwrap("tqdm", is_method=True, types={'total': float, 'ncols': int, 'miniters': float,
+                                            'position': int, 'nrows': int})
     def __init__(self, iterable=None, desc=None, total=None, leave=True, file=None,
                  ncols=None, mininterval=0.1, maxinterval=10.0, miniters=None,
-                 ascii=None, disable=False, unit='it', unit_scale=False,
-                 dynamic_ncols=False, smoothing=0.3, bar_format=None, initial=0,
-                 position=None, postfix=None, unit_divisor=1000, write_bytes=False,
-                 lock_args=None, nrows=None, colour=None, delay=0.0, gui=False,
-                 title=False,
-                 **kwargs):
+                 ascii=None,  # pylint: disable=redefined-builtin
+                 disable=False, unit='it', unit_scale=False, dynamic_ncols=False, smoothing=0.3,
+                 bar_format=None, initial=0, position=None, postfix=None, unit_divisor=1000,
+                 write_bytes=False, lock_args=None, nrows=None, colour=None, delay=0.0, gui=False,
+                 title=False, **kwargs):
         """see tqdm.tqdm for arguments"""
         if file is None:
             file = sys.stderr
@@ -1139,7 +1143,8 @@ class tqdm(Comparable):
 
     def __contains__(self, item):
         contains = getattr(self.iterable, '__contains__', None)
-        return contains(item) if contains is not None else item in self.__iter__()
+        return (contains(item) if contains is not None  # pylint: disable=not-callable
+                else item in self.__iter__())
 
     def __enter__(self):
         return self
@@ -1189,7 +1194,7 @@ class tqdm(Comparable):
         try:
             for obj in iterable:
                 yield obj
-                # Update and possibly print the progressbar.
+                # Update and possibly print the progress bar.
                 # Note: does not call self.update(1) for speed optimisation.
                 n += 1
 
@@ -1272,7 +1277,7 @@ class tqdm(Comparable):
                 return True
 
     def close(self):
-        """Cleanup and (if leave=False) close the progressbar."""
+        """Cleanup and (if leave=False) close the progress bar."""
         if self.disable:
             return
 
@@ -1508,7 +1513,8 @@ class tqdm(Comparable):
 
     @classmethod
     @contextmanager
-    def wrapattr(cls, stream, method, total=None, bytes=True, **tqdm_kwargs):
+    def wrapattr(cls, stream, method, total=None, bytes=True,  # pylint: disable=redefined-builtin
+                 **tqdm_kwargs):
         """
         stream  : file-like object.
         method  : str, "read" or "write". The result of `read()` and

@@ -2,14 +2,15 @@ default_language_version:
   python: python3
 repos:
 - repo: https://github.com/pre-commit/pre-commit-hooks
-  rev: v5.0.0
+  rev: v6.0.0
   hooks:
   - id: check-added-large-files
+  - id: check-builtin-literals
   - id: check-case-conflict
   - id: check-docstring-first
   - id: check-executables-have-shebangs
-  - id: check-toml
   - id: check-merge-conflict
+  - id: check-toml
   - id: check-yaml
   - id: debug-statements
   - id: end-of-file-fixer
@@ -26,11 +27,25 @@ repos:
     args: [-i]
     types: [text]
     exclude: ^(.pre-commit-config.yaml|.github/workflows/test.yml)$
+  - id: README.rst
+    name: README.rst & tqdm/tqdm.1
+    language: python
+    entry: python
+    args: [.meta/mkdocs.py]
+    files: ^(tqdm/((std|cli)\.py|tqdm\.1)|README.rst|.meta/.*)$
+    pass_filenames: false
+  - id: completion.sh
+    name: tqdm/completion.sh
+    language: python
+    entry: python
+    args: [.meta/mkcompletion.py]
+    files: ^(tqdm/(std|cli)|.meta/mkcompletion)\.py$
+    pass_filenames: false
   - id: pytest
     name: pytest quick
     language: python
     entry: pytest
-    args: [-qq, --durations=1, -k=not slow]
+    args: [-qq, -k=not slow]
     types: [python]
     pass_filenames: false
     additional_dependencies:
@@ -39,7 +54,7 @@ repos:
     - pytest-timeout
     - pytest-asyncio>=0.24
 - repo: https://github.com/PyCQA/flake8
-  rev: 7.1.1
+  rev: 7.3.0
   hooks:
   - id: flake8
     args: [-j8]
@@ -50,13 +65,17 @@ repos:
     - flake8-debugger
     - flake8-isort
     - flake8-pyproject
-    - flake8-string-format
+- repo: https://github.com/asottile/pyupgrade
+  rev: v3.21.2
+  hooks:
+  - id: pyupgrade
+    args: [--py38-plus]
 - repo: https://github.com/PyCQA/isort
-  rev: 5.13.2
+  rev: 9.0.0b1
   hooks:
   - id: isort
 - repo: https://github.com/kynan/nbstripout
-  rev: 0.7.1
+  rev: 0.9.1
   hooks:
   - id: nbstripout
     args: [--keep-count, --keep-output]

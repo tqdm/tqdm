@@ -4,25 +4,14 @@
     "project_url": "https://github.com/tqdm/tqdm/",
     "repo": ".",
     "environment_type": "virtualenv",
-    "build_command": ["PIP_NO_BUILD_ISOLATION=false python -mpip wheel --no-deps --no-index -w {build_cache_dir} ."],
     "show_commit_url": "https://github.com/tqdm/tqdm/commit/",
-    // "pythons": ["3.7", "3.12"],
-    // "conda_channels": ["conda-forge", "defaults"],
     "matrix": {
-        "alive-progress": [""],
-        "progressbar2": [""],
-        "rich": [""],
+        "req": {
+            "alive-progress": [""],
+            "progressbar2": [""],
+            "rich": [""]
+        }
     },
-    // "exclude": [
-    //     {"python": "3.2", "sys_platform": "win32"}, // skip py3.2 on windows
-    //     {"environment_type": "conda", "six": null}, // don't run without six on conda
-    // ],
-    // "include": [
-    //     // additional env for python2.7
-    //     {"python": "2.7", "numpy": "1.8"},
-    //     // additional env if run on windows+conda
-    //     {"platform": "win32", "environment_type": "conda", "python": "2.7", "libpython": ""},
-    // ],
     "benchmark_dir": "benchmarks",
     "env_dir": ".asv/env",
     "results_dir": ".asv/results",

@@ -7,9 +7,10 @@ __all__ = ["TMonitor", "TqdmSynchronisationWarning"]
 
 
 class TqdmSynchronisationWarning(RuntimeWarning):
-    """tqdm multi-thread/-process errors which may cause incorrect nesting
-    but otherwise no adverse effects"""
-    pass
+    """
+    tqdm multi-thread/-process errors which may cause incorrect nesting
+    but otherwise no adverse effects
+    """
 
 
 class TMonitor(Thread):
@@ -28,15 +29,23 @@ class TMonitor(Thread):
     _test = {}  # internal vars for unit testing
 
     def __init__(self, tqdm_cls, sleep_interval):
-        Thread.__init__(self)
+        Thread.__init__(self, name="tqdm_monitor")
         self.daemon = True  # kill thread when main killed (KeyboardInterrupt)
         self.woken = 0  # last time woken up, to sync with monitor
         self.tqdm_cls = tqdm_cls
         self.sleep_interval = sleep_interval
         self._time = self._test.get("time", time)
         self.was_killed = self._test.get("Event", Event)()
-        atexit.register(self.exit)
+        atexit.register(self._atexit_signal)
         self.start()
+
+    def _atexit_signal(self):
+        """
+        Non-joining shutdown signal.
+        Avoids deadlocks at interpreter exit from other threads, dead forks, etc.
+        This daemon thread is auto-reaped on shutdown without needing a join.
+        """
+        self.was_killed.set()
 
     def exit(self):
         self.was_killed.set()

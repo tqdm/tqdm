@@ -5,7 +5,7 @@ channels:
 - defaults
 dependencies:
 # base
-- python >=3.7
+- python >=3.8
 - pip
 - ipykernel
 - ipywidgets
@@ -14,13 +14,13 @@ dependencies:
 - toml
 # test env managers
 - pre-commit
-- tox
-- asv
+- tox >=4
+- asv >=0.5
 # tests (native)
 - pytest
 - pytest-cov
 - pytest-timeout
-- pytest-asyncio>=0.24
+- pytest-asyncio >=0.24
 - coverage
 # extras
 - dask               # dask

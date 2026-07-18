@@ -62,7 +62,7 @@ def test_main_import():
     sys.argv = ['', '--desc', 'Test CLI import',
                 '--ascii', 'True', '--unit_scale', 'True']
     try:
-        import tqdm.__main__  # NOQA, pylint: disable=unused-variable
+        import tqdm.__main__  # noqa: F401, pylint: disable=unused-import
     finally:
         sys.stdin, sys.argv = _SYS
 
@@ -183,7 +183,7 @@ def test_main(capsysbinary):
 
 
 @mark.slow
-@mark.skipif(IS_WIN, reason="no manpages on windows")
+@mark.skipif(IS_WIN, reason="no man pages on windows")
 def test_manpath(tmp_path):
     """Test CLI --manpath"""
     man = tmp_path / "tqdm.1"

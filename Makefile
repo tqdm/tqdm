@@ -91,14 +91,7 @@ viewasv:
 	asv preview
 
 tqdm/tqdm.1: .meta/.tqdm.1.md tqdm/cli.py tqdm/std.py
-	# TODO: add to mkdocs.py
-	python -m tqdm --help | tail -n+5 |\
-    sed -r -e 's/\\/\\\\/g' \
-      -e 's/^  (--.*)=<(.*)>  : (.*)$$/\n\\\1=*\2*\n: \3./' \
-      -e 's/^  (--.*)  : (.*)$$/\n\\\1\n: \2./' \
-      -e 's/  (-.*, )(--.*)  /\n\1\\\2\n: /' |\
-    cat "$<" - |\
-    pandoc -o "$@" -s -t man
+	@python .meta/mkdocs.py
 
 tqdm/completion.sh: .meta/mkcompletion.py tqdm/std.py tqdm/cli.py
 	@python .meta/mkcompletion.py
@@ -113,7 +106,7 @@ snapcraft.yaml: .meta/mksnap.py
 	@+python -c "fd=open('.dockerignore', 'w'); fd.write('*\n!dist/*.whl\n')"
 
 Dockerfile:
-	@+python -c 'fd=open("Dockerfile", "w"); fd.write("FROM python:3.8-alpine\nCOPY dist/*.whl .\nRUN pip install -U $$(ls ./*.whl) && rm ./*.whl\nENTRYPOINT [\"tqdm\"]\n")'
+	@+python -c 'fd=open("Dockerfile", "w"); fd.write("FROM python:3.14-alpine\nCOPY dist/*.whl .\nRUN pip install -U $$(ls ./*.whl) && rm ./*.whl\nENTRYPOINT [\"tqdm\"]\n")'
 
 distclean:
 	@+make coverclean
@@ -124,7 +117,6 @@ prebuildclean:
 	@+python -c "import shutil; shutil.rmtree('dist', True)"
 	@+python -c "import shutil; shutil.rmtree('tqdm.egg-info', True)"
 	@+python -c "import shutil; shutil.rmtree('.eggs', True)"
-	@+python -c "import os; os.remove('tqdm/_dist_ver.py') if os.path.exists('tqdm/_dist_ver.py') else None"
 coverclean:
 	@+python -c "import os; os.remove('.coverage') if os.path.exists('.coverage') else None"
 	@+python -c "import os, glob; [os.remove(i) for i in glob.glob('.coverage.*')]"

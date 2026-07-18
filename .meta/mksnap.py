@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """
 Auto-generate snapcraft.yaml.
 """
@@ -60,7 +59,7 @@ apps:
   tqdm:
     command: bin/tqdm
     completer: completion.sh
-""".format(version=tqdm.__version__)  # nosec
+""".format(version=tqdm.__version__.split('.d')[0])  # nosec
 
 if __name__ == "__main__":
     (Path(__file__).resolve().parent.parent / 'snapcraft.yaml').write_text(

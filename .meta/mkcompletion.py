@@ -6,8 +6,8 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
-import tqdm  # NOQA
-import tqdm.cli  # NOQA
+import tqdm  # noqa: E402
+import tqdm.cli  # noqa: E402
 
 RE_OPT = re.compile(r'(\w+)  :', flags=re.M)
 RE_OPT_INPUT = re.compile(r'(\w+)  : (?:str|int|float|chr|dict|tuple)', flags=re.M)
@@ -32,7 +32,7 @@ for doc in (tqdm.tqdm.__doc__, tqdm.cli.CLI_EXTRA_DOC):
 options.difference_update('--' + i for i in ('name',) + tqdm.cli.UNSUPPORTED_OPTS)
 options_input &= options
 options_input -= {"--log"}  # manually dealt with
-completion = u"""\
+completion = """\
 #!/usr/bin/env bash
 _tqdm(){{
   local cur prv

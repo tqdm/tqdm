@@ -1,5 +1,5 @@
 """
-IPython/Jupyter Notebook progressbar decorator for iterators.
+IPython/Jupyter Notebook progress bar decorator for iterators.
 Includes a default `range` iterator printing to `stderr`.
 
 Usage:
@@ -20,7 +20,7 @@ if True:  # pragma: no cover
     # import IPython/Jupyter base widget and display utilities
     IPY = 0
     try:  # IPython 4.x
-        import ipywidgets
+        import ipywidgets  # noqa: F401, pylint: disable=unused-import
         IPY = 4
     except ImportError:  # IPython 3.x / 2.x
         IPY = 32
@@ -29,9 +29,11 @@ if True:  # pragma: no cover
             warnings.filterwarnings(
                 'ignore', message=".*The `IPython.html` package has been deprecated.*")
             try:
-                import IPython.html.widgets as ipywidgets  # NOQA: F401
+                import IPython.html.widgets
             except ImportError:
                 pass
+            else:
+                ipywidgets = IPython.html.widgets
 
     try:  # IPython 4.x / 3.x
         if IPY == 32:
@@ -157,7 +159,7 @@ class tqdm_notebook(std_tqdm):
         pbar.value = self.n
 
         if msg:
-            msg = msg.replace(' ', u'\u2007')  # fix html space padding
+            msg = msg.replace(' ', '\u2007')  # fix html space padding
             # html escape special characters (like '&')
             if '<bar/>' in msg:
                 left, right = map(escape, re.split(r'\|?<bar/>\|?', msg, maxsplit=1))
@@ -247,9 +249,7 @@ class tqdm_notebook(std_tqdm):
     def __iter__(self):
         try:
             it = super().__iter__()
-            for obj in it:
-                # return super(tqdm...) will not catch exception
-                yield obj
+            yield from it
         # NB: except ... [ as ...] breaks IPython async KeyboardInterrupt
         except:  # NOQA
             self.disp(bar_style='danger')

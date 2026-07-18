@@ -12,12 +12,12 @@ class Comparison:
         except ImportError:
             from time import clock
             self.time = clock
-        self.iterable = range(int(length))
+        self.iterable = range(1, 1 + int(length))
 
     def run(self, cls):
         pbar = cls(self.iterable)
         t0 = self.time()
-        [0 for _ in pbar]  # pylint: disable=pointless-statement
+        all(pbar)  # pylint: disable=pointless-statement
         t1 = self.time()
         return t1 - t0
 

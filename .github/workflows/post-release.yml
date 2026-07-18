@@ -1,28 +1,26 @@
 name: Post Release
 on:
-  release:
-    types: [published]
+  release: {types: [published]}
   workflow_dispatch:
 jobs:
   docs:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     steps:
     - name: Checkout repo
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
     - name: Checkout wiki
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
       with:
         repository: ${{ github.repository }}.wiki
         path: wiki
     - name: Checkout docs
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
       with:
         repository: ${{ github.repository }}.github.io
         path: docs
         token: ${{ secrets.GH_TOKEN }}
-    - uses: actions/setup-python@v5
-      with:
-        python-version: '3.x'
+    - uses: actions/setup-python@v6
+      with: {python-version: '3.x'}
     - name: Install
       run: |
         pip install -U wheel

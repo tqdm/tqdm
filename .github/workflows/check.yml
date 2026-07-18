@@ -10,16 +10,13 @@ jobs:
     name: ${{ matrix.TOXENV }}
     strategy:
       matrix:
-        TOXENV:
-        - check
-        - perf
-    runs-on: ubuntu-latest
+        TOXENV: [check, perf]
+    runs-on: ubuntu-slim
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-python@v5
-      with:
-        python-version: '3.x'
-    - run: pip install -U tox
+    - uses: actions/checkout@v7
+    - uses: actions/setup-python@v6
+      with: {python-version: '3.x'}
+    - run: pip install 'tox>=4'
     - run: tox
       env:
         TOXENV: ${{ matrix.TOXENV }}
@@ -28,13 +25,12 @@ jobs:
     name: Benchmark (Full)
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
       with:
         fetch-depth: 0
         token: ${{ secrets.GH_TOKEN || github.token }}
-    - uses: actions/setup-python@v5
-      with:
-        python-version: '3.x'
+    - uses: actions/setup-python@v6
+      with: {python-version: '3.x'}
     - name: Install
       run: |
         pip install -U wheel packaging
@@ -42,7 +38,7 @@ jobs:
         git checkout master && git checkout -
         asv machine --machine github-actions --yes
     - name: Restore previous results
-      uses: actions/cache@v4
+      uses: actions/cache@v6
       with:
         path: .asv
         key: asv-${{ runner.os }}
@@ -65,12 +61,10 @@ jobs:
     name: Benchmark (Branch)
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-    - uses: actions/setup-python@v5
-      with:
-        python-version: '3.x'
+    - uses: actions/checkout@v7
+      with: {fetch-depth: 0}
+    - uses: actions/setup-python@v6
+      with: {python-version: '3.x'}
     - name: Install
       run: |
         pip install -U wheel packaging
@@ -78,7 +72,7 @@ jobs:
         git checkout master && git checkout -
         asv machine --machine github-actions --yes
     - name: Restore previous results
-      uses: actions/cache@v4
+      uses: actions/cache@v6
       with:
         path: .asv
         key: asv-${{ runner.os }}
@@ -86,7 +80,7 @@ jobs:
           asv-
     - name: Benchmark
       run: |
-        asv continuous --interleave-processes --only-changed -f 1.25 master HEAD
-        CHANGES=$(asv compare --only-changed -f 1.25 master HEAD)
+        asv continuous --interleave-processes --only-changed -f 1.8 master HEAD
+        CHANGES=$(asv compare --only-changed -f 1.8 master HEAD)
         echo "$CHANGES" >> "$GITHUB_STEP_SUMMARY"
         test -z "$CHANGES" || exit 1

@@ -7,7 +7,7 @@ tqdm
 
 |Build-Status| |Coverage-Status| |Branch-Coverage-Status| |Codacy-Grade| |Libraries-Rank| |PyPI-Downloads|
 
-|LICENCE| |OpenHub-Status| |binder-demo| |awesome-python|
+|LICENCE| |OpenHub-Status| |colab-demo| |binder-demo| |awesome-python|
 
 ``tqdm`` derives from the Arabic word *taqaddum* (تقدّم) which can mean "progress,"
 and is an abbreviation for "I love you so much" in Spanish (*te quiero demasiado*).
@@ -58,6 +58,17 @@ in any console or in a GUI, and is also friendly with IPython/Jupyter notebooks.
 ``tqdm`` does not require any dependencies (not even ``curses``!), just
 Python and an environment supporting ``carriage return \r`` and
 ``line feed \n`` control characters.
+
+**Featured Sponsors**
+
+======== ================================================
+|OpenAI|                  Your Logo Here
+======== ================================================
+OpenAI   `Sponsors <https://github.com/sponsors/tqdm>`__
+======== ================================================
+
+.. |OpenAI| image:: https://avatars.githubusercontent.com/u/14957082?s=96
+   :target: https://openai.com
 
 ------------------------------------------
 
@@ -314,7 +325,7 @@ of a neat one-line progress bar.
 - Unicode:
 
   * Environments which report that they support unicode will have solid smooth
-    progressbars. The fallback is an ``ascii``-only bar.
+    progress bars. The fallback is an ``ascii``-only bar.
   * Windows consoles often only partially support unicode and thus
     `often require explicit ascii=True <https://github.com/tqdm/tqdm/issues/454#issuecomment-335416815>`__
     (also `here <https://github.com/tqdm/tqdm/issues/499>`__). This is due to
@@ -354,10 +365,10 @@ Documentation
       """
       Decorate an iterable object, returning an iterator which acts exactly
       like the original iterable, but prints a dynamically updating
-      progressbar every time a value is requested.
+      progress bar every time a value is requested.
       """
 
-      @envwrap("TQDM_")  # override defaults via env vars
+      @envwrap("tqdm")  # override defaults via env vars
       def __init__(self, iterable=None, desc=None, total=None, leave=True,
                    file=None, ncols=None, mininterval=0.1,
                    maxinterval=10.0, miniters=None, ascii=None, disable=False,
@@ -370,20 +381,20 @@ Parameters
 ~~~~~~~~~~
 
 * iterable  : iterable, optional  
-    Iterable to decorate with a progressbar.
+    Iterable to decorate with a progress bar.
     Leave blank to manually manage the updates.
 * desc  : str, optional  
-    Prefix for the progressbar.
+    Prefix for the progress bar.
 * total  : int or float, optional  
     The number of expected iterations. If unspecified,
     len(iterable) is used if possible. If float("inf") or as a last
     resort, only basic progress statistics are displayed
-    (no ETA, no progressbar).
+    (no ETA, no progress bar).
     If ``gui`` is True and this parameter needs subsequent updating,
     specify an initial arbitrary large positive number,
     e.g. 9e9.
 * leave  : bool, optional  
-    If [default: True], keeps all traces of the progressbar
+    If [default: True], keeps all traces of the progress bar
     upon termination of iteration.
     If ``None``, will leave only if ``position`` is ``0``.
 * file  : ``io.TextIOWrapper`` or ``io.StringIO``, optional  
@@ -392,7 +403,7 @@ Parameters
     methods.  For encoding, see ``write_bytes``.
 * ncols  : int, optional  
     The width of the entire output message. If specified,
-    dynamically resizes the progressbar to stay within this bound.
+    dynamically resizes the progress bar to stay within this bound.
     If unspecified, attempts to use environment width. The
     fallback is a meter width of 10 and no limit for the counter and
     statistics. If 0, will not print any meter (only stats).
@@ -415,7 +426,7 @@ Parameters
     If unspecified or False, use unicode (smooth blocks) to fill
     the meter. The fallback is to use ASCII characters " 123456789#".
 * disable  : bool, optional  
-    Whether to disable the entire progressbar wrapper
+    Whether to disable the entire progress bar wrapper
     [default: False]. If set to None, disable on non-TTY.
 * unit  : str, optional  
     String that will be used to define the unit of each iteration
@@ -523,24 +534,24 @@ Returns
           ...    t.update(len(current_buffer))
           >>> t.close()
           The last line is highly recommended, but possibly not necessary if
-          ``t.update()`` will be called in such a way that ``filesize`` will be
+          `t.update()` will be called in such a way that `filesize` will be
           exactly reached and printed.
 
           Parameters
           ----------
           n  : int or float, optional
               Increment to add to the internal counter of iterations
-              [default: 1]. If using float, consider specifying ``{n:.3f}``
-              or similar in ``bar_format``, or specifying ``unit_scale``.
+              [default: 1]. If using float, consider specifying `{n:.3f}`
+              or similar in `bar_format`, or specifying `unit_scale`.
 
           Returns
           -------
           out  : bool or None
-              True if a ``display()`` was triggered.
+              True if a `display()` was triggered.
           """
 
       def close(self):
-          """Cleanup and (if leave=False) close the progressbar."""
+          """Cleanup and (if leave=False) close the progress bar."""
 
       def clear(self, nomove=False):
           """Clear current bar display."""
@@ -552,11 +563,11 @@ Returns
           Parameters
           ----------
           nolock  : bool, optional
-              If ``True``, does not lock.
-              If [default: ``False``]: calls ``acquire()`` on internal lock.
+              If `True`, does not lock.
+              If [default: `False`]: calls `acquire()` on internal lock.
           lock_args  : tuple, optional
-              Passed to internal lock's ``acquire()``.
-              If specified, will only ``display()`` if ``acquire()`` returns ``True``.
+              Passed to internal lock's `acquire()`.
+              If specified, will only `display()` if `acquire()` returns `True`.
           """
 
       def unpause(self):
@@ -566,7 +577,7 @@ Returns
           """
           Resets to 0 iterations for repeated use.
 
-          Consider combining with ``leave=True``.
+          Consider combining with `leave=True`.
 
           Parameters
           ----------
@@ -607,16 +618,16 @@ Returns
 
       def display(self, msg=None, pos=None):
           """
-          Use ``self.sp`` to display ``msg`` in the specified ``pos``.
+          Use `self.sp` to display `msg` in the specified `pos`.
 
           Consider overloading this function when inheriting to use e.g.:
-          ``self.some_frontend(**self.format_dict)`` instead of ``self.sp``.
+          `self.some_frontend(**self.format_dict)` instead of `self.sp`.
 
           Parameters
           ----------
-          msg  : str, optional. What to display (default: ``repr(self)``).
-          pos  : int, optional. Position to ``moveto``
-            (default: ``abs(self.pos)``).
+          msg  : str, optional. What to display (default: `repr(self)`).
+          pos  : int, optional. Position to `moveto`
+            (default: `abs(self.pos)`).
           """
 
       @classmethod
@@ -624,8 +635,8 @@ Returns
       def wrapattr(cls, stream, method, total=None, bytes=True, **tqdm_kwargs):
           """
           stream  : file-like object.
-          method  : str, "read" or "write". The result of ``read()`` and
-              the first argument of ``write()`` should have a ``len()``.
+          method  : str, "read" or "write". The result of `read()` and
+              the first argument of `write()` should have a `len()`.
 
           >>> with tqdm.wrapattr(file_obj, "read", total=file_obj.size) as fobj:
           ...     while True:
@@ -665,7 +676,7 @@ Submodules
         """IPython/Jupyter Notebook widget."""
 
     class tqdm.auto.tqdm(tqdm.tqdm):
-        """Automatically chooses beween `tqdm.notebook` and `tqdm.tqdm`."""
+        """Automatically chooses between `tqdm.notebook` and `tqdm.tqdm`."""
 
     class tqdm.asyncio.tqdm(tqdm.tqdm):
       """Asynchronous version."""
@@ -695,14 +706,17 @@ Submodules
 
 The ``tqdm.contrib`` package also contains experimental modules:
 
-- ``tqdm.contrib.itertools``: Thin wrappers around ``itertools``
-- ``tqdm.contrib.concurrent``: Thin wrappers around ``concurrent.futures``
-- ``tqdm.contrib.slack``: Posts to `Slack <https://slack.com>`__ bots
-- ``tqdm.contrib.discord``: Posts to `Discord <https://discord.com>`__ bots
-- ``tqdm.contrib.telegram``: Posts to `Telegram <https://telegram.org>`__ bots
-- ``tqdm.contrib.bells``: Automagically enables all optional features
+- `tqdm.contrib.itertools <https://tqdm.github.io/docs/contrib.itertools/>`_: Thin wrappers around ``itertools``
+- `tqdm.contrib.concurrent <https://tqdm.github.io/docs/contrib.concurrent/>`_: Thin wrappers around ``concurrent.futures``
+- `tqdm.contrib.slack <https://tqdm.github.io/docs/contrib.slack/>`_: Posts to `Slack <https://slack.com>`__ bots
+- `tqdm.contrib.discord <https://tqdm.github.io/docs/contrib.discord/>`_: Posts to `Discord <https://discord.com>`__ bots
+- `tqdm.contrib.telegram <https://tqdm.github.io/docs/contrib.telegram/>`_: Posts to `Telegram <https://telegram.org>`__ bots
+- `tqdm.contrib.bells <https://tqdm.github.io/docs/shortcuts/>`_: Automagically enables all optional features
 
   * ``auto``, ``pandas``, ``slack``, ``discord``, ``telegram``
+
+.. image:: https://tqdm.github.io/img/screenshot-discord.png
+   :alt: Screenshot of `tqdm.contrib.discord` in action
 
 Examples and Advanced Usage
 ---------------------------
@@ -714,7 +728,7 @@ Examples and Advanced Usage
 
   * this has an
     `excellent article <https://github.com/tqdm/tqdm/wiki/How-to-make-a-great-Progress-Bar>`__
-    on how to make a **great** progressbar;
+    on how to make a **great** progress bar;
 
 - check out the `slides from PyData London <https://tqdm.github.io/PyData2019/slides.html>`__, or
 - run the |binder-demo|.
@@ -900,7 +914,7 @@ Here's an example with ``urllib``:
                 self.total = tsize
             return self.update(b * bsize - self.n)  # also sets self.n = b * bsize
 
-    eg_link = "https://caspersci.uk.to/matryoshka.zip"
+    eg_link = "https://cgi.cdcl.ml/matryoshka.zip"
     with TqdmUpTo(unit='B', unit_scale=True, unit_divisor=1024, miniters=1,
                   desc=eg_link.split('/')[-1]) as t:  # all optional kwargs
         urllib.urlretrieve(eg_link, filename=os.devnull,
@@ -944,7 +958,7 @@ down to:
     import urllib, os
     from tqdm import tqdm
 
-    eg_link = "https://caspersci.uk.to/matryoshka.zip"
+    eg_link = "https://cgi.cdcl.ml/matryoshka.zip"
     response = getattr(urllib, 'request', urllib).urlopen(eg_link)
     with tqdm.wrapattr(open(os.devnull, "wb"), "write",
                        miniters=1, desc=eg_link.split('/')[-1],
@@ -959,7 +973,7 @@ The ``requests`` equivalent is nearly identical:
     import requests, os
     from tqdm import tqdm
 
-    eg_link = "https://caspersci.uk.to/matryoshka.zip"
+    eg_link = "https://cgi.cdcl.ml/matryoshka.zip"
     response = requests.get(eg_link, stream=True)
     with tqdm.wrapattr(open(os.devnull, "wb"), "write",
                        miniters=1, desc=eg_link.split('/')[-1],
@@ -1254,7 +1268,7 @@ This is a work in progress (see
 
 Since ``tqdm`` uses a simple printing mechanism to display progress bars,
 you should not write any message in the terminal using ``print()`` while
-a progressbar is open.
+a progress bar is open.
 
 To write messages in the terminal without any collision with ``tqdm`` bar
 display, a ``.write()`` method is provided:
@@ -1402,27 +1416,17 @@ See the
 `CONTRIBUTING <https://github.com/tqdm/tqdm/blob/master/CONTRIBUTING.md>`__
 file for more information.
 
-Developers who have made significant contributions, ranked by *SLoC*
-(surviving lines of code,
-`git fame <https://github.com/casperdcl/git-fame>`__ ``-wMC --excl '\.(png|gif|jpg)$'``),
-are:
+Developers who have contributed more that 5 *loc* (surviving lines of code):
 
-==================== ======================================================== ==== ================================
-Name                 ID                                                       SLoC Notes
-==================== ======================================================== ==== ================================
-Casper da Costa-Luis `casperdcl <https://github.com/casperdcl>`__             ~80% primary maintainer |Gift-Casper|
-Stephen Larroque     `lrq3000 <https://github.com/lrq3000>`__                 ~9%  team member
-Martin Zugnoni       `martinzugnoni <https://github.com/martinzugnoni>`__     ~3%
-Daniel Ecer          `de-code <https://github.com/de-code>`__                 ~2%
-Richard Sheridan     `richardsheridan <https://github.com/richardsheridan>`__ ~1%
-Guangshuo Chen       `chengs <https://github.com/chengs>`__                   ~1%
-Helio Machado        `0x2b3bfa0 <https://github.com/0x2b3bfa0>`__             ~1%
-Kyle Altendorf       `altendky <https://github.com/altendky>`__               <1%
-Noam Yorav-Raphael   `noamraph <https://github.com/noamraph>`__               <1%  original author
-Matthew Stevens      `mjstevens777 <https://github.com/mjstevens777>`__       <1%
-Hadrien Mary         `hadim <https://github.com/hadim>`__                     <1%  team member
-Mikhail Korobov      `kmike <https://github.com/kmike>`__                     <1%  team member
-==================== ======================================================== ==== ================================
+|git-fame|
+
+Honourable mentions:
+
+- Casper da Costa-Luis `casperdcl <https://github.com/casperdcl>`__ primary maintainer |Gift-Casper|
+- Stephen Larroque `lrq3000 <https://github.com/lrq3000>`__ maintainer
+- Hadrien Mary `hadim <https://github.com/hadim>`__ maintainer
+- Mikhail Korobov `kmike <https://github.com/kmike>`__ maintainer
+- Noam Yorav-Raphael `noamraph <https://github.com/noamraph>`__ original author
 
 Ports to Other Languages
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1455,7 +1459,7 @@ Citation information: |DOI|
 .. |Branch-Coverage-Status| image:: https://codecov.io/gh/tqdm/tqdm/branch/master/graph/badge.svg
    :target: https://codecov.io/gh/tqdm/tqdm
 .. |Codacy-Grade| image:: https://app.codacy.com/project/badge/Grade/3f965571598f44549c7818f29cdcf177
-   :target: https://www.codacy.com/gh/tqdm/tqdm/dashboard
+   :target: https://app.codacy.com/gh/tqdm/tqdm/dashboard
 .. |CII Best Practices| image:: https://bestpractices.coreinfrastructure.org/projects/3264/badge
    :target: https://bestpractices.coreinfrastructure.org/projects/3264
 .. |GitHub-Status| image:: https://img.shields.io/github/tag/tqdm/tqdm.svg?maxAge=86400&logo=github&logoColor=white
@@ -1474,7 +1478,10 @@ Citation information: |DOI|
    :target: https://github.com/tqdm/tqdm/graphs/contributors
 .. |GitHub-Updated| image:: https://img.shields.io/github/last-commit/tqdm/tqdm/master.svg?logo=github&logoColor=white&label=pushed
    :target: https://github.com/tqdm/tqdm/pulse
-.. |Gift-Casper| image:: https://img.shields.io/badge/dynamic/json.svg?color=ff69b4&label=gifts%20received&prefix=%C2%A3&query=%24..sum&url=https%3A%2F%2Fcaspersci.uk.to%2Fgifts.json
+.. |git-fame| image:: https://git-fame.cdcl.ml/gh/tqdm/tqdm?min=5&w=1&M=1&C=1&excl=(png|gif|jpg)$&enum=1
+   :alt: git-fame.cdcl.ml/gh/tqdm/tqdm
+   :target: https://git-fame.cdcl.ml/gh/tqdm/tqdm?w=1&M=1&C=1&excl=(png|gif|jpg)$&enum=1
+.. |Gift-Casper| image:: https://img.shields.io/badge/sponsor-casper-ff69b4.svg
    :target: https://cdcl.ml/sponsor
 .. |Versions| image:: https://img.shields.io/pypi/v/tqdm.svg
    :target: https://tqdm.github.io/releases
@@ -1500,6 +1507,8 @@ Citation information: |DOI|
    :target: https://raw.githubusercontent.com/tqdm/tqdm/master/LICENCE
 .. |DOI| image:: https://img.shields.io/badge/DOI-10.5281/zenodo.595120-blue.svg
    :target: https://doi.org/10.5281/zenodo.595120
+.. |colab-demo| image:: https://colab.research.google.com/assets/colab-badge.svg
+   :target: https://colab.research.google.com/github/tqdm/tqdm/blob/master/DEMO.ipynb
 .. |binder-demo| image:: https://mybinder.org/badge_logo.svg
    :target: https://mybinder.org/v2/gh/tqdm/tqdm/master?filepath=DEMO.ipynb
 .. |Screenshot-Jupyter1| image:: https://tqdm.github.io/img/jupyter-1.gif
