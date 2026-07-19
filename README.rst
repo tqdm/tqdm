@@ -483,6 +483,16 @@ Parameters
     Bar colour (e.g. 'green', '#00ff00').
 * delay  : float, optional  
     Don't display until [default: 0] seconds have elapsed.
+* cpu_time  : bool or "try", optional  
+    If True (or ````"try"````), measure elapsed time with
+    ````time.process_time```` (CPU time) instead of wall-clock ````time.time````.
+    Useful when a process is paused or scheduled away and wall time would
+    distort rates. Multi-core CPU time is the sum of cores; IO wait is
+    excluded. ````"try"```` is accepted for API compatibility with the
+    proposal in #1748 [default: False].
+* timer  : callable, optional  
+    Custom clock returning a float (same contract as ````time.time````).
+    Overrides ````cpu_time```` when set. Used mainly for tests.
 
 Extra CLI Options
 ~~~~~~~~~~~~~~~~~

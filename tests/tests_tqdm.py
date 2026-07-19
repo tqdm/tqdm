@@ -135,7 +135,8 @@ class UnicodeIO(IOBase):
 
 def test_cpu_time_option():
     """cpu_time / timer select the clock used for elapsed (#1748)."""
-    from time import process_time, time as wall_time
+    from time import process_time
+    from time import time as wall_time
 
     with tqdm(total=1, cpu_time=True, disable=True) as t:
         assert t._time is process_time

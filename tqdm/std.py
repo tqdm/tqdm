@@ -14,6 +14,7 @@ from datetime import datetime, timedelta, timezone
 from numbers import Number
 from time import process_time, time
 
+
 def _resolve_timer(cpu_time=False, timer=None):
     """Pick clock for tqdm elapsed measurements (#1748)."""
     if timer is not None:
