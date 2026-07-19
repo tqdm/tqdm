@@ -12,7 +12,18 @@ from collections import OrderedDict, defaultdict
 from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
 from numbers import Number
-from time import time
+from time import process_time, time
+
+def _resolve_timer(cpu_time=False, timer=None):
+    """Pick clock for tqdm elapsed measurements (#1748)."""
+    if timer is not None:
+        return timer
+    if cpu_time is True or cpu_time == "try":
+        # process_time is stdlib on all supported Pythons; "try" kept for API
+        # compatibility with the issue proposal.
+        return process_time
+    return time
+
 from warnings import warn
 from weakref import WeakSet
 
@@ -350,6 +361,16 @@ class tqdm(Comparable):
         Bar colour (e.g. 'green', '#00ff00').
     delay  : float, optional
         Don't display until [default: 0] seconds have elapsed.
+    cpu_time  : bool or "try", optional
+        If True (or ``"try"``), measure elapsed time with
+        ``time.process_time`` (CPU time) instead of wall-clock ``time.time``.
+        Useful when a process is paused or scheduled away and wall time would
+        distort rates. Multi-core CPU time is the sum of cores; IO wait is
+        excluded. ``"try"`` is accepted for API compatibility with the
+        proposal in #1748 [default: False].
+    timer  : callable, optional
+        Custom clock returning a float (same contract as ``time.time``).
+        Overrides ``cpu_time`` when set. Used mainly for tests.
     gui  : bool, optional
         WARNING: internal parameter - do not use.
         Use tqdm.gui.tqdm(...) instead. If set, will attempt to use
@@ -961,7 +982,8 @@ class tqdm(Comparable):
                  ascii=None,  # pylint: disable=redefined-builtin
                  disable=False, unit='it', unit_scale=False, dynamic_ncols=False, smoothing=0.3,
                  bar_format=None, initial=0, position=None, postfix=None, unit_divisor=1000,
-                 write_bytes=False, lock_args=None, nrows=None, colour=None, delay=0.0, gui=False,
+                 write_bytes=False, lock_args=None, nrows=None, colour=None, delay=0.0,
+                 cpu_time=False, timer=None, gui=False,
                  **kwargs):
         """see tqdm.tqdm for arguments"""
         if file is None:
@@ -996,6 +1018,9 @@ class tqdm(Comparable):
             self.n = initial
             self.total = total
             self.leave = leave
+            # Keep clock selection even when disabled so callers/tests can
+            # inspect the timer without enabling display (#1748).
+            self._time = _resolve_timer(cpu_time=cpu_time, timer=timer)
             return
 
         if kwargs:
@@ -1079,7 +1104,7 @@ class tqdm(Comparable):
         self.bar_format = bar_format
         self.postfix = None
         self.colour = colour
-        self._time = time
+        self._time = _resolve_timer(cpu_time=cpu_time, timer=timer)
         if postfix:
             try:
                 self.set_postfix(refresh=False, **postfix)

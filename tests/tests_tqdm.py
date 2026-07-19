@@ -133,6 +133,25 @@ class UnicodeIO(IOBase):
         return self.text
 
 
+def test_cpu_time_option():
+    """cpu_time / timer select the clock used for elapsed (#1748)."""
+    from time import process_time, time as wall_time
+
+    with tqdm(total=1, cpu_time=True, disable=True) as t:
+        assert t._time is process_time
+    with tqdm(total=1, cpu_time="try", disable=True) as t:
+        assert t._time is process_time
+    with tqdm(total=1, disable=True) as t:
+        assert t._time is wall_time
+
+    def fake():
+        return 42.0
+
+    with tqdm(total=1, timer=fake, cpu_time=True, file=StringIO()) as t:
+        assert t._time is fake
+        assert t.start_t == 42.0
+        assert t.format_dict['elapsed'] == 0.0
+
 def get_bar(all_bars, i=None):
     """Get a specific update from a whole bar traceback"""
     # Split according to any used control characters

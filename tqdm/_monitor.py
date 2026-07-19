@@ -80,11 +80,14 @@ class TMonitor(Thread):
                     # Check event in loop to reduce blocking time on exit
                     if self.was_killed.is_set():
                         return
-                    # Only if mininterval > 1 (else iterations are just slow)
-                    # and last refresh exceeded maxinterval
+                    # Only if miniters > 1 (else iterations are just slow)
+                    # and last refresh exceeded maxinterval.
+                    # Use the bar's own clock so cpu_time/timer bars are not
+                    # compared against wall time (#1748).
+                    inst_time = getattr(instance, "_time", self._time)
                     if (
                         instance.miniters > 1
-                        and (cur_t - instance.last_print_t) >= instance.maxinterval
+                        and (inst_time() - instance.last_print_t) >= instance.maxinterval
                     ):
                         # force bypassing miniters on next iteration
                         # (dynamic_miniters adjusts mininterval automatically)
