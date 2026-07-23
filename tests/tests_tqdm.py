@@ -10,6 +10,7 @@ from warnings import catch_warnings, simplefilter
 
 from pytest import importorskip, mark, raises, skip
 
+import tqdm.std as tqdm_std
 from tqdm import TqdmDeprecationWarning, TqdmWarning, tqdm, trange
 from tqdm.contrib import DummyTqdmFile
 from tqdm.std import EMA, Bar
@@ -1404,6 +1405,189 @@ def test_clear_disabled():
                   bar_format='{l_bar}') as t:
             t.clear()
         assert our_file.getvalue() == ''
+
+
+def test_status_printer():
+    """Test simple single-line status printer"""
+    with closing(StringIO()) as our_file:
+        sp = tqdm.status_printer(our_file)
+        sp("abc")
+        sp("def")
+        assert our_file.getvalue() == "\rabc\rdef"
+
+
+def test_status_printer_multiline(monkeypatch):
+    """
+    Test multi-row-aware clearing: render a string wider than `ncols`
+    (which wraps across several rows), then a shorter string and assert
+    that the stale wrapped rows left by the previous render are cleared.
+    """
+    # Force cursor-up support (simulate an ANSI terminal regardless of OS).
+    monkeypatch.setattr(tqdm_std, '_term_move_up', lambda: '\x1b[A')
+
+    ncols = 10
+    with closing(StringIO()) as our_file:
+        sp = tqdm.status_printer(our_file, ncols=ncols)
+        # Wider than `ncols` -> occupies 3 rows.
+        sp('x' * (ncols * 3))
+        # Shorter -> only 1 row; stale rows 2 & 3 must be cleared.
+        sp('y' * 5)
+
+        out = squash_ctrlchars(our_file.getvalue())
+
+    # Row 0 holds the new (short) content padded to full width; the two
+    # previously-wrapped rows are now blank (no stale 'x' remains).
+    assert out == ['y' * 5 + ' ' * 5, ' ' * ncols, ' ' * ncols]
+    assert not any('x' in line for line in out)
+
+
+def test_status_printer_wide_chars(monkeypatch):
+    """
+    BUG 1: multi-row chunking must be width-aware, not character-count based.
+
+    Wide (CJK) characters occupy 2 display columns. Carving rows by raw
+    character count desyncs from the `ncols`-based row math (see
+    `tqdm.utils.disp_len` / `_text_width`) and reintroduces the exact
+    corruption this fix targets. A string that wraps must be split on display
+    width so every rendered row fits `ncols` columns and no wide char is split
+    across a row boundary.
+    """
+    monkeypatch.setattr(tqdm_std, '_term_move_up', lambda: '\x1b[A')
+
+    ncols = 4
+    with closing(StringIO()) as our_file:
+        sp = tqdm.status_printer(our_file, ncols=ncols)
+        # '中文' = two width-2 chars (display width 4 == ncols); 'xx' = width 2.
+        # Raw character slicing `s[i*4:(i+1)*4]` would wrongly yield
+        # ['中文中文', 'xx']; width-aware carving yields ['中文', '中文', 'xx'].
+        sp('中文中文xx')
+        out = squash_ctrlchars(our_file.getvalue())
+
+    # Row 0 & 1 hold 2 CJK chars (full width, no padding); row 2 holds 'xx'
+    # padded to full `ncols` display width with 2 trailing spaces.
+    assert out == ['中文', '中文', 'xx' + ' ' * (ncols - 2)]
+    # Sanity: each row's on-screen width equals `ncols`.
+    assert all(tqdm_std.disp_len(line) == ncols for line in out)
+
+
+def test_status_printer_zero_net_vertical_move(monkeypatch):
+    """
+    BUG 2: print_status must return the cursor to the exact row it started on
+    (zero net vertical displacement).
+
+    `display()` relies on this via its symmetric `moveto(pos)` /
+    `moveto(-pos)` convention. Any non-zero net movement breaks multi-bar
+    stacking (`position=N`), where several `tqdm()` instances render at
+    different `position=` values. After a multi-row render the raw output must
+    therefore end with exactly `(n_rows - 1)` cursor-up sequences regardless of
+    whether the content grew, stayed the same size, or shrank relative to the
+    previous render.
+    """
+    monkeypatch.setattr(tqdm_std, '_term_move_up', lambda: '\x1b[A')
+    ncols = 10
+    move_up = '\x1b[A'
+
+    def trailing_move_ups(raw):
+        """Count trailing ``\\x1b[A`` sequences in ``raw``."""
+        n, i = 0, len(raw)
+        while raw.rfind(move_up, 0, i) == i - len(move_up):
+            n += 1
+            i -= len(move_up)
+        return n
+
+    with closing(StringIO()) as our_file:
+        sp = tqdm.status_printer(our_file, ncols=ncols)
+        sp('x' * (ncols * 3))  # grow: prev 1 row -> 3 rows
+        # n_rows = max(1, 3) = 3 -> must end with 2 move-ups (zero net).
+        assert trailing_move_ups(our_file.getvalue()) == 2
+        sp('y' * (ncols * 3))  # same size: 3 -> 3
+        assert trailing_move_ups(our_file.getvalue()) == 2
+        sp('z' * 5)            # shrink: 3 -> 1
+        assert trailing_move_ups(our_file.getvalue()) == 2
+
+    # "More writes" after a multi-row render must start on the same (top) row,
+    # i.e. the cursor really did return to its starting row. Render 3 rows then
+    # a single row; the single row must overwrite line 0 and the stale rows
+    # below it must be cleared -- which can only happen if the cursor is back
+    # on the top row.
+    with closing(StringIO()) as our_file:
+        sp = tqdm.status_printer(our_file, ncols=ncols)
+        sp('x' * (ncols * 3))   # 3 rows
+        sp('top')               # single row -> must land on line 0
+        out = squash_ctrlchars(our_file.getvalue())
+    assert out[0] == 'top' + ' ' * (ncols - 3)
+    assert out[1] == ' ' * ncols
+    assert out[2] == ' ' * ncols
+
+
+def test_status_printer_position_stacking(monkeypatch):
+    """
+    Integration test for BUG 2 through the real position-stacking path.
+
+    Two `tqdm()` instances at `position=0` and `position=1`, each with content
+    narrow enough to wrap across multiple rows. After several refreshes the
+    rendered rows of each bar must remain on their own `position` rows with no
+    cross-contamination, which requires print_status to have zero net vertical
+    displacement so `display()`'s `moveto(pos)` / `moveto(-pos)` stays aligned.
+    """
+    monkeypatch.setattr(tqdm_std, '_term_move_up', lambda: '\x1b[A')
+    ncols = 6
+
+    with closing(StringIO()) as our_file:
+        t0 = tqdm(total=10, file=our_file, position=0, ncols=ncols,
+                  desc='bar0', bar_format='{desc}: {n}/{total}',
+                  mininterval=999, miniters=999)
+        t1 = tqdm(total=10, file=our_file, position=1, ncols=ncols,
+                  desc='bar1', bar_format='{desc}: {n}/{total}',
+                  mininterval=999, miniters=999)
+        t0.update(3)
+        t1.update(7)
+        t0.refresh()
+        t1.refresh()
+        out = squash_ctrlchars(our_file.getvalue())
+
+    # bar0 lives on line 0, bar1 on line 1; each is padded to full `ncols`
+    # display width and neither bleeds into the other's row.
+    assert out[0].startswith('bar0')
+    assert out[1].startswith('bar1')
+    assert all(tqdm_std.disp_len(line) <= ncols for line in out[:2])
+    t0.close()
+    t1.close()
+    # INVARIANT: display() depends on print_status leaving the cursor on the
+    # same row it started on (zero net vertical displacement), otherwise the
+    # symmetric moveto(pos)/moveto(-pos) in display() would land on the wrong
+    # anchor row and corrupt stacked bars. The print_status-level tests above
+    # assert this directly via the trailing move-up count.
+
+
+def test_status_printer_ncols_legacy_single_line(monkeypatch):
+    """
+    When `ncols` is set but the content only ever occupies one row, the
+    exact legacy single-line behaviour must be preserved.
+    """
+    monkeypatch.setattr(tqdm_std, '_term_move_up', lambda: '\x1b[A')
+
+    with closing(StringIO()) as our_file:
+        sp = tqdm.status_printer(our_file, ncols=80)
+        sp("abc")
+        sp("defg")
+        # identical to legacy: '\r' + content + trailing space padding.
+        # ("defg" is longer than "abc" so no padding is added on the 2nd call)
+        assert our_file.getvalue() == "\rabc\rdefg"
+
+
+def test_status_printer_no_ncols_legacy(monkeypatch):
+    """
+    When `ncols` is falsy the legacy single-line behaviour is used even if
+    cursor-up is supported.
+    """
+    monkeypatch.setattr(tqdm_std, '_term_move_up', lambda: '\x1b[A')
+
+    with closing(StringIO()) as our_file:
+        sp = tqdm.status_printer(our_file)
+        sp("abc")
+        sp("def")
+        assert our_file.getvalue() == "\rabc\rdef"
 
 
 def test_refresh():
