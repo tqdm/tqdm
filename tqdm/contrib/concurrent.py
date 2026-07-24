@@ -5,7 +5,6 @@ from contextlib import contextmanager
 from operator import length_hint
 from os import cpu_count
 
-from ..auto import tqdm as tqdm_auto
 from ..std import TqdmWarning
 
 __author__ = {"github.com/": ["casperdcl"]}
@@ -40,7 +39,9 @@ def _executor_map(PoolExecutor, fn, *iterables, **tqdm_kwargs):
     kwargs = tqdm_kwargs.copy()
     if "total" not in kwargs:
         kwargs["total"] = length_hint(iterables[0])
-    tqdm_class = kwargs.pop("tqdm_class", tqdm_auto)
+    tqdm_class = kwargs.pop("tqdm_class", None)
+    if tqdm_class is None:
+        from ..auto import tqdm as tqdm_class
     max_workers = kwargs.pop("max_workers", min(32, cpu_count() + 4))
     chunksize = kwargs.pop("chunksize", 1)
     lock_name = kwargs.pop("lock_name", "")
