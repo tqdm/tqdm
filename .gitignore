@@ -23,3 +23,6 @@ __pycache__/
 /wiki/
 /docs/
 /feedstock/
+.idea/
+OPTIMIZATION_NOTES.md
+baseline_bench.py
