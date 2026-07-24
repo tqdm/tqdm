@@ -1485,7 +1485,7 @@ Citation information: |DOI|
    :target: https://cdcl.ml/sponsor
 .. |Versions| image:: https://img.shields.io/pypi/v/tqdm.svg
    :target: https://tqdm.github.io/releases
-.. |PyPI-Downloads| image:: https://img.shields.io/pypi/dm/tqdm.svg?label=pypi%20downloads&logo=PyPI&logoColor=white
+.. |PyPI-Downloads| image:: https://static.pepy.tech/personalized-badge/tqdm?left_text=downloads%2Fmonth
    :target: https://pepy.tech/project/tqdm
 .. |Py-Versions| image:: https://img.shields.io/pypi/pyversions/tqdm.svg?logo=python&logoColor=white
    :target: https://pypi.org/project/tqdm
