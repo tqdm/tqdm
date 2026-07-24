@@ -530,7 +530,10 @@ class tqdm(Comparable):
         """
 
         # sanity check: total
-        if total and n >= (total + 0.5):  # allow float imprecision (#849)
+        if total == float("inf"):
+            # infinite total: behave the same as unknown total (#651)
+            total = None
+        elif total and n >= (total + 0.5):  # allow float imprecision (#849)
             total = None
 
         # apply custom scale if necessary
