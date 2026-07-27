@@ -168,7 +168,7 @@ class tqdm_tk(std_tqdm):  # pragma: no cover
         total  : int or float, optional. Total to use for the new bar.
         """
         if hasattr(self, '_tk_pbar'):
-            if total is None:
+            if self._norm_total(total) is None:
                 self._tk_pbar.configure(maximum=100, mode="indeterminate")
             else:
                 self._tk_pbar.configure(maximum=total, mode="determinate")
