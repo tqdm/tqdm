@@ -79,3 +79,5 @@ repos:
   hooks:
   - id: nbstripout
     args: [--keep-count, --keep-output]
+ci:
+  autoupdate_schedule: monthly
