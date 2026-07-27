@@ -1129,7 +1129,7 @@ class tqdm(Comparable):
             raise TypeError("'tqdm' object is not reversible")
         else:
             self.iterable = reversed(self.iterable)
-            return self.__iter__()
+            yield from self.__iter__()
         finally:
             self.iterable = orig
 
