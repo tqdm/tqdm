@@ -139,9 +139,14 @@ class tqdm_rich(std_tqdm):  # pragma: no cover
         ----------
         total  : int or float, optional. Total to use for the new bar.
         """
-        if hasattr(self, '_prog'):
-            self._prog.reset(total=total)
         super().reset(total=total)
+        if hasattr(self, '_prog'):
+            if self.total is None:
+                # `rich` cannot un-set a total, so replace the task as in `__init__`
+                self._prog.remove_task(self._task_id)
+                self._task_id = self._prog.add_task(self.desc or "", **self.format_dict)
+            else:
+                self._prog.reset(self._task_id, total=self.total)
 
 
 def trrange(*args, **kwargs):

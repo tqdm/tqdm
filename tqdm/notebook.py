@@ -301,9 +301,15 @@ class tqdm_notebook(std_tqdm):
         _, pbar, _ = self.container.children
         pbar.bar_style = ''
         if total is not None:
-            pbar.max = total
-            if not self.total and self.ncols is None:  # no longer unknown total
-                pbar.layout.width = None  # reset width
+            if self._norm_total(total) is None:  # unknown total: info style bar
+                pbar.max = 1
+                pbar.bar_style = 'info'
+                if self.ncols is None:
+                    pbar.layout.width = "20px"
+            else:
+                pbar.max = total
+                if not self.total and self.ncols is None:  # no longer unknown total
+                    pbar.layout.width = None  # reset width
         return super().reset(total=total)
 
 

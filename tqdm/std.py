@@ -984,8 +984,7 @@ class tqdm(Comparable):
                 total = len(iterable)
             except (TypeError, AttributeError):
                 total = None
-        if total == float("inf"):
-            total = None  # same as unknown
+        total = self._norm_total(total)
 
         if disable:
             self.iterable = iterable
@@ -1365,6 +1364,11 @@ class tqdm(Comparable):
         self.start_t += cur_t - self.last_print_t
         self.last_print_t = cur_t
 
+    @staticmethod
+    def _norm_total(total):
+        """`float("inf")` behaves the same as unknown (#651)."""
+        return None if total == float("inf") else total
+
     def reset(self, total=None):
         """
         Resets to 0 iterations for repeated use.
@@ -1377,7 +1381,7 @@ class tqdm(Comparable):
         """
         self.n = 0
         if total is not None:
-            self.total = None if total == float("inf") else total
+            self.total = self._norm_total(total)
         if self.disable:
             return
         self.last_print_n = 0
