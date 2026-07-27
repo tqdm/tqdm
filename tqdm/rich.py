@@ -6,7 +6,6 @@ Usage:
 >>> for i in trange(10):
 ...     ...
 """
-
 from contextlib import nullcontext
 from typing import Iterable
 from warnings import warn
@@ -18,35 +17,33 @@ from rich.progress import (
 from .std import TqdmExperimentalWarning, TqdmWarning
 from .std import tqdm as std_tqdm
 
-__author__ = {"github.com/": ["casperdcl"]}
+__author__ = {"github.com/": ["casperdcl", "klamike"]}
 __all__ = ['tqdm_rich', 'trrange', 'tqdm', 'trange']
 
 
 class UnitScaleColumn(ProgressColumn):
     def unit_format(self, task: Task, num, fmt=""):
-        if task.fields["unit_scale"]:
-            return std_tqdm.format_sizeof(num, divisor=task.fields["unit_divisor"])
+        if task.fields['unit_scale']:
+            return std_tqdm.format_sizeof(num, divisor=task.fields['unit_divisor'])
         return f"{num:{fmt}}"
 
 
 class FractionColumn(UnitScaleColumn):
     def render(self, task: Task):
-        has_total = task.total is not None
-        if has_total:
-            n_fmt = self.unit_format(task, task.completed)
-            total_fmt = self.unit_format(task, task.total)
-            return Text(f"{n_fmt}/{total_fmt}", style="progress.download")
-        else:
+        if task.total is None:
             return ""
+        n_fmt = self.unit_format(task, task.completed)
+        total_fmt = self.unit_format(task, task.total)
+        return Text(f"{n_fmt}/{total_fmt}", style='progress.download')
 
 
 class RateColumn(UnitScaleColumn):
     """Renders human readable transfer speed."""
     def render(self, task: Task):
         """Show data transfer speed."""
-        speed = task.fields["rate"]
-        if task.fields["elapsed"] and speed is None:
-            speed = task.completed / task.fields["elapsed"]
+        speed = task.fields['rate']
+        if task.fields['elapsed'] and speed is None:
+            speed = task.completed / task.fields['elapsed']
         if speed is not None:
             inv_speed = 1 / speed if speed != 0 else None
             if inv_speed and inv_speed > 1:
@@ -55,29 +52,28 @@ class RateColumn(UnitScaleColumn):
             else:
                 unit_fmt = f"{task.fields['unit']}/s"
                 speed_ = speed
-
-            speed_fmt = self.unit_format(task, speed_, fmt="5.2f")
+            speed_fmt = self.unit_format(task, speed_, fmt='5.2f')
         else:
             speed_fmt = "?"
             unit_fmt = f"{task.fields['unit']}/s"
-
-        return Text(f"{speed_fmt}{unit_fmt}", style="progress.data.speed")
+        return Text(f"{speed_fmt}{unit_fmt}", style='progress.data.speed')
 
 
 class UnitCompletedColumn(UnitScaleColumn):
     def render(self, task: Task) -> Text:
         if task.total is None:
             completed = self.unit_format(task, task.completed)
-            return Text(f"{completed:>3}{task.fields['unit']}", style="progress.percentage")
+            res = f"{completed:>3}{task.fields['unit']}"
         else:
-            return Text(f"{task.percentage:>3.0f}%", style="progress.percentage")
+            res = f"{task.percentage:>3.0f}%"
+        return Text(res, style='progress.percentage')
 
 
 class CompactTimeElapsedColumn(ProgressColumn):
     def render(self, task: Task) -> Text:
-        elapsed = task.fields["elapsed"]
+        elapsed = task.fields['elapsed']
         formatted = std_tqdm.format_interval(int(elapsed)) if elapsed else "--:--"
-        return Text(formatted, style="progress.elapsed")
+        return Text(formatted, style='progress.elapsed')
 
 
 class PrefixTimeRemainingColumn(TimeRemainingColumn):
@@ -86,15 +82,13 @@ class PrefixTimeRemainingColumn(TimeRemainingColumn):
         self.prefix_txt = Text(prefix_str)
 
     def render(self, task: Task) -> Text:
-        return (
-            (self.prefix_txt + super().render(task)) if task.total is not None else ""
-        )
+        return (self.prefix_txt + super().render(task)) if task.total is not None else ""
 
 
 class PostFixColumn(ProgressColumn):
     def render(self, task: Task) -> Text:
-        postfix = task.fields.get("postfix")
-        return Text(f", {postfix}", style="progress.percentage") if postfix else ""
+        postfix = task.fields.get('postfix')
+        return Text(f", {postfix}", style='progress.percentage') if postfix else ""
 
 
 class NoPaddingProgress(Progress):
@@ -107,7 +101,7 @@ class NoPaddingProgress(Progress):
 class ASCIIConsole(Console):
     @property
     def encoding(self):
-        return "ascii"
+        return 'ascii'
 
 
 class tqdm_rich(std_tqdm):  # pragma: no cover
@@ -137,22 +131,16 @@ class tqdm_rich(std_tqdm):  # pragma: no cover
             keyword arguments for `rich.progress.BarColumn()`.
         """
         kwargs = kwargs.copy()
-        kwargs["gui"] = True
+        kwargs['gui'] = True
 
-        progress_columns = kwargs.pop("progress", None)
-        options = kwargs.pop("options", {}).copy()
-        bar_options = kwargs.pop("bar_options", {}).copy()
-        for k in ("position", "bar_format"):
+        progress_columns = kwargs.pop('progress', None)
+        options = kwargs.pop('options', {}).copy()
+        bar_options = kwargs.pop('bar_options', {}).copy()
+        for k in ('position', 'bar_format'):
             if kwargs.pop(k, None) is not None:
-                warn(
-                    f"tqdm.rich does not support the `{k}` option. ",
-                    TqdmWarning,
-                    stacklevel=2,
-                )
-
-        self._lock = (
-            nullcontext()
-        )  # NOTE: temporary dummy_lock to reuse std_tqdm's __init__
+                warn(f"`tqdm.rich` does not support the `{k}` option.",
+                     TqdmWarning, stacklevel=2)
+        self._lock = nullcontext()  # temporary dummy lock to reuse std_tqdm's __init__
         self._instances = [self]
         super().__init__(*args, **kwargs)
         del self._lock
@@ -164,15 +152,13 @@ class tqdm_rich(std_tqdm):  # pragma: no cover
         warn("rich is experimental/alpha", TqdmExperimentalWarning, stacklevel=2)
         d = self.format_dict
         if progress_columns is None:
-            description = (
-                "[progress.description]{task.description}: " if self.desc else ""
-            )
+            description = "[progress.description]{task.description}: " if self.desc else ""
             completed = UnitCompletedColumn()
-            bar_options.setdefault("bar_width", None)
-            if d["colour"] is not None:
-                bar_options.setdefault("complete_style", d["colour"])
-                bar_options.setdefault("finished_style", d["colour"])
-                bar_options.setdefault("pulse_style", d["colour"])
+            bar_options.setdefault('bar_width', None)
+            if d['colour'] is not None:
+                bar_options.setdefault('complete_style', d['colour'])
+                bar_options.setdefault('finished_style', d['colour'])
+                bar_options.setdefault('pulse_style', d['colour'])
             progress_columns = (
                 description,
                 completed,
@@ -191,46 +177,33 @@ class tqdm_rich(std_tqdm):  # pragma: no cover
 
         cls = self.__class__
         if getattr(cls, '_progress', None) is None:
-            options.setdefault("transient", not self.leave)
+            options.setdefault('transient', not self.leave)
 
             if options.get("console") is not None:
-                console: Console = options["console"]
+                console: Console = options['console']
                 console.file = self.fp
-                console.width = d["ncols"]
-                console.height = d["nrows"]
-                if d["ascii"] and not console.encoding == "ascii":
-                    warn(
-                        "ascii output requested but passed console's encoding is not 'ascii'. "
-                        "See `tqdm.rich.ASCIIConsole` to force ASCII rendering.",
-                        TqdmWarning,
-                        stacklevel=2,
-                    )
+                console.width = d['ncols']
+                console.height = d['nrows']
+                if d['ascii'] and not console.encoding == 'ascii':
+                    warn("ascii output requested but passed console's encoding is not 'ascii'."
+                         "See `tqdm.rich.ASCIIConsole` to force ASCII rendering.",
+                         TqdmWarning, stacklevel=2)
             else:
-                console_cls = ASCIIConsole if d["ascii"] else Console
-                options["console"] = console_cls(
-                    width=d["ncols"], height=d["nrows"], file=self.fp
-                )
-
+                console_cls = ASCIIConsole if d['ascii'] else Console
+                options['console'] = console_cls(
+                    width=d['ncols'], height=d['nrows'], file=self.fp)
             cls._progress = NoPaddingProgress(*progress_columns, **options)
             cls._progress.__enter__()
         else:
-            if options.get("console") is not None:
-                warn(
-                    "ignoring passed `console` since tqdm_rich._progress exists",
-                    TqdmWarning,
-                    stacklevel=2,
-                )
-
-            if kwargs.get("ascii") is True and not isinstance(
+            if options.get('console') is not None:
+                warn("ignoring passed `console` since tqdm_rich._progress exists",
+                     TqdmWarning, stacklevel=2)
+            if kwargs.get('ascii') is True and not isinstance(
                 cls._progress.console, ASCIIConsole
             ):
-                warn(
-                    "ascii=True but global console is not ASCIIConsole. "
-                    "Using (non-ascii) global console.",
-                    TqdmWarning,
-                    stacklevel=2,
-                )
-
+                warn("ascii=True but global console is not ASCIIConsole. "
+                     "Using (non-ascii) global console.",
+                     TqdmWarning, stacklevel=2)
         with cls._progress._lock:
             # workaround to not refresh on task addition
             _disable, cls._progress.disable = cls._progress.disable, True
@@ -242,7 +215,6 @@ class tqdm_rich(std_tqdm):  # pragma: no cover
         if self.disable:
             return
         cls = self.__class__
-
         if getattr(cls, '_progress', None) is None or getattr(self, '_task', None) is None:
             return
         with cls._progress._lock:
@@ -267,19 +239,14 @@ class tqdm_rich(std_tqdm):  # pragma: no cover
             cls._progress.start_task(self._task.id)
 
         d = self.format_dict
-        self._task.fields["rate"] = d["rate"]
-        self._task.fields["postfix"] = d["postfix"]
+        self._task.fields['rate'] = d['rate']
+        self._task.fields['postfix'] = d['postfix']
 
         cls._progress.update(
-            self._task.id,
-            completed=self.n,
-            description=self.desc,
-            refresh=refresh,
-            **d,
-        )
+            self._task.id, completed=self.n, description=self.desc, refresh=refresh, **d)
 
-        cls._progress.console.width = d["ncols"]
-        cls._progress.console.height = d["nrows"]
+        cls._progress.console.width = d['ncols']
+        cls._progress.console.height = d['nrows']
         cls._progress.console.file = self.fp
 
     def refresh(self, *_, **__):
