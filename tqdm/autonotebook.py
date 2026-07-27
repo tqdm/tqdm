@@ -20,6 +20,8 @@ try:
         # jupyter-notebook/jupyterlab/vscode/binder/colab
     elif 'IPython.utils._process_emscripten' in sys.modules:
         pass  # jupyterlite (pyodide)/jupyterlite-xeus
+    elif 'marimo' in sys.modules:
+        pass  # marimo → use notebook tqdm (ipywidgets-compatible)
     else:
         raise ImportError("console")  # ipython/jupyter-console
     from .notebook import WARN_NOIPYW, IProgress
