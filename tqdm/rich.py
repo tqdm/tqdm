@@ -23,11 +23,6 @@ __all__ = ['tqdm_rich', 'trrange', 'tqdm', 'trange']
 
 
 class UnitScaleColumn(ProgressColumn):
-    def __init__(self, unit_scale=False, unit_divisor=1000):
-        self.unit_scale = unit_scale
-        self.unit_divisor = unit_divisor
-        super().__init__()
-
     def unit_format(self, task: Task, num, fmt=""):
         if task.fields["unit_scale"]:
             return std_tqdm.format_sizeof(num, divisor=task.fields["unit_divisor"])
@@ -47,11 +42,6 @@ class FractionColumn(UnitScaleColumn):
 
 class RateColumn(UnitScaleColumn):
     """Renders human readable transfer speed."""
-
-    def __init__(self, unit="it", unit_scale=False, unit_divisor=1000):
-        super().__init__(unit_scale=unit_scale, unit_divisor=unit_divisor)
-        self.unit = unit
-
     def render(self, task: Task):
         """Show data transfer speed."""
         speed = task.fields["rate"]
@@ -177,9 +167,7 @@ class tqdm_rich(std_tqdm):  # pragma: no cover
             description = (
                 "[progress.description]{task.description}: " if self.desc else ""
             )
-            completed = UnitCompletedColumn(
-                unit_scale=d["unit_scale"], unit_divisor=d["unit_divisor"]
-            )
+            completed = UnitCompletedColumn()
             bar_options.setdefault("bar_width", None)
             if d["colour"] is not None:
                 bar_options.setdefault("complete_style", d["colour"])
@@ -191,18 +179,12 @@ class tqdm_rich(std_tqdm):  # pragma: no cover
                 " ",
                 BarColumn(**bar_options),
                 " ",
-                FractionColumn(
-                    unit_scale=d["unit_scale"], unit_divisor=d["unit_divisor"]
-                ),
+                FractionColumn(),
                 " [",
                 CompactTimeElapsedColumn(),
                 PrefixTimeRemainingColumn(compact=True),
                 ", ",
-                RateColumn(
-                    unit=d["unit"],
-                    unit_scale=d["unit_scale"],
-                    unit_divisor=d["unit_divisor"],
-                ),
+                RateColumn(),
                 PostFixColumn(),
                 "]",
             )
