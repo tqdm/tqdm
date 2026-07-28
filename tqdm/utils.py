@@ -17,6 +17,18 @@ IS_WIN = any(CUR_OS.startswith(i) for i in ['win32', 'cygwin'])
 IS_NIX = any(CUR_OS.startswith(i) for i in ['aix', 'linux', 'darwin', 'freebsd'])
 RE_ANSI = re.compile(r"\x1b\[[;\d]*[A-Za-z]")
 
+
+def cast(value, typ):
+    if typ is bool:
+        val = value.strip().lower()
+        if val in ('true', 'yes', 'on', '1', 'y', 't'):
+            return True
+        if val in ('false', 'no', 'off', '0', 'n', 'f', ''):
+            return False
+        raise TypeError(f"{typ}: {val}")
+    return typ(value)
+
+
 try:
     if IS_WIN:
         import colorama
@@ -60,16 +72,16 @@ def envwrap(name, app="", types=None, is_method=False):
             if param.annotation is not param.empty:  # typehints
                 for typ in getattr(param.annotation, '__args__', (param.annotation,)):
                     try:
-                        overrides[k] = typ(overrides[k])
+                        overrides[k] = cast(overrides[k], typ)
                     except Exception:  # nosec B110
                         pass
                     else:
                         break
             elif param.default is not None:  # type of default value
-                overrides[k] = type(param.default)(overrides[k])
+                overrides[k] = cast(overrides[k], type(param.default))
             else:
                 try:  # `types` fallback
-                    overrides[k] = types[k](overrides[k])
+                    overrides[k] = cast(overrides[k], types[k])
                 except KeyError:  # keep unconverted (`str`)
                     pass
         return part(func, **overrides)
