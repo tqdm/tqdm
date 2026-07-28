@@ -18,13 +18,14 @@ IS_NIX = any(CUR_OS.startswith(i) for i in ['aix', 'linux', 'darwin', 'freebsd']
 RE_ANSI = re.compile(r"\x1b\[[;\d]*[A-Za-z]")
 
 
-def _environ_cast(value, typ):
+def cast(value, typ):
     if typ is bool:
-        value = value.strip().lower()
-        if value in {'1', 'true', 't', 'yes', 'y', 'on'}:
+        val = value.strip().lower()
+        if val in ('true', 'yes', 'on', '1', 'y', 't'):
             return True
-        if value in {'0', 'false', 'f', 'no', 'n', 'off', ''}:
+        if val in ('false', 'no', 'off', '0', 'n', 'f', ''):
             return False
+        raise TypeError(f"{typ}: {val}")
     return typ(value)
 
 
@@ -71,16 +72,16 @@ def envwrap(name, app="", types=None, is_method=False):
             if param.annotation is not param.empty:  # typehints
                 for typ in getattr(param.annotation, '__args__', (param.annotation,)):
                     try:
-                        overrides[k] = _environ_cast(overrides[k], typ)
+                        overrides[k] = cast(overrides[k], typ)
                     except Exception:  # nosec B110
                         pass
                     else:
                         break
             elif param.default is not None:  # type of default value
-                overrides[k] = _environ_cast(overrides[k], type(param.default))
+                overrides[k] = cast(overrides[k], type(param.default))
             else:
                 try:  # `types` fallback
-                    overrides[k] = _environ_cast(overrides[k], types[k])
+                    overrides[k] = cast(overrides[k], types[k])
                 except KeyError:  # keep unconverted (`str`)
                     pass
         return part(func, **overrides)
