@@ -124,9 +124,9 @@ class tqdm_gui(std_tqdm):  # pragma: no cover
         line2 = self.line2
         hspan = getattr(self, 'hspan', None)
         # instantaneous rate
-        y = delta_it / delta_t
+        y = delta_it / delta_t if delta_t else 0
         # overall rate
-        z = n / elapsed
+        z = n / elapsed if elapsed else 0
         # update line data
         xdata.append(n * 100.0 / total if total else cur_t)
         ydata.append(y)
