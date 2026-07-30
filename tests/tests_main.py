@@ -32,6 +32,7 @@ def norm(bytestr):
 
 
 @mark.slow
+@mark.skipif(IS_WIN, reason="no ls on windows")
 def test_pipes():
     """Test command line pipes"""
     ls_out = subprocess.check_output(['ls'])  # nosec
