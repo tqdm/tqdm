@@ -1,5 +1,6 @@
 """Test CLI usage."""
 import logging
+import shutil
 import subprocess  # nosec
 import sys
 from functools import wraps
@@ -32,7 +33,7 @@ def norm(bytestr):
 
 
 @mark.slow
-@mark.skipif(IS_WIN, reason="no ls on windows")
+@mark.skipif(shutil.which("ls") is None, reason="requires ls on PATH")
 def test_pipes():
     """Test command line pipes"""
     ls_out = subprocess.check_output(['ls'])  # nosec
