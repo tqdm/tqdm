@@ -250,6 +250,8 @@ class tqdm_notebook(std_tqdm):
         try:
             it = super().__iter__()
             yield from it
+        except GeneratorExit:
+            raise
         # NB: except ... [ as ...] breaks IPython async KeyboardInterrupt
         except:  # NOQA
             self.disp(bar_style='danger')
@@ -276,7 +278,10 @@ class tqdm_notebook(std_tqdm):
         # Try to detect if there was an error or KeyboardInterrupt
         # in manual mode: if n < total, things probably got wrong
         if self.total and self.n < self.total:
-            self.disp(bar_style='danger', check_delay=False)
+            if self.leave:
+                self.disp(bar_style='danger', check_delay=False)
+            else:
+                self.disp(close=True, check_delay=False)
         else:
             if self.leave:
                 self.disp(bar_style='success', check_delay=False)
