@@ -52,6 +52,17 @@ def test_process_map():
             skip(str(err))
 
 
+def test_thread_map_unsized():
+    """Test contrib.concurrent.thread_map with unsized iterables"""
+    with closing(StringIO()) as our_file:
+        a = range(9)
+        b = [i + 1 for i in a]
+        # no iterable reports a length
+        assert thread_map(incr, (i for i in a), file=our_file) == b
+        # only some iterables report a length
+        assert thread_map(lambda x, _: x + 1, (i for i in a), a, file=our_file) == b
+
+
 def check_lock(args):
     """Check that another interpreter cannot acquire a held tqdm lock"""
     from os.path import exists
@@ -100,7 +111,11 @@ def test_interpreter_map_lock(tmp_path):
                                             (['x', ()], False), (['x' * 1001], True),
                                             (['x' * 100, ('x',) * 1001], False),
                                             (['x' * 1001, ('x',) * 100], False),
-                                            (['x' * 1001, ('x',) * 1001], True)])
+                                            (['x' * 1001, ('x',) * 1001], True),
+                                            # unsized iterables report no length
+                                            ([map(str, 'x' * 1001)], False),
+                                            ([map(str, 'x'), map(str, 'x')], False),
+                                            (['x' * 1001, map(str, 'x')], True)])
 def test_chunksize_warning(iterables, should_warn):
     """Test contrib.concurrent.process_map chunksize warnings"""
     patch = importorskip('unittest.mock').patch
