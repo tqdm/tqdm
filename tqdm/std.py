@@ -612,7 +612,13 @@ class tqdm(Comparable):
             frac = n / total
             percentage = frac * 100
 
-            l_bar += f'{percentage:3.0f}%|'
+            if n < total:
+                # Use int() to truncate rather than round, preventing
+                # the percentage from displaying 100% before completion
+                # (e.g. 99.76% would round to 100% with :3.0f)
+                l_bar += f'{int(percentage):3d}%|'
+            else:
+                l_bar += f'{percentage:3.0f}%|'
 
             if ncols == 0:
                 return l_bar[:-1] + r_bar[1:]
