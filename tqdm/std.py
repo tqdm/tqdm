@@ -434,11 +434,18 @@ class tqdm(Comparable):
         return f if len(f) < len(n) else n
 
     @staticmethod
-    def status_printer(file):
+    def status_printer(file, ncols=None):
         """
         Manage the printing and in-place updating of a line of characters.
-        Note that if the string is longer than a line, then in-place
-        updating may not work (it will print a new line at each refresh).
+
+        If `ncols` (int or callable returning int) is given, the printer is
+        aware of how many screen columns the content occupies and will clear
+        any extra rows left behind when the rendered content shrinks (i.e. when
+        a previously wrapped multi-row string is replaced by a shorter one).
+
+        Note that if `ncols` is falsy, or the terminal does not support moving
+        the cursor up (e.g. `nt` without `colorama`), or the content only ever
+        occupies a single row, the exact legacy single-line behaviour is used.
         """
         fp = file
         fp_flush = getattr(fp, 'flush', lambda: None)  # pragma: no cover
@@ -452,9 +459,85 @@ class tqdm(Comparable):
 
         last_len = [0]
 
+        def _resolve_ncols():
+            return ncols() if callable(ncols) else ncols
+
         def print_status(s):
+            ncols_ = _resolve_ncols()
             len_s = disp_len(s)
-            fp_write('\r' + s + (' ' * max(last_len[0] - len_s, 0)))
+
+            # Legacy single-line behaviour: no width info, no cursor-up
+            # support, or a single row that never wraps.
+            if not ncols_ or _term_move_up() == '':
+                fp_write('\r' + s + (' ' * max(last_len[0] - len_s, 0)))
+                last_len[0] = len_s
+                return
+
+            # Number of rows occupied by the displayed string (at least 1).
+            cur_nrow = 1 + max(0, len_s - 1) // ncols_
+            prev_nrow = 1 + max(0, last_len[0] - 1) // ncols_
+
+            # Exact legacy behaviour when the content only ever occupies <=1 row.
+            if cur_nrow == 1 and prev_nrow == 1:
+                fp_write('\r' + s + (' ' * max(last_len[0] - len_s, 0)))
+                last_len[0] = len_s
+                return
+
+            # Width-aware chunking: carve `s` into rows each occupying exactly
+            # `ncols_` display columns. Wide (CJK/FW) characters count as 2
+            # columns, so we must split on *display width* (via `disp_trim`)
+            # rather than raw character count, otherwise the row math below
+            # desyncs from the `ncols_`-based arithmetic used to compute
+            # `cur_nrow`/`prev_nrow` and corruption returns.
+            remaining = s
+            rows = []
+            while remaining:
+                chunk = disp_trim(remaining, ncols_)
+                rows.append(chunk)
+                # `disp_trim` returns a *prefix* of `remaining`. If it had to
+                # append an ANSI reset (only when ANSI is present) that reset is
+                # not part of `remaining`, so advance by the true prefix length
+                # rather than the (longer) `len(chunk)`.
+                cut = len(chunk)
+                if not remaining.startswith(chunk):
+                    cut -= len("\033[0m")
+                remaining = remaining[cut:]
+
+            # Rewrite every row from top to bottom, wiping and re-emitting it
+            # so that any rows left behind by a previous (longer) render are
+            # cleared. This is equivalent to terminal auto-wrapping but lets
+            # us deterministically clear stale rows.
+            #
+            # INVARIANT: print_status must have ZERO net vertical displacement.
+            # `display()` relies on this via its symmetric
+            # `moveto(pos)` / `moveto(-pos)` convention (it moves the cursor
+            # down `pos` rows, calls `sp()`, then back up `pos` rows, assuming
+            # `sp()` returns the cursor to the exact row it started on). Any
+            # non-zero net movement here corrupts multi-bar stacking
+            # (`position=N`). We therefore ALWAYS move the cursor back up by
+            # `n_rows - 1` at the end, leaving the multi-row content visible
+            # below the cursor's resting position but the cursor itself on the
+            # starting row. (The legacy single-row path already satisfies this
+            # because it never leaves the current line.)
+            n_rows = max(prev_nrow, len(rows))
+            for i in range(n_rows):
+                fp_write('\r')
+                if i < len(rows):
+                    row = rows[i]
+                    fp_write(row)
+                    # Pad the remaining space of this row to full display width.
+                    pad = ncols_ - (disp_len(row) % ncols_)
+                    if pad != ncols_:
+                        fp_write(' ' * pad)
+                else:
+                    # Stale row: clear it entirely.
+                    fp_write(' ' * ncols_)
+                if i < n_rows - 1:
+                    fp_write('\n')
+            # Return the cursor to the starting row so the net vertical
+            # displacement is exactly zero.
+            fp_write(_term_move_up() * (n_rows - 1))
+
             last_len[0] = len_s
 
         return print_status
@@ -1098,7 +1181,7 @@ class tqdm(Comparable):
 
         if not gui:
             # Initialize the screen printer
-            self.sp = self.status_printer(self.fp)
+            self.sp = self.status_printer(self.fp, ncols=lambda: self.ncols)
             if delay <= 0:
                 self.refresh(lock_args=self.lock_args)
 
