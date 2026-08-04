@@ -13,8 +13,8 @@ from weakref import proxy
 
 _range, _unich, _unicode, _basestring = range, chr, str, str
 CUR_OS = sys.platform
-IS_WIN = any(CUR_OS.startswith(i) for i in ['win32', 'cygwin'])
-IS_NIX = any(CUR_OS.startswith(i) for i in ['aix', 'linux', 'darwin', 'freebsd'])
+IS_WIN = CUR_OS.startswith(('win32', 'cygwin'))
+IS_NIX = CUR_OS.startswith(('aix', 'linux', 'darwin', 'freebsd'))
 RE_ANSI = re.compile(r"\x1b\[[;\d]*[A-Za-z]")
 
 try:

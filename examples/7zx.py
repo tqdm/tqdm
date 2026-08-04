@@ -95,19 +95,25 @@ def main():
                             s = fcomp.get(exname, 0)  # 0 is likely folders
                             t.update(s)
                             tall.update(s)
-                        elif ln:
-                            if not any(
-                                    ln.startswith(i)
-                                    for i in ("7-Zip ", "p7zip Version ",
-                                              "Everything is Ok", "Folders: ",
-                                              "Files: ", "Size: ", "Compressed: ")):
-                                if ln.startswith("Processing archive: "):
-                                    if not args.silent:
-                                        t.write(t.format_interval(
-                                            t.start_t - tall.start_t) + ' ' +
-                                            ln.replace("Processing archive: ", ""))
-                                else:
-                                    t.write(ln)
+                        elif ln.startswith("Processing archive: "):
+                            if not args.silent:
+                                t.write(
+                                    t.format_interval(t.start_t - tall.start_t)
+                                    + " "
+                                    + ln.replace("Processing archive: ", "")
+                                )
+                        elif ln and not ln.startswith(
+                            (
+                                "7-Zip ",
+                                "p7zip Version ",
+                                "Everything is Ok",
+                                "Folders: ",
+                                "Files: ",
+                                "Size: ",
+                                "Compressed: ",
+                            )
+                        ):
+                            t.write(ln)
             ex.wait()
 
 
