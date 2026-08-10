@@ -1,10 +1,20 @@
+import sys
 from ast import literal_eval
 from collections import defaultdict
+from importlib import import_module
 from typing import Union  # py<3.10
 
 import pytest
 
+from tqdm.std import TqdmDeprecationWarning
 from tqdm.utils import envwrap
+
+
+def test_deprecated_utils_shim():
+    """Test tqdm._utils re-exports every name it promises"""
+    sys.modules.pop('tqdm._utils', None)
+    with pytest.warns(TqdmDeprecationWarning, match="tqdm.utils"):
+        import_module('tqdm._utils')
 
 
 def test_envwrap_deprecated(monkeypatch):
