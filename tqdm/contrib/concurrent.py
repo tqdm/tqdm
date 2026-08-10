@@ -100,8 +100,8 @@ def _get_interpreter_init(tqdm_class, lock_queue_id):
 
 
 def _min_map_len(iterables):
-    """min(map(length_hint, iterables))"""
-    return min(n for it in iterables if (n := length_hint(it, -1)) >= 0)
+    """min(map(length_hint, iterables)), or `None` if no length is known"""
+    return min((n for it in iterables if (n := length_hint(it, -1)) >= 0), default=None)
 
 
 def _executor_map(
@@ -250,7 +250,7 @@ def process_map(fn, *iterables, lock_name="mp_lock", **tqdm_kwargs):
         # default `chunksize=1` has poor performance for large iterables
         # (most time spent dispatching items to workers).
         shortest_iterable_len = _min_map_len(iterables)
-        if shortest_iterable_len > 1000:
+        if shortest_iterable_len is not None and shortest_iterable_len > 1000:
             from warnings import warn
             warn("Iterable length %d > 1000 but `chunksize` is not set."
                  " This may seriously degrade multiprocess performance."
