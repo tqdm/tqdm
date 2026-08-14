@@ -52,6 +52,18 @@ def test_process_map():
             skip(str(err))
 
 
+def test_process_map_chunksize_progress():
+    """process_map should count items, not chunks, when chunksize > 1 (#1791)"""
+    with closing(StringIO()) as our_file:
+        a = range(101)
+        b = [i + 1 for i in a]
+        try:
+            assert process_map(incr, a, chunksize=10, file=our_file, miniters=1) == b
+        except ImportError as err:
+            skip(str(err))
+        assert '101/101' in our_file.getvalue()
+
+
 def check_lock(args):
     """Check that another interpreter cannot acquire a held tqdm lock"""
     from os.path import exists
