@@ -52,6 +52,43 @@ def test_process_map():
             skip(str(err))
 
 
+def test_process_map_chunksize():
+    """Test contrib.concurrent.process_map progress with chunksize > 1 (#1791)"""
+    with closing(StringIO()) as our_file:
+        a = range(101)
+        b = [i + 1 for i in a]
+        try:
+            assert process_map(incr, a, chunksize=10, max_workers=2,
+                               file=our_file) == b
+        except ImportError as err:
+            skip(str(err))
+        # each submitted future processes a whole chunk of items, so each
+        # chunk completion must advance the bar by more than one
+        assert '101/101' in our_file.getvalue()
+
+
+def test_thread_map_chunksize():
+    """Test contrib.concurrent.thread_map progress with chunksize > 1 (#1791)"""
+    with closing(StringIO()) as our_file:
+        a = list(range(17))
+        b = [i + 1 for i in a]
+        assert thread_map(incr, a, chunksize=4, file=our_file) == b
+        assert '17/17' in our_file.getvalue()
+
+
+@mark.skipif(sys.version_info < (3, 14), reason="requires Python 3.14+")
+def test_interpreter_map_chunksize(capsys):
+    """Test contrib.concurrent.interpreter_map progress with chunksize > 1 (#1791)"""
+    a = range(101)
+    b = [i + 1 for i in a]
+    try:
+        assert interpreter_map(incr, a, chunksize=10) == b
+    except ImportError as err:
+        skip(str(err))
+    _, err = capsys.readouterr()
+    assert '101/101' in err
+
+
 def check_lock(args):
     """Check that another interpreter cannot acquire a held tqdm lock"""
     from os.path import exists
