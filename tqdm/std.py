@@ -967,6 +967,10 @@ class tqdm(Comparable):
         """see tqdm.tqdm for arguments"""
         if file is None:
             file = sys.stderr
+            if file is None:
+                # console-less hosts (`pythonw.exe`, frozen GUI apps) have no
+                # `sys.stderr` at all, so there is nothing to display on
+                disable = True
 
         if write_bytes:
             # Despite coercing unicode into bytes, py2 sys.std* streams
