@@ -400,6 +400,19 @@ def test_write_bytes():
         sys.stderr = stderr
 
 
+def test_no_default_file():
+    """Test absent `sys.stderr` (e.g. `pythonw.exe`, console-less frozen app)"""
+    stderr = sys.stderr
+    try:
+        sys.stderr = None
+        with tqdm(total=3) as t:
+            assert t.disable
+            t.update(3)
+        assert list(tqdm(range(3))) == [0, 1, 2]
+    finally:
+        sys.stderr = stderr
+
+
 def test_iterate_over_csv_rows():
     """Test csv iterator"""
     # Create a test csv pseudo file
