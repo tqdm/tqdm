@@ -110,6 +110,19 @@ def test_pandas_data_frame():
                 f"\nExpected:\n100% at least 6 times\nIn:\n{our_file.read()}\n")
 
 
+def test_pandas_groupby_no_progress_map():
+    """Test pandas.DataFrame.groupby(...) has no broken .progress_map"""
+    with closing(StringIO()) as our_file:
+        tqdm.pandas(file=our_file, leave=True, ascii=True)
+
+        df = pd.DataFrame({'a': randint(0, 50, (100,)), 'b': randint(0, 50, (100,))})
+        for grouped in (df.groupby('a'), df.groupby('a')['b']):
+            if hasattr(grouped, 'map'):  # pragma: no cover
+                skip("pandas (Series|DataFrame)GroupBy now provides `map`")
+            # registering it would only raise `AttributeError` on call
+            assert not hasattr(grouped, 'progress_map')
+
+
 @mark.filterwarnings("ignore:DataFrameGroupBy.apply operated on the grouping columns")
 def test_pandas_groupby_apply():
     """Test pandas.DataFrame.groupby(...).progress_apply"""

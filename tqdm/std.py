@@ -931,13 +931,12 @@ class tqdm(Comparable):
         Series.progress_apply = inner_generator()
         SeriesGroupBy.progress_apply = inner_generator()
         Series.progress_map = inner_generator('map')
-        SeriesGroupBy.progress_map = inner_generator('map')
 
         DataFrame.progress_apply = inner_generator()
         DataFrameGroupBy.progress_apply = inner_generator()
         DataFrame.progress_applymap = inner_generator('applymap')
         DataFrame.progress_map = inner_generator('map')
-        DataFrameGroupBy.progress_map = inner_generator('map')
+        # no `(Series|DataFrame)GroupBy.map` to delegate to
 
         if Panel is not None:
             Panel.progress_apply = inner_generator()
