@@ -52,6 +52,20 @@ def test_process_map():
             skip(str(err))
 
 
+def test_map_unsized_iterables():
+    """Test map functions accept iterables with no length hint (fixes #1801)"""
+    gen = (i for i in range(9))
+    assert thread_map(incr, gen, disable=True) == [i + 1 for i in range(9)]
+    try:
+        assert process_map(incr, (i for i in range(9)), max_workers=2,
+                           disable=True) == [i + 1 for i in range(9)]
+    except ImportError as err:
+        skip(str(err))
+    # mixed sized and unsized: the sized one still sets total/warns correctly
+    assert thread_map(lambda x, y: x, (i for i in range(9)), range(9),
+                      disable=True) == list(range(9))
+
+
 def check_lock(args):
     """Check that another interpreter cannot acquire a held tqdm lock"""
     from os.path import exists
