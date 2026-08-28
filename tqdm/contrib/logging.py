@@ -82,16 +82,16 @@ def logging_redirect_tqdm(
     original_handlers_list = [logger.handlers for logger in loggers]
     try:
         for logger in loggers:
-            tqdm_handler = _TqdmLoggingHandler(tqdm_class)
             orig_handler = _get_first_found_console_logging_handler(logger.handlers)
             if orig_handler is not None:
+                tqdm_handler = _TqdmLoggingHandler(tqdm_class)
                 tqdm_handler.setFormatter(orig_handler.formatter)
                 tqdm_handler.stream = orig_handler.stream
                 for log_filter in orig_handler.filters:
                     tqdm_handler.addFilter(log_filter)
-            logger.handlers = [
-                handler for handler in logger.handlers
-                if not _is_console_logging_handler(handler)] + [tqdm_handler]
+                logger.handlers = [
+                    handler for handler in logger.handlers
+                    if not _is_console_logging_handler(handler)] + [tqdm_handler]
         yield
     finally:
         for logger, original_handlers in zip(loggers, original_handlers_list):
