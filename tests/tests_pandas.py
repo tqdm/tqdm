@@ -221,3 +221,35 @@ def test_pandas_deprecation():
         # Check deprecation message
         assert "TqdmDeprecationWarning" in our_file.getvalue()
         assert "instead of `tqdm_pandas(tqdm, ...)`" in our_file.getvalue()
+
+
+def test_pandas_empty_dataframe():
+    """Test tqdm.pandas() on an empty DataFrame doesn't divide by zero"""
+    with closing(StringIO()) as our_file:
+        tqdm.pandas(file=our_file, leave=True, ascii=True)
+        df = pd.DataFrame(columns=["a", "b"])
+        res = df.progress_apply(lambda column: column)
+        assert res.shape == (0, 2)
+
+        df = pd.DataFrame(index=[0, 1])
+        res = df.progress_apply(lambda row: row, axis=1)
+        assert res.shape == (2, 0)
+
+
+def test_pandas_total_kept_across_calls():
+    """`total=` passed to tqdm.pandas() should apply to every subsequent call,
+    not just the first one"""
+    with closing(StringIO()) as our_file:
+        tqdm.pandas(file=our_file, ascii=True, leave=True, total=123,
+                    mininterval=0, miniters=1)
+
+        pd.Series([10, 20, 30]).progress_apply(lambda value: value + 1)
+        first = our_file.getvalue().replace('\r', '\n').strip().split('\n')[-1]
+        our_file.seek(0)
+        our_file.truncate(0)
+
+        pd.Series([10, 20, 30, 40]).progress_apply(lambda value: value + 1)
+        second = our_file.getvalue().replace('\r', '\n').strip().split('\n')[-1]
+
+        assert '/123' in first
+        assert '/123' in second
