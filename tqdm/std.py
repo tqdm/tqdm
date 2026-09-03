@@ -865,8 +865,11 @@ class tqdm(Comparable):
                     Transmitted to `df.apply()`.
                 """
 
-                # Precompute total iterations
-                total = tqdm_kwargs.pop("total", getattr(df, 'ngroups', None))
+                # Copy so `total` (and anything else) survives for the next call
+                # instead of being permanently removed from the shared kwargs the
+                # first time it is used.
+                call_kwargs = tqdm_kwargs.copy()
+                total = call_kwargs.pop("total", getattr(df, 'ngroups', None))
                 if total is None:  # not grouped
                     if df_function == 'applymap':
                         total = df.size
@@ -880,15 +883,16 @@ class tqdm(Comparable):
                             axis = 0
                         elif axis == 'columns':
                             axis = 1
-                        # when axis=0, total is shape[axis1]
-                        total = df.size // df.shape[axis]
+                        # when axis=0, total is shape[axis1]; an empty axis means
+                        # there is nothing to iterate, so avoid dividing by zero
+                        total = df.size // df.shape[axis] if df.shape[axis] else 0
 
                 # Init bar
                 if deprecated_t[0] is not None:
                     t = deprecated_t[0]
                     deprecated_t[0] = None
                 else:
-                    t = cls(total=total, **tqdm_kwargs)
+                    t = cls(total=total, **call_kwargs)
 
                 if len(args) > 0:
                     # *args intentionally not supported (see #244, #299)
