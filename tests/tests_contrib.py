@@ -59,3 +59,75 @@ def test_map(tqdm_kwargs):
         gen = tmap(lambda x: x + 1, a, file=our_file, **tqdm_kwargs)
         assert gen != b
         assert list(gen) == b
+
+
+def test_discord_network_error(monkeypatch):
+    """Test DiscordIO handles network error without raising UnboundLocalError (#1812)"""
+    requests = importorskip("requests")
+    from tqdm.contrib.discord import DiscordIO
+
+    def mock_post(*args, **kwargs):
+        raise requests.exceptions.ConnectionError("Connection refused")
+
+    monkeypatch.setattr(requests.Session, "post", mock_post)
+    dio = DiscordIO("TOKEN", "CHANNEL")
+    assert dio.message_id is None
+
+
+def test_telegram_network_error(monkeypatch):
+    """Test TelegramIO handles network error without raising UnboundLocalError (#1812)"""
+    requests = importorskip("requests")
+    from tqdm.contrib.telegram import TelegramIO
+
+    def mock_post(*args, **kwargs):
+        raise requests.exceptions.ConnectionError("Connection refused")
+
+    monkeypatch.setattr(requests.Session, "post", mock_post)
+    tgio = TelegramIO("TOKEN", "CHANNEL")
+    assert tgio.message_id is None
+
+
+def test_discord_rate_limit(monkeypatch):
+    """Test DiscordIO warns on 429 rate limit"""
+    requests = importorskip("requests")
+    from tqdm.contrib.discord import DiscordIO
+    from tqdm.std import TqdmWarning
+
+    class MockResponse:
+        status_code = 429
+
+        def json(self):
+            return {}
+
+        def raise_for_status(self):
+            raise requests.exceptions.HTTPError(response=self)
+
+    monkeypatch.setattr(
+        requests.Session, "post", lambda *args, **kwargs: MockResponse()
+    )
+    with pytest.warns(TqdmWarning, match="Creation rate limit"):
+        dio = DiscordIO("TOKEN", "CHANNEL")
+        assert dio.message_id is None
+
+
+def test_telegram_rate_limit(monkeypatch):
+    """Test TelegramIO warns on 429 rate limit"""
+    requests = importorskip("requests")
+    from tqdm.contrib.telegram import TelegramIO
+    from tqdm.std import TqdmWarning
+
+    class MockResponse:
+        status_code = 429
+
+        def json(self):
+            return {}
+
+        def raise_for_status(self):
+            raise requests.exceptions.HTTPError(response=self)
+
+    monkeypatch.setattr(
+        requests.Session, "post", lambda *args, **kwargs: MockResponse()
+    )
+    with pytest.warns(TqdmWarning, match="Creation rate limit"):
+        tgio = TelegramIO("TOKEN", "CHANNEL")
+        assert tgio.message_id is None
