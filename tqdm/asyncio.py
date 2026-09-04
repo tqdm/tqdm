@@ -64,7 +64,12 @@ class tqdm_asyncio(std_tqdm):
         Wrapper for `asyncio.as_completed`.
         """
         if total is None:
-            total = len(fs)
+            try:
+                total = len(fs)
+            except TypeError:
+                # `fs` may be a generator (accepted by `asyncio.as_completed`
+                # since Python 3.12); let the bar infer the total instead.
+                total = None
         kwargs = {}
         if version_info[:2] < (3, 10):
             kwargs['loop'] = loop
