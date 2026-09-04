@@ -41,6 +41,7 @@ class DiscordIO(MonoWorker):
     def message_id(self):
         if hasattr(self, '_message_id'):
             return self._message_id  # pylint: disable=access-member-before-definition
+        req = None
         try:
             req = self.session.post(
                 f'{self.API}/channels/{self.channel_id}/messages',
@@ -49,7 +50,7 @@ class DiscordIO(MonoWorker):
             res = req.json()
             req.raise_for_status()
         except Exception as e:
-            if req.status_code == 429:
+            if getattr(req, 'status_code', None) == 429:
                 warn("Creation rate limit: try increasing `mininterval`.",
                      TqdmWarning, stacklevel=2)
             else:
