@@ -38,6 +38,7 @@ class TelegramIO(MonoWorker):
     def message_id(self):
         if hasattr(self, '_message_id'):
             return self._message_id  # pylint: disable=access-member-before-definition
+        req = None
         try:
             req = self.session.post(
                 f'{self.API}{self.token}/sendMessage',
@@ -46,7 +47,7 @@ class TelegramIO(MonoWorker):
             res = req.json()
             req.raise_for_status()
         except Exception as e:
-            if req.status_code == 429:
+            if req is not None and req.status_code == 429:
                 warn("Creation rate limit: try increasing `mininterval`.",
                      TqdmWarning, stacklevel=2)
             else:

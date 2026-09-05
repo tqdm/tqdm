@@ -1,6 +1,8 @@
 """
 Tests for `tqdm.contrib`.
 """
+from importlib import import_module
+
 import pytest
 
 from tqdm import tqdm
@@ -59,3 +61,23 @@ def test_map(tqdm_kwargs):
         gen = tmap(lambda x: x + 1, a, file=our_file, **tqdm_kwargs)
         assert gen != b
         assert list(gen) == b
+
+
+@pytest.mark.parametrize("name,cls_name,args", [
+    ("discord", "DiscordIO", ("TOKEN", "CHANNEL")), ("telegram", "TelegramIO", ("TOKEN", "CHAT"))])
+def test_bot_io_request_error(capsys, monkeypatch, name, cls_name, args):
+    """Test contrib bots report the original request error"""
+    importorskip("requests")
+    mod = import_module(f"tqdm.contrib.{name}")
+
+    class BrokenSession:
+        def __init__(self, *_, **__):
+            pass
+
+        def post(self, *_, **__):
+            raise ConnectionError("connection refused")
+
+    monkeypatch.setattr(mod, "Session", BrokenSession)
+    assert getattr(mod, cls_name)(*args).message_id is None
+    out, _ = capsys.readouterr()
+    assert "connection refused" in out
