@@ -1,14 +1,57 @@
 import sys
+from contextlib import nullcontext
+from threading import RLock
 
-from pytest import mark, skip, warns
+from pytest import mark, raises, skip, warns
 
-from tqdm import TqdmWarning
+from tqdm import TqdmWarning, tqdm
 from tqdm.contrib import concurrent
-from tqdm.contrib.concurrent import interpreter_map, process_map, thread_map
+from tqdm.contrib.concurrent import ensure_lock, interpreter_map, process_map, thread_map
 
 
 def dummy_func(x):
     return x + 1
+
+
+def failing_func(x):
+    raise ValueError("worker failed")
+
+
+@mark.parametrize("error", [None, ValueError, KeyboardInterrupt])
+def test_ensure_lock_restore(error, monkeypatch):
+    original_lock, temporary_lock = RLock(), RLock()
+    monkeypatch.setattr(tqdm, '_lock', original_lock, raising=False)
+    with raises(error, match="test failure") if error else nullcontext():
+        with ensure_lock(tqdm, lock=temporary_lock) as lock:
+            assert lock is temporary_lock
+            assert tqdm.get_lock() is temporary_lock
+            if error:
+                raise error("test failure")
+    assert tqdm.get_lock() is original_lock
+
+
+@mark.parametrize("error", [None, ValueError, KeyboardInterrupt])
+def test_ensure_lock_remove(error, monkeypatch):
+    monkeypatch.setattr(tqdm, '_lock', None, raising=False)
+    monkeypatch.delattr(tqdm, '_lock')
+    with raises(error, match="test failure") if error else nullcontext():
+        with ensure_lock(tqdm) as lock:
+            assert tqdm.get_lock() is lock
+            if error:
+                raise error("test failure")
+    assert not hasattr(tqdm, '_lock')
+
+
+def test_ensure_lock_nested_exception(monkeypatch):
+    original_lock, outer_lock, inner_lock = RLock(), RLock(), RLock()
+    monkeypatch.setattr(tqdm, '_lock', original_lock, raising=False)
+    with ensure_lock(tqdm, lock=outer_lock):
+        with raises(ValueError, match="inner failure"):
+            with ensure_lock(tqdm, lock=inner_lock):
+                assert tqdm.get_lock() is inner_lock
+                raise ValueError("inner failure")
+        assert tqdm.get_lock() is outer_lock
+    assert tqdm.get_lock() is original_lock
 
 
 @mark.parametrize("mapper", [interpreter_map, process_map, thread_map])
@@ -21,6 +64,23 @@ def test_concurrent_map(mapper, caperr):
         skip(str(err))
     err = caperr()
     assert '0/9' in err
+
+
+@mark.parametrize("mapper,lock_name", [(interpreter_map, ''), (process_map, 'mp_lock'),
+                                       (thread_map, 'th_lock')])
+@mark.parametrize("worker_error", [False, True])
+def test_concurrent_map_exception(mapper, lock_name, worker_error, monkeypatch):
+    original_lock = tqdm.get_lock()
+    monkeypatch.setattr(tqdm, '_lock', original_lock)
+    fn = failing_func if worker_error else dummy_func
+    max_workers = 1 if worker_error else 0
+    with raises(ValueError, match="worker failed" if worker_error else "max_workers"):
+        try:
+            mapper(fn, [0], max_workers=max_workers, lock_name=lock_name,
+                   tqdm_class=tqdm, disable=True)
+        except ImportError as err:
+            skip(str(err))
+    assert tqdm.get_lock() is original_lock
 
 
 def check_lock(args):
