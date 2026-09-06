@@ -64,7 +64,11 @@ class tqdm_asyncio(std_tqdm):
         Wrapper for `asyncio.as_completed`.
         """
         if total is None:
-            total = len(fs)
+            try:
+                total = len(fs)
+            except TypeError:  # e.g. generator: `asyncio` consumes it eagerly anyway
+                fs = list(fs)
+                total = len(fs)
         kwargs = {}
         if version_info[:2] < (3, 10):
             kwargs['loop'] = loop

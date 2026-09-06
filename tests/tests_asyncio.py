@@ -106,6 +106,15 @@ async def test_as_completed(caperr, tol):
                 raise
 
 
+@mark.asyncio
+async def test_as_completed_unsized(capsys):
+    """Test asyncio as_completed with an unsized iterable"""
+    res = [await i for i in as_completed(asyncio.sleep(0, result=i) for i in range(3))]
+    _, err = capsys.readouterr()
+    assert sorted(res) == [0, 1, 2]
+    assert '3/3' in err
+
+
 async def double(i):
     return i * 2
 
