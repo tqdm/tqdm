@@ -3,6 +3,7 @@ on:
   push:
   pull_request:
   schedule: [{cron: '2 1 * * 6'}]  # M H d m w (Sat 1:02)
+  workflow_dispatch:
 jobs:
   test:
     if: github.event_name != 'pull_request' || !contains('OWNER,MEMBER,COLLABORATOR', github.event.pull_request.author_association)
@@ -21,7 +22,7 @@ jobs:
     steps:
     - uses: actions/checkout@v7
       with: {fetch-depth: 0}
-    - uses: actions/setup-python@v6
+    - uses: actions/setup-python@v7
       with:
         python-version: ${{ matrix.python }}
     - name: install
@@ -49,7 +50,7 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/setup-python@v6
+    - uses: actions/setup-python@v7
       with: {python-version: '3.x'}
     - name: Coveralls Finished
       run: |
@@ -73,7 +74,7 @@ jobs:
       with:
         fetch-depth: 0
         token: ${{ secrets.GH_TOKEN || github.token }}
-    - uses: actions/setup-python@v6
+    - uses: actions/setup-python@v7
       with: {python-version: '3.x'}
     - name: Install
       run: |
