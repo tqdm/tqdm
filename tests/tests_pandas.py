@@ -92,6 +92,19 @@ def test_pandas_data_frame(caperr):
 
 
 @mark.filterwarnings("ignore:DataFrameGroupBy.apply operated on the grouping columns")
+def test_pandas_groupby_no_progress_map():
+    """Test (DataFrame|Series)GroupBy has no progress_map"""
+    tqdm.pandas(leave=False, ascii=True)
+
+    df = pd.DataFrame({'a': randint(0, 2, (10,)), 'b': rand(10)})
+    # pandas has no GroupBy.map for progress_map to wrap, so registering it
+    # would only produce an AttributeError at call time
+    assert not hasattr(df.groupby('a'), 'map')
+    assert not hasattr(df.groupby('a')['b'], 'map')
+    assert not hasattr(df.groupby('a'), 'progress_map')
+    assert not hasattr(df.groupby('a')['b'], 'progress_map')
+
+
 def test_pandas_groupby_apply(caperr):
     """Test pandas.DataFrame.groupby(...).progress_apply"""
     tqdm.pandas(leave=False, ascii=True)
