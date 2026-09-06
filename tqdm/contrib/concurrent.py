@@ -76,11 +76,13 @@ def ensure_lock(tqdm_class, lock_name="", lock=None):
         lock = old_lock or tqdm_class.get_lock()  # maybe create a new lock
     lock = getattr(lock, lock_name, lock)  # maybe subtype
     tqdm_class.set_lock(lock)
-    yield lock
-    if old_lock is None:
-        del tqdm_class._lock
-    else:
-        tqdm_class.set_lock(old_lock)
+    try:
+        yield lock
+    finally:
+        if old_lock is None:
+            del tqdm_class._lock
+        else:
+            tqdm_class.set_lock(old_lock)
 
 
 def _get_interpreter_init(tqdm_class, lock_queue_id):
