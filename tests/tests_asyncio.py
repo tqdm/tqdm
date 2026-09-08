@@ -166,3 +166,15 @@ async def test_async_iterable(caperr):
     assert result == list(range(9))
     err = caperr()
     assert '9it' in err
+
+
+@mark.asyncio
+async def test_as_completed_generator(capsys):
+    """Test asyncio as_completed with a generator (no len(), GitHub issue #1811)"""
+    tasks = (asyncio.create_task(asyncio.sleep(0, result=i)) for i in range(3))
+    result = [await i for i in as_completed(tasks)]
+    assert sorted(result) == [0, 1, 2]
+    _, err = capsys.readouterr()
+    # total is unknown for a generator, so the bar counts up (3it), not 3/3
+    assert '3it' in err
+    assert '3/3' not in err
