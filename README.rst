@@ -465,9 +465,10 @@ Parameters
     Specify the line offset to print this bar (starting from 0)
     Automatic if unspecified.
     Useful to manage multiple bars at once (eg, from threads).
-* postfix  : dict or ``*``, optional  
+* postfix  : dict or OrderedDict or ``*``, optional  
     Specify additional stats to display at the end of the bar.
-    Calls ``set_postfix(**postfix)`` if possible (dict).
+    Calls ``set_postfix`` if possible (dict). ``OrderedDict`` preserves
+    its order; other dicts are sorted by key.
 * unit_divisor  : float, optional  
     [default: 1000], ignored unless ``unit_scale`` is True.
 * write_bytes  : bool, optional  
