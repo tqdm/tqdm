@@ -1,10 +1,8 @@
-"""Test `tqdm.__version__`."""
 import re
 from ast import literal_eval
 
 
 def test_version():
-    """Test version string"""
     from tqdm import __version__
     version_parts = re.split('[.-]', __version__)
     if __version__ != "UNKNOWN":
