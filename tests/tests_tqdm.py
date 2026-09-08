@@ -2,6 +2,7 @@ import csv
 import os
 import re
 import sys
+from collections import OrderedDict
 from importlib import import_module
 from io import BytesIO, IOBase
 
@@ -1352,6 +1353,49 @@ def test_postfix(caperr):
 
     assert "Hello" not in out5
     assert out5[1:-1].split(', ')[3:] == ["World"]
+
+
+@mark.parametrize("total", [None, 10])
+@mark.parametrize("mapping_type,expected", [
+    (dict, "a=[2], z=0.321"),
+    (OrderedDict, "z=0.321, a=[2]"),
+])
+def test_postfix_mapping_order(caperr, total, mapping_type, expected):
+    postfix = mapping_type([('z', 0.321034), ('a', [2])])
+    original_items = list(postfix.items())
+
+    with tqdm(total=total, postfix=postfix, bar_format='{postfix}') as t:
+        assert t.postfix == expected
+    assert expected in caperr()
+    assert list(postfix.items()) == original_items
+
+
+@mark.parametrize("key", ['self', 'refresh'])
+def test_postfix_ordered_mapping_raw(caperr, key):
+    postfix = OrderedDict([(key, 0), ('metric', 42)])
+    with tqdm(postfix=postfix, bar_format='{postfix[metric]}') as t:
+        assert t.postfix is postfix
+    assert '42' in caperr()
+
+
+def test_postfix_ordered_mapping_non_string_key(caperr):
+    class Metric:
+        label = 'metric label'
+
+        def __str__(self):
+            raise ValueError('must not stringify raw metrics')
+
+    postfix = OrderedDict([(0, Metric())])
+    with tqdm(postfix=postfix, bar_format='{postfix[0].label}') as t:
+        assert t.postfix is postfix
+    assert 'metric label' in caperr()
+
+
+def test_postfix_ordered_mapping_argument(caperr):
+    postfix = OrderedDict([('ordered_dict', {'z': 1}), ('a', 2)])
+    with tqdm(postfix=postfix, bar_format='{postfix}') as t:
+        assert t.postfix == 'z=1, a=2'
+    assert 'z=1, a=2' in caperr()
 
 
 def test_postfix_direct(caperr):
