@@ -13,7 +13,7 @@ from tqdm.utils import envwrap
 def test_deprecated_utils_shim():
     """Test tqdm._utils re-exports every name it promises"""
     sys.modules.pop('tqdm._utils', None)
-    with pytest.warns(TqdmDeprecationWarning, match="tqdm.utils"):
+    with warns(TqdmDeprecationWarning, match="tqdm.utils"):
         import_module('tqdm._utils')
 
 
