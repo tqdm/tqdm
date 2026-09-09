@@ -100,8 +100,8 @@ def _get_interpreter_init(tqdm_class, lock_queue_id):
 
 
 def _min_map_len(iterables):
-    """min(map(length_hint, iterables))"""
-    return min(n for it in iterables if (n := length_hint(it, -1)) >= 0)
+    """min(map(length_hint, iterables)), or -1 if all iterables are unsized"""
+    return min((n for it in iterables if (n := length_hint(it, -1)) >= 0), default=-1)
 
 
 def _executor_map(
@@ -124,7 +124,9 @@ def _executor_map(
     """
     kwargs = tqdm_kwargs.copy()
     if 'total' not in kwargs:
-        kwargs['total'] = _min_map_len(iterables)
+        shortest_len = _min_map_len(iterables)
+        # -1 => all iterables unsized (e.g. generators): leave total unknown
+        kwargs['total'] = None if shortest_len < 0 else shortest_len
     map_kwargs = {}
     if 'buffersize' in kwargs:
         map_kwargs['buffersize'] = kwargs.pop('buffersize')
