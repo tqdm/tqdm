@@ -154,10 +154,21 @@ def _executor_map(
                 if dynamic_miniters is not None:
                     pbar.dynamic_miniters = True
                 orisubmit = ex.submit
+                total = kwargs.get('total')
+                submitted = [0]
 
                 def patchsubmit(*args, **kwargs):
                     fut = orisubmit(*args, **kwargs)
-                    fut.add_done_callback(lambda _: pbar.update())
+                    # `chunksize > 1` means each future represents multiple items
+                    # (e.g. `ProcessPoolExecutor.map` groups items into chunks
+                    # before submitting), so update the bar by the chunk size
+                    # rather than by `1` per completed future.
+                    if total is not None:
+                        n = min(chunksize, total - submitted[0])
+                        submitted[0] += n
+                    else:
+                        n = 1
+                    fut.add_done_callback(lambda _, n=n: pbar.update(n))
                     return fut
                 ex.submit = patchsubmit
                 return list(ex.map(

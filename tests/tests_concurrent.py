@@ -23,6 +23,22 @@ def test_concurrent_map(mapper, caperr):
     assert '0/9' in err
 
 
+def test_process_map_chunksize():
+    """Test contrib.concurrent.process_map bar reaches `total` with `chunksize>1`"""
+    with closing(StringIO()) as our_file:
+        n = 101
+        a = range(n)
+        b = [i + 1 for i in a]
+        try:
+            assert process_map(incr, a, chunksize=10, file=our_file) == b
+        except ImportError as err:
+            skip(str(err))
+        our_file.seek(0)
+        out = our_file.read()
+        assert "100%|" in out
+        assert "%d/%d" % (n, n) in out
+
+
 def check_lock(args):
     """Check that another interpreter cannot acquire a held tqdm lock"""
     from os.path import exists
