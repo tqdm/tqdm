@@ -881,7 +881,7 @@ class tqdm(Comparable):
                         elif axis == 'columns':
                             axis = 1
                         # when axis=0, total is shape[axis1]
-                        total = df.size // df.shape[axis]
+                        total = df.size // df.shape[axis] if df.shape[axis] else 0
 
                 # Init bar
                 if deprecated_t[0] is not None:
