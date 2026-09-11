@@ -12,7 +12,6 @@ def dummy_func(x):
 
 
 def test_min_map_len():
-    """GH #1828: must not raise when every iterable has an unknown length (or there are none)"""
     assert concurrent._min_map_len([]) == 0
     assert concurrent._min_map_len([(i for i in range(9))]) == 0
     assert concurrent._min_map_len([(i for i in range(9)), range(5)]) == 5
@@ -31,8 +30,7 @@ def test_concurrent_map(mapper, caperr):
 
 
 @mark.parametrize("mapper", [interpreter_map, process_map, thread_map])
-def test_concurrent_map_no_length_hint(mapper, caperr):
-    """GH #1828: iterables with no length hint (e.g. generators) shouldn't raise `ValueError`"""
+def test_concurrent_map_unknown_len(mapper, caperr):
     b = [i + 1 for i in range(9)]
     try:
         assert mapper(dummy_func, (i for i in range(9))) == b
