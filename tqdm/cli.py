@@ -162,22 +162,6 @@ def main(fp=sys.stderr, argv=None):
     """
     if argv is None:
         argv = sys.argv[1:]
-    try:
-        log_idx = argv.index('--log')
-    except ValueError:
-        for i in argv:
-            if i.startswith('--log='):
-                logLevel = i[len('--log='):]
-                break
-        else:
-            logLevel = 'INFO'
-    else:
-        # argv.pop(log_idx)
-        # logLevel = argv.pop(log_idx)
-        logLevel = argv[log_idx + 1]
-    logging.basicConfig(level=getattr(logging, logLevel),
-                        format="%(levelname)s:%(module)s:%(lineno)d:%(message)s")
-
     # py<3.13 doesn't dedent docstrings
     d = (tqdm.__doc__ if sys.version_info < (3, 13)
          else indent(tqdm.__doc__, "    ")) + CLI_EXTRA_DOC
@@ -187,8 +171,6 @@ def main(fp=sys.stderr, argv=None):
 
     for o in UNSUPPORTED_OPTS:
         opt_types.pop(o)
-
-    log.debug(sorted(opt_types.items()))
 
     # d = RE_OPTS.sub(r'  --\1=<\1>  : \2', d)
     split = RE_OPTS.split(d)
@@ -218,11 +200,17 @@ Options:
     argv = RE_SHLEX.split(' '.join(["tqdm"] + argv))
     opts = dict(zip(argv[1::3], argv[3::3]))
 
-    log.debug(opts)
-    opts.pop('log', True)
-
     tqdm_args = {'file': fp}
     try:
+        log_level = opts.pop('log', 'INFO')
+        level = logging.getLevelName(log_level)
+        if not isinstance(level, int):
+            raise TqdmTypeError(f'{log_level!r} : log level')
+        logging.basicConfig(level=level,
+                            format="%(levelname)s:%(module)s:%(lineno)d:%(message)s")
+        log.debug(sorted(opt_types.items()))
+        log.debug(opts)
+
         for (o, v) in opts.items():
             o = o.replace('-', '_')
             try:
