@@ -9,7 +9,7 @@ about: Use this template for proposing change(s)
     + [ ] documentation modification
     + [ ] new feature
 - [ ] If applicable, I have mentioned the relevant/related issue(s)
-- [ ] Any AI-assisted commits are clearly marked ([author], [Co-authored-by] or [Assisted-by])
+- [ ] Any AI-assisted commits are clearly marked ([author], [Co-authored-by] or [Assisted-by]) using the syntax `Provider Model <email>`, e.g. `Co-authored-by: Claude Opus 5 <noreply@anthropic.com>`
 
 Less important but also useful:
 

@@ -72,7 +72,7 @@ repos:
   - id: pyupgrade
     args: [--py38-plus]
 - repo: https://github.com/PyCQA/isort
-  rev: 9.0.0b1
+  rev: 9.0.1
   hooks:
   - id: isort
 - repo: https://github.com/kynan/nbstripout
