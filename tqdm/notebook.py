@@ -192,6 +192,14 @@ class tqdm_notebook(std_tqdm):
             self.displayed = True
 
     @property
+    def format_dict(self):
+        d = super().format_dict
+        # CSS widths apply to the widget layout, not text character counts.
+        if isinstance(d['ncols'], str):
+            d['ncols'] = None
+        return d
+
+    @property
     def colour(self):
         if hasattr(self, 'container'):
             return self.container.children[-2].style.bar_color
