@@ -747,6 +747,28 @@ def test_unicode_bar():
     assert "20%|\u2588\u2588" in res[3]
 
 
+@mark.parametrize("n,left,body,right", [
+    (0, "\uee00", "\uee01" * 10, "\uee02"),
+    (5, "\uee03", "\uee04" * 5 + "\uee01" * 5, "\uee02"),
+    (10, "\uee03", "\uee04" * 10, "\uee05"),
+])
+def test_fira_bar(n, left, body, right):
+    meter = tqdm.format_meter(n, 10, 1, ascii=Bar.FIRA)
+    assert left + body + right in meter
+
+
+def test_fira_bar_env(monkeypatch):
+    monkeypatch.setenv("UNICODE_PROGRESS_BAR", "true")
+    with UnicodeIO() as tmp_file:
+        with tqdm(total=1, file=tmp_file) as t:
+            assert t.ascii == Bar.FIRA
+        with tqdm(total=1, file=tmp_file, ascii=False) as t:
+            assert t.ascii is False
+        monkeypatch.setenv("UNICODE_PROGRESS_BAR", "1")
+        with tqdm(total=1, file=tmp_file) as t:
+            assert t.ascii is False
+
+
 @mark.parametrize("bars", [" .oO0", " #"])
 def test_custom_bar(tmp_file, bars):
     for _ in tqdm(range(len(bars) - 1), file=tmp_file, miniters=1,

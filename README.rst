@@ -326,6 +326,11 @@ of a neat one-line progress bar.
 
   * Environments which report that they support unicode will have solid smooth
     progress bars. The fallback is an ``ascii``-only bar.
+  * Fira Code and compatible fonts can use their dedicated progress bar
+    glyphs. Set ``UNICODE_PROGRESS_BAR=true`` as described in the
+    `Fira Code specification
+    <https://github.com/tonsky/FiraCode#whats-in-the-box>`__.
+    An explicit ``ascii`` value overrides this environment variable.
   * Windows consoles often only partially support unicode and thus
     `often require explicit ascii=True <https://github.com/tqdm/tqdm/issues/454#issuecomment-335416815>`__
     (also `here <https://github.com/tqdm/tqdm/issues/499>`__). This is due to
@@ -425,6 +430,8 @@ Parameters
 * ascii  : bool or str, optional  
     If unspecified or False, use unicode (smooth blocks) to fill
     the meter. The fallback is to use ASCII characters " 123456789#".
+    Set ``UNICODE_PROGRESS_BAR=true`` to use Fira Code bar glyphs.
+    An explicit value overrides the environment variable.
 * disable  : bool, optional  
     Whether to disable the entire progress bar wrapper
     [default: False]. If set to None, disable on non-TTY.

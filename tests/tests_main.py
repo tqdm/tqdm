@@ -76,6 +76,17 @@ def test_main_log(capsysbinary, caplog, monkeypatch, level, logged):
         assert bool(caplog.record_tuples) is logged
 
 
+def test_main_fira(capsysbinary, monkeypatch):
+    lines = [b"one\n", b"two\n"]
+    monkeypatch.setattr(sys, 'stdin', lines)
+    monkeypatch.setenv("UNICODE_PROGRESS_BAR", "true")
+    main(sys.stderr, ['--total', '2', '--mininterval', '0', '--miniters', '1'])
+    out, err = capsysbinary.readouterr()
+    assert out == b''.join(lines)
+    for glyph in range(0xee00, 0xee06):
+        assert chr(glyph).encode() in err
+
+
 def test_main_misc_options(capsysbinary, monkeypatch):
     N = 123
     monkeypatch.setattr(sys, 'stdin', [(str(i) + '\n').encode() for i in range(N)])

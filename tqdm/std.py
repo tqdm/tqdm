@@ -12,6 +12,7 @@ from collections import OrderedDict, defaultdict
 from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
 from numbers import Number
+from os import environ
 from time import time
 from warnings import warn
 from weakref import WeakSet
@@ -141,6 +142,11 @@ class Bar:
     """
     ASCII = " 123456789#"
     UTF = " " + ''.join(map(chr, range(0x258F, 0x2587, -1)))
+    FIRA = "\uee01\uee04"
+    FIRA_LEFT_EMPTY = "\uee00"
+    FIRA_RIGHT_EMPTY = "\uee02"
+    FIRA_LEFT = "\uee03"
+    FIRA_RIGHT_FULL = "\uee05"
     BLANK = "  "
     COLOUR_RESET = '\x1b[0m'
     COLOUR_RGB = '\x1b[38;2;%d;%d;%dm'
@@ -292,6 +298,8 @@ class tqdm(Comparable):
     ascii  : bool or str, optional
         If unspecified or False, use unicode (smooth blocks) to fill
         the meter. The fallback is to use ASCII characters " 123456789#".
+        Set `UNICODE_PROGRESS_BAR=true` to use Fira Code bar glyphs.
+        An explicit value overrides the environment variable.
     disable  : bool, optional
         Whether to disable the entire progress bar wrapper
         [default: False]. If set to None, disable on non-TTY.
@@ -612,12 +620,17 @@ class tqdm(Comparable):
             frac = n / total
             percentage = frac * 100
 
-            l_bar += f'{percentage:3.0f}%|'
+            if ascii == Bar.FIRA:
+                l_bar += (f'{percentage:3.0f}%'
+                          f'{Bar.FIRA_LEFT_EMPTY if frac <= 0 else Bar.FIRA_LEFT}')
+                r_bar = (Bar.FIRA_RIGHT_FULL if frac >= 1 else Bar.FIRA_RIGHT_EMPTY) + r_bar[1:]
+            else:
+                l_bar += f'{percentage:3.0f}%|'
 
             if ncols == 0:
                 return l_bar[:-1] + r_bar[1:]
 
-            format_dict.update(l_bar=l_bar)
+            format_dict.update(l_bar=l_bar, r_bar=r_bar)
             if bar_format:
                 format_dict.update(percentage=percentage)
 
@@ -1041,7 +1054,8 @@ class tqdm(Comparable):
             maxinterval = 0
 
         if ascii is None:
-            ascii = not _supports_unicode(file)
+            ascii = (Bar.FIRA if environ.get("UNICODE_PROGRESS_BAR") == "true"
+                     else not _supports_unicode(file))
 
         if bar_format and ascii is not True and not _is_ascii(ascii):
             # Convert bar format into unicode since terminal uses unicode
