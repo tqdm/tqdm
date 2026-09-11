@@ -64,16 +64,57 @@ def test_main_bytes(capsysbinary, monkeypatch):
     assert str(len(IN_DATA)) + "B" in err.decode('U8')
 
 
+@mark.parametrize("equals", [False, True])
 @mark.parametrize("level,logged", [("INFO", False), ("DEBUG", True)])
-def test_main_log(capsysbinary, caplog, monkeypatch, level, logged):
+def test_main_log(capsysbinary, caplog, monkeypatch, level, logged, equals):
     N = 123
     lines = [(str(i) + '\n').encode() for i in range(N)]
     monkeypatch.setattr(sys, 'stdin', lines)
     with caplog.at_level(getattr(logging, level)):
-        main(sys.stderr, ['--log', level])
+        main(sys.stderr, [f'--log={level}'] if equals else ['--log', level])
         out, err = capsysbinary.readouterr()
         assert norm(out) == b''.join(lines) and b"123/123" in err
         assert bool(caplog.record_tuples) is logged
+
+
+@mark.parametrize("args", [
+    ['--log'], ['--log='], ['--log', '--bytes'],
+    ['--log', 'NOTALEVEL'], ['--log=NOTALEVEL'],
+    ['--log', 'basicConfig'], ['--log=BASIC_FORMAT'],
+])
+def test_main_invalid_log(capsys, monkeypatch, args):
+    lines = ['first line\n', 'second line without a newline']
+    monkeypatch.setattr(sys, 'stdin', lines)
+    with raises(TqdmTypeError, match='log level'):
+        main(sys.stderr, args)
+    out, err = capsys.readouterr()
+    assert out == ''.join(lines)
+    assert 'Error:' in err and 'Usage:' in err
+
+
+@mark.parametrize("level", [
+    'CRITICAL', 'FATAL', 'ERROR', 'WARN', 'WARNING', 'INFO', 'DEBUG', 'NOTSET',
+])
+def test_main_log_level(level):
+    data = b'first line\nlast line'
+    result = subprocess.run(  # nosec
+        [sys.executable, '-m', 'tqdm', '--log', level], input=data,
+        capture_output=True)
+    assert result.returncode == 0
+    assert norm(result.stdout) == data
+    assert b'Error:' not in result.stderr
+
+
+@mark.parametrize("args", [['--log'], ['--log=NOTALEVEL']])
+def test_pipes_invalid_log(args):
+    data = b'first line\nlast line'
+    result = subprocess.run(  # nosec
+        [sys.executable, '-m', 'tqdm', *args], input=data,
+        capture_output=True)
+    assert result.returncode != 0
+    assert norm(result.stdout) == data
+    assert b'TqdmTypeError:' in result.stderr
+    assert b'Usage:' in result.stderr
 
 
 def test_main_misc_options(capsysbinary, monkeypatch):
