@@ -11,6 +11,13 @@ def dummy_func(x):
     return x + 1
 
 
+def test_min_map_len():
+    """GH #1828: must not raise when every iterable has an unknown length (or there are none)"""
+    assert concurrent._min_map_len([]) == 0
+    assert concurrent._min_map_len([(i for i in range(9))]) == 0
+    assert concurrent._min_map_len([(i for i in range(9)), range(5)]) == 5
+
+
 @mark.parametrize("mapper", [interpreter_map, process_map, thread_map])
 def test_concurrent_map(mapper, caperr):
     a = range(9)
@@ -21,6 +28,18 @@ def test_concurrent_map(mapper, caperr):
         skip(str(err))
     err = caperr()
     assert '0/9' in err
+
+
+@mark.parametrize("mapper", [interpreter_map, process_map, thread_map])
+def test_concurrent_map_no_length_hint(mapper, caperr):
+    """GH #1828: iterables with no length hint (e.g. generators) shouldn't raise `ValueError`"""
+    b = [i + 1 for i in range(9)]
+    try:
+        assert mapper(dummy_func, (i for i in range(9))) == b
+    except ImportError as err:
+        skip(str(err))
+    err = caperr()
+    assert '9it [' in err
 
 
 def check_lock(args):
