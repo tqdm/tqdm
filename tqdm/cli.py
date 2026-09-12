@@ -26,11 +26,11 @@ def cast(val, typ):
 
     # sys.stderr.write('\ndebug | `val:type`: `' + val + ':' + typ + '`.\n')
     if typ == 'bool':
-        if (val == 'True') or (val == ''):
+        if val.strip().lower() in ('true', 'yes', 'on', '1', 'y', 't', ''):
             return True
-        if val == 'False':
+        if val.strip().lower() in ('false', 'no', 'off', '0', 'n', 'f'):
             return False
-        raise TqdmTypeError(val + ' : ' + typ)
+        raise TqdmTypeError(f"{typ}: {val}")
     if typ == 'chr':
         if len(val) == 1:
             return val.encode()
