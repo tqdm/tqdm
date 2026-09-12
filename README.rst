@@ -412,12 +412,14 @@ Parameters
 * maxinterval  : float, optional  
     Maximum progress display update interval [default: 10] seconds.
     Automatically adjusts ``miniters`` to correspond to ``mininterval``
-    after long display update lag. Only works if ``dynamic_miniters``
-    or monitor thread is enabled.
+    after long display update lag. Only works with automatic
+    ``miniters`` adjustment or the monitor thread enabled.
 * miniters  : int or float, optional  
-    Minimum progress display update interval, in iterations.
-    If 0 and ``dynamic_miniters``, will automatically adjust to equal
+    Minimum progress display update interval, in iterations
+    [default: None]. If None, automatically adjusts to match
     ``mininterval`` (more CPU efficient, good for tight loops).
+    This sets the internal ``dynamic_miniters`` flag, which is not a
+    constructor argument. If 0, checks ``mininterval`` every iteration.
     If > 0, will skip display of specified number of iterations.
     Tweak this and ``mininterval`` to get very efficient loops.
     If your progress is erratic with both fast and slow iterations
@@ -1376,11 +1378,13 @@ Monitoring thread, intervals and miniters
   but it will display only every ``mininterval``.
 - Reduce number of calls to check system clock/time.
 - ``mininterval`` is more intuitive to configure than ``miniters``.
-  A clever adjustment system ``dynamic_miniters`` will automatically adjust
-  ``miniters`` to the amount of iterations that fit into time ``mininterval``.
+  Leaving ``miniters=None`` (the default) enables ``dynamic_miniters``,
+  an internal flag rather than a constructor argument. This automatically
+  adjusts ``miniters`` to the amount of iterations that fit into time
+  ``mininterval``.
   Essentially, ``tqdm`` will check if it's time to print without actually
-  checking time. This behaviour can be still be bypassed by manually setting
-  ``miniters``.
+  checking time. Setting ``miniters`` to a number disables this automatic
+  adjustment; ``miniters=0`` checks ``mininterval`` on every iteration.
 
 However, consider a case with a combination of fast and slow iterations.
 After a few fast iterations, ``dynamic_miniters`` will set ``miniters`` to a
