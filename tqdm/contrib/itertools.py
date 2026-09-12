@@ -87,6 +87,7 @@ def batched(iterable, n, total=None, tqdm_class=tqdm_auto, **kwargs):
             total = len(iterable)
         except (TypeError, AttributeError):
             pass
-    return tqdm_class(itertools.batched(iterable, n), unit_scale=n,
+    kwargs.setdefault('unit_scale', n)
+    return tqdm_class(itertools.batched(iterable, n),
                       total=(total+n-1) // n if total is not None else None,
                       **kwargs)
