@@ -75,13 +75,17 @@ float, optional.
 Maximum progress display update interval [default: 10] seconds.
 Automatically adjusts \f[CR]miniters\f[R] to correspond to
 \f[CR]mininterval\f[R] after long display update lag.
-Only works if \f[CR]dynamic_miniters\f[R] or monitor thread is enabled.
+Only works with automatic \f[CR]miniters\f[R] adjustment or the monitor
+thread enabled.
 .TP
 \-\-miniters=\f[I]miniters\f[R]
 int or float, optional.
-Minimum progress display update interval, in iterations.
-If 0 and \f[CR]dynamic_miniters\f[R], will automatically adjust to equal
-\f[CR]mininterval\f[R] (more CPU efficient, good for tight loops).
+Minimum progress display update interval, in iterations [default: None].
+If None, automatically adjusts to match \f[CR]mininterval\f[R] (more CPU
+efficient, good for tight loops).
+This sets the internal \f[CR]dynamic_miniters\f[R] flag, which is not a
+constructor argument.
+If 0, checks \f[CR]mininterval\f[R] every iteration.
 If > 0, will skip display of specified number of iterations.
 Tweak this and \f[CR]mininterval\f[R] to get very efficient loops.
 If your progress is erratic with both fast and slow iterations (network,

@@ -279,12 +279,14 @@ class tqdm(Comparable):
     maxinterval  : float, optional
         Maximum progress display update interval [default: 10] seconds.
         Automatically adjusts `miniters` to correspond to `mininterval`
-        after long display update lag. Only works if `dynamic_miniters`
-        or monitor thread is enabled.
+        after long display update lag. Only works with automatic
+        `miniters` adjustment or the monitor thread enabled.
     miniters  : int or float, optional
-        Minimum progress display update interval, in iterations.
-        If 0 and `dynamic_miniters`, will automatically adjust to equal
+        Minimum progress display update interval, in iterations
+        [default: None]. If None, automatically adjusts to match
         `mininterval` (more CPU efficient, good for tight loops).
+        This sets the internal `dynamic_miniters` flag, which is not a
+        constructor argument. If 0, checks `mininterval` every iteration.
         If > 0, will skip display of specified number of iterations.
         Tweak this and `mininterval` to get very efficient loops.
         If your progress is erratic with both fast and slow iterations

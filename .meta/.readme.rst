@@ -1159,11 +1159,13 @@ Monitoring thread, intervals and miniters
   but it will display only every ``mininterval``.
 - Reduce number of calls to check system clock/time.
 - ``mininterval`` is more intuitive to configure than ``miniters``.
-  A clever adjustment system ``dynamic_miniters`` will automatically adjust
-  ``miniters`` to the amount of iterations that fit into time ``mininterval``.
+  Leaving ``miniters=None`` (the default) enables ``dynamic_miniters``,
+  an internal flag rather than a constructor argument. This automatically
+  adjusts ``miniters`` to the amount of iterations that fit into time
+  ``mininterval``.
   Essentially, ``tqdm`` will check if it's time to print without actually
-  checking time. This behaviour can be still be bypassed by manually setting
-  ``miniters``.
+  checking time. Setting ``miniters`` to a number disables this automatic
+  adjustment; ``miniters=0`` checks ``mininterval`` on every iteration.
 
 However, consider a case with a combination of fast and slow iterations.
 After a few fast iterations, ``dynamic_miniters`` will set ``miniters`` to a
