@@ -109,3 +109,11 @@ def test_batched(caperr):
 
     assert list(tit.batched(no_len(a), 3, total=12)) == list(it.batched(no_len(a), 3))
     assert "12/12" in caperr()
+
+
+@mark.skipif(not hasattr(it, 'batched'), reason="NotFound: itertools.batched")
+@mark.parametrize("unit_scale, expected", [(False, "4/4"), (2, "8/8")])
+def test_batched_unit_scale(caperr, unit_scale, expected):
+    a = range(10)
+    assert list(tit.batched(a, 3, unit_scale=unit_scale)) == list(it.batched(a, 3))
+    assert expected in caperr()
