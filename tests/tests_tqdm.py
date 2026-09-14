@@ -1552,6 +1552,14 @@ def test_colour_unknown():
             t.update()
 
 
+def test_colour_invalid_hex():
+    # gh-1826: a well-formed #rrggbb string with a non-hex digit raised
+    # ValueError from int(i, 16) instead of emitting TqdmWarning.
+    with warns(TqdmWarning, match="Unknown colour"):
+        with tqdm(total=1, colour="#00ff0g") as t:
+            t.update()
+
+
 def test_closed_file(tmp_file):
     for i in trange(9, file=tmp_file, miniters=1, mininterval=0):
         if i == 5:
