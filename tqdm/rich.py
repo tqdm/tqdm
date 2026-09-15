@@ -120,6 +120,14 @@ class tqdm_rich(std_tqdm):  # pragma: no cover
         if self.disable:
             return
         self.display()  # print 100%, vis #1306
+
+        # Fix for #1266: Force synchronous refresh to ensure the final 100%
+        # frame is rendered before the rich Progress thread shuts down.
+        try:
+            self._prog.refresh()
+        except Exception:
+            pass
+
         super().close()
         self._prog.__exit__(None, None, None)
 
