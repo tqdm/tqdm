@@ -80,7 +80,7 @@ class TelegramIO(MonoWorker):
         """Deletes internal `message_id`."""
         try:
             future = self.submit(
-                self.session.post, '{self.API}{self.token}/deleteMessage',
+                self.session.post, f'{self.API}{self.token}/deleteMessage',
                 data={'chat_id': self.chat_id, 'message_id': self.message_id})
         except Exception as e:
             tqdm_auto.write(str(e))
