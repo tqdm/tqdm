@@ -46,10 +46,11 @@ class DiscordIO(MonoWorker):
                 f'{self.API}/channels/{self.channel_id}/messages',
                 headers={'Authorization': f'Bot {self.token}', 'User-Agent': self.UA},
                 json={'content': f"`{self.text}`"})
-            res = req.json()
             req.raise_for_status()
+            res = req.json()
         except Exception as e:
-            if req.status_code == 429:
+            # `e.response` is `None` if no response was received (e.g. connection error)
+            if getattr(getattr(e, 'response', None), 'status_code', None) == 429:
                 warn("Creation rate limit: try increasing `mininterval`.",
                      TqdmWarning, stacklevel=2)
             else:

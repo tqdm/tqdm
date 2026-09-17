@@ -43,10 +43,11 @@ class TelegramIO(MonoWorker):
                 f'{self.API}{self.token}/sendMessage',
                 data={'text': f"`{self.text}`", 'chat_id': self.chat_id,
                       'parse_mode': 'MarkdownV2'})
-            res = req.json()
             req.raise_for_status()
+            res = req.json()
         except Exception as e:
-            if req.status_code == 429:
+            # `e.response` is `None` if no response was received (e.g. connection error)
+            if getattr(getattr(e, 'response', None), 'status_code', None) == 429:
                 warn("Creation rate limit: try increasing `mininterval`.",
                      TqdmWarning, stacklevel=2)
             else:
