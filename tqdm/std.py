@@ -750,10 +750,12 @@ class tqdm(Comparable):
                         f in (sys.stdout, sys.stderr) for f in (fp, inst.fp))):
                     inst.clear(nolock=True)
                     inst_cleared.append(inst)
-            yield
-            # Force refresh display of bars we cleared
-            for inst in inst_cleared:
-                inst.refresh(nolock=True)
+            try:
+                yield
+            finally:
+                # Force refresh display of bars we cleared
+                for inst in inst_cleared:
+                    inst.refresh(nolock=True)
         finally:
             if not nolock:
                 cls._lock.release()
