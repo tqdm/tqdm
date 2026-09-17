@@ -1198,7 +1198,7 @@ def test_refresh(caperr):
 
 def test_disabled_repr(capsys):
     with tqdm(total=10, disable=True) as t:
-        str(t)
+        _ = str(t)
         t.update()
         print(t)
     out, err = capsys.readouterr()
@@ -1401,6 +1401,18 @@ def test_external_write(tmp_file):
     assert res.count("Such fun\n") == 3
     assert "0/3" in res
     assert "3/3" in res
+
+
+@mark.parametrize("nolock", [False, True])
+def test_external_write_error(tmp_file, nolock):
+    error = ValueError("external write failed")
+    with tqdm(total=3, file=tmp_file, bar_format="{n}/{total}"):
+        with raises(ValueError) as exc:
+            with tqdm.external_write_mode(file=tmp_file, nolock=nolock):
+                tmp_file.write("message\n")
+                raise error
+        assert exc.value is error
+        assert tmp_file.getvalue().endswith("\r0/3")
 
 
 def test_numeric_unit_scale(caperr):
