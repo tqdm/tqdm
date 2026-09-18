@@ -160,6 +160,20 @@ def test_format_interval():
     assert format_interval(0) == '00:00'
 
 
+def test_format_sizeof_rejects_nonfinite():
+    """Non-finite values must raise instead of falling through to 'Y'."""
+    format_sizeof = tqdm.format_sizeof
+    for bad in (float('nan'), float('inf'), float('-inf')):
+        try:
+            format_sizeof(bad)
+        except ValueError:
+            pass
+        else:
+            raise AssertionError(f'expected ValueError for {bad!r}')
+    assert format_sizeof(999) == '999'
+    assert format_sizeof(1000) == '1.00k'
+
+
 def test_format_num():
     format_num = tqdm.format_num
 
