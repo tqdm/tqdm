@@ -1,6 +1,6 @@
 # HOW TO CONTRIBUTE TO TQDM
 
-[![git-fame.cdcl.ml/gh/tqdm/tqdm](https://git-fame.cdcl.ml/gh/tqdm/tqdm?min=5&w=1&M=1&C=1&excl=(png|gif|jpg)$&enum=1)](https://git-fame.cdcl.ml/gh/tqdm/tqdm?w=1&M=1&C=1&excl=(png|gif|jpg)$&enum=1)
+[![git-fame.cdcl.ml/gh/tqdm/tqdm](https://git-fame.cdcl.ml/gh/tqdm/tqdm?min=5&w=1&M=1&C=1&excl=(png|gif|jpg)$&enum=1&auth=share)](https://git-fame.cdcl.ml/gh/tqdm/tqdm?w=1&M=1&C=1&excl=(png|gif|jpg)$&enum=1&auth=share)
 
 **TL;DR: Skip to [QUICK DEV SUMMARY]**
 

@@ -1,18 +1,12 @@
 import sys
 from contextlib import contextmanager
 from functools import wraps
-from time import sleep, time
+# relative/cpu timer for reliable timings under sudden load
+from time import process_time, sleep, time
 
-# Use relative/cpu timer to have reliable timings when there is a sudden load
-try:
-    from time import process_time
-except ImportError:
-    from time import clock
-    process_time = clock
+from pytest import importorskip, mark, skip
 
 from tqdm import tqdm, trange
-
-from .tests_tqdm import importorskip, mark, patch_lock, skip
 
 pytestmark = mark.slow
 
@@ -63,9 +57,8 @@ def relative_timer():
 
 
 def retry_on_except(n=3, check_cpu_time=True):
-    """decroator for retrying `n` times before raising Exceptions"""
+    """decorator for retrying `n` times before raising Exceptions"""
     def wrapper(func):
-        """actual decorator"""
         @wraps(func)
         def test_inner(*args, **kwargs):
             """may skip if `check_cpu_time` fails"""
@@ -151,7 +144,6 @@ def assert_performance(thresh, name_left, time_left, name_right, time_right):
 
 @retry_on_except()
 def test_iter_basic_overhead():
-    """Test overhead of iteration based tqdm"""
     total = int(1e6)
 
     a = 0
@@ -172,7 +164,6 @@ def test_iter_basic_overhead():
 
 @retry_on_except()
 def test_manual_basic_overhead():
-    """Test overhead of manual tqdm"""
     total = int(1e6)
 
     with tqdm(total=total * 10, leave=True) as t:
@@ -201,8 +192,7 @@ def worker(total, blocking=True):
 
 
 @retry_on_except()
-@patch_lock(thread=True)
-def test_lock_args():
+def test_lock_args(thread_lock):
     """Test overhead of nonblocking threads"""
     ThreadPoolExecutor = importorskip('concurrent.futures').ThreadPoolExecutor
 
@@ -226,7 +216,6 @@ def test_lock_args():
 
 @retry_on_except(10)
 def test_iter_overhead_hard():
-    """Test overhead of iteration based tqdm (hard)"""
     total = int(1e5)
 
     a = 0
@@ -248,7 +237,6 @@ def test_iter_overhead_hard():
 
 @retry_on_except(10)
 def test_manual_overhead_hard():
-    """Test overhead of manual tqdm (hard)"""
     total = int(1e5)
 
     with tqdm(total=total * 10, leave=True, miniters=1,
@@ -270,7 +258,6 @@ def test_manual_overhead_hard():
 
 @retry_on_except(10)
 def test_iter_overhead_simplebar_hard():
-    """Test overhead of iteration based tqdm vs simple progress bar (hard)"""
     total = int(1e4)
 
     a = 0
@@ -293,7 +280,6 @@ def test_iter_overhead_simplebar_hard():
 
 @retry_on_except(10)
 def test_manual_overhead_simplebar_hard():
-    """Test overhead of manual tqdm vs simple progress bar (hard)"""
     total = int(1e4)
 
     with tqdm(total=total * 10, leave=True, miniters=1,

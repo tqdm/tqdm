@@ -2,8 +2,7 @@
 from pytest import importorskip, mark
 
 
-@mark.filterwarnings("ignore:rich is experimental/alpha:"
-                     "tqdm.std.TqdmExperimentalWarning")
+@mark.filterwarnings("ignore:rich is experimental/alpha:tqdm.std.TqdmExperimentalWarning")
 def test_rich_no_total(capsys):
     """Test `tqdm.rich` on an iterable without a length, e.g. a generator"""
     rich = importorskip('tqdm.rich')

@@ -19,7 +19,7 @@ jobs:
         repository: ${{ github.repository }}.github.io
         path: docs
         token: ${{ secrets.GH_TOKEN }}
-    - uses: actions/setup-python@v6
+    - uses: actions/setup-python@v7
       with: {python-version: '3.x'}
     - name: Install
       run: |

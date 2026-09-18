@@ -1,11 +1,11 @@
 from time import sleep
 
-from .tests_tqdm import importorskip, mark
+from pytest import importorskip, mark
 
 pytestmark = mark.slow
 
 
-def test_dask(capsys):
+def test_dask(caperr):
     """Test tqdm.dask.TqdmCallback"""
     ProgressBar = importorskip('tqdm.dask').TqdmCallback
     dask = importorskip('dask')
@@ -13,6 +13,6 @@ def test_dask(capsys):
     schedule = [dask.delayed(sleep)(i / 10) for i in range(5)]
     with ProgressBar(desc="computing"):
         dask.compute(schedule)
-    _, err = capsys.readouterr()
+    err = caperr()
     assert "computing: " in err
     assert '5/5' in err

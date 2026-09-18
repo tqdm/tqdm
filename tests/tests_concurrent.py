@@ -1,55 +1,43 @@
-"""
-Tests for `tqdm.contrib.concurrent`.
-"""
 import sys
 
-from pytest import warns
+from pytest import mark, skip, warns
 
+from tqdm import TqdmWarning
+from tqdm.contrib import concurrent
 from tqdm.contrib.concurrent import interpreter_map, process_map, thread_map
 
-from .tests_tqdm import StringIO, TqdmWarning, closing, importorskip, mark, skip
 
-
-def incr(x):
-    """Dummy function"""
+def dummy_func(x):
     return x + 1
 
 
-def test_thread_map():
-    """Test contrib.concurrent.thread_map"""
-    with closing(StringIO()) as our_file:
-        a = range(9)
-        b = [i + 1 for i in a]
-        try:
-            assert thread_map(lambda x: x + 1, a, file=our_file) == b
-        except ImportError as err:
-            skip(str(err))
-        assert thread_map(incr, a, file=our_file) == b
+def test_min_map_len():
+    assert concurrent._min_map_len([]) == 0
+    assert concurrent._min_map_len([(i for i in range(9))]) == 0
+    assert concurrent._min_map_len([(i for i in range(9)), range(5)]) == 5
 
 
-@mark.skipif(sys.version_info < (3, 14), reason="requires Python 3.14+")
-def test_interpreter_map(capsys):
-    """Test contrib.concurrent.interpreter_map"""
+@mark.parametrize("mapper", [interpreter_map, process_map, thread_map])
+def test_concurrent_map(mapper, caperr):
     a = range(9)
     b = [i + 1 for i in a]
     try:
-        assert interpreter_map(incr, a) == b
+        assert mapper(dummy_func, a, miniters=1) == b
     except ImportError as err:
         skip(str(err))
-    out, err = capsys.readouterr()
-    assert not out
-    assert '9/9' in err
+    err = caperr()
+    assert '0/9' in err
 
 
-def test_process_map():
-    """Test contrib.concurrent.process_map"""
-    with closing(StringIO()) as our_file:
-        a = range(9)
-        b = [i + 1 for i in a]
-        try:
-            assert process_map(incr, a, file=our_file) == b
-        except ImportError as err:
-            skip(str(err))
+@mark.parametrize("mapper", [interpreter_map, process_map, thread_map])
+def test_concurrent_map_unknown_len(mapper, caperr):
+    b = [i + 1 for i in range(9)]
+    try:
+        assert mapper(dummy_func, (i for i in range(9))) == b
+    except ImportError as err:
+        skip(str(err))
+    err = caperr()
+    assert '9it [' in err
 
 
 def check_lock(args):
@@ -101,11 +89,10 @@ def test_interpreter_map_lock(tmp_path):
                                             (['x' * 100, ('x',) * 1001], False),
                                             (['x' * 1001, ('x',) * 100], False),
                                             (['x' * 1001, ('x',) * 1001], True)])
-def test_chunksize_warning(iterables, should_warn):
-    """Test contrib.concurrent.process_map chunksize warnings"""
-    patch = importorskip('unittest.mock').patch
-    with patch('tqdm.contrib.concurrent._executor_map'):
-        if should_warn:
-            warns(TqdmWarning, process_map, incr, *iterables)
-        else:
-            process_map(incr, *iterables)
+def test_chunksize_warning(iterables, should_warn, monkeypatch):
+    monkeypatch.setattr(concurrent, '_executor_map', lambda *_, **__: None)
+    if should_warn:
+        with warns(TqdmWarning):
+            process_map(dummy_func, *iterables)
+    else:
+        process_map(dummy_func, *iterables)

@@ -1,10 +1,10 @@
-from .tests_tqdm import importorskip, mark
+from pytest import importorskip, mark
 
 pytestmark = mark.slow
 
 
 @mark.filterwarnings("ignore:.*:DeprecationWarning")
-def test_keras(capsys):
+def test_keras(caperr):
     """Test tqdm.keras.TqdmCallback"""
     TqdmCallback = importorskip('tqdm.keras').TqdmCallback
     np = importorskip('numpy')
@@ -37,7 +37,7 @@ def test_keras(capsys):
                 data_size=len(x),
                 batch_size=batch_size,
                 verbose=0)])
-    _, res = capsys.readouterr()
+    res = caperr()
     assert "training: " in res
     assert f"{epochs}/{epochs}" in res
     assert f"{batches}/{batches}" not in res
@@ -56,7 +56,7 @@ def test_keras(capsys):
                 data_size=len(x),
                 batch_size=batch_size,
                 verbose=2)])
-    _, res = capsys.readouterr()
+    res = caperr()
     assert "training: " in res
     assert f"{epochs}/{epochs}" in res
     assert f"{batches}/{batches}" in res
@@ -69,7 +69,7 @@ def test_keras(capsys):
         batch_size=batch_size,
         verbose=False,
         callbacks=[TqdmCallback(desc="training", verbose=2)])
-    _, res = capsys.readouterr()
+    res = caperr()
     assert "training: " in res
     assert f"{epochs}/{epochs}" in res
     assert f"{batches}/{batches}" in res
@@ -85,7 +85,7 @@ def test_keras(capsys):
         verbose=False,
         callbacks=[TqdmCallback(desc="training", verbose=0,
                                 miniters=1, mininterval=0, maxinterval=0)])
-    _, res = capsys.readouterr()
+    res = caperr()
     assert "training: " in res
     assert f"{initial_epoch - 1}/{initial_epoch - 1}" not in res
     assert f"{epochs}/{epochs}" in res

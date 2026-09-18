@@ -100,8 +100,8 @@ def _get_interpreter_init(tqdm_class, lock_queue_id):
 
 
 def _min_map_len(iterables):
-    """min(map(length_hint, iterables))"""
-    return min(n for it in iterables if (n := length_hint(it, -1)) >= 0)
+    """min(map(length_hint, iterables), default=0)"""
+    return min((n for it in iterables if (n := length_hint(it, -1)) >= 0), default=0)
 
 
 def _executor_map(
