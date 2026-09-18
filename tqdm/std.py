@@ -7,6 +7,7 @@ Usage:
 >>> for i in trange(10):
 ...     ...
 """
+import math
 import sys
 from collections import OrderedDict, defaultdict
 from contextlib import contextmanager
@@ -384,6 +385,8 @@ class tqdm(Comparable):
         out  : str
             Number with Order of Magnitude SI unit postfix.
         """
+        if not math.isfinite(num):
+            raise ValueError(f'num must be finite, got {num!r}')
         for unit in ['', 'k', 'M', 'G', 'T', 'P', 'E', 'Z']:
             if abs(num) < 999.5:
                 if abs(num) < 99.95:
