@@ -24,6 +24,15 @@ def test_enumerate_numpy(caperr):
     assert "100%" in caperr()
 
 
+@mark.parametrize("total, expected", [(None, 6), (0, 0), (10, 10)])
+def test_enumerate_numpy_total(total, expected):
+    np = importorskip("numpy")
+    a = np.arange(6).reshape(2, 3)
+    with tenumerate(a, total=total, disable=True) as progress:
+        assert progress.total == expected
+        assert list(progress) == list(np.ndenumerate(a))
+
+
 @mark.parametrize("tqdm_kwargs", [{}, {"tqdm_class": tqdm}])
 def test_zip(tqdm_kwargs):
     a = range(9)
