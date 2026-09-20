@@ -53,7 +53,9 @@ jobs:
           asv-
     - name: Benchmark
       run: |
-        asv run -j 8 --interleave-processes --skip-existing v3.2.0..HEAD
+        mkdir -p benchmarks/.shim
+        cp benchmarks/sitecustomize.py benchmarks/.shim/sitecustomize.py
+        PYTHONPATH=benchmarks/.shim asv run -j 8 --interleave-processes --skip-existing v3.2.0..HEAD
     - name: Build pages
       run: |
         git config --global user.email "$GIT_AUTHOR_EMAIL"
@@ -87,7 +89,9 @@ jobs:
           asv-
     - name: Benchmark
       run: |
-        asv continuous --interleave-processes --only-changed -f 1.8 master HEAD
+        mkdir -p benchmarks/.shim
+        cp benchmarks/sitecustomize.py benchmarks/.shim/sitecustomize.py
+        PYTHONPATH=benchmarks/.shim asv continuous --interleave-processes --only-changed -f 1.8 master HEAD
         CHANGES=$(asv compare --only-changed -f 1.8 master HEAD)
         echo "$CHANGES" >> "$GITHUB_STEP_SUMMARY"
         test -z "$CHANGES" || exit 1

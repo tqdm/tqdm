@@ -18,6 +18,7 @@ __pycache__/
 /coverage.xml
 /.pytest_cache/
 /.asv/
+/benchmarks/.shim/
 
 # Sumbodules
 /wiki/

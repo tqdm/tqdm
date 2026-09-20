@@ -83,7 +83,9 @@ testasv:
 
 testasvfull:
 	# Test all the commits since the beginning (full test)
-	asv run --skip-existing-commits -j 8 v1.0.0..HEAD
+	@mkdir -p benchmarks/.shim
+	@cp benchmarks/sitecustomize.py benchmarks/.shim/sitecustomize.py
+	PYTHONPATH=benchmarks/.shim asv run --skip-existing-commits -j 8 v1.0.0..HEAD
 	@make testasv
 
 viewasv:
