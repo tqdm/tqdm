@@ -9,8 +9,7 @@ This file describes how to:
 - contribute changes to the project, and
 - upload releases to the PyPI repository.
 
-Most of the management commands have been directly placed inside the
-Makefile:
+Most management commands are in the `Makefile`:
 
 ```
 make [<alias>]  # on UNIX-like environments
@@ -24,18 +23,17 @@ Use the alias `help` (or leave blank) to list all available aliases.
 
 ## HOW TO COMMIT CONTRIBUTIONS
 
-Contributions to the project are made using the "Fork & Pull" model. The
-typical steps would be:
+Contributions to the project are made using the "Fork & Pull" model. Typically:
 
 1. create an account on [github](https://github.com)
-2. fork [`tqdm`](https://github.com/tqdm/tqdm)
+2. [fork](https://docs.github.com/en/pull-requests/how-tos/work-with-forks/fork-a-repo) the [`tqdm` repository](https://github.com/tqdm/tqdm)
 3. make a local clone: `git clone https://github.com/your_account/tqdm.git`
 4. make changes on the local copy
 5. test (see below) and commit changes `git commit -a -m "my message"`
+    - AI-assisted commits should be clearly marked ([author](https://git-scm.com/docs/git-commit#Documentation/git-commit.txt---authorauthor), [Co-authored-by](https://docs.github.com/en/pull-requests/how-tos/commit-changes/creating-a-commit-with-multiple-authors) or [Assisted-by](https://allthingsopen.org/articles/open-source-ai-contributions-assisted-by-git-trailer-standard)) using the syntax `Provider Model <email>`, e.g. `Co-authored-by: Claude Opus 5 <noreply@anthropic.com>`
+    - commit messages should be **brutally concise**
 6. `push` to your GitHub account: `git push origin`
-7. create a Pull Request (PR) from your GitHub fork
-(go to your fork's webpage and click on "Pull Request."
-You can then add a message to describe your proposal.)
+7. create a Pull Request (PR) from your GitHub fork (go to your fork's webpage and click on "Pull Request." You can then add a message to describe your proposal.)
 
 
 ## WHAT CODE LAYOUT SHOULD I FOLLOW?
@@ -51,11 +49,11 @@ However it would be helpful to bear in mind:
     + should have well-formatted docstrings for functions
         * under 76 chars (incl. initial spaces) to avoid linebreaks in terminal pagers
         * use two spaces between variable name and colon, specify a type, and most likely state that it's optional: `VAR<space><space>:<space>TYPE[, optional]`
-        * use [default: ...] for default values of keyword arguments
+        * use `[default: ...]` for default values of keyword arguments
     + will not break backward compatibility unless there is a very good reason
         * e.g. breaking py26 compatibility purely in favour of minor readability changes (such as converting `dict(a=1)` to `{'a': 1}`) is not a good enough reason
     + API changes should be discussed carefully
-    + remember, with millions of downloads per month, `tqdm` must be extremely fast and reliable
+    + remember, with millions of daily downloads, `tqdm` must be extremely fast and reliable
 - Any other kind of change may be included in a (possibly new) submodule
     + submodules are likely single python files under the main [tqdm/](tqdm/) directory
     + submodules extending `tqdm.std.tqdm` or any other module (e.g. [`tqdm.notebook.tqdm`](tqdm/notebook.py), [`tqdm.gui.tqdm`](tqdm/gui.py))
@@ -72,11 +70,9 @@ However it would be helpful to bear in mind:
 
 ## TESTING
 
-Once again, don't worry too much - tests are automated online, and maintainers
-can also help.
+Once again, don't worry too much - tests are automated online, and maintainers can also help.
 
-To test functionality (such as before submitting a Pull
-Request), there are a number of unit tests.
+To test functionality (such as before submitting a Pull Request), there are a number of unit tests.
 
 ### Standard unit tests
 
@@ -94,8 +90,7 @@ tox --skip-missing-interpreters
 
 This will build the module and run the tests in a virtual environment.
 Errors and coverage rates will be output to the console/log. (Ignore missing
-interpreters errors - these are due to the local machine missing certain
-versions of Python.)
+interpreters errors - these are due to the local machine missing certain versions of Python.)
 
 Note: to install all versions of the Python interpreter that are specified
 in [pyproject.toml](https://github.com/tqdm/tqdm/blob/master/pyproject.toml),

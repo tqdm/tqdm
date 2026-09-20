@@ -18,4 +18,4 @@ about: Exceptions and visual output errors
 
 [source website]: https://github.com/tqdm/tqdm/
 [known issues]: https://github.com/tqdm/tqdm/#faq-and-known-issues
-[issue tracker]: https://github.com/tqdm/tqdm/issues?q=
+[issue tracker]: https://github.com/tqdm/tqdm/issues

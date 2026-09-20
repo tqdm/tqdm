@@ -18,5 +18,5 @@ about: Feature requests and documentation improvements
 
 [source website]: https://github.com/tqdm/tqdm/
 [known issues]: https://github.com/tqdm/tqdm/#faq-and-known-issues
-[issue tracker]: https://github.com/tqdm/tqdm/issues?q=
+[issue tracker]: https://github.com/tqdm/tqdm/issues
 [StackOverflow#tqdm]: https://stackoverflow.com/questions/tagged/tqdm
