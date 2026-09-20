@@ -79,6 +79,7 @@ OpenAI   `Sponsors <https://github.com/sponsors/tqdm>`__
 
 Installation
 ------------
+tqdm officially supports Python 3.7 and above.
 
 Latest PyPI stable release
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
