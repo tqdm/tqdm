@@ -130,7 +130,7 @@ Web-based Jupyter interactive demonstrations are also available
 
 Unit tests are run at least weekly on cloud-based continuous integration
 [@travis], with code style and security issues checked on
-[Codacy](https://app.codacy.com/project/tqdm/tqdm/dashboard) [@code-review].
+[Codacy](https://app.codacy.com/gh/tqdm/tqdm/dashboard) [@code-review].
 Coverage is reported on [Coveralls](https://coveralls.io/github/tqdm/tqdm) and
 [Codecov](https://codecov.io/gh/tqdm/tqdm), and performance is monitored against
 regression [@asv].
