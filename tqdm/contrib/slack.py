@@ -75,7 +75,7 @@ class tqdm_slack(tqdm_auto):  # pylint: disable=inconsistent-mro
         ----------
         token  : str, required. Slack token
             [default: ${TQDM_SLACK_TOKEN}].
-        channel  : int, required. Slack channel
+        channel  : str, required. Slack channel
             [default: ${TQDM_SLACK_CHANNEL}].
         mininterval  : float, optional.
           Minimum of [default: 1.5] to avoid rate limit.
