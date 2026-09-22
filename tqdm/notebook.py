@@ -148,6 +148,10 @@ class tqdm_notebook(std_tqdm):
         # Clear previous output (really necessary?)
         # clear_output(wait=1)
 
+        # A disabled bar has no container to update (see __init__)
+        if self.disable:
+            return
+
         if not msg and not close:
             d = self.format_dict
             # remove {bar}
