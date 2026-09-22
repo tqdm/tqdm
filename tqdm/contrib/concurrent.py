@@ -154,10 +154,14 @@ def _executor_map(
                 if dynamic_miniters is not None:
                     pbar.dynamic_miniters = True
                 orisubmit = ex.submit
+                # ProcessPoolExecutor.map submits one Future per chunk, not per item.
+                from concurrent.futures import ProcessPoolExecutor
+                counts_chunks = PoolExecutor is ProcessPoolExecutor
 
                 def patchsubmit(*args, **kwargs):
                     fut = orisubmit(*args, **kwargs)
-                    fut.add_done_callback(lambda _: pbar.update())
+                    n = len(args[1]) if counts_chunks and len(args) > 1 else 1
+                    fut.add_done_callback(lambda _, n=n: pbar.update(n))
                     return fut
                 ex.submit = patchsubmit
                 return list(ex.map(
