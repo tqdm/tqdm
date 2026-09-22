@@ -2,6 +2,7 @@
 Thin wrappers around `concurrent.futures`.
 """
 import sys
+from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 from operator import length_hint
 
@@ -157,7 +158,14 @@ def _executor_map(
 
                 def patchsubmit(*args, **kwargs):
                     fut = orisubmit(*args, **kwargs)
-                    fut.add_done_callback(lambda _: pbar.update())
+                    if chunksize > 1 and not issubclass(PoolExecutor, ThreadPoolExecutor):
+                        # `ProcessPoolExecutor` submits one future per chunk,
+                        # so update `pbar` by the exact chunk size (#1791).
+                        # `ThreadPoolExecutor` (and subclasses) ignore
+                        # `chunksize` and submit one future per item instead.
+                        fut.add_done_callback(lambda _, n=len(args[1]): pbar.update(n))
+                    else:
+                        fut.add_done_callback(lambda _: pbar.update())
                     return fut
                 ex.submit = patchsubmit
                 return list(ex.map(
