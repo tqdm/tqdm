@@ -106,6 +106,50 @@ async def test_as_completed(caperr, tol):
                 raise
 
 
+@mark.asyncio
+async def test_as_completed_generator(caperr):
+    """Generator inputs must be accepted (regression for #1811).
+
+    asyncio.as_completed supports generators since Python 3.10; tqdm's wrapper
+    used to call ``len(fs)`` unconditionally and raised ``TypeError`` on the
+    bare generator that ``asyncio.as_completed`` accepts. The wrapper now
+    falls back to ``total=None`` for unsized iterables, which renders the bar
+    in the unknown-total form (``?it/s``).
+    """
+    gen = (asyncio.sleep(0, result=v) for v in range(5))
+    results = []
+    for fut in as_completed(gen):
+        results.append(await fut)
+    assert sorted(results) == list(range(5))
+    err = caperr()
+    assert '5it' in err
+    assert '?it/s' in err
+
+
+@mark.asyncio
+async def test_as_completed_generator_with_total(caperr):
+    """Explicit ``total=`` overrides the unknown-total fallback (#1811)."""
+    gen = (asyncio.sleep(0, result=v) for v in range(4))
+    results = []
+    for fut in as_completed(gen, total=4):
+        results.append(await fut)
+    assert sorted(results) == list(range(4))
+    err = caperr()
+    assert '4/4' in err
+
+
+@mark.asyncio
+async def test_as_completed_set(caperr):
+    """Sized iterables other than list/tuple keep their length-based total."""
+    coros = {asyncio.sleep(0, result=v) for v in range(3)}
+    results = []
+    for fut in as_completed(coros):
+        results.append(await fut)
+    assert sorted(results) == list(range(3))
+    err = caperr()
+    assert '3/3' in err
+
+
 async def double(i):
     return i * 2
 

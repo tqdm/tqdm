@@ -62,8 +62,15 @@ class tqdm_asyncio(std_tqdm):
     def as_completed(cls, fs, *, loop=None, timeout=None, total=None, **tqdm_kwargs):
         """
         Wrapper for `asyncio.as_completed`.
+
+        Mirrors `asyncio.as_completed`'s own acceptance of arbitrary awaitable
+        iterables (including generators that yield coroutines or futures, as
+        supported by stdlib since Python 3.10). When ``total`` is not supplied
+        and ``fs`` exposes ``__len__`` (list/tuple/set/...), tqdm uses that
+        length. Otherwise the bar grows without a known total, the same way
+        ``asyncio.as_completed`` itself does internally.
         """
-        if total is None:
+        if total is None and hasattr(fs, '__len__'):
             total = len(fs)
         kwargs = {}
         if version_info[:2] < (3, 10):
