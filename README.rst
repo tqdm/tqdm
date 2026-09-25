@@ -1004,6 +1004,9 @@ custom callback take advantage of this, simply use the return value of
 ``asyncio``
 ~~~~~~~~~~~
 
+``tqdm.asyncio.gather(..., return_exceptions=True)`` includes cancelled
+awaitables as ``asyncio.CancelledError`` results, matching ``asyncio.gather``.
+
 Note that ``break`` isn't currently caught by asynchronous iterators.
 This means that ``tqdm`` cannot clean up after itself in this case:
 

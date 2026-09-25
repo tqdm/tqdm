@@ -80,7 +80,7 @@ class tqdm_asyncio(std_tqdm):
         async def wrap_awaitable(i, f):
             try:
                 return i, await f
-            except Exception as e:  # noqa: BLE001
+            except (Exception, asyncio.CancelledError) as e:  # noqa: BLE001
                 if return_exceptions:
                     return i, e
                 raise
