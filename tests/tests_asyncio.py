@@ -3,7 +3,7 @@ from functools import partial
 from sys import platform
 from time import time
 
-from pytest import mark
+from pytest import mark, raises
 
 from tqdm.asyncio import tarange, tqdm_asyncio
 
@@ -132,6 +132,28 @@ async def test_gather_exceptions(caperr):
     assert isinstance(res[1], ValueError)
     assert res[0] == 0
     assert res[2] == 4
+
+
+@mark.asyncio
+async def test_gather_cancelled_return_exceptions(caperr):
+    cancelled = asyncio.get_running_loop().create_future()
+    cancelled.cancel()
+
+    result = await gather(asyncio.sleep(0, result='ok'), cancelled,
+                          return_exceptions=True)
+
+    assert result[0] == 'ok'
+    assert isinstance(result[1], asyncio.CancelledError)
+    assert '2/2' in caperr()
+
+
+@mark.asyncio
+async def test_gather_cancelled_propagates_without_return_exceptions():
+    cancelled = asyncio.get_running_loop().create_future()
+    cancelled.cancel()
+
+    with raises(asyncio.CancelledError):
+        await gather(cancelled)
 
 
 class AIterable:
