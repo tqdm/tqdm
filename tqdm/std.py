@@ -298,6 +298,9 @@ class tqdm(Comparable):
     unit  : str, optional
         String that will be used to define the unit of each iteration
         [default: it].
+    rate_unit  : str, optional
+        Unit to use for the rate suffix, overriding `unit`.
+        [default: None], uses `unit`.
     unit_scale  : bool or int or float, optional
         If 1 or True, the number of iterations will be reduced/scaled
         automatically and a metric prefix following the
@@ -462,7 +465,7 @@ class tqdm(Comparable):
     @staticmethod
     def format_meter(n, total, elapsed, ncols=None, prefix='',
                      ascii=False,  # pylint: disable=redefined-builtin
-                     unit='it', unit_scale=False, rate=None, bar_format=None, postfix=None,
+                     unit='it', unit_scale=False, rate=None, rate_unit=None, bar_format=None, postfix=None,
                      unit_divisor=1000, initial=0, colour=None, **extra_kwargs):
         """
         Return a string-based progress bar given some parameters
@@ -498,6 +501,9 @@ class tqdm(Comparable):
         rate  : float, optional
             Manual override for iteration rate.
             If [default: None], uses n/elapsed.
+        rate_unit  : str, optional
+            Unit to use for the rate suffix, overriding `unit`.
+            [default: None], uses `unit`.
         bar_format  : str, optional
             Specify a custom bar string formatting. May impact performance.
             [default: '{l_bar}{bar}{r_bar}'], where
@@ -551,11 +557,13 @@ class tqdm(Comparable):
             rate = (n - initial) / elapsed
         inv_rate = 1 / rate if rate else None
         format_sizeof = tqdm.format_sizeof
+        if rate_unit is None:
+            rate_unit = unit
         rate_noinv_fmt = ((format_sizeof(rate) if unit_scale else f'{rate:5.2f}')
-                          if rate else '?') + unit + '/s'
+                          if rate else '?') + rate_unit + '/s'
         rate_inv_fmt = (
             (format_sizeof(inv_rate) if unit_scale else f'{inv_rate:5.2f}')
-            if inv_rate else '?') + 's/' + unit
+            if inv_rate else '?') + 's/' + rate_unit
         rate_fmt = rate_inv_fmt if inv_rate and inv_rate > 1 else rate_noinv_fmt
 
         if unit_scale:
@@ -961,7 +969,7 @@ class tqdm(Comparable):
                  ncols=None, mininterval=0.1, maxinterval=10.0, miniters=None,
                  ascii=None,  # pylint: disable=redefined-builtin
                  disable=False, unit='it', unit_scale=False, dynamic_ncols=False, smoothing=0.3,
-                 bar_format=None, initial=0, position=None, postfix=None, unit_divisor=1000,
+                 bar_format=None, initial=0, position=None, postfix=None, unit_divisor=1000, rate_unit=None,
                  write_bytes=False, lock_args=None, nrows=None, colour=None, delay=0.0, gui=False,
                  **kwargs):
         """see tqdm.tqdm for arguments"""
@@ -1065,6 +1073,7 @@ class tqdm(Comparable):
         self.ascii = ascii
         self.disable = disable
         self.unit = unit
+        self.rate_unit = unit if rate_unit is None else rate_unit
         self.unit_scale = unit_scale
         self.unit_divisor = unit_divisor
         self.initial = initial
@@ -1462,7 +1471,7 @@ class tqdm(Comparable):
             'n': self.n, 'total': self.total,
             'elapsed': self._time() - self.start_t if hasattr(self, 'start_t') else 0,
             'ncols': self.ncols, 'nrows': self.nrows, 'prefix': self.desc,
-            'ascii': self.ascii, 'unit': self.unit, 'unit_scale': self.unit_scale,
+            'ascii': self.ascii, 'unit': self.unit, 'unit_scale': self.unit_scale, 'rate_unit': self.rate_unit,
             'rate': self._ema_dn() / self._ema_dt() if self._ema_dt() else None,
             'bar_format': self.bar_format, 'postfix': self.postfix,
             'unit_divisor': self.unit_divisor, 'initial': self.initial,

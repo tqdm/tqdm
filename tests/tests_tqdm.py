@@ -1579,3 +1579,23 @@ def test_contains(caperr):
 def test_write_stdout_none(monkeypatch):
     monkeypatch.setattr(sys, 'stdout', None)
     tqdm.write("should do nothing")
+
+def test_rate_unit():
+    """rate_unit should let the rate suffix differ from the count unit"""
+    from io import StringIO
+    our_file = StringIO()
+    for _ in tqdm(range(10), file=our_file, unit='frame',
+                  rate_unit='fps', mininterval=0):
+        pass
+    out = our_file.getvalue()
+    assert 'fps' in out
+
+def test_rate_unit_with_unit_scale():
+    """rate_unit should still work correctly when unit_scale is enabled"""
+    from io import StringIO
+    our_file = StringIO()
+    for _ in tqdm(range(1000), file=our_file, unit='B', unit_scale=True,
+                  rate_unit='Bps', mininterval=0):
+        pass
+    out = our_file.getvalue()
+    assert 'Bps' in out
