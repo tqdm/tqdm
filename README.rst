@@ -431,6 +431,9 @@ Parameters
 * unit  : str, optional  
     String that will be used to define the unit of each iteration
     [default: it].
+* rate_unit  : str, optional  
+    Unit to use for the rate suffix, overriding ``unit``.
+    [default: None], uses ``unit``.
 * unit_scale  : bool or int or float, optional  
     If 1 or True, the number of iterations will be reduced/scaled
     automatically and a metric prefix following the
