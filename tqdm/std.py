@@ -298,6 +298,9 @@ class tqdm(Comparable):
     unit  : str, optional
         String that will be used to define the unit of each iteration
         [default: it].
+    rate_unit  : str, optional
+        Unit to use for the rate suffix, overriding `unit`.
+        [default: None], uses `unit`.
     unit_scale  : bool or int or float, optional
         If 1 or True, the number of iterations will be reduced/scaled
         automatically and a metric prefix following the
@@ -498,6 +501,9 @@ class tqdm(Comparable):
         rate  : float, optional
             Manual override for iteration rate.
             If [default: None], uses n/elapsed.
+        rate_unit  : str, optional
+            Unit to use for the rate suffix, overriding `unit`.
+            [default: None], uses `unit`.
         bar_format  : str, optional
             Specify a custom bar string formatting. May impact performance.
             [default: '{l_bar}{bar}{r_bar}'], where
