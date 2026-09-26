@@ -97,6 +97,8 @@ def posix_pipe(fin, fout, delim=b'\\n', buf_size=256,
             getattr(fout, 'flush', lambda: None)()
             return  # n
 
+        tmp = buf + tmp
+        buf = b''
         while True:
             i = tmp.find(delim)
             if i < 0:

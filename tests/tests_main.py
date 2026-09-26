@@ -64,6 +64,19 @@ def test_main_bytes(capsysbinary, monkeypatch):
     assert str(len(IN_DATA)) + "B" in err.decode('U8')
 
 
+@mark.parametrize("update,expected", [(False, 3), (True, 6)])
+def test_main_multibyte_delimiter(capsysbinary, monkeypatch, update, expected):
+    data = '1é2é3'.encode()
+    monkeypatch.setattr(sys, 'stdin', BytesIO(data))
+    args = ['--delim', 'é', '--buf-size', '2', '--bar-format', '{n}it']
+    if update:
+        args.append('--update')
+    main(sys.stderr, args)
+    out, err = capsysbinary.readouterr()
+    assert out == data
+    assert f'{expected}it' in err.decode()
+
+
 @mark.parametrize("level,logged", [("INFO", False), ("DEBUG", True)])
 def test_main_log(capsysbinary, caplog, monkeypatch, level, logged):
     N = 123
