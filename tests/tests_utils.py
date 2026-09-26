@@ -1,10 +1,36 @@
+from array import array
 from ast import literal_eval
 from collections import defaultdict
+from io import BytesIO
 from typing import Union  # py<3.10
 
 from pytest import warns
 
-from tqdm.utils import envwrap
+from tqdm.utils import CallbackIOWrapper, envwrap
+
+
+def test_write_callback_counts_bytes_in_memoryview():
+    data = memoryview(array('I', [1, 2, 3]))
+    stream = BytesIO()
+    counts = []
+    wrapper = CallbackIOWrapper(counts.append, stream, "write")
+
+    assert wrapper.write(data) == data.nbytes
+    assert counts == [len(stream.getvalue())]
+
+
+def test_write_callback_without_return_value():
+    class LegacyStream(BytesIO):
+        def write(self, data):
+            super().write(data)
+
+    stream = LegacyStream()
+    counts = []
+    wrapper = CallbackIOWrapper(counts.append, stream, "write")
+
+    assert wrapper.write(b'abc') is None
+    assert counts == [3]
+    assert stream.getvalue() == b'abc'
 
 
 def test_envwrap_deprecated(monkeypatch):
