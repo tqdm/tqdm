@@ -218,7 +218,7 @@ class CallbackIOWrapper(ObjectWrapper):
             @wraps(func)
             def write(data, *args, **kwargs):
                 res = func(data, *args, **kwargs)
-                callback(len(data))
+                callback(res if isinstance(res, int) else len(data))
                 return res
             self.wrapper_setattr('write', write)
         elif method == "read":
