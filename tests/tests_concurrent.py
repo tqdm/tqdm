@@ -54,6 +54,12 @@ def test_ensure_lock_nested_exception(monkeypatch):
     assert tqdm.get_lock() is original_lock
 
 
+def test_min_map_len():
+    assert concurrent._min_map_len([]) == 0
+    assert concurrent._min_map_len([(i for i in range(9))]) == 0
+    assert concurrent._min_map_len([(i for i in range(9)), range(5)]) == 5
+
+
 @mark.parametrize("mapper", [interpreter_map, process_map, thread_map])
 def test_concurrent_map(mapper, caperr):
     a = range(9)
@@ -81,6 +87,17 @@ def test_concurrent_map_exception(mapper, lock_name, worker_error, monkeypatch):
         except ImportError as err:
             skip(str(err))
     assert tqdm.get_lock() is original_lock
+
+
+@mark.parametrize("mapper", [interpreter_map, process_map, thread_map])
+def test_concurrent_map_unknown_len(mapper, caperr):
+    b = [i + 1 for i in range(9)]
+    try:
+        assert mapper(dummy_func, (i for i in range(9))) == b
+    except ImportError as err:
+        skip(str(err))
+    err = caperr()
+    assert '9it [' in err
 
 
 def check_lock(args):
