@@ -2,8 +2,9 @@
 Tests for `tqdm.contrib.itertools`.
 """
 import itertools as it
+import sys
 
-from pytest import mark
+from pytest import mark, raises
 
 from tqdm.contrib import itertools as tit
 
@@ -94,6 +95,25 @@ def test_combinations_with_replacement(caperr):
     assert list(tit.combinations_with_replacement(a, 6)) == list(
         it.combinations_with_replacement(a, 6))
     assert "210/210" in caperr()
+
+
+@mark.skipif(sys.version_info < (3, 13), reason="requires Python 3.13+")
+@mark.parametrize("sized", [True, False])
+@mark.parametrize("disable", [True, False])
+def test_batched_strict(sized, disable):
+    iterable = range(6) if sized else no_len(range(6))
+    assert list(tit.batched(iterable, 3, strict=True, disable=disable)) == [(0, 1, 2), (3, 4, 5)]
+
+    iterable = range(7) if sized else no_len(range(7))
+    with raises(ValueError, match="incomplete batch"):
+        list(tit.batched(iterable, 3, strict=True, disable=disable))
+
+
+@mark.skipif(not hasattr(it, 'batched'), reason="NotFound: itertools.batched")
+@mark.parametrize("disable", [True, False])
+def test_batched_non_strict(disable):
+    assert list(tit.batched(range(7), 3, strict=False, disable=disable)) == [
+        (0, 1, 2), (3, 4, 5), (6,)]
 
 
 @mark.skipif(not hasattr(it, 'batched'), reason="NotFound: itertools.batched")
