@@ -80,13 +80,22 @@ def combinations_with_replacement(iterable, r, total=None, tqdm_class=tqdm_auto,
     return tqdm_class(itertools.combinations_with_replacement(iterable, r), total=total, **kwargs)
 
 
-def batched(iterable, n, total=None, tqdm_class=tqdm_auto, **kwargs):
-    """Equivalent of `itertools.batched`."""
+def batched(iterable, n, total=None, tqdm_class=tqdm_auto, strict=False, **kwargs):
+    """
+    Equivalent of `itertools.batched`.
+
+    Parameters
+    ----------
+    strict  : bool, optional
+        Raise `ValueError` if the final batch is shorter than `n`.
+        Requires Python>=3.13 when enabled [default: False].
+    """
     if total is None:
         try:
             total = len(iterable)
         except (TypeError, AttributeError):
             pass
-    return tqdm_class(itertools.batched(iterable, n), unit_scale=n,
+    batched_kwargs = {'strict': True} if strict else {}
+    return tqdm_class(itertools.batched(iterable, n, **batched_kwargs), unit_scale=n,
                       total=(total+n-1) // n if total is not None else None,
                       **kwargs)
