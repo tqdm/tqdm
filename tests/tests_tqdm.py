@@ -3,7 +3,7 @@ import os
 import re
 import sys
 from importlib import import_module
-from io import BytesIO, IOBase
+from io import BytesIO, IOBase, StringIO
 
 from pytest import importorskip, mark, raises, warns
 
@@ -1079,6 +1079,65 @@ def test_position(caperr):
     t4.close()
     t3.close()
     t1.close()
+
+
+@mark.parametrize('marker,value', [
+    ('WT_SESSION', 'test'), ('ITERM_SESSION_ID', 'test'), ('KONSOLE_VERSION', 'test'),
+    ('VTE_VERSION', 'test'), ('TERM_PROGRAM', 'iTerm.app')])
+def test_osc9_4_progress(monkeypatch, marker, value):
+    class TrackingStringIO(StringIO):
+        def __init__(self):
+            super().__init__()
+            self.flush_values = []
+
+        def flush(self):
+            self.flush_values.append(self.getvalue())
+            super().flush()
+
+    for name in ('WT_SESSION', 'ITERM_SESSION_ID', 'KONSOLE_VERSION', 'VTE_VERSION',
+                 'TERM_PROGRAM'):
+        monkeypatch.delenv(name, raising=False)
+    monkeypatch.setenv(marker, value)
+
+    file = TrackingStringIO()
+    monkeypatch.setattr(file, 'isatty', lambda: True)
+    with tqdm(total=3, file=file, miniters=1, mininterval=0) as progress:
+        progress.update()
+        progress.update(10)
+
+    assert re.findall(r'\x1b\]9;4;(\d);(\d+)\x07', file.getvalue()) == [
+        ('1', '0'), ('1', '33'), ('1', '100'), ('1', '100'), ('0', '0')]
+    assert file.flush_values[-1].endswith('\x1b]9;4;0;0\x07')
+
+
+def test_osc9_4_indeterminate_progress(monkeypatch):
+    monkeypatch.setenv('WT_SESSION', 'test')
+    file = StringIO()
+    monkeypatch.setattr(file, 'isatty', lambda: True)
+
+    with tqdm(file=file, miniters=1, mininterval=0) as progress:
+        progress.update()
+
+    assert re.findall(r'\x1b\]9;4;(\d);(\d+)\x07', file.getvalue()) == [
+        ('3', '0'), ('3', '0'), ('3', '0'), ('0', '0')]
+
+
+@mark.parametrize('marker,position,is_tty', [
+    ('', 0, True), ('WT_SESSION', 1, True), ('WT_SESSION', 0, False)])
+def test_osc9_4_is_only_used_for_top_level_ttys(monkeypatch, marker, position, is_tty):
+    for name in ('WT_SESSION', 'ITERM_SESSION_ID', 'KONSOLE_VERSION', 'VTE_VERSION',
+                 'TERM_PROGRAM'):
+        monkeypatch.delenv(name, raising=False)
+    if marker:
+        monkeypatch.setenv(marker, 'test')
+
+    file = StringIO()
+    if is_tty:
+        monkeypatch.setattr(file, 'isatty', lambda: True)
+    with tqdm(total=1, file=file, position=position, miniters=1, mininterval=0) as progress:
+        progress.update()
+
+    assert '\x1b]9;4;' not in file.getvalue()
 
 
 def test_set_description(caperr):

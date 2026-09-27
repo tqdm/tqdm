@@ -7,6 +7,7 @@ Usage:
 >>> for i in trange(10):
 ...     ...
 """
+import os
 import sys
 from collections import OrderedDict, defaultdict
 from contextlib import contextmanager
@@ -27,6 +28,14 @@ __all__ = ['tqdm', 'trange',
            'TqdmTypeError', 'TqdmKeyError', 'TqdmWarning',
            'TqdmExperimentalWarning', 'TqdmDeprecationWarning',
            'TqdmMonitorWarning']
+
+
+def _terminal_supports_osc9_4():
+    """Return whether the environment identifies a terminal with OSC 9;4."""
+    return bool(
+        any(os.environ.get(name) for name in (
+            'WT_SESSION', 'ITERM_SESSION_ID', 'KONSOLE_VERSION', 'VTE_VERSION')) or
+        os.environ.get('TERM_PROGRAM') == 'iTerm.app')
 
 
 class TqdmTypeError(TypeError):
@@ -965,6 +974,7 @@ class tqdm(Comparable):
                  write_bytes=False, lock_args=None, nrows=None, colour=None, delay=0.0, gui=False,
                  **kwargs):
         """see tqdm.tqdm for arguments"""
+        self._terminal_progress_enabled = False
         if file is None:
             file = sys.stderr
 
@@ -1099,6 +1109,10 @@ class tqdm(Comparable):
         if not gui:
             # Initialize the screen printer
             self.sp = self.status_printer(self.fp)
+            self._terminal_progress_enabled = (
+                self.pos == 0 and
+                _terminal_supports_osc9_4() and
+                getattr(self.fp, 'isatty', lambda: False)())
             if delay <= 0:
                 self.refresh(lock_args=self.lock_args)
 
@@ -1312,6 +1326,7 @@ class tqdm(Comparable):
                 # clear previous display
                 if self.display(msg='', pos=pos) and not pos:
                     fp_write('\r')
+            self._clear_terminal_progress()
 
     def clear(self, nolock=False):
         """Clear current bar display."""
@@ -1499,10 +1514,27 @@ class tqdm(Comparable):
 
         if pos:
             self.moveto(pos)
+        if self._terminal_progress_enabled:
+            self._update_terminal_progress()
         self.sp(self.__str__() if msg is None else msg)
         if pos:
             self.moveto(-pos)
         return True
+
+    def _update_terminal_progress(self):
+        if self.total is None or self.total <= 0:
+            state, progress = 3, 0
+        else:
+            state = 1
+            progress = max(0, min(100, int(100 * self.n / self.total)))
+
+        self.fp.write('\x1b]9;4;%d;%d\x07' % (state, progress))
+
+    def _clear_terminal_progress(self):
+        if self._terminal_progress_enabled:
+            self.fp.write('\x1b]9;4;0;0\x07')
+            getattr(self.fp, 'flush', lambda: None)()
+            self._terminal_progress_enabled = False
 
     @classmethod
     @contextmanager
