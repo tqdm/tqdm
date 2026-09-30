@@ -76,7 +76,13 @@ def tzip(iter1, *iter2plus, **tqdm_kwargs):
     """
     kwargs = tqdm_kwargs.copy()
     tqdm_class = kwargs.pop("tqdm_class", tqdm_auto)
-    yield from zip(tqdm_class(iter1, **kwargs), *iter2plus)
+    if kwargs.get("total") is None:
+        try:
+            kwargs["total"] = min(map(len, (iter1, *iter2plus)))
+        except TypeError:
+            pass
+    with tqdm_class(zip(iter1, *iter2plus), **kwargs) as progress:
+        yield from progress
 
 
 def tmap(function, *sequences, **tqdm_kwargs):
