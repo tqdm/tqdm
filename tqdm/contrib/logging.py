@@ -24,7 +24,7 @@ class _TqdmLoggingHandler(logging.StreamHandler):
     def emit(self, record):
         try:
             msg = self.format(record)
-            self.tqdm_class.write(msg, file=self.stream)
+            self.tqdm_class.write(msg, end=self.terminator, file=self.stream)
             self.flush()
         except (KeyboardInterrupt, SystemExit):
             raise
@@ -87,6 +87,7 @@ def logging_redirect_tqdm(
             if orig_handler is not None:
                 tqdm_handler.setFormatter(orig_handler.formatter)
                 tqdm_handler.stream = orig_handler.stream
+                tqdm_handler.terminator = orig_handler.terminator
                 for log_filter in orig_handler.filters:
                     tqdm_handler.addFilter(log_filter)
             logger.handlers = [
