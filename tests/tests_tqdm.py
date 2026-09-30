@@ -1592,3 +1592,14 @@ def test_rate_unit():
     assert 'fps' in out
     assert 'fps/s' not in out
     assert 'frame/s' not in out
+
+
+def test_rate_unit_with_unit_scale():
+    """rate_unit should still work correctly when unit_scale is enabled"""
+    from io import StringIO
+    our_file = StringIO()
+    for _ in tqdm(range(1000), file=our_file, unit='B', unit_scale=True,
+                  rate_unit='Bps', mininterval=0):
+        pass
+    out = our_file.getvalue()
+    assert 'Bps' in out
