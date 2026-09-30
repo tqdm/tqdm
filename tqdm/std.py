@@ -465,8 +465,8 @@ class tqdm(Comparable):
     @staticmethod
     def format_meter(n, total, elapsed, ncols=None, prefix='',
                      ascii=False,  # pylint: disable=redefined-builtin
-                     unit='it', unit_scale=False, rate=None, rate_unit=None, bar_format=None, postfix=None,
-                     unit_divisor=1000, initial=0, colour=None, **extra_kwargs):
+                     unit='it', unit_scale=False, rate=None, bar_format=None, postfix=None,
+                     unit_divisor=1000, initial=0, colour=None, rate_unit=None, **extra_kwargs):
         """
         Return a string-based progress bar given some parameters
 
@@ -558,12 +558,15 @@ class tqdm(Comparable):
         inv_rate = 1 / rate if rate else None
         format_sizeof = tqdm.format_sizeof
         if rate_unit is None:
-            rate_unit = unit
+            rate_unit = unit + '/s'
+            inv_rate_unit = 's/' + unit
+        else:
+            inv_rate_unit = 's/' + rate_unit
         rate_noinv_fmt = ((format_sizeof(rate) if unit_scale else f'{rate:5.2f}')
-                          if rate else '?') + rate_unit + '/s'
+                            if rate else '?') + rate_unit
         rate_inv_fmt = (
             (format_sizeof(inv_rate) if unit_scale else f'{inv_rate:5.2f}')
-            if inv_rate else '?') + 's/' + rate_unit
+            if inv_rate else '?') + inv_rate_unit
         rate_fmt = rate_inv_fmt if inv_rate and inv_rate > 1 else rate_noinv_fmt
 
         if unit_scale:
@@ -1073,7 +1076,7 @@ class tqdm(Comparable):
         self.ascii = ascii
         self.disable = disable
         self.unit = unit
-        self.rate_unit = unit if rate_unit is None else rate_unit
+        self.rate_unit = rate_unit
         self.unit_scale = unit_scale
         self.unit_divisor = unit_divisor
         self.initial = initial
