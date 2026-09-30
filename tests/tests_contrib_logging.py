@@ -45,6 +45,16 @@ def messages():
 
 
 class TestTqdmLoggingHandler:
+    @mark.parametrize('terminator', ['\n', '', ' END '])
+    def test_should_respect_terminator(self, logger, terminator):
+        stream = StringIO()
+        handler = TqdmLoggingHandler()
+        handler.stream = stream
+        handler.terminator = terminator
+        logger.handlers = [handler]
+        logger.info('test')
+        assert stream.getvalue() == 'test' + terminator
+
     def test_should_call_tqdm_write(self, logger, messages):
         logger.handlers = [TqdmLoggingHandler(CustomTqdm)]
         logger.info('test')
@@ -89,6 +99,19 @@ class TestGetFirstFoundConsoleLoggingHandler:
 
 
 class TestRedirectLoggingToTqdm:
+    @mark.parametrize('terminator', ['\n', '', ' END '])
+    def test_should_preserve_console_handler_terminator(self, logger, monkeypatch, terminator):
+        stream = StringIO()
+        monkeypatch.setattr(sys, 'stderr', stream)
+        console_handler = logging.StreamHandler(stream)
+        console_handler.terminator = terminator
+        logger.handlers = [console_handler]
+        with logging_redirect_tqdm(loggers=[logger]):
+            logger.info('redirected')
+        logger.info('restored')
+        assert stream.getvalue() == ('redirected' + terminator + 'restored' + terminator)
+        assert logger.handlers == [console_handler]
+
     def test_should_add_and_remove_tqdm_handler(self, logger):
         with logging_redirect_tqdm(loggers=[logger]):
             assert len(logger.handlers) == 1
