@@ -98,15 +98,19 @@ def posix_pipe(fin, fout, delim=b'\\n', buf_size=256,
             return  # n
 
         while True:
-            i = tmp.find(delim)
+            # Search the combined buffer, not just the fresh chunk: a
+            # multi-byte delimiter can straddle the read boundary, in which
+            # case only the concatenation contains it.
+            combined = buf + tmp
+            i = combined.find(delim)
             if i < 0:
-                buf += tmp
+                buf = combined
                 break
-            fp_write(buf + tmp[:i + len(delim)])
+            fp_write(combined[:i + len_delim])
             # n += 1
-            callback(1 if callback_len else (buf + tmp[:i]))
+            callback(1 if callback_len else combined[:i])
             buf = b''
-            tmp = tmp[i + len_delim:]
+            tmp = combined[i + len_delim:]
 
 
 # ((opt, type), ... )

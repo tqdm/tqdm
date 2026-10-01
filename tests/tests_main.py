@@ -32,6 +32,39 @@ def test_pipes():
     assert b"Error" not in err
 
 
+def test_main_delim_multibyte_split(capsysbinary, monkeypatch):
+    """A multi-byte delimiter that straddles a read boundary must still match.
+
+    With `--buf_size` smaller than the delimiter, the delimiter's bytes land in
+    two consecutive reads. Only the concatenation of the saved prefix and the
+    fresh chunk contains it, so the search has to cover both.
+    """
+    delim = '\u00e9'.encode()          # 2 bytes in UTF-8
+    records = [b'1', b'2', b'3']
+    IN_DATA = delim.join(records)
+    assert len(delim) > 1, "delimiter must be multi-byte for this to be a test"
+
+    # buf_size 1 forces every delimiter byte into its own read
+    for buf_size in ('1', '2', '3'):
+        monkeypatch.setattr(sys, 'stdin', BytesIO(IN_DATA))
+        main(sys.stderr, ['--delim', '\u00e9', '--buf_size', buf_size,
+                          '--ascii', 'True', '--bar_format', '{n}it'])
+        out, err = capsysbinary.readouterr()
+        assert out == IN_DATA, f"payload changed at buf_size={buf_size}"
+        assert f'{len(records)}it' in err.decode('U8'), (
+            f"expected {len(records)}it at buf_size={buf_size}, "
+            f"got {err.decode('U8')!r}")
+
+    # --update parses each record with literal_eval, so a delimiter byte leaking
+    # into a record raises SyntaxError rather than merely miscounting
+    monkeypatch.setattr(sys, 'stdin', BytesIO(IN_DATA))
+    main(sys.stderr, ['--delim', '\u00e9', '--buf_size', '2', '--update',
+                      '--ascii', 'True', '--bar_format', '{n}it'])
+    out, err = capsysbinary.readouterr()
+    assert out == IN_DATA
+    assert 'Error' not in err.decode('U8'), err.decode('U8')
+
+
 def test_main_import(monkeypatch):
     N = 123
     monkeypatch.setattr(sys, 'stdin', [str(i).encode() for i in range(N)])
