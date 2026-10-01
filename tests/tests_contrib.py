@@ -1,7 +1,22 @@
+from io import BytesIO, StringIO
+
 from pytest import importorskip, mark
 
 from tqdm import tqdm
-from tqdm.contrib import tenumerate, tmap, tzip
+from tqdm.contrib import DummyTqdmFile, tenumerate, tmap, tzip
+
+
+@mark.parametrize("stream_type, text", [(StringIO, "partial"), (BytesIO, b"partial")])
+def test_dummy_file_flush(stream_type, text):
+    stream = stream_type()
+    dummy = DummyTqdmFile(stream)
+    dummy.write(text)
+    assert not stream.getvalue()
+    dummy.flush()
+    assert stream.getvalue() == text
+    dummy.flush()
+    del dummy
+    assert stream.getvalue() == text
 
 
 @mark.parametrize("tqdm_kwargs", [{}, {"tqdm_class": tqdm}])
