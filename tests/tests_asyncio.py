@@ -118,6 +118,23 @@ async def test_gather(caperr):
     assert res == list(range(0, 30 * 2, 2))
 
 
+@mark.asyncio
+@mark.parametrize("scheduled", [False, True])
+async def test_gather_duplicate_awaitables(caperr, scheduled):
+    calls = []
+
+    async def work():
+        calls.append(1)
+        await asyncio.sleep(0)
+        return 42
+
+    shared = asyncio.create_task(work()) if scheduled else work()
+    res = await gather(shared, double(1), shared)
+    assert res == [42, 2, 42]
+    assert calls == [1]
+    assert '3/3' in caperr()
+
+
 async def raise_exc(i):
     if i == 1:
         raise ValueError("test")
@@ -132,6 +149,16 @@ async def test_gather_exceptions(caperr):
     assert isinstance(res[1], ValueError)
     assert res[0] == 0
     assert res[2] == 4
+
+
+@mark.asyncio
+async def test_gather_duplicate_exceptions(caperr):
+    shared = raise_exc(1)
+    res = await gather(shared, double(1), shared, return_exceptions=True)
+    assert isinstance(res[0], ValueError)
+    assert res[1] == 2
+    assert res[2] is res[0]
+    assert '3/3' in caperr()
 
 
 class AIterable:

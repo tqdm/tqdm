@@ -17,7 +17,7 @@ class Comparison:
     def run(self, cls):
         pbar = cls(self.iterable)
         t0 = self.time()
-        all(pbar)  # pylint: disable=pointless-statement
+        _ = all(pbar)
         t1 = self.time()
         return t1 - t0
 
