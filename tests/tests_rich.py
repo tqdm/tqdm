@@ -29,3 +29,16 @@ def test_rich_fraction_column_no_total():
         total = 10
 
     assert rich.FractionColumn().render(SizedTask()).plain == "3/10 "
+
+
+@mark.filterwarnings("ignore:rich is experimental/alpha:tqdm.std.TqdmExperimentalWarning")
+def test_rich_desc_markup(capsys):
+    """Test `desc` is displayed verbatim rather than parsed as `rich` markup"""
+    rich = importorskip('tqdm.rich')
+    desc = "[bold]a[/bold] [link=https://example.com]b[/link]"
+    with rich.tqdm(range(5), desc=desc) as pbar:
+        for _ in pbar:
+            pass
+    out, err = capsys.readouterr()
+    assert not err
+    assert desc in out

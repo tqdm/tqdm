@@ -8,6 +8,7 @@ Usage:
 """
 from warnings import warn
 
+from rich.markup import escape
 from rich.progress import (
     BarColumn, Progress, ProgressColumn, Text, TimeElapsedColumn, TimeRemainingColumn, filesize)
 
@@ -114,7 +115,7 @@ class tqdm_rich(std_tqdm):  # pragma: no cover
         options.setdefault('transient', not self.leave)
         self._prog = Progress(*progress, **options)
         self._prog.__enter__()
-        self._task_id = self._prog.add_task(self.desc or "", **d)
+        self._task_id = self._prog.add_task(escape(self.desc or ""), **d)
 
     def close(self):
         if self.disable:
@@ -129,7 +130,7 @@ class tqdm_rich(std_tqdm):  # pragma: no cover
     def display(self, *_, **__):
         if not hasattr(self, '_task_id'):
             return
-        self._prog.update(self._task_id, completed=self.n, description=self.desc)
+        self._prog.update(self._task_id, completed=self.n, description=escape(self.desc or ""))
 
     def reset(self, total=None):
         """
