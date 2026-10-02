@@ -15,7 +15,7 @@ _range, _unich, _unicode, _basestring = range, chr, str, str
 CUR_OS = sys.platform
 IS_WIN = any(CUR_OS.startswith(i) for i in ['win32', 'cygwin'])
 IS_NIX = any(CUR_OS.startswith(i) for i in ['aix', 'linux', 'darwin', 'freebsd'])
-RE_ANSI = re.compile(r"\x1b\[[;\d]*[A-Za-z]")
+RE_ANSI = re.compile(r"\x1b(?:\[[;\d]*[A-Za-z]|\]8;[^;\x1b\x07]*;[^\x1b\x07]*(?:\x07|\x1b\\))")
 
 try:
     if IS_WIN:
@@ -316,13 +316,36 @@ def disp_trim(data, length):
     """
     Trim a string which may contain ANSI control characters.
     """
-    if len(data) == disp_len(data):
+    visible_width = disp_len(data)
+    if len(data) == visible_width and '\x1b' not in data:
         return data[:length]
+    if visible_width <= length and '\x1b]8;' not in data:
+        if RE_ANSI.search(data) and not data.endswith('\033[0m'):
+            return data + '\033[0m'
+        return data
 
-    ansi_present = bool(RE_ANSI.search(data))
-    while disp_len(data) > length:  # carefully delete one char at a time
-        data = data[:-1]
-    if ansi_present and bool(RE_ANSI.search(data)):
+    parts = []
+    width = 0
+    ansi_present = False
+    hyperlink_end = ''
+    # Keep control sequences intact while counting only visible characters.
+    for match in re.finditer(RE_ANSI.pattern + r'|.', data, re.DOTALL):
+        token = match.group()
+        if len(token) > 1:
+            if token.startswith('\x1b]8;'):
+                terminator = '\x07' if token.endswith('\x07') else '\x1b\\'
+                uri = token[4:-len(terminator)].partition(';')[2]
+                hyperlink_end = '\x1b]8;;' + terminator if uri else ''
+            else:
+                ansi_present = True
+        else:
+            width += _text_width(token)
+            if width > length:
+                break
+        parts.append(token)
+    # An SGR reset does not close a hyperlink cut off with its label.
+    data = ''.join(parts) + hyperlink_end
+    if ansi_present:
         # assume ANSI reset is required
         return data if data.endswith("\033[0m") else data + "\033[0m"
     return data

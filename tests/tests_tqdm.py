@@ -10,6 +10,7 @@ from pytest import importorskip, mark, raises, warns
 from tqdm import TqdmDeprecationWarning, TqdmWarning, tqdm, trange
 from tqdm.contrib import DummyTqdmFile
 from tqdm.std import EMA, Bar
+from tqdm.utils import RE_ANSI, disp_len
 
 nt_and_no_colorama = False
 if os.name == 'nt':
@@ -271,6 +272,18 @@ def test_ANSI_escape_codes():
     # `format_meter` inserts an extra END for safety
     ansi_len = len(desc) - len(desc_stripped) + len(ansi['END'])
     assert len(meter) == ncols + ansi_len
+
+
+@mark.parametrize('terminator', ['\x1b\\', '\x07'])
+def test_hyperlink_description(terminator):
+    link = f'\x1b]8;;https://example.com{terminator}docs\x1b]8;;{terminator}'
+    kwargs = {'ncols': 35, 'bar_format': '{desc}: {bar}| {n}/{total}'}
+    plain = tqdm.format_meter(1, 2, 1, prefix='docs', **kwargs)
+    linked = tqdm.format_meter(1, 2, 1, prefix=link, **kwargs)
+
+    assert RE_ANSI.sub('', linked) == plain
+    assert disp_len(linked) == 35
+    assert link in linked
 
 
 def test_SI_format():
