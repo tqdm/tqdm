@@ -3,7 +3,7 @@ Tests for `tqdm.contrib.itertools`.
 """
 import itertools as it
 
-from pytest import mark
+from pytest import importorskip, mark, raises
 
 from tqdm.contrib import itertools as tit
 
@@ -38,6 +38,39 @@ def test_product(caperr):
 
     assert list(tit.product(a, no_len(a), total=81)) == list(it.product(a, no_len(a)))
     assert "81/81" in caperr()
+
+
+@mark.parametrize('iterable', [[], range(3)])
+@mark.parametrize('repeat', [-1, -2])
+def test_product_negative_repeat(iterable, repeat):
+    with raises(ValueError, match='repeat argument cannot be negative'):
+        list(tit.product(iterable, repeat=repeat))
+
+
+@mark.parametrize('sized', [True, False])
+@mark.parametrize('total', [None, 3])
+def test_product_zero_repeat(caperr, sized, total):
+    iterable = range(3) if sized else no_len(range(3))
+    assert list(tit.product(iterable, repeat=0, total=total)) == [()]
+    assert f"1/{1 if total is None else total}" in caperr()
+
+
+def test_product_repeat_index(caperr):
+    class Repeat:
+        def __index__(self):
+            return 2
+
+    a = range(3)
+    assert list(tit.product(a, repeat=Repeat())) == list(it.product(a, repeat=Repeat()))
+    assert "9/9" in caperr()
+
+
+def test_product_numpy_repeat(caperr):
+    np = importorskip('numpy')
+    generator = tit.product(range(16), repeat=np.int64(16), bar_format='{total}')
+    assert next(generator) == (0,) * 16
+    generator.close()
+    assert str(16 ** 16) in caperr()
 
 
 def test_permutations(caperr):
