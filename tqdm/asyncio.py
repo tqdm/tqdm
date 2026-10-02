@@ -85,7 +85,11 @@ class tqdm_asyncio(std_tqdm):
                     return i, e
                 raise
 
-        ifs = [wrap_awaitable(i, f) for i, f in enumerate(fs)]
+        arg_to_task = {}
+        for f in fs:
+            if f not in arg_to_task:
+                arg_to_task[f] = asyncio.ensure_future(f)
+        ifs = [wrap_awaitable(i, arg_to_task[f]) for i, f in enumerate(fs)]
         res = [await f for f in cls.as_completed(ifs, loop=loop, timeout=timeout,
                                                  total=total, **tqdm_kwargs)]
         return [i for _, i in sorted(res)]
