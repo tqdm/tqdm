@@ -1,7 +1,7 @@
 import logging
 import logging.handlers
 import sys
-from io import StringIO
+from io import BytesIO, StringIO
 
 from pytest import fixture, mark, raises
 
@@ -9,6 +9,7 @@ from tqdm import tqdm
 from tqdm.contrib.logging import _get_first_found_console_logging_handler
 from tqdm.contrib.logging import _TqdmLoggingHandler as TqdmLoggingHandler
 from tqdm.contrib.logging import logging_redirect_tqdm, tqdm_logging_redirect
+from tqdm.utils import SimpleTextIOWrapper
 
 LOGGER = logging.getLogger(__name__)
 
@@ -89,6 +90,29 @@ class TestGetFirstFoundConsoleLoggingHandler:
 
 
 class TestRedirectLoggingToTqdm:
+    @mark.parametrize('console_stream', [None, 'stdout', 'stderr'])
+    def test_should_handle_unhashable_streams(self, logger, monkeypatch, messages, console_stream):
+        output = BytesIO()
+        stream = SimpleTextIOWrapper(output, 'utf8')
+        if console_stream is not None:
+            monkeypatch.setattr(sys, console_stream, stream)
+        handler = logging.StreamHandler(stream)
+        logger.handlers = [handler]
+
+        with logging_redirect_tqdm(loggers=[logger], tqdm_class=CustomTqdm):
+            if console_stream is None:
+                assert handler in logger.handlers
+            else:
+                assert len(logger.handlers) == 1
+                assert logger.handlers[0].stream is stream
+            logger.info('redirected')
+
+        assert logger.handlers == [handler]
+        logger.info('restored')
+        expected = 'restored\n' if console_stream else 'redirected\nrestored\n'
+        assert output.getvalue() == expected.encode('utf8')
+        assert messages == ['redirected']
+
     def test_should_add_and_remove_tqdm_handler(self, logger):
         with logging_redirect_tqdm(loggers=[logger]):
             assert len(logger.handlers) == 1
