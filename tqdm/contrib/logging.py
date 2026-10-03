@@ -34,7 +34,7 @@ class _TqdmLoggingHandler(logging.StreamHandler):
 
 def _is_console_logging_handler(handler):
     return (isinstance(handler, logging.StreamHandler)
-            and handler.stream in {sys.stdout, sys.stderr})
+            and handler.stream in (sys.stdout, sys.stderr))
 
 
 def _get_first_found_console_logging_handler(handlers):
