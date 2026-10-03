@@ -31,6 +31,14 @@ class DummyTqdmFile(ObjectWrapper):
         else:
             self._buf.append(x)
 
+    def flush(self):
+        """Write buffered partial lines and flush the wrapped stream."""
+        if self._buf:
+            blank = type(self._buf[0])()
+            tqdm.write(blank.join(self._buf), end=blank, file=self._wrapped)
+            self._buf = []
+        return self._wrapped.flush()
+
     def __del__(self):
         if self._buf:
             blank = type(self._buf[0])()
