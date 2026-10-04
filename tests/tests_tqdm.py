@@ -1238,6 +1238,23 @@ def test_write(tmp_file):
     assert squash_ctrlchars(after) == [s, s] + squash_ctrlchars(before)
 
 
+def test_terminal_control_characters_are_visible(tmp_file):
+    text = "name\t\x1b[2J\x1b]52;c;QUJD\x07\x9c"
+    visible = r"name\x09\x1b[2J\x1b]52;c;QUJD\x07\x9c"
+
+    tqdm.write(text, file=tmp_file, end="\x1b[2J\n")
+
+    assert tmp_file.getvalue() == visible + r"\x1b[2J" + "\n"
+
+    bar = tqdm(total=1, desc=text, file=tmp_file, bar_format="{desc}")
+    assert bar.desc == visible
+    bar.set_description_str(text, refresh=False)
+    assert bar.desc == visible
+    bar.set_description(text, refresh=False)
+    assert bar.desc == visible + ": "
+    bar.close()
+
+
 def test_write_other_file(tmp_file, tmp_file2):
     """Test no bar clearing when writing to a different file"""
     with tqdm(total=10, file=tmp_file, desc='pos0 bar',
