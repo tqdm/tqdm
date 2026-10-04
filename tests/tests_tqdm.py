@@ -1198,7 +1198,7 @@ def test_refresh(caperr):
 
 def test_disabled_repr(capsys):
     with tqdm(total=10, disable=True) as t:
-        str(t)
+        assert str(t).startswith('  0%|')
         t.update()
         print(t)
     out, err = capsys.readouterr()
@@ -1236,6 +1236,23 @@ def test_write(tmp_file):
     t3.close()
 
     assert squash_ctrlchars(after) == [s, s] + squash_ctrlchars(before)
+
+
+def test_terminal_control_characters_are_visible(tmp_file):
+    text = "name\t\x1b[2J\x1b]52;c;QUJD\x07\x9c"
+    visible = r"name\x09\x1b[2J\x1b]52;c;QUJD\x07\x9c"
+
+    tqdm.write(text, file=tmp_file, end="\x1b[2J\n")
+
+    assert tmp_file.getvalue() == visible + r"\x1b[2J" + "\n"
+
+    bar = tqdm(total=1, desc=text, file=tmp_file, bar_format="{desc}")
+    assert bar.desc == visible
+    bar.set_description_str(text, refresh=False)
+    assert bar.desc == visible
+    bar.set_description(text, refresh=False)
+    assert bar.desc == visible + ": "
+    bar.close()
 
 
 def test_write_other_file(tmp_file, tmp_file2):

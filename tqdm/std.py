@@ -19,8 +19,8 @@ from weakref import WeakSet
 from ._monitor import TMonitor
 from .utils import (
     CallbackIOWrapper, Comparable, DisableOnWriteError, FormatReplace, SimpleTextIOWrapper,
-    _is_ascii, _screen_shape_wrapper, _supports_unicode, _term_move_up, disp_len, disp_trim,
-    envwrap)
+    _is_ascii, _sanitize_terminal_text, _screen_shape_wrapper, _supports_unicode, _term_move_up,
+    disp_len, disp_trim, envwrap)
 
 __author__ = "https://github.com/tqdm/tqdm#contributions"
 __all__ = ['tqdm', 'trange',
@@ -722,8 +722,8 @@ class tqdm(Comparable):
             return
         with cls.external_write_mode(file=file, nolock=nolock):
             # Write the message
-            fp.write(s)
-            fp.write(end)
+            fp.write(_sanitize_terminal_text(s))
+            fp.write(_sanitize_terminal_text(end))
 
     @classmethod
     @contextmanager
@@ -1052,7 +1052,7 @@ class tqdm(Comparable):
 
         # Store the arguments
         self.iterable = iterable
-        self.desc = desc or ''
+        self.desc = _sanitize_terminal_text(desc or '')
         self.total = total
         self.leave = leave
         self.fp = file
@@ -1396,13 +1396,13 @@ class tqdm(Comparable):
         refresh  : bool, optional
             Forces refresh [default: True].
         """
-        self.desc = desc + ': ' if desc else ''
+        self.desc = _sanitize_terminal_text(desc + ': ' if desc else '')
         if refresh:
             self.refresh()
 
     def set_description_str(self, desc=None, refresh=True):
         """Set/modify description without ': ' appended."""
-        self.desc = desc or ''
+        self.desc = _sanitize_terminal_text(desc or '')
         if refresh:
             self.refresh()
 

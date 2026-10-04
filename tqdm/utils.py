@@ -16,6 +16,16 @@ CUR_OS = sys.platform
 IS_WIN = any(CUR_OS.startswith(i) for i in ['win32', 'cygwin'])
 IS_NIX = any(CUR_OS.startswith(i) for i in ['aix', 'linux', 'darwin', 'freebsd'])
 RE_ANSI = re.compile(r"\x1b\[[;\d]*[A-Za-z]")
+RE_TERMINAL_CONTROL = re.compile(r"[\x00-\x09\x0b-\x1f\x7f-\x9f]")
+
+
+def _sanitize_terminal_text(text):
+    """Render terminal control characters in user text visibly."""
+    if not isinstance(text, str):
+        return text
+    return RE_TERMINAL_CONTROL.sub(
+        lambda match: r"\x%02x" % ord(match.group()), text)
+
 
 try:
     if IS_WIN:
