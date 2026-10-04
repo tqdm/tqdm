@@ -18,10 +18,9 @@ from weakref import WeakSet
 
 from ._monitor import TMonitor
 from .utils import (
-    CallbackIOWrapper, Comparable, DisableOnWriteError, FormatReplace,
-    SimpleTextIOWrapper, _is_ascii, _sanitize_terminal_text,
-    _screen_shape_wrapper, _supports_unicode, _term_move_up, disp_len,
-    disp_trim, envwrap)
+    CallbackIOWrapper, Comparable, DisableOnWriteError, FormatReplace, SimpleTextIOWrapper,
+    _is_ascii, _sanitize_terminal_text, _screen_shape_wrapper, _supports_unicode, _term_move_up,
+    disp_len, disp_trim, envwrap)
 
 __author__ = "https://github.com/tqdm/tqdm#contributions"
 __all__ = ['tqdm', 'trange',
