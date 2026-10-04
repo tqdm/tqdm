@@ -1198,7 +1198,7 @@ def test_refresh(caperr):
 
 def test_disabled_repr(capsys):
     with tqdm(total=10, disable=True) as t:
-        str(t)
+        assert str(t).startswith('  0%|')
         t.update()
         print(t)
     out, err = capsys.readouterr()
