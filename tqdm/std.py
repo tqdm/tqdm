@@ -534,6 +534,11 @@ class tqdm(Comparable):
             # allow float imprecision (#849) or inf (#651)
             total = None
 
+        # if unspecified, attempt to use rate = average speed
+        # (we allow manual override since predicting time is an arcane art)
+        if rate is None and elapsed:
+            rate = (n - initial) / elapsed
+
         # apply custom scale if necessary
         if unit_scale and unit_scale not in (True, 1):
             if total:
@@ -545,10 +550,6 @@ class tqdm(Comparable):
 
         elapsed_str = tqdm.format_interval(elapsed)
 
-        # if unspecified, attempt to use rate = average speed
-        # (we allow manual override since predicting time is an arcane art)
-        if rate is None and elapsed:
-            rate = (n - initial) / elapsed
         inv_rate = 1 / rate if rate else None
         format_sizeof = tqdm.format_sizeof
         rate_noinv_fmt = ((format_sizeof(rate) if unit_scale else f'{rate:5.2f}')

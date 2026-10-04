@@ -1409,6 +1409,33 @@ def test_numeric_unit_scale(caperr):
     assert '81/81' in caperr()
 
 
+@mark.parametrize("unit_scale", [2, 0.5])
+@mark.parametrize("initial", [0, 5])
+@mark.parametrize("rate", [None, 1])
+def test_numeric_unit_scale_initial_rate(unit_scale, initial, rate):
+    result = tqdm.format_meter(
+        initial + 1, initial + 5, 1, initial=initial, unit_scale=unit_scale,
+        rate=rate, bar_format='{rate_noinv:.1f} {remaining_s:.1f}')
+    assert result == f'{unit_scale:.1f} 4.0'
+
+
+@mark.parametrize("initial", [0, 5])
+def test_numeric_unit_scale_infinite(initial):
+    assert tqdm.format_meter(initial + 1, None, 1, initial=initial,
+                             unit_scale=float('inf'), bar_format='{rate_noinv}') == 'inf'
+
+
+@mark.parametrize("unit_scale", [2, 0.5])
+def test_numeric_unit_scale_initial_close(unit_scale, caperr):
+    with tqdm(total=10, initial=5, unit_scale=unit_scale, miniters=1, mininterval=0,
+              bar_format='{rate_noinv}') as t:
+        timer = cpu_timify(t)
+        timer.sleep(1)
+        t.update()
+        caperr()
+    assert caperr().strip() == f'{unit_scale:.1f}'
+
+
 def test_threading(process_lock):
     """Test multiprocess/thread-realted features"""
     # TODO: test interleaved output #445
