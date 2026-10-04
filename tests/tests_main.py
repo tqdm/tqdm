@@ -76,6 +76,16 @@ def test_main_log(capsysbinary, caplog, monkeypatch, level, logged):
         assert bool(caplog.record_tuples) is logged
 
 
+@mark.parametrize("argv, message", [
+    (['--log'], "--log requires a logging level"),
+    (['--log', 'NOTALEVEL'], "Invalid log level: NOTALEVEL"),
+    (['--log='], "Invalid log level: "),
+])
+def test_main_invalid_log_level(argv, message):
+    with raises(TqdmKeyError, match=message):
+        main(argv=argv)
+
+
 def test_main_misc_options(capsysbinary, monkeypatch):
     N = 123
     monkeypatch.setattr(sys, 'stdin', [(str(i) + '\n').encode() for i in range(N)])
