@@ -661,22 +661,6 @@ class tqdm(Comparable):
                    f'{n_fmt}{unit} [{elapsed_str}, {rate_fmt}{postfix}]')
             return disp_trim(res, ncols) if ncols else res
 
-    def __new__(cls, *_, **__):
-        instance = object.__new__(cls)
-        with cls.get_lock():  # also constructs lock if non-existent
-            cls._instances.add(instance)
-            # create monitoring thread
-            if cls.monitor_interval and (cls.monitor is None
-                                         or not cls.monitor.report()):
-                try:
-                    cls.monitor = TMonitor(cls, cls.monitor_interval)
-                except Exception as e:  # pragma: nocover
-                    warn("tqdm:disabling monitor support"
-                         " (monitor_interval = 0) due to:\n" + str(e),
-                         TqdmMonitorWarning, stacklevel=2)
-                    cls.monitor_interval = 0
-        return instance
-
     @classmethod
     def _get_free_pos(cls, instance=None):
         """Skips specified instance."""
@@ -990,9 +974,8 @@ class tqdm(Comparable):
         if disable:
             self.iterable = iterable
             self.disable = disable
-            with self._lock:
-                self.pos = self._get_free_pos(self)
-                self._instances.remove(self)
+            # don't touch the (possibly cross-process) lock (#1500)
+            self.pos = 0 if position is None else -position
             self.n = initial
             self.total = total
             self.leave = leave
@@ -1000,9 +983,6 @@ class tqdm(Comparable):
 
         if kwargs:
             self.disable = True
-            with self._lock:
-                self.pos = self._get_free_pos(self)
-                self._instances.remove(self)
             raise (
                 TqdmDeprecationWarning(
                     "`nested` is deprecated and automated.\n"
@@ -1090,9 +1070,21 @@ class tqdm(Comparable):
         self.last_print_n = initial
         self.n = initial
 
-        # if nested, at initial sp() call we replace '\r' by '\n' to
-        # not overwrite the outer progress bar
-        with self._lock:
+        with self.get_lock():  # also constructs lock if non-existent
+            self._instances.add(self)
+            # create monitoring thread
+            cls = type(self)
+            if cls.monitor_interval and (cls.monitor is None
+                                         or not cls.monitor.report()):
+                try:
+                    cls.monitor = TMonitor(cls, cls.monitor_interval)
+                except Exception as e:  # pragma: nocover
+                    warn("tqdm:disabling monitor support"
+                         " (monitor_interval = 0) due to:\n" + str(e),
+                         TqdmMonitorWarning, stacklevel=2)
+                    cls.monitor_interval = 0
+            # if nested, at initial sp() call we replace '\r' by '\n' to
+            # not overwrite the outer progress bar
             # mark fixed positions as negative
             self.pos = self._get_free_pos(self) if position is None else -position
 

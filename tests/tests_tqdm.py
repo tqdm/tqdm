@@ -697,6 +697,24 @@ def test_disable(caperr):
     assert not caperr()
 
 
+def test_disable_lock():
+    """Test disabled bars don't acquire the (possibly held) lock (#1500)"""
+    class ForbiddenLock:
+        def acquire(self, *_, **__):
+            raise AssertionError("disabled bar acquired lock")
+        release = __enter__ = __exit__ = acquire
+
+    default_lock = tqdm.get_lock()
+    tqdm.set_lock(ForbiddenLock())
+    try:
+        for _ in tqdm(range(3), disable=True):
+            pass
+        with tqdm(total=3, disable=True) as t:
+            t.update()
+    finally:
+        tqdm.set_lock(default_lock)
+
+
 def test_infinite_total():
     for _ in tqdm(range(3), total=float("inf")):
         pass
@@ -1198,7 +1216,7 @@ def test_refresh(caperr):
 
 def test_disabled_repr(capsys):
     with tqdm(total=10, disable=True) as t:
-        str(t)
+        str(t)  # noqa: B018
         t.update()
         print(t)
     out, err = capsys.readouterr()
