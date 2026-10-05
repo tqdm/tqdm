@@ -55,7 +55,7 @@ repos:
     - pytest-timeout
     - pytest-asyncio>=0.24
 - repo: https://github.com/PyCQA/flake8
-  rev: 7.3.0
+  rev: 7.4.1
   hooks:
   - id: flake8
     args: [-j8]
@@ -72,7 +72,7 @@ repos:
   - id: pyupgrade
     args: [--py38-plus]
 - repo: https://github.com/PyCQA/isort
-  rev: 9.0.1
+  rev: 9.0.2
   hooks:
   - id: isort
 - repo: https://github.com/kynan/nbstripout
