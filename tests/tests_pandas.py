@@ -34,6 +34,25 @@ def test_pandas_total_persists(caperr):
     assert '4/4' in caperr()
 
 
+def test_pandas_total_zero(caperr):
+    tqdm.pandas(leave=True, ascii=True, total=0)
+    for size in (3, 4):
+        series = pd.Series(range(size))
+        series.progress_apply(lambda x: x)
+        output = caperr()
+        assert f'{size}it' in output
+        assert f'{size}/{size}' not in output
+
+
+def test_pandas_groupby_total_none(caperr):
+    tqdm.pandas(leave=True, ascii=True, total=None)
+    series = pd.Series([1, 2, 3])
+    grouped = series.groupby([0, 0, 1])
+    for _ in range(2):
+        assert grouped.progress_apply(lambda x: x.sum()).equals(grouped.sum())
+        assert '2/2' in caperr()
+
+
 @mark.parametrize('shape', [(0, 2), (2, 0), (0, 0), (2, 3)])
 @mark.parametrize('axis', [0, 1, 'index', 'columns'])
 def test_pandas_data_frame_empty(shape, axis, caperr):
