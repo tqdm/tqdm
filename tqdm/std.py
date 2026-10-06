@@ -851,6 +851,7 @@ class tqdm(Comparable):
 
         tqdm_kwargs = tqdm_kwargs.copy()
         deprecated_t = [tqdm_kwargs.pop('deprecated_t', None)]
+        total_override = tqdm_kwargs.pop('total', None)
 
         def inner_generator(df_function='apply'):
             def inner(df, func, *args, **kwargs):
@@ -866,7 +867,9 @@ class tqdm(Comparable):
                 """
 
                 # Precompute total iterations
-                total = tqdm_kwargs.pop("total", getattr(df, 'ngroups', None))
+                total = total_override
+                if total is None:
+                    total = getattr(df, 'ngroups', None)
                 if total is None:  # not grouped
                     if df_function == 'applymap':
                         total = df.size
@@ -880,8 +883,11 @@ class tqdm(Comparable):
                             axis = 0
                         elif axis == 'columns':
                             axis = 1
-                        # when axis=0, total is shape[axis1]
-                        total = df.size // df.shape[axis]
+                        # Count slices without dividing by a possibly empty axis.
+                        total = 1
+                        for i, size in enumerate(df.shape):
+                            if i != axis:
+                                total *= size
 
                 # Init bar
                 if deprecated_t[0] is not None:
