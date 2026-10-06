@@ -62,3 +62,43 @@ def test_envwrap_annotations(monkeypatch):
         return number, string
 
     assert 1.1, "1.1" == annotated()
+
+
+def test_callback_io_wrapper_counts_bytes():
+    from array import array
+    from io import BytesIO
+
+    from tqdm.utils import CallbackIOWrapper
+
+    # A non-byte-format memoryview reports its element count from len()
+    # but writes nbytes to the stream; the callback must see the bytes.
+    stream = BytesIO()
+    counts = []
+    writer = CallbackIOWrapper(counts.append, stream, "write")
+    wrote = writer.write(memoryview(array("I", [1, 2, 3])))
+    assert wrote == 12
+    assert len(stream.getvalue()) == 12
+    assert counts == [12]
+
+    # Plain bytes keep reporting their length.
+    stream2 = BytesIO()
+    counts2 = []
+    writer2 = CallbackIOWrapper(counts2.append, stream2, "write")
+    assert writer2.write(b"abcdefgh") == 8
+    assert counts2 == [8]
+
+    # Streams whose write() returns no count fall back to the data size.
+    class NoCountStream:
+        def __init__(self):
+            self.buf = bytearray()
+
+        def write(self, data):
+            self.buf += data
+            return None
+
+    stream3 = NoCountStream()
+    counts3 = []
+    writer3 = CallbackIOWrapper(counts3.append, stream3, "write")
+    assert writer3.write(memoryview(array("I", [1, 2, 3]))) is None
+    assert len(stream3.buf) == 12
+    assert counts3 == [12]
