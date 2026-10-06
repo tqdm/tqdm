@@ -18,6 +18,38 @@ def test_pandas_setup(caperr):
     assert '100/123' in caperr()
 
 
+def test_pandas_total_persists(caperr):
+    tqdm.pandas(leave=True, ascii=True, total=123)
+    for size in (3, 4):
+        series = pd.Series(range(size))
+        assert series.progress_apply(lambda x: x + 1).equals(series + 1)
+        assert f'{size}/123' in caperr()
+
+    df = pd.DataFrame({'a': [1, 2], 'b': [3, 4]})
+    assert df.progress_apply(lambda x: x + 1).equals(df + 1)
+    assert '2/123' in caperr()
+
+    tqdm.pandas(leave=True, ascii=True)
+    series.progress_apply(lambda x: x + 1)
+    assert '4/4' in caperr()
+
+
+@mark.parametrize('shape', [(0, 2), (2, 0), (0, 0), (2, 3)])
+@mark.parametrize('axis', [0, 1, 'index', 'columns'])
+def test_pandas_data_frame_empty(shape, axis, caperr):
+    tqdm.pandas(leave=True, ascii=True)
+    df = pd.DataFrame(np.zeros(shape))
+    result = df.progress_apply(lambda x: x + 1, axis=axis)
+    expected = df.apply(lambda x: x + 1, axis=axis)
+    pd.testing.assert_frame_equal(result, expected)
+    total = shape[1 if axis in (0, 'index') else 0]
+    output = caperr()
+    if total:
+        assert f'/{total}' in output
+    else:
+        assert '0it' in output
+
+
 def test_pandas_rolling_expanding(caperr):
     """Test pandas.{Series,DataFrame}.{rolling,expanding}"""
     tqdm.pandas(leave=True, ascii=True)
