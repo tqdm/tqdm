@@ -4,9 +4,7 @@ from typing import Union  # py<3.10
 
 from pytest import warns
 
-from tqdm.utils import disp_len
-from tqdm.utils import disp_trim
-from tqdm.utils import envwrap
+from tqdm.utils import disp_len, disp_trim, envwrap
 
 
 def test_envwrap_deprecated(monkeypatch):
