@@ -463,7 +463,8 @@ class tqdm(Comparable):
     def format_meter(n, total, elapsed, ncols=None, prefix='',
                      ascii=False,  # pylint: disable=redefined-builtin
                      unit='it', unit_scale=False, rate=None, bar_format=None, postfix=None,
-                     unit_divisor=1000, initial=0, colour=None, **extra_kwargs):
+                     unit_divisor=1000, initial=0, colour=None, prefix_colon=True,
+                     **extra_kwargs):
         """
         Return a string-based progress bar given some parameters
 
@@ -523,6 +524,9 @@ class tqdm(Comparable):
             The initial counter value [default: 0].
         colour  : str, optional
             Bar colour (e.g. 'green', '#00ff00').
+        prefix_colon  : bool, optional
+            Whether to append ': ' after a non-empty `prefix` in `l_bar`
+            [default: True]. `set_description_str()` sets this to False.
 
         Returns
         -------
@@ -582,7 +586,7 @@ class tqdm(Comparable):
         if prefix:
             # old prefix setup work around
             bool_prefix_colon_already = (prefix[-2:] == ": ")
-            l_bar = prefix if bool_prefix_colon_already else prefix + ": "
+            l_bar = prefix if bool_prefix_colon_already or not prefix_colon else prefix + ": "
         else:
             l_bar = ''
 
@@ -657,7 +661,7 @@ class tqdm(Comparable):
             return disp_trim(res, ncols) if ncols else res
         else:
             # no total: no bar & ETA, just progress stats
-            res = (f'{(prefix + ": ") if prefix else ""}'
+            res = (f'{(prefix + ": ") if prefix and prefix_colon else prefix or ""}'
                    f'{n_fmt}{unit} [{elapsed_str}, {rate_fmt}{postfix}]')
             return disp_trim(res, ncols) if ncols else res
 
@@ -1053,6 +1057,7 @@ class tqdm(Comparable):
         # Store the arguments
         self.iterable = iterable
         self.desc = desc or ''
+        self._desc_colon = True
         self.total = total
         self.leave = leave
         self.fp = file
@@ -1397,12 +1402,14 @@ class tqdm(Comparable):
             Forces refresh [default: True].
         """
         self.desc = desc + ': ' if desc else ''
+        self._desc_colon = True
         if refresh:
             self.refresh()
 
     def set_description_str(self, desc=None, refresh=True):
         """Set/modify description without ': ' appended."""
         self.desc = desc or ''
+        self._desc_colon = False
         if refresh:
             self.refresh()
 
@@ -1466,7 +1473,7 @@ class tqdm(Comparable):
             'rate': self._ema_dn() / self._ema_dt() if self._ema_dt() else None,
             'bar_format': self.bar_format, 'postfix': self.postfix,
             'unit_divisor': self.unit_divisor, 'initial': self.initial,
-            'colour': self.colour}
+            'colour': self.colour, 'prefix_colon': self._desc_colon}
 
     def display(self, msg=None, pos=None):
         """

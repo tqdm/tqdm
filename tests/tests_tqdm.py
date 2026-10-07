@@ -1106,6 +1106,19 @@ def test_set_description(caperr):
         t.set_description("\xe1\xe9\xed\xf3\xfa")
 
 
+@mark.parametrize("total", [10, None])
+def test_set_description_str_no_colon(total):
+    """Test `set_description_str` does not append ': ' (#1616)"""
+    with UnicodeIO() as our_file:
+        with tqdm(total=total, file=our_file, desc='Hello') as t:
+            assert str(t).startswith('Hello: ')
+            t.set_description_str('World')
+            assert str(t).startswith('World')
+            assert not str(t).startswith('World:')
+            t.set_description('Bye')
+            assert str(t).startswith('Bye: ')
+
+
 @mark.parametrize("consume", [lambda t: t.update(1), list], ids=["update", "iter"])
 def test_deprecated_gui(caperr, consume):
     """Test `gui=True` requires overriding `__iter__()` and `update()`"""
@@ -1198,7 +1211,7 @@ def test_refresh(caperr):
 
 def test_disabled_repr(capsys):
     with tqdm(total=10, disable=True) as t:
-        str(t)
+        assert str(t) == '  0%|          | 0/10 [00:00<?, ?it/s]'
         t.update()
         print(t)
     out, err = capsys.readouterr()
