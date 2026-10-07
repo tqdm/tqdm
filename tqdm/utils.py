@@ -15,7 +15,9 @@ _range, _unich, _unicode, _basestring = range, chr, str, str
 CUR_OS = sys.platform
 IS_WIN = any(CUR_OS.startswith(i) for i in ['win32', 'cygwin'])
 IS_NIX = any(CUR_OS.startswith(i) for i in ['aix', 'linux', 'darwin', 'freebsd'])
-RE_ANSI = re.compile(r"\x1b\[[;\d]*[A-Za-z]")
+# CSI sequences (e.g. colour codes) and OSC sequences (e.g. OSC 8 hyperlinks,
+# which are terminated by BEL or ST). Both are zero-width on screen.
+RE_ANSI = re.compile(r"\x1b\[[;\d]*[A-Za-z]|\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)")
 
 try:
     if IS_WIN:
