@@ -1374,7 +1374,7 @@ class tqdm(Comparable):
         ----------
         total  : int or float, optional. Total to use for the new bar.
         """
-        self.n = 0
+        self.n = self.initial = 0
         if total is not None:
             self.total = None if total == float("inf") else total
         if self.disable:
