@@ -952,6 +952,21 @@ def test_reset(caperr):
     assert '| 10/12' in err
 
 
+@mark.parametrize('smoothing', [0, 0.3])
+@mark.parametrize('total,expected', [(None, '1/10  1.00it/s 00:09'),
+                                     (12, '1/12  1.00it/s 00:11')])
+def test_reset_initial_rate(tmp_file, smoothing, total, expected):
+    with tqdm(total=10, initial=5, smoothing=smoothing, file=tmp_file,
+              miniters=1, mininterval=0, maxinterval=0,
+              bar_format='{n_fmt}/{total_fmt} {rate_noinv_fmt} {remaining}') as t:
+        cpu_timify(t)
+        t.reset(total=total)
+        t._sleep(1)
+        t.update()
+        assert str(t) == expected
+    assert tmp_file.getvalue().endswith(expected + '\n')
+
+
 def test_reset_inf(caperr):
     with tqdm(total=10, miniters=1, mininterval=0, maxinterval=0) as t:
         t.update(5)
@@ -1198,7 +1213,7 @@ def test_refresh(caperr):
 
 def test_disabled_repr(capsys):
     with tqdm(total=10, disable=True) as t:
-        str(t)
+        str(t)  # noqa: B018
         t.update()
         print(t)
     out, err = capsys.readouterr()
