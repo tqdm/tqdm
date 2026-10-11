@@ -3,6 +3,7 @@ Thin wrappers around `itertools`.
 """
 import itertools
 import math
+from operator import index
 
 from ..auto import tqdm as tqdm_auto
 
@@ -57,6 +58,7 @@ def combinations(iterable, r, total=None, tqdm_class=tqdm_auto, **kwargs):
         except (TypeError, AttributeError):
             pass
         else:
+            r = index(r)
             if r > n:
                 total = 0
             else:
@@ -72,6 +74,7 @@ def combinations_with_replacement(iterable, r, total=None, tqdm_class=tqdm_auto,
         except (TypeError, AttributeError):
             pass
         else:
+            r = index(r)
             total = 1
             for i in range(n+r-1, n-1, -1):
                 total *= i

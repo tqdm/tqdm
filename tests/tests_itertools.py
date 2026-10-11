@@ -12,6 +12,21 @@ def no_len(iterable):
     yield from iterable
 
 
+@mark.parametrize('name', ['combinations', 'combinations_with_replacement'])
+@mark.parametrize('r', [0, 2, 5])
+def test_combinatorial_indexable_r(name, r, caperr):
+    class Indexable:
+        def __index__(self):
+            return r
+
+    a = range(4)
+    expected = list(getattr(it, name)(a, Indexable()))
+    with getattr(tit, name)(a, Indexable()) as pbar:
+        assert pbar.total == len(expected)
+        assert list(pbar) == expected
+    caperr()
+
+
 def test_chain(caperr):
     a = range(9)
     assert list(tit.chain(a, a)) == list(it.chain(a, a))
