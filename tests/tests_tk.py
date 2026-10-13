@@ -1,7 +1,5 @@
-"""Test `tqdm.tk`."""
-from .tests_tqdm import importorskip
+from pytest import importorskip
 
 
 def test_tk_import():
-    """Test `tqdm.tk` import"""
     importorskip('tqdm.tk')

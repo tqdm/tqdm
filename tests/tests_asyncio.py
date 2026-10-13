@@ -1,12 +1,11 @@
-"""Tests `tqdm.asyncio`."""
 import asyncio
 from functools import partial
 from sys import platform
 from time import time
 
-from tqdm.asyncio import tarange, tqdm_asyncio
+from pytest import mark
 
-from .tests_tqdm import StringIO, closing, mark
+from tqdm.asyncio import tarange, tqdm_asyncio
 
 tqdm = partial(tqdm_asyncio, miniters=0, mininterval=0)
 trange = partial(tarange, miniters=0, mininterval=0)
@@ -31,7 +30,6 @@ async def acount(*args, **kwargs):
 
 @mark.asyncio
 async def test_break():
-    """Test asyncio break"""
     pbar = tqdm(count())
     async for _ in pbar:
         break
@@ -39,14 +37,12 @@ async def test_break():
 
 
 @mark.asyncio
-async def test_generators(capsys):
-    """Test asyncio generators"""
+async def test_generators(caperr):
     with tqdm(count(), desc="counter") as pbar:
         async for i in pbar:
             if i >= 8:
                 break
-    _, err = capsys.readouterr()
-    assert '9it' in err
+    assert '9it' in caperr()
 
     acounter = acount()
     try:
@@ -56,55 +52,45 @@ async def test_generators(capsys):
                     break
     finally:
         await acounter.aclose()
-    _, err = capsys.readouterr()
-    assert '9it' in err
+    assert '9it' in caperr()
 
 
 @mark.asyncio
-async def test_range():
-    """Test asyncio range"""
-    with closing(StringIO()) as our_file:
-        async for _ in tqdm(range(9), desc="range", file=our_file):
-            pass
-        assert '9/9' in our_file.getvalue()
-        our_file.seek(0)
-        our_file.truncate()
+async def test_range(caperr):
+    async for _ in tqdm(range(9), desc="range"):
+        pass
+    assert '9/9' in caperr()
 
-        async for _ in trange(9, desc="trange", file=our_file):
-            pass
-        assert '9/9' in our_file.getvalue()
+    async for _ in trange(9, desc="trange"):
+        pass
+    assert '9/9' in caperr()
 
 
 @mark.asyncio
-async def test_nested():
-    """Test asyncio nested"""
-    with closing(StringIO()) as our_file:
-        async for _ in tqdm(trange(9, desc="inner", file=our_file),
-                            desc="outer", file=our_file):
-            pass
-        assert 'inner: 100%' in our_file.getvalue()
-        assert 'outer: 100%' in our_file.getvalue()
+async def test_nested(caperr):
+    async for _ in tqdm(trange(9, desc="inner"), desc="outer"):
+        pass
+    err = caperr()
+    assert 'inner: 100%' in err
+    assert 'outer: 100%' in err
 
 
 @mark.asyncio
-async def test_coroutines():
-    """Test asyncio coroutine.send"""
-    with closing(StringIO()) as our_file:
-        with tqdm(count(), file=our_file) as pbar:
-            async for i in pbar:
-                if i == 9:
-                    pbar.send(-10)
-                elif i < 0:
-                    assert i == -9
-                    break
-        assert '10it' in our_file.getvalue()
+async def test_coroutine_send(caperr):
+    with tqdm(count()) as pbar:
+        async for i in pbar:
+            if i == 9:
+                pbar.send(-10)
+            elif i < 0:
+                assert i == -9
+                break
+    assert '10it' in caperr()
 
 
 @mark.slow
 @mark.asyncio
 @mark.parametrize("tol", [0.2 if platform.startswith("darwin") else 0.1])
-async def test_as_completed(capsys, tol):
-    """Test asyncio as_completed"""
+async def test_as_completed(caperr, tol):
     for retry in range(3):
         t = time()
         skew = time() - t
@@ -113,7 +99,7 @@ async def test_as_completed(capsys, tol):
         t = time() - t - 2 * skew
         try:
             assert 0.3 * (1 - tol) < t < 0.3 * (1 + tol), t
-            _, err = capsys.readouterr()
+            err = caperr()
             assert '30/30' in err
         except AssertionError:
             if retry == 2:
@@ -125,10 +111,9 @@ async def double(i):
 
 
 @mark.asyncio
-async def test_gather(capsys):
-    """Test asyncio gather"""
+async def test_gather(caperr):
     res = await gather(*map(double, range(30)))
-    _, err = capsys.readouterr()
+    err = caperr()
     assert '30/30' in err
     assert res == list(range(0, 30 * 2, 2))
 
@@ -140,10 +125,9 @@ async def raise_exc(i):
 
 
 @mark.asyncio
-async def test_gather_exceptions(capsys):
-    """Test asyncio gather return_exceptions"""
+async def test_gather_exceptions(caperr):
     res = await gather(*map(raise_exc, range(3)), return_exceptions=True)
-    _, err = capsys.readouterr()
+    err = caperr()
     assert '3/3' in err
     assert isinstance(res[1], ValueError)
     assert res[0] == 0
@@ -174,11 +158,11 @@ class AIterator:
 
 
 @mark.asyncio
-async def test_async_iterable(capsys):
+async def test_async_iterable(caperr):
     """Test asyncio with async iterable (only __aiter__, no __anext__)"""
     result = []
     async for i in tqdm(AIterable(range(9)), desc="aiterable"):
         result.append(i)
     assert result == list(range(9))
-    _, err = capsys.readouterr()
+    err = caperr()
     assert '9it' in err

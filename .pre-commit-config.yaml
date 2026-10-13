@@ -45,12 +45,13 @@ repos:
     name: pytest quick
     language: python
     entry: pytest
-    args: [-qq, -k=not slow]
+    args: [-qq, -k=not slow, --cov=tqdm, --cov-fail-under=70]
     types: [python]
     pass_filenames: false
     additional_dependencies:
     - numpy
     - pandas
+    - pytest-cov
     - pytest-timeout
     - pytest-asyncio>=0.24
 - repo: https://github.com/PyCQA/flake8
@@ -71,7 +72,7 @@ repos:
   - id: pyupgrade
     args: [--py38-plus]
 - repo: https://github.com/PyCQA/isort
-  rev: 9.0.0b1
+  rev: 9.0.1
   hooks:
   - id: isort
 - repo: https://github.com/kynan/nbstripout
@@ -79,3 +80,5 @@ repos:
   hooks:
   - id: nbstripout
     args: [--keep-count, --keep-output]
+ci:
+  autoupdate_schedule: monthly
