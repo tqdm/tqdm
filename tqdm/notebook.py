@@ -192,6 +192,17 @@ class tqdm_notebook(std_tqdm):
             self.displayed = True
 
     @property
+    def bar_style(self):
+        """Widget style: '', 'success', 'info', 'warning', or 'danger'."""
+        if hasattr(self, 'container'):
+            return self.container.children[-2].bar_style
+
+    @bar_style.setter
+    def bar_style(self, bar_style):
+        if hasattr(self, 'container'):
+            self.container.children[-2].bar_style = bar_style
+
+    @property
     def colour(self):
         if hasattr(self, 'container'):
             return self.container.children[-2].style.bar_color

@@ -1112,6 +1112,20 @@ light blue: no ETA); as demonstrated below.
 The ``notebook`` version supports percentage or pixels for overall width
 (e.g.: ``ncols='100%'`` or ``ncols='480px'``).
 
+After a loop exits early, set ``bar_style`` to mark a successful early stop
+(for example, when an optimisation converges before its iteration limit):
+
+.. code:: python
+
+    with tqdm(range(100)) as pbar:
+        for i in pbar:
+            if converged(i):
+                break
+    pbar.bar_style = 'success'
+
+Accepted styles are ``''``, ``'success'``, ``'info'``, ``'warning'``, and
+``'danger'``. ``reset()`` clears the style for reuse.
+
 It is also possible to let ``tqdm`` automatically choose between
 console or notebook versions by using the ``autonotebook`` submodule:
 
