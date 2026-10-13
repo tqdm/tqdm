@@ -18,6 +18,18 @@ def test_pandas_setup(caperr):
     assert '100/123' in caperr()
 
 
+@mark.parametrize('axis, total', [(0, 3), ('index', 3), ('rows', 3), (1, 2), ('columns', 2)])
+def test_pandas_apply_axis_aliases(axis, total, caperr):
+    tqdm.pandas(leave=True, ascii=True)
+    df = pd.DataFrame([[1, 2, 3], [4, 5, 6]])
+
+    result = df.progress_apply(sum, axis=axis)
+    expected = df.apply(sum, axis=axis)
+
+    pd.testing.assert_series_equal(result, expected)
+    assert f'{total}/{total}' in caperr()
+
+
 def test_pandas_rolling_expanding(caperr):
     """Test pandas.{Series,DataFrame}.{rolling,expanding}"""
     tqdm.pandas(leave=True, ascii=True)

@@ -876,7 +876,7 @@ class tqdm(Comparable):
                           not isinstance(df, _Rolling_and_Expanding)):
                         # DataFrame or Panel
                         axis = kwargs.get('axis', 0)
-                        if axis == 'index':
+                        if axis in ('index', 'rows'):
                             axis = 0
                         elif axis == 'columns':
                             axis = 1
