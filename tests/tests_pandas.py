@@ -61,11 +61,11 @@ def test_pandas_data_frame(caperr):
         return x + 1
 
     if hasattr(df, 'map'):  # pandas>=2.1.0
-        # map
+        # map (elementwise, so expect `df.size` iterations)
         res1 = df.progress_map(task_func)
         res2 = df.map(task_func)
         assert res1.equals(res2)
-        expected = '200/200'
+        expected = '20000/20000'
     else:
         # applymap
         res1 = df.progress_applymap(task_func)

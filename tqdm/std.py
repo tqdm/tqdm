@@ -868,7 +868,9 @@ class tqdm(Comparable):
                 # Precompute total iterations
                 total = tqdm_kwargs.pop("total", getattr(df, 'ngroups', None))
                 if total is None:  # not grouped
-                    if df_function == 'applymap':
+                    if df_function in ('applymap', 'map'):
+                        # elementwise: `Series.map`, `DataFrame.map` (pandas>=2.1.0)
+                        # and its predecessor `DataFrame.applymap`
                         total = df.size
                     elif isinstance(df, Series):
                         total = len(df)
