@@ -928,16 +928,17 @@ class tqdm(Comparable):
 
         # Monkeypatch pandas to provide easy methods
         # Enable custom tqdm progress in pandas!
+        # NOTE: `progress_map` is deliberately not registered on the GroupBy
+        # classes: pandas has no `SeriesGroupBy.map`/`DataFrameGroupBy.map` for
+        # it to wrap, so it could only ever raise AttributeError when called.
         Series.progress_apply = inner_generator()
         SeriesGroupBy.progress_apply = inner_generator()
         Series.progress_map = inner_generator('map')
-        SeriesGroupBy.progress_map = inner_generator('map')
 
         DataFrame.progress_apply = inner_generator()
         DataFrameGroupBy.progress_apply = inner_generator()
         DataFrame.progress_applymap = inner_generator('applymap')
         DataFrame.progress_map = inner_generator('map')
-        DataFrameGroupBy.progress_map = inner_generator('map')
 
         if Panel is not None:
             Panel.progress_apply = inner_generator()
