@@ -65,8 +65,8 @@ def test_envwrap_annotations(monkeypatch):
 
 
 def test_callbackio_write_reports_stream_count():
-    from io import BytesIO
     from array import array
+    from io import BytesIO
 
     from tqdm.utils import CallbackIOWrapper
 
