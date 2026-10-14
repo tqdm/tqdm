@@ -218,7 +218,9 @@ class CallbackIOWrapper(ObjectWrapper):
             @wraps(func)
             def write(data, *args, **kwargs):
                 res = func(data, *args, **kwargs)
-                callback(len(data))
+                # the stream reports the number of bytes/characters written,
+                # which may differ from len(data) (e.g. non-byte memoryviews)
+                callback(res if isinstance(res, int) else len(data))
                 return res
             self.wrapper_setattr('write', write)
         elif method == "read":

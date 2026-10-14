@@ -62,3 +62,36 @@ def test_envwrap_annotations(monkeypatch):
         return number, string
 
     assert 1.1, "1.1" == annotated()
+
+
+def test_callbackio_write_reports_stream_count():
+    from io import BytesIO
+    from array import array
+
+    from tqdm.utils import CallbackIOWrapper
+
+    stream = BytesIO()
+    counts = []
+    wrapper = CallbackIOWrapper(counts.append, stream, 'write')
+
+    data = memoryview(array('I', [1, 2, 3]))
+    assert wrapper.write(data) == len(data) * data.itemsize
+    assert counts == [stream.tell()]
+
+
+def test_callbackio_write_falls_back_to_input_length():
+    from io import StringIO
+
+    from tqdm.utils import CallbackIOWrapper
+
+    class NoCount(StringIO):
+        def write(self, data):
+            self.written = data
+            return None
+
+    stream = NoCount()
+    counts = []
+    wrapper = CallbackIOWrapper(counts.append, stream, 'write')
+
+    assert wrapper.write("hello") is None
+    assert counts == [5]
