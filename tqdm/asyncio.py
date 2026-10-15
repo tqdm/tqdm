@@ -15,12 +15,14 @@ from .std import tqdm as std_tqdm
 __author__ = {"github.com/": ["casperdcl"]}
 __all__ = ['tqdm_asyncio', 'tarange', 'tqdm', 'trange']
 
+from typing import AsyncIterable, AsyncIterator, Generic, Iterable, TypeVar
 
-class tqdm_asyncio(std_tqdm):
+T = TypeVar('T')
+class tqdm_asyncio(Generic[T],std_tqdm[T]):
     """
     Asynchronous-friendly version of tqdm.
     """
-    def __init__(self, iterable=None, *args, **kwargs):
+    def __init__(self, iterable: AsyncIterable[T] |Iterable[T] | None =None, *args, **kwargs):
         super().__init__(iterable, *args, **kwargs)
         self.iterable_awaitable = False
         if iterable is not None:
@@ -40,7 +42,7 @@ class tqdm_asyncio(std_tqdm):
     def __aiter__(self):
         return self
 
-    async def __anext__(self):
+    async def __anext__(self) -> AsyncIterator[T]:
         try:
             if self.iterable_awaitable:
                 res = await self.iterable_next()

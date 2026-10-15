@@ -13,6 +13,7 @@ from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
 from numbers import Number
 from time import time
+from typing import Generic, Iterable, TypeVar
 from warnings import warn
 from weakref import WeakSet
 
@@ -238,8 +239,8 @@ class EMA:
             self.calls += 1
         return self.last / (1 - beta ** self.calls) if self.calls else self.last
 
-
-class tqdm(Comparable):
+T = TypeVar('T')
+class tqdm(Comparable, Generic[T]):
     """
     Decorate an iterable object, returning an iterator which acts exactly
     like the original iterable, but prints a dynamically updating
@@ -957,7 +958,7 @@ class tqdm(Comparable):
     # override defaults via env vars
     @envwrap("tqdm", is_method=True, types={'total': float, 'ncols': int, 'miniters': float,
                                             'position': int, 'nrows': int})
-    def __init__(self, iterable=None, desc=None, total=None, leave=True, file=None,
+    def __init__(self, iterable:Iterable[T] | None = None, desc=None, total=None, leave=True, file=None,
                  ncols=None, mininterval=0.1, maxinterval=10.0, miniters=None,
                  ascii=None,  # pylint: disable=redefined-builtin
                  disable=False, unit='it', unit_scale=False, dynamic_ncols=False, smoothing=0.3,
