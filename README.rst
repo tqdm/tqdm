@@ -483,6 +483,13 @@ Parameters
     Bar colour (e.g. 'green', '#00ff00').
 * delay  : float, optional  
     Don't display until [default: 0] seconds have elapsed.
+* program_status  : str, optional  
+    Report this programme's status with the OSC 7501 "Program Status
+    Protocol", if the output stream is a tty: ``state=working`` (with an
+    integer ``progress`` percentage when ``total`` is known) on change,
+    ``state=done`` on normal exit, ``state=error`` if an exception escapes
+    a ``with`` block. Must match ``[A-Za-z0-9_.,+/=-]*``. Nested
+    (``position=``) bars report a child record [default: None].
 
 Extra CLI Options
 ~~~~~~~~~~~~~~~~~

@@ -184,6 +184,17 @@ Bar colour (e.g.\ `green', `#00ff00').
 float, optional.
 Don\(cqt display until [default: 0] seconds have elapsed.
 .TP
+\-\-program\-status=\f[I]program_status\f[R]
+str, optional.
+Report this programme\(cqs status with the OSC 7501 \(lqProgram Status
+Protocol\(rq, if the output stream is a tty: \f[CR]state=working\f[R]
+(with an integer \f[CR]progress\f[R] percentage when \f[CR]total\f[R] is
+known) on change, \f[CR]state=done\f[R] on normal exit,
+\f[CR]state=error\f[R] if an exception escapes a \f[CR]with\f[R] block.
+Must match \f[CR][A\-Za\-z0\-9_.,+/=\-]*\f[R].
+Nested (\f[CR]position=\f[R]) bars report a child record [default:
+None].
+.TP
 \-\-delim=\f[I]delim\f[R]
 chr, optional.
 Delimiting character [default: `\(rsn'].

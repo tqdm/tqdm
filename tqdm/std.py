@@ -7,7 +7,9 @@ Usage:
 >>> for i in trange(10):
 ...     ...
 """
+import re
 import sys
+from base64 import b64encode
 from collections import OrderedDict, defaultdict
 from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
@@ -239,6 +241,41 @@ class EMA:
         return self.last / (1 - beta ** self.calls) if self.calls else self.last
 
 
+# OSC 7501 "Program Status Protocol" (https://github.com/tqdm/tqdm/issues/1873)
+_PROGRAM_STATUS_OSC = '\x1b]7501;'
+_PROGRAM_STATUS_ST = '\x1b\\'
+# keys are `[a-z]+`; this validates the `program_status` app name value
+_PROGRAM_STATUS_VALUE_RE = re.compile(r'^[A-Za-z0-9_.,+/=-]*$')
+
+
+def _program_status_progress(n, total):
+    """Integer percentage of `n`/`total` clamped to 0-100, or None if unknown."""
+    if not total:
+        return None
+    return max(0, min(100, int(n * 100 / total)))
+
+
+def _program_status_seq(state, app, progress=None, msg=None, record_id=None):
+    """
+    Return an OSC 7501 "Program Status Protocol" report.
+
+    state  : protocol state, e.g. 'working', 'done' or 'error'
+    app  : programme name; repeated in each report because every report
+        replaces the record completely
+    progress  : int in 0-100, or None to omit the `progress` key
+    msg  : optional message, sent as standard base64 of UTF-8
+    record_id  : optional nested-bar record `id` (1-32 chars of `[A-Za-z0-9_.+-]`)
+    """
+    pairs = ['state=' + state, 'app=' + app]
+    if record_id is not None:
+        pairs.append('id=' + record_id)
+    if progress is not None:
+        pairs.append('progress=' + str(progress))
+    if msg is not None:
+        pairs.append('msg=' + b64encode(msg.encode('utf-8')).decode('ascii'))
+    return _PROGRAM_STATUS_OSC + ':'.join(pairs) + _PROGRAM_STATUS_ST
+
+
 class tqdm(Comparable):
     """
     Decorate an iterable object, returning an iterator which acts exactly
@@ -350,6 +387,13 @@ class tqdm(Comparable):
         Bar colour (e.g. 'green', '#00ff00').
     delay  : float, optional
         Don't display until [default: 0] seconds have elapsed.
+    program_status  : str, optional
+        Report this programme's status with the OSC 7501 "Program Status
+        Protocol", if the output stream is a tty: `state=working` (with an
+        integer `progress` percentage when `total` is known) on change,
+        `state=done` on normal exit, `state=error` if an exception escapes
+        a `with` block. Must match `[A-Za-z0-9_.,+/=-]*`. Nested
+        (`position=`) bars report a child record [default: None].
     gui  : bool, optional
         WARNING: internal parameter - do not use.
         Use tqdm.gui.tqdm(...) instead. If set, will attempt to use
@@ -963,7 +1007,7 @@ class tqdm(Comparable):
                  disable=False, unit='it', unit_scale=False, dynamic_ncols=False, smoothing=0.3,
                  bar_format=None, initial=0, position=None, postfix=None, unit_divisor=1000,
                  write_bytes=False, lock_args=None, nrows=None, colour=None, delay=0.0, gui=False,
-                 **kwargs):
+                 *, program_status=None, **kwargs):
         """see tqdm.tqdm for arguments"""
         if file is None:
             file = sys.stderr
@@ -978,6 +1022,27 @@ class tqdm(Comparable):
 
         if disable is None and hasattr(file, "isatty") and not file.isatty():
             disable = True
+
+        if program_status is not None and not _PROGRAM_STATUS_VALUE_RE.match(program_status):
+            # mirror the unknown-kwargs cleanup below: never leave a live instance
+            self.disable = True
+            with self._lock:
+                self.pos = self._get_free_pos(self)
+                self._instances.remove(self)
+            raise ValueError(
+                "invalid `program_status` (must match [A-Za-z0-9_.,+/=-]*):"
+                f" {program_status!r}")
+
+        # OSC 7501 program status reporting (opt-in, tty-only)
+        self.program_status = program_status
+        _isatty = getattr(file, 'isatty', None)
+        self._program_status_tty = bool(
+            program_status) and not disable and _isatty is not None and _isatty()
+        # a nested (`position=`) bar reports a child (`id`) record
+        self._program_status_id = None if position is None else str(abs(position))
+        self._program_status_sent = False  # any report sent for this bar
+        self._program_status_last = None  # last integer percentage sent
+        self._program_status_final = False  # terminal (`done`/`error`) report sent
 
         if total is None and iterable is not None:
             try:
@@ -1142,6 +1207,8 @@ class tqdm(Comparable):
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
+        if exc_type is not None:
+            self._program_status_finish('error')
         try:
             self.close()
         except AttributeError:
@@ -1288,6 +1355,8 @@ class tqdm(Comparable):
         # GUI mode
         if getattr(self, 'sp', None) is None:
             return
+
+        self._program_status_finish('done')
 
         # annoyingly, _supports_unicode isn't good enough
         def fp_write(s):
@@ -1468,6 +1537,42 @@ class tqdm(Comparable):
             'unit_divisor': self.unit_divisor, 'initial': self.initial,
             'colour': self.colour}
 
+    def _program_status_write(self, seq):
+        """Write a raw OSC sequence to the bar's stream (bypasses `self.sp`)"""
+        self.fp.write(seq)
+        getattr(self.fp, 'flush', lambda: None)()
+
+    def _program_status_report(self, state, progress=None):
+        """Write one OSC 7501 report for this bar, if enabled"""
+        if not self._program_status_tty:
+            return
+        self._program_status_write(_program_status_seq(
+            state, self.program_status, progress=progress,
+            record_id=self._program_status_id))
+
+    def _program_status_update(self):
+        """Emit `state=working` on the first display and on integer % change"""
+        if not self._program_status_tty or self.disable or self._program_status_final:
+            return
+        progress = _program_status_progress(self.n, self.total)
+        if progress is None:
+            if self._program_status_sent:
+                return  # unknown `total`: report exactly once
+        elif progress == self._program_status_last:
+            return  # unchanged integer percentage
+        self._program_status_sent = True
+        self._program_status_last = progress
+        self._program_status_report('working', progress)
+
+    def _program_status_finish(self, state):
+        """Emit the terminal (`done`/`error`) report, once per rendered bar"""
+        if not self._program_status_tty or self._program_status_final:
+            return
+        if not self._program_status_sent:
+            return  # the bar never rendered: there is no record to terminate
+        self._program_status_final = True
+        self._program_status_report(state)
+
     def display(self, msg=None, pos=None):
         """
         Use `self.sp` to display `msg` in the specified `pos`.
@@ -1500,6 +1605,8 @@ class tqdm(Comparable):
         if pos:
             self.moveto(pos)
         self.sp(self.__str__() if msg is None else msg)
+        if msg is None:
+            self._program_status_update()
         if pos:
             self.moveto(-pos)
         return True
