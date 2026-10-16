@@ -1,10 +1,36 @@
 from ast import literal_eval
 from collections import defaultdict
 from typing import Union  # py<3.10
+from unicodedata import normalize
 
-from pytest import warns
+from pytest import mark, warns
 
-from tqdm.utils import envwrap
+from tqdm import tqdm
+from tqdm.utils import disp_len, disp_trim, envwrap
+
+
+@mark.parametrize('text, width', [
+    ('cafe\u0301', 4), ('a\u20dd', 1), ('好e\u0301', 3), ('か\u3099', 2),
+    ('\x1b[31mcafe\u0301\x1b[0m', 4),
+])
+def test_disp_len_nonspacing_marks(text, width):
+    assert disp_len(text) == width
+
+
+@mark.parametrize('text, width, expected', [
+    ('cafe\u0301XYZ', 4, 'cafe\u0301'),
+    ('好e\u0301', 2, '好'),
+    ('a\u20ddbc', 1, 'a\u20dd'),
+    ('か\u3099a', 2, 'か\u3099'),
+])
+def test_disp_trim_nonspacing_marks(text, width, expected):
+    assert disp_trim(text, width) == expected
+
+
+def test_meter_canonical_equivalent_description():
+    composed = tqdm.format_meter(1, 10, 1, ncols=60, prefix='café')
+    decomposed = tqdm.format_meter(1, 10, 1, ncols=60, prefix='cafe\u0301')
+    assert normalize('NFC', decomposed) == composed
 
 
 def test_envwrap_deprecated(monkeypatch):
