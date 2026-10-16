@@ -7,7 +7,7 @@ import sys
 from functools import partial, partialmethod, wraps
 from inspect import signature
 # TODO consider using wcswidth third-party package for 0-width characters
-from unicodedata import east_asian_width
+from unicodedata import category, east_asian_width
 from warnings import warn
 from weakref import proxy
 
@@ -301,7 +301,11 @@ def _term_move_up():  # pragma: no cover
 
 
 def _text_width(s):
-    return sum(2 if east_asian_width(ch) in 'FW' else 1 for ch in str(s))
+    s = str(s)
+    if s.isascii():
+        return len(s)
+    return sum(0 if category(ch) in ('Mn', 'Me') else
+               2 if east_asian_width(ch) in 'FW' else 1 for ch in s)
 
 
 def disp_len(data):
@@ -316,7 +320,8 @@ def disp_trim(data, length):
     """
     Trim a string which may contain ANSI control characters.
     """
-    if len(data) == disp_len(data):
+    if len(data) == disp_len(data) and (
+            data.isascii() or not any(category(ch) in ('Mn', 'Me') for ch in data)):
         return data[:length]
 
     ansi_present = bool(RE_ANSI.search(data))
