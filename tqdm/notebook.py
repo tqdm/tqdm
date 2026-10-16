@@ -120,7 +120,7 @@ class tqdm_notebook(std_tqdm):
         ltext = HTML()
         rtext = HTML()
         if desc:
-            ltext.value = desc
+            ltext.value = escape(desc)
         container = TqdmHBox(children=[ltext, pbar, rtext])
         # Prepare layout
         if ncols is not None:  # use default style of ipywidgets
