@@ -106,4 +106,3 @@ def test_callback_io_wrapper_write_falls_back_without_count():
     assert writer.write(b'hello') is None
     assert stream.data == b'hello'
     assert counts == [5]
-
