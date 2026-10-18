@@ -1,10 +1,12 @@
+from array import array
 from ast import literal_eval
 from collections import defaultdict
+from io import BytesIO
 from typing import Union  # py<3.10
 
 from pytest import warns
 
-from tqdm.utils import envwrap
+from tqdm.utils import CallbackIOWrapper, envwrap
 
 
 def test_envwrap_deprecated(monkeypatch):
@@ -62,3 +64,45 @@ def test_envwrap_annotations(monkeypatch):
         return number, string
 
     assert 1.1, "1.1" == annotated()
+
+
+def test_callback_io_wrapper_write_counts_bytes():
+    """`write()` should account the stream's byte count, not element count.
+
+    https://github.com/tqdm/tqdm/issues/1845
+    """
+    stream = BytesIO()
+    counts = []
+    writer = CallbackIOWrapper(counts.append, stream, 'write')
+
+    data = memoryview(array('I', [1, 2, 3]))  # 3 elements, 4 bytes each
+    assert writer.write(data) == 12
+    assert len(stream.getvalue()) == 12
+    assert counts == [12]
+
+
+def test_callback_io_wrapper_write_bytes_unchanged():
+    stream = BytesIO()
+    counts = []
+    writer = CallbackIOWrapper(counts.append, stream, 'write')
+
+    assert writer.write(b'hello') == 5
+    assert counts == [5]
+
+
+def test_callback_io_wrapper_write_falls_back_without_count():
+    """Streams whose `write()` returns no count keep the `len(data)` fallback."""
+    class NoCountStream:  # pylint: disable=too-few-public-methods
+        def __init__(self):
+            self.data = b''
+
+        def write(self, data):
+            self.data += bytes(data)
+
+    stream = NoCountStream()
+    counts = []
+    writer = CallbackIOWrapper(counts.append, stream, 'write')
+
+    assert writer.write(b'hello') is None
+    assert stream.data == b'hello'
+    assert counts == [5]

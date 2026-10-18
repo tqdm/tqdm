@@ -218,7 +218,11 @@ class CallbackIOWrapper(ObjectWrapper):
             @wraps(func)
             def write(data, *args, **kwargs):
                 res = func(data, *args, **kwargs)
-                callback(len(data))
+                # NB: standard streams return the number of bytes written, which
+                # differs from `len(data)` for buffers of items spanning several
+                # bytes (e.g. `memoryview(array('I', ...))`). Legacy streams
+                # returning no count fall back to the input's length.
+                callback(len(data) if res is None else res)
                 return res
             self.wrapper_setattr('write', write)
         elif method == "read":
