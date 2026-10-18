@@ -491,7 +491,7 @@ Extra CLI Options
     Delimiting character [default: '\n']. Use '\0' for null.
     N.B.: on Windows systems, Python converts '\n' to '\r\n'.
 * buf_size  : int, optional  
-    String buffer size in bytes [default: 256]
+    Positive buffer size in bytes [default: 256]
     used when ``delim`` is specified.
 * bytes  : bool, optional  
     If true, will count bytes, ignore ``delim``, and default

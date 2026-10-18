@@ -127,7 +127,7 @@ CLI_EXTRA_DOC = r"""
         Delimiting character [default: '\n']. Use '\0' for null.
         N.B.: on Windows systems, Python converts '\n' to '\r\n'.
     buf_size  : int, optional
-        String buffer size in bytes [default: 256]
+        Positive buffer size in bytes [default: 256]
         used when `delim` is specified.
     bytes  : bool, optional
         If true, will count bytes, ignore `delim`, and default
@@ -231,6 +231,9 @@ Options:
                 raise TqdmKeyError(str(e))
         log.debug('args:' + str(tqdm_args))
 
+        buf_size = tqdm_args.pop('buf_size', 256)
+        if buf_size <= 0:
+            raise TqdmTypeError('buf_size must be positive')
         delim_per_char = tqdm_args.pop('bytes', False)
         update = tqdm_args.pop('update', False)
         update_to = tqdm_args.pop('update_to', False)
@@ -243,7 +246,6 @@ Options:
             stdout_write(i)
         raise
     else:
-        buf_size = tqdm_args.pop('buf_size', 256)
         delim = tqdm_args.pop('delim', b'\\n')
         tee = tqdm_args.pop('tee', False)
         manpath = tqdm_args.pop('manpath', None)

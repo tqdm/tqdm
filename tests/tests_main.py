@@ -1,7 +1,7 @@
 import logging
 import subprocess  # nosec
 import sys
-from io import BytesIO
+from io import BytesIO, TextIOWrapper
 from os import linesep
 
 from pytest import mark, raises
@@ -62,6 +62,34 @@ def test_main_bytes(capsysbinary, monkeypatch):
     out, err = capsysbinary.readouterr()
     assert out == IN_DATA
     assert str(len(IN_DATA)) + "B" in err.decode('U8')
+
+
+@mark.parametrize('option', ['--buf-size', '--buf_size'])
+@mark.parametrize('size', [0, -1])
+@mark.parametrize('mode', [['--bytes'], ['--delim', '|']])
+def test_main_invalid_buffer_size(capsysbinary, monkeypatch, option, size, mode):
+    data = 'first|second\nlast\n'
+    with TextIOWrapper(BytesIO(data.encode()), encoding='utf-8') as stdin:
+        monkeypatch.setattr(sys, 'stdin', stdin)
+        with raises(TqdmTypeError, match='buf_size must be positive'):
+            main(sys.stderr, mode + [f'{option}={size}'])
+
+    out, err = capsysbinary.readouterr()
+    assert norm(out) == data.encode()
+    assert b'Error:' in err
+
+
+@mark.parametrize('size', [1, 256])
+@mark.parametrize('mode', [['--bytes'], ['--delim', '|']])
+def test_main_positive_buffer_size(capsysbinary, monkeypatch, size, mode):
+    data = b'first|second|last'
+    monkeypatch.setattr(sys, 'stdin', BytesIO(data))
+
+    main(sys.stderr, mode + [f'--buf-size={size}'])
+
+    out, err = capsysbinary.readouterr()
+    assert out == data
+    assert b'Error:' not in err
 
 
 @mark.parametrize("level,logged", [("INFO", False), ("DEBUG", True)])
