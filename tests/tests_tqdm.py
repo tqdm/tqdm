@@ -257,6 +257,18 @@ def test_format_meter():
     assert format_meter(1, None, 12, ncols=0, bar_format="{desc}", prefix=long_desc) == long_desc
 
 
+def test_format_meter_no_total_desc():
+    """`desc` is rendered the same way whether or not `total` is known"""
+    format_meter = tqdm.format_meter
+
+    # `set_description()` appends ': ' to `desc`: it must not be doubled
+    assert format_meter(0, None, 13, prefix='desc: ') == "desc: 0it [00:13, ?it/s]"
+    # a bare `desc` still gets the ': ' separator
+    assert format_meter(0, None, 13, prefix='desc') == "desc: 0it [00:13, ?it/s]"
+    # same auto-removal of an empty `{desc}: ` as with a known total
+    assert format_meter(0, None, 13, prefix='', bar_format='{desc}: {n_fmt}') == "0"
+
+
 def test_ANSI_escape_codes():
     ansi = {'BOLD': '\033[1m', 'RED': '\033[91m', 'END': '\033[0m'}
     desc_raw = '{BOLD}{RED}Colored{END} description'

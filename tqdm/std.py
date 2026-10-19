@@ -606,6 +606,10 @@ class tqdm(Comparable):
             'l_bar': l_bar, 'r_bar': r_bar, 'eta': eta_dt,
             **extra_kwargs}
 
+        # auto-remove colon for empty `{desc}`
+        if bar_format and not prefix:
+            bar_format = bar_format.replace("{desc}: ", '')
+
         # total is known: we can predict some stats
         if total:
             # fractional and percentage progress
@@ -620,10 +624,6 @@ class tqdm(Comparable):
             format_dict.update(l_bar=l_bar)
             if bar_format:
                 format_dict.update(percentage=percentage)
-
-                # auto-remove colon for empty `{desc}`
-                if not prefix:
-                    bar_format = bar_format.replace("{desc}: ", '')
             else:
                 bar_format = "{l_bar}{bar}{r_bar}"
 
@@ -657,7 +657,7 @@ class tqdm(Comparable):
             return disp_trim(res, ncols) if ncols else res
         else:
             # no total: no bar & ETA, just progress stats
-            res = (f'{(prefix + ": ") if prefix else ""}'
+            res = (f'{l_bar}'
                    f'{n_fmt}{unit} [{elapsed_str}, {rate_fmt}{postfix}]')
             return disp_trim(res, ncols) if ncols else res
 
