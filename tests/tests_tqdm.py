@@ -1170,6 +1170,44 @@ def test_clear(caperr):
     assert after == ['', '']
 
 
+def test_clear_hidden_bar(caperr):
+    """A bar hidden at `nrows - 1` must not be cleared (or padded with blank lines)"""
+    nrows = 4
+    t = tqdm(total=10, nrows=nrows, position=nrows - 1, mininterval=0, miniters=1,
+             bar_format='{l_bar}')
+    t.update(5)
+    out = caperr()
+    assert squash_ctrlchars(out) == ['', '', '', ' ... (more hidden) ...']
+
+    t.clear()
+    # nothing is written (and nothing erased): `display()` hides the bar, so `clear()`
+    # must not scroll down to its unseen line and blank the line below it
+    assert not caperr()
+    assert squash_ctrlchars(out) == ['', '', '', ' ... (more hidden) ...']
+    t.close()
+
+
+def test_relocating_overflow_bar_clears_the_marker(tmp_file):
+    """Closing a bar moves the bar on the hidden-marker row up into the gap, and
+    the marker row must be blanked when that bar leaves it."""
+    nrows = 4
+    bars = [tqdm(total=10, nrows=nrows, mininterval=0, miniters=0, leave=False,
+                 bar_format='{l_bar}', file=tmp_file) for _ in range(nrows)]
+    try:
+        for bar in bars:
+            bar.refresh()
+        assert squash_ctrlchars(tmp_file.getvalue()) == (
+            ['  0%|'] * (nrows - 1) + [' ... (more hidden) ...'])
+
+        # the fourth bar is relocated into the first row, so the marker it left
+        # on row `nrows - 1` must go with it
+        bars[0].close()
+        assert squash_ctrlchars(tmp_file.getvalue()) == ['', '  0%|', '  0%|', '']
+    finally:
+        for bar in bars:
+            bar.close()
+
+
 def test_clear_disabled(caperr):
     with tqdm(total=10, desc='pos0 bar', disable=True, bar_format='{l_bar}') as t:
         t.clear()
