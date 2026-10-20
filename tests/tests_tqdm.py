@@ -878,11 +878,24 @@ def test_bar_format(caperr):
                   '{percentage}{rate}{rate_fmt}{elapsed}{remaining}')
     for _ in trange(2, leave=True, bar_format=bar_format):
         pass
-    assert "\r  0%|          |0/2-0/20.0None?it/s00:00?\r" in caperr()
+    assert "\r  0%|          |0/2-0/20.0??it/s00:00?\r" in caperr()
 
     # Test unicode string auto conversion
     with tqdm(ascii=False, bar_format=r'hello world') as t:
         assert isinstance(t.bar_format, str)
+
+
+def test_bar_format_unknown_rate(caperr):
+    """Test format specs on unknown rates (#1438)"""
+    bar_format = '{rate:.3f}|{rate_noinv:.3f}|{rate_inv:.3f}'
+    assert tqdm.format_meter(0, 10, 0, bar_format=bar_format) == '?|?|?'
+    assert tqdm.format_meter(0, 10, 2, bar_format=bar_format) == '0.000|0.000|?'
+    assert tqdm.format_meter(5, 10, 2, bar_format=bar_format) == '2.500|2.500|0.400'
+    assert tqdm.format_meter(5, None, 2, bar_format=bar_format) == '2.500|2.500|0.400'
+
+    with tqdm(total=2, bar_format='{rate:.3f}', mininterval=0) as t:
+        t.update(2)
+    assert '\r?' in caperr()
 
 
 def test_custom_format(caperr):

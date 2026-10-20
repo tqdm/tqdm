@@ -605,6 +605,10 @@ class tqdm(Comparable):
             'remaining': remaining_str, 'remaining_s': remaining,
             'l_bar': l_bar, 'r_bar': r_bar, 'eta': eta_dt,
             **extra_kwargs}
+        # unknown rates: display '?' even with a format spec (e.g. `{rate:.3f}`)
+        for k in ('rate', 'rate_noinv', 'rate_inv'):
+            if format_dict[k] is None:
+                format_dict[k] = FormatReplace('?')
 
         # total is known: we can predict some stats
         if total:
