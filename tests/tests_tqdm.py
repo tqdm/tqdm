@@ -1170,6 +1170,23 @@ def test_clear(caperr):
     assert after == ['', '']
 
 
+def test_clear_hidden_bar(caperr):
+    """A bar hidden at `nrows - 1` must not be cleared (or padded with blank lines)"""
+    nrows = 4
+    t = tqdm(total=10, nrows=nrows, position=nrows - 1, mininterval=0, miniters=1,
+             bar_format='{l_bar}')
+    t.update(5)
+    out = caperr()
+    assert squash_ctrlchars(out) == ['', '', '', ' ... (more hidden) ...']
+
+    t.clear()
+    # nothing is written (and nothing erased): `display()` hides the bar, so `clear()`
+    # must not scroll down to its unseen line and blank the line below it
+    assert not caperr()
+    assert squash_ctrlchars(out) == ['', '', '', ' ... (more hidden) ...']
+    t.close()
+
+
 def test_clear_disabled(caperr):
     with tqdm(total=10, desc='pos0 bar', disable=True, bar_format='{l_bar}') as t:
         t.clear()

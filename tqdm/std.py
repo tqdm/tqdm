@@ -1321,7 +1321,9 @@ class tqdm(Comparable):
         if not nolock:
             self._lock.acquire()
         pos = abs(self.pos)
-        if pos < (self.nrows or 20):
+        # keep in step with `display()`: at `nrows - 1` the bar is hidden, so
+        # there is nothing of ours to clear (and `moveto` would print blank lines)
+        if pos < (self.nrows or 20) - 1:
             self.moveto(pos)
             self.sp('')
             self.fp.write('\r')  # place cursor back at the beginning of line
