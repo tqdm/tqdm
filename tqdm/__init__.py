@@ -4,13 +4,13 @@ from .cli import main  # TODO: remove in v5.0.0
 from .gui import tqdm as tqdm_gui  # TODO: remove in v5.0.0
 from .gui import trange as tgrange  # TODO: remove in v5.0.0
 from .std import (
-    TqdmDeprecationWarning, TqdmExperimentalWarning, TqdmKeyError, TqdmMonitorWarning,
+    BatchBuffer, TqdmDeprecationWarning, TqdmExperimentalWarning, TqdmKeyError, TqdmMonitorWarning,
     TqdmTypeError, TqdmWarning, tqdm, trange)
 from .version import __version__
 
 __all__ = ['tqdm', 'tqdm_gui', 'trange', 'tgrange', 'tqdm_pandas',
            'tqdm_notebook', 'tnrange', 'main', 'TMonitor',
-           'TqdmTypeError', 'TqdmKeyError',
+           'BatchBuffer', 'TqdmTypeError', 'TqdmKeyError',
            'TqdmWarning', 'TqdmDeprecationWarning',
            'TqdmExperimentalWarning',
            'TqdmMonitorWarning', 'TqdmSynchronisationWarning',

@@ -23,7 +23,7 @@ from .utils import (
     envwrap)
 
 __author__ = "https://github.com/tqdm/tqdm#contributions"
-__all__ = ['tqdm', 'trange',
+__all__ = ['tqdm', 'trange', 'BatchBuffer',
            'TqdmTypeError', 'TqdmKeyError', 'TqdmWarning',
            'TqdmExperimentalWarning', 'TqdmDeprecationWarning',
            'TqdmMonitorWarning']
@@ -237,6 +237,83 @@ class EMA:
             self.last = self.alpha * x + beta * self.last
             self.calls += 1
         return self.last / (1 - beta ** self.calls) if self.calls else self.last
+
+
+class BatchBuffer:
+    """
+    High-throughput batching buffer for tqdm progress bars.
+
+    Parameters
+    ----------
+    pbar  : tqdm
+        Progress bar instance to update.
+    batch_size  : int, optional
+        Number of iterations to buffer before update [default: 1000].
+    thread_safe  : bool, optional
+        Whether to synchronize with a thread lock [default: False].
+    """
+    def __init__(self, pbar, batch_size=1000, thread_safe=False):
+        try:
+            batch_size = int(batch_size)
+        except (TypeError, ValueError):
+            raise ValueError("batch_size must be an integer >= 1")
+        if batch_size < 1:
+            raise ValueError("batch_size must be >= 1")
+        self.pbar = pbar
+        self.batch_size = batch_size
+        self._buffer = 0
+        if thread_safe:
+            from threading import Lock
+            self._lock = Lock()
+        else:
+            self._lock = None
+
+    def push(self, n=1):
+        """Accumulate `n` iterations and flush if capacity reached."""
+        if self._lock is not None:
+            with self._lock:
+                self._buffer += n
+                if self._buffer >= self.batch_size:
+                    chunks = (self._buffer // self.batch_size) * self.batch_size
+                    self.pbar.update(chunks)
+                    self._buffer -= chunks
+        else:
+            self._buffer += n
+            if self._buffer >= self.batch_size:
+                chunks = (self._buffer // self.batch_size) * self.batch_size
+                self.pbar.update(chunks)
+                self._buffer -= chunks
+
+    def __call__(self, n=1):
+        return self.push(n)
+
+    def flush(self):
+        """Flush any uncommitted iterations in the buffer to pbar."""
+        if self._lock is not None:
+            with self._lock:
+                if self._buffer != 0:
+                    self.pbar.update(self._buffer)
+                    self._buffer = 0
+        else:
+            if self._buffer != 0:
+                self.pbar.update(self._buffer)
+                self._buffer = 0
+
+    def close(self):
+        """Flush buffer and detach."""
+        self.flush()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.flush()
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        self.flush()
 
 
 class tqdm(Comparable):
@@ -1196,6 +1273,16 @@ class tqdm(Comparable):
                         self.update(n - last_print_n)
                         last_print_n = self.last_print_n
                         last_print_t = self.last_print_t
+                    elif self.dynamic_miniters and dt < mininterval:
+                        if dt > 0:
+                            try:
+                                self.miniters = max(
+                                    self.miniters * 2,
+                                    int((n - last_print_n) * (mininterval / dt) * 0.9), 1)
+                            except (OverflowError, ValueError):
+                                self.miniters = max(self.miniters * 2, 1)
+                        else:
+                            self.miniters += 1
         finally:
             self.n = n
             self.close()
@@ -1238,7 +1325,6 @@ class tqdm(Comparable):
             cur_t = self._time()
             dt = cur_t - self.last_print_t
             if dt >= self.mininterval and cur_t >= self.start_t + self.delay:
-                cur_t = self._time()
                 dn = self.n - self.last_print_n  # >= n
                 if self.smoothing and dt and dn:
                     # EMA (not just overall average)
@@ -1266,6 +1352,16 @@ class tqdm(Comparable):
                 self.last_print_n = self.n
                 self.last_print_t = cur_t
                 return True
+            elif self.dynamic_miniters and dt < self.mininterval:
+                if dt > 0:
+                    try:
+                        self.miniters = max(
+                            self.miniters * 2,
+                            int((self.n - self.last_print_n) * (self.mininterval / dt) * 0.9), 1)
+                    except (OverflowError, ValueError):
+                        self.miniters = max(self.miniters * 2, 1)
+                else:
+                    self.miniters += 1
 
     def close(self):
         """Cleanup and (if leave=False) close the progress bar."""
@@ -1525,6 +1621,27 @@ class tqdm(Comparable):
                 t.unit_scale = True
                 t.unit_divisor = 1024
             yield CallbackIOWrapper(t.update, stream, method)
+
+    def buffered(self, batch_size=1000, thread_safe=False):
+        """
+        Return a BatchBuffer wrapping this progress bar.
+
+        Parameters
+        ----------
+        batch_size  : int, optional
+            Number of iterations to buffer before update [default: 1000].
+        thread_safe  : bool, optional
+            Whether to synchronize with a thread lock [default: False].
+
+        Returns
+        -------
+        out  : BatchBuffer
+            BatchBuffer instance wrapping this progress bar.
+        """
+        return BatchBuffer(self, batch_size=batch_size, thread_safe=thread_safe)
+
+
+tqdm.BatchBuffer = BatchBuffer
 
 
 def trange(*args, **kwargs):
