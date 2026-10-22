@@ -743,11 +743,12 @@ down to:
 
     eg_link = "https://cgi.cdcl.ml/matryoshka.zip"
     response = getattr(urllib, 'request', urllib).urlopen(eg_link)
-    with tqdm.wrapattr(open(os.devnull, "wb"), "write",
-                       miniters=1, desc=eg_link.split('/')[-1],
-                       total=getattr(response, 'length', None)) as fout:
-        for chunk in response:
-            fout.write(chunk)
+    with open(os.devnull, "wb") as file:
+        with tqdm.wrapattr(file, "write",
+                           miniters=1, desc=eg_link.split('/')[-1],
+                           total=getattr(response, 'length', None)) as fout:
+            for chunk in response:
+                fout.write(chunk)
 
 The ``requests`` equivalent is nearly identical:
 
@@ -758,11 +759,12 @@ The ``requests`` equivalent is nearly identical:
 
     eg_link = "https://cgi.cdcl.ml/matryoshka.zip"
     response = requests.get(eg_link, stream=True)
-    with tqdm.wrapattr(open(os.devnull, "wb"), "write",
-                       miniters=1, desc=eg_link.split('/')[-1],
-                       total=int(response.headers.get('content-length', 0))) as fout:
-        for chunk in response.iter_content(chunk_size=4096):
-            fout.write(chunk)
+    with open(os.devnull, "wb") as file:
+        with tqdm.wrapattr(file, "write",
+                           miniters=1, desc=eg_link.split('/')[-1],
+                           total=int(response.headers.get('content-length', 0))) as fout:
+            for chunk in response.iter_content(chunk_size=4096):
+                fout.write(chunk)
 
 **Custom callback**
 
