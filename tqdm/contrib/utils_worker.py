@@ -24,11 +24,11 @@ class MonoWorker:
         futures = self.futures
         if len(futures) == futures.maxlen:
             running = futures.popleft()
-            if not running.done():
-                if len(futures):  # clear waiting
-                    waiting = futures.pop()
-                    waiting.cancel()
-                futures.appendleft(running)  # re-insert running
+            waiting = futures.pop()
+            # The oldest future can be done while its worker is still in a
+            # callback. Cancel the waiting task regardless, or retain it if it
+            # has already started running.
+            futures.appendleft(running if waiting.cancel() else waiting)
         try:
             waiting = self.pool.submit(func, *args, **kwargs)
         except Exception as e:
