@@ -98,8 +98,17 @@ class TqdmDefaultWriteLock:
             root_lock.release()
 
     def acquire(self, *a, **k):
-        for lock in self.locks:
-            lock.acquire(*a, **k)
+        acquired = []
+        try:
+            for lock in self.locks:
+                if not lock.acquire(*a, **k):
+                    return False
+                acquired.append(lock)
+        finally:
+            if len(acquired) != len(self.locks):
+                for lock in acquired[::-1]:
+                    lock.release()
+        return True
 
     def release(self):
         for lock in self.locks[::-1]:  # Release in inverse order of acquisition
