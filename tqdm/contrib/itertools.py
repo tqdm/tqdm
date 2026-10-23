@@ -72,11 +72,7 @@ def combinations_with_replacement(iterable, r, total=None, tqdm_class=tqdm_auto,
         except (TypeError, AttributeError):
             pass
         else:
-            total = 1
-            for i in range(n+r-1, n-1, -1):
-                total *= i
-            for i in range(1, r+1):
-                total //= i
+            total = math.comb(n+r-1, r) if n+r else 1
     return tqdm_class(itertools.combinations_with_replacement(iterable, r), total=total, **kwargs)
 
 

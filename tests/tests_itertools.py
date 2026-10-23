@@ -3,7 +3,7 @@ Tests for `tqdm.contrib.itertools`.
 """
 import itertools as it
 
-from pytest import mark
+from pytest import mark, raises
 
 from tqdm.contrib import itertools as tit
 
@@ -94,6 +94,28 @@ def test_combinations_with_replacement(caperr):
     assert list(tit.combinations_with_replacement(a, 6)) == list(
         it.combinations_with_replacement(a, 6))
     assert "210/210" in caperr()
+
+
+@mark.parametrize('n', [0, 1, 3])
+@mark.parametrize('r', [0, 1, 3, False, True])
+def test_combinations_with_replacement_total(n, r):
+    expected = list(it.combinations_with_replacement(range(n), r))
+    with tit.combinations_with_replacement(range(n), r, disable=True) as pbar:
+        assert pbar.total == len(expected)
+        assert list(pbar) == expected
+
+
+def test_combinations_with_replacement_large_r():
+    r = 25000
+    with tit.combinations_with_replacement([1], r, disable=True) as pbar:
+        assert pbar.total == 1
+        assert list(pbar) == [(1,) * r]
+
+
+@mark.parametrize('n', [0, 1, 3])
+def test_combinations_with_replacement_negative_r(n):
+    with raises(ValueError):
+        tit.combinations_with_replacement(range(n), -1, disable=True)
 
 
 @mark.skipif(not hasattr(it, 'batched'), reason="NotFound: itertools.batched")
