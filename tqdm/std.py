@@ -175,7 +175,7 @@ class Bar:
                     int(i, 16) for i in (value[1:3], value[3:5], value[5:7]))
             else:
                 raise KeyError
-        except (KeyError, AttributeError):
+        except (KeyError, AttributeError, ValueError):
             warn(f"Unknown colour ({value}); valid choices:"
                  f" [hex (#00ff00), {', '.join(self.COLOURS)}]", TqdmWarning, stacklevel=2)
             self._colour = None
