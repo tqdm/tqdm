@@ -571,7 +571,8 @@ class tqdm(Comparable):
             pass
 
         remaining = (total - n) / rate if rate and total else 0
-        remaining_str = tqdm.format_interval(remaining) if rate else '?'
+        # ETA is only predictable if both the rate and the total are known
+        remaining_str = tqdm.format_interval(remaining) if rate and total else '?'
         try:
             eta_dt = (datetime.now() + timedelta(seconds=remaining)
                       if rate and total else datetime.fromtimestamp(0, timezone.utc))

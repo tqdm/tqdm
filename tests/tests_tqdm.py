@@ -257,6 +257,25 @@ def test_format_meter():
     assert format_meter(1, None, 12, ncols=0, bar_format="{desc}", prefix=long_desc) == long_desc
 
 
+def test_format_meter_unknown_total_eta():
+    """`total=None` => ETA is unknown (`?`), not a bogus `00:00`"""
+    # the rate is known, but the remaining time cannot be predicted
+    assert tqdm.format_meter(
+        5, None, 1, bar_format='{l_bar}{bar}{r_bar}') == "|          | 5/? [00:01<?,  5.00it/s]"
+
+
+def test_no_total_eta(caperr):
+    """Bars over an unknown-length iterable never claim a known ETA"""
+    with tqdm((i for i in range(3)),
+              mininterval=0, miniters=1, bar_format='{l_bar}{bar}{r_bar}') as t:
+        timer = cpu_timify(t)
+        for _ in t:
+            timer.sleep(1)
+    err = caperr()
+    assert '<00:00' not in err
+    assert '[00:03<?,  1.00it/s]' in err  # the rate is known, the ETA is not
+
+
 def test_ANSI_escape_codes():
     ansi = {'BOLD': '\033[1m', 'RED': '\033[91m', 'END': '\033[0m'}
     desc_raw = '{BOLD}{RED}Colored{END} description'
