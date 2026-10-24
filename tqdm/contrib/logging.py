@@ -79,9 +79,9 @@ def logging_redirect_tqdm(
     """
     if loggers is None:
         loggers = [logging.root]
-    original_handlers_list = [logger.handlers for logger in loggers]
+    original_handlers_list = [(logger, logger.handlers) for logger in loggers]
     try:
-        for logger in loggers:
+        for logger, _ in original_handlers_list:
             tqdm_handler = _TqdmLoggingHandler(tqdm_class)
             orig_handler = _get_first_found_console_logging_handler(logger.handlers)
             if orig_handler is not None:
@@ -94,7 +94,7 @@ def logging_redirect_tqdm(
                 if not _is_console_logging_handler(handler)] + [tqdm_handler]
         yield
     finally:
-        for logger, original_handlers in zip(loggers, original_handlers_list):
+        for logger, original_handlers in original_handlers_list:
             logger.handlers = original_handlers
 
 

@@ -89,6 +89,38 @@ class TestGetFirstFoundConsoleLoggingHandler:
 
 
 class TestRedirectLoggingToTqdm:
+    @mark.parametrize('mutation', ['reverse', 'clear', 'replace'])
+    @mark.parametrize('fail', [False, True])
+    def test_should_restore_original_loggers_after_list_mutation(self, mutation, fail):
+        first = logging.Logger('first')
+        second = logging.Logger('second')
+        other = logging.Logger('other')
+        first.handlers = [logging.StreamHandler(sys.stderr)]
+        second.handlers = [logging.StreamHandler(sys.stdout)]
+        other.handlers = [logging.NullHandler()]
+        original_handlers = [first.handlers, second.handlers, other.handlers]
+        loggers = [first, second]
+
+        def redirect():
+            with logging_redirect_tqdm(loggers=loggers):
+                assert isinstance(first.handlers[0], TqdmLoggingHandler)
+                assert isinstance(second.handlers[0], TqdmLoggingHandler)
+                if mutation == 'replace':
+                    loggers[:] = [other]
+                else:
+                    getattr(loggers, mutation)()
+                if fail:
+                    raise RuntimeError('body failed')
+
+        if fail:
+            with raises(RuntimeError, match='body failed'):
+                redirect()
+        else:
+            redirect()
+
+        for logger, handlers in zip([first, second, other], original_handlers):
+            assert logger.handlers is handlers
+
     def test_should_add_and_remove_tqdm_handler(self, logger):
         with logging_redirect_tqdm(loggers=[logger]):
             assert len(logger.handlers) == 1
