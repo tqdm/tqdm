@@ -109,3 +109,22 @@ def test_batched(caperr):
 
     assert list(tit.batched(no_len(a), 3, total=12)) == list(it.batched(no_len(a), 3))
     assert "12/12" in caperr()
+
+
+@mark.skipif(not hasattr(it, 'batched'), reason="NotFound: itertools.batched")
+@mark.parametrize("sized,total", [(True, None), (False, None), (True, 12), (False, 12)])
+def test_batched_index_batch_size(caperr, sized, total):
+    class BatchSize:
+        calls = 0
+
+        def __index__(self):
+            self.calls += 1
+            return 3
+
+    a = range(10)
+    size = BatchSize()
+    assert list(tit.batched(a if sized else no_len(a), size, total=total)) == list(
+        it.batched(a, 3))
+    assert size.calls == 1
+    output = caperr()
+    assert ("12/12" if sized or total is not None else "12it") in output

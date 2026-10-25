@@ -3,6 +3,7 @@ Thin wrappers around `itertools`.
 """
 import itertools
 import math
+from operator import index
 
 from ..auto import tqdm as tqdm_auto
 
@@ -82,6 +83,7 @@ def combinations_with_replacement(iterable, r, total=None, tqdm_class=tqdm_auto,
 
 def batched(iterable, n, total=None, tqdm_class=tqdm_auto, **kwargs):
     """Equivalent of `itertools.batched`."""
+    n = index(n)
     if total is None:
         try:
             total = len(iterable)
