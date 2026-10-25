@@ -2,24 +2,26 @@ name: Post Release
 on:
   release: {types: [published]}
   workflow_dispatch:
+permissions: {contents: read}
 jobs:
   docs:
+    permissions: {contents: write}
     runs-on: ubuntu-slim
     steps:
     - name: Checkout repo
-      uses: actions/checkout@v7
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
     - name: Checkout wiki
-      uses: actions/checkout@v7
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         repository: ${{ github.repository }}.wiki
         path: wiki
     - name: Checkout docs
-      uses: actions/checkout@v7
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         repository: ${{ github.repository }}.github.io
         path: docs
         token: ${{ secrets.GH_TOKEN }}
-    - uses: actions/setup-python@v7
+    - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
       with: {python-version: '3.x'}
     - name: Install
       run: |
@@ -38,7 +40,7 @@ jobs:
         git push
         popd
     - run: make -C docs build
-    - uses: casperdcl/push-dir@v1
+    - uses: casperdcl/push-dir@e351785b3b8a4e27e0aa9cb9bbc9d32a74de036c # v1.0.2
       with:
         message: update static site
         branch: gh-pages

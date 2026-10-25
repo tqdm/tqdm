@@ -3,15 +3,16 @@ name: Comment Bot
 on:
   issue_comment: {types: [created]}
   pull_request_review_comment: {types: [created]}
+permissions: {contents: read}
 jobs:
   tag:
     runs-on: ubuntu-slim
     permissions: {contents: write, pull-requests: write, issues: write}
     steps:
-    - uses: actions/checkout@v7
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         fetch-depth: 0
         token: ${{ secrets.GH_TOKEN || github.token }}
-    - uses: casperdcl/comment-bot@v1
+    - uses: casperdcl/comment-bot@1a83263fd5e2fc7a1676f2dffc1feeec6e96e1fd # v1.0.1
       with:
         token: ${{ secrets.GH_TOKEN || github.token }}

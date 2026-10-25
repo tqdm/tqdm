@@ -4,6 +4,7 @@ on:
   pull_request:
   schedule:
   - cron: '36 1 * * SUN'  # M H d m w (Sundays at 01:36)
+permissions: {contents: read}
 jobs:
   check:
     if: github.event_name != 'pull_request' || github.head_ref != 'devel'
@@ -13,8 +14,8 @@ jobs:
         TOXENV: [check, perf]
     runs-on: ubuntu-slim
     steps:
-    - uses: actions/checkout@v7
-    - uses: actions/setup-python@v7
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+    - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
       with: {python-version: '3.x'}
     - run: pip install 'tox>=4' build
     - run: tox
@@ -30,13 +31,14 @@ jobs:
   asvfull:
     if: (github.event_name == 'push' && startsWith(github.ref, 'refs/tags')) || github.event_name == 'schedule'
     name: Benchmark (Full)
+    permissions: {contents: write}
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v7
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         fetch-depth: 0
         token: ${{ secrets.GH_TOKEN || github.token }}
-    - uses: actions/setup-python@v7
+    - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
       with: {python-version: '3.x'}
     - name: Install
       run: |
@@ -45,7 +47,7 @@ jobs:
         git checkout master && git checkout -
         asv machine --machine github-actions --yes
     - name: Restore previous results
-      uses: actions/cache@v6
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       with:
         path: .asv
         key: asv-${{ runner.os }}
@@ -68,9 +70,9 @@ jobs:
     name: Benchmark (Branch)
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v7
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with: {fetch-depth: 0}
-    - uses: actions/setup-python@v7
+    - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
       with: {python-version: '3.x'}
     - name: Install
       run: |
@@ -79,7 +81,7 @@ jobs:
         git checkout master && git checkout -
         asv machine --machine github-actions --yes
     - name: Restore previous results
-      uses: actions/cache@v6
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       with:
         path: .asv
         key: asv-${{ runner.os }}

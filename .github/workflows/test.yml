@@ -4,6 +4,7 @@ on:
   pull_request:
   schedule: [{cron: '2 1 * * 6'}]  # M H d m w (Sat 1:02)
   workflow_dispatch:
+permissions: {contents: read}
 jobs:
   test:
     if: github.event_name != 'pull_request' || !contains('OWNER,MEMBER,COLLABORATOR', github.event.pull_request.author_association)
@@ -20,9 +21,9 @@ jobs:
     timeout-minutes: 35
     defaults: {run: {shell: bash}}
     steps:
-    - uses: actions/checkout@v7
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with: {fetch-depth: 0}
-    - uses: actions/setup-python@v7
+    - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
       with:
         python-version: ${{ matrix.python }}
     - name: install
@@ -50,7 +51,7 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/setup-python@v7
+    - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
       with: {python-version: '3.x'}
     - name: Coveralls Finished
       run: |
@@ -70,11 +71,11 @@ jobs:
     environment: pypi
     permissions: {contents: write, id-token: write, packages: write}
     steps:
-    - uses: actions/checkout@v7
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         fetch-depth: 0
         token: ${{ secrets.GH_TOKEN || github.token }}
-    - uses: actions/setup-python@v7
+    - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
       with: {python-version: '3.x'}
     - name: Install
       run: |
@@ -82,7 +83,7 @@ jobs:
         make build .dockerignore Dockerfile snapcraft.yaml
         git diff
     - id: dist
-      uses: casperdcl/deploy-pypi@v3
+      uses: casperdcl/deploy-pypi@8f3dcf77ac6edd4cb41852ac4f79ebe4af772d59 # v3.0.1
       with:
         gpg_key: ${{ secrets.GPG_KEY }}
         upload: ${{ github.event_name == 'push' && startsWith(github.ref, 'refs/tags') }}
@@ -107,17 +108,17 @@ jobs:
         gh release create --title "tqdm $tag stable" --draft --notes "$changelog" "$tag" dist/${{ steps.dist.outputs.whl }} dist/${{ steps.dist.outputs.whl_asc }}
       env:
         GH_TOKEN: ${{ secrets.GH_TOKEN }}
-    - uses: snapcore/action-build@v1
+    - uses: snapcore/action-build@3bdaa03e1ba6bf59a65f84a751d943d549a54e79 # v1.3.0
       id: snap_build
     - if: github.event_name == 'push' && steps.collect_assets.outputs.snap_channel
-      uses: snapcore/action-publish@v1
+      uses: snapcore/action-publish@214b86e5ca036ead1668c79afb81e550e6c54d40 # v1.2.0
       with:
         snap: ${{ steps.snap_build.outputs.snap }}
         release: ${{ steps.collect_assets.outputs.snap_channel }}
       env:
         SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAP_TOKEN }}
     - name: Docker build push
-      uses: elgohr/Publish-Docker-Github-Action@v5
+      uses: elgohr/Publish-Docker-Github-Action@1c2f28ccd9476e8a936ac9a1f287405504c93304 # v5
       with:
         name: ${{ github.repository }}
         tags: ${{ steps.collect_assets.outputs.docker_tags }}
@@ -125,7 +126,7 @@ jobs:
         username: ${{ secrets.DOCKER_USR }}
         no_push: ${{ steps.collect_assets.outputs.docker_tags == '' }}
     - name: Docker push GitHub
-      uses: elgohr/Publish-Docker-Github-Action@v5
+      uses: elgohr/Publish-Docker-Github-Action@1c2f28ccd9476e8a936ac9a1f287405504c93304 # v5
       with:
         name: ${{ github.repository }}/tqdm
         tags: ${{ steps.collect_assets.outputs.docker_tags }}
