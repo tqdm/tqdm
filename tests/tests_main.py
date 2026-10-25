@@ -1,7 +1,7 @@
 import logging
 import subprocess  # nosec
 import sys
-from io import BytesIO
+from io import BytesIO, TextIOWrapper
 from os import linesep
 
 from pytest import mark, raises
@@ -38,6 +38,28 @@ def test_main_import(monkeypatch):
     monkeypatch.setattr(sys, 'argv', ['', '--desc', 'Test CLI import',
                                       '--ascii', 'True', '--unit_scale', 'True'])
     import tqdm.__main__  # noqa: F401, pylint: disable=unused-import
+
+
+@mark.parametrize("argv,expected", [
+    (['--desc', 'Running tool --verbose'], b'Running tool --verbose'),
+    (['--desc=Running tool --verbose'], b'Running tool --verbose'),
+    (['--desc', 'Running tool -verbose'], b'Running tool -verbose'),
+    (['--desc', 'Running tool --ascii False'], b'Running tool --ascii False'),
+    (['--desc', 'Running tool --bytes'], b'Running tool --bytes'),
+    (['--desc', ' --records'], b' --records'),
+    (['--desc', '\t--records'], b'\t--records'),
+    (['--desc= --records'], b' --records'),
+    (['--bar-format', '{n} --records'], b'2 --records'),
+    (['--desc', 'Running', 'tool', '--ascii'], b'Running tool'),
+])
+def test_main_string_argument_boundaries(capsysbinary, monkeypatch, argv, expected):
+    data = b'first\nsecond\n'
+    with TextIOWrapper(BytesIO(data), encoding='utf-8') as stdin:
+        monkeypatch.setattr(sys, 'stdin', stdin)
+        main(sys.stderr, argv)
+    out, err = capsysbinary.readouterr()
+    assert norm(out) == data
+    assert expected in err
 
 
 def test_main_bytes(capsysbinary, monkeypatch):
