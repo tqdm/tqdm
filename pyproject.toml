@@ -57,6 +57,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.15",
     "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: Implementation",
     "Programming Language :: Python :: Implementation :: IronPython",
@@ -135,7 +136,7 @@ show_missing = true
 legacy_tox_ini = """
 [tox]
 min_version=4
-envlist=3.{8,9,10,11,12,13,14}{,-tf}{,-keras}, perf, check
+envlist=3.{8,9,10,11,12,13,14,15}{,-tf}{,-keras}, perf, check
 isolated_build=True
 
 [gh]
@@ -147,6 +148,7 @@ python=
     3.12 = 3.12
     3.13 = 3.13-tf,3.13-tf-keras
     3.14 = 3.14
+    3.15 = 3.15
 
 [core]
 deps=
