@@ -3,6 +3,7 @@ Thin wrappers around `itertools`.
 """
 import itertools
 import math
+from operator import index
 
 from ..auto import tqdm as tqdm_auto
 
@@ -23,13 +24,19 @@ def chain(*iterables, total=None, tqdm_class=tqdm_auto, **kwargs):
 
 def product(*iterables, repeat=1, total=None, tqdm_class=tqdm_auto, **kwargs):
     """Equivalent of `itertools.product`."""
+    repeat = index(repeat)
+    if repeat < 0:
+        raise ValueError('repeat argument cannot be negative')
     if total is None:
-        try:
-            lens = list(map(len, iterables))
-        except (TypeError, AttributeError):
-            pass
+        if repeat == 0:
+            total = 1
         else:
-            total = math.prod(lens) ** repeat
+            try:
+                lens = list(map(len, iterables))
+            except (TypeError, AttributeError):
+                pass
+            else:
+                total = math.prod(lens) ** repeat
     yield from tqdm_class(itertools.product(*iterables, repeat=repeat), total=total, **kwargs)
 
 
