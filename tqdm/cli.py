@@ -97,15 +97,16 @@ def posix_pipe(fin, fout, delim=b'\\n', buf_size=256,
             getattr(fout, 'flush', lambda: None)()
             return  # n
 
+        tmp = buf + tmp  # search the combined buffer so that a delimiter
+        buf = b''        # straddling two reads still matches
         while True:
             i = tmp.find(delim)
             if i < 0:
-                buf += tmp
+                buf = tmp
                 break
-            fp_write(buf + tmp[:i + len(delim)])
+            fp_write(tmp[:i + len(delim)])
             # n += 1
-            callback(1 if callback_len else (buf + tmp[:i]))
-            buf = b''
+            callback(1 if callback_len else tmp[:i])
             tmp = tmp[i + len_delim:]
 
 

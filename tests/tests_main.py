@@ -64,6 +64,27 @@ def test_main_bytes(capsysbinary, monkeypatch):
     assert str(len(IN_DATA)) + "B" in err.decode('U8')
 
 
+def test_main_multibyte_delim(capsysbinary, monkeypatch):
+    # a delimiter must match even when it straddles two read buffers
+    IN_DATA = '1é2é3'.encode()
+
+    monkeypatch.setattr(sys, 'stdin', BytesIO(IN_DATA))
+    main(sys.stderr, ['--delim', 'é', '--buf_size', '2',
+                      '--bar_format', '{n}it'])
+    out, err = capsysbinary.readouterr()
+    assert out == IN_DATA
+    assert '3it' in err.decode('U8')
+
+    # --update parses each record; a straddling delimiter used to merge
+    # '1' and '2' into a single record and crash parsing
+    monkeypatch.setattr(sys, 'stdin', BytesIO(IN_DATA))
+    main(sys.stderr, ['--update', '--delim', 'é', '--buf_size', '2',
+                      '--bar_format', '{n}it'])
+    out, err = capsysbinary.readouterr()
+    assert out == IN_DATA
+    assert '6it' in err.decode('U8')
+
+
 @mark.parametrize("level,logged", [("INFO", False), ("DEBUG", True)])
 def test_main_log(capsysbinary, caplog, monkeypatch, level, logged):
     N = 123
