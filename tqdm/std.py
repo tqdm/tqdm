@@ -19,8 +19,8 @@ from weakref import WeakSet
 from ._monitor import TMonitor
 from .utils import (
     CallbackIOWrapper, Comparable, DisableOnWriteError, FormatReplace, SimpleTextIOWrapper,
-    _is_ascii, _screen_shape_wrapper, _supports_unicode, _term_move_up, disp_len, disp_trim,
-    envwrap)
+    _is_ascii, _screen_shape_wrapper, _supports_unicode, _term_move_up, disp_escape, disp_len,
+    disp_trim, envwrap)
 
 __author__ = "https://github.com/tqdm/tqdm#contributions"
 __all__ = ['tqdm', 'trange',
@@ -578,6 +578,9 @@ class tqdm(Comparable):
         except OverflowError:
             eta_dt = datetime.max
 
+        # untrusted text must not be able to drive the terminal (#1864)
+        prefix = disp_escape(prefix) if prefix else prefix
+
         # format the stats displayed to the left and right sides of the bar
         if prefix:
             # old prefix setup work around
@@ -722,7 +725,7 @@ class tqdm(Comparable):
             return
         with cls.external_write_mode(file=file, nolock=nolock):
             # Write the message
-            fp.write(s)
+            fp.write(disp_escape(s))
             fp.write(end)
 
     @classmethod

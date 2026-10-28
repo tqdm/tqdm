@@ -16,6 +16,15 @@ CUR_OS = sys.platform
 IS_WIN = any(CUR_OS.startswith(i) for i in ['win32', 'cygwin'])
 IS_NIX = any(CUR_OS.startswith(i) for i in ['aix', 'linux', 'darwin', 'freebsd'])
 RE_ANSI = re.compile(r"\x1b\[[;\d]*[A-Za-z]")
+# Any ANSI escape sequence: CSI, OSC (BEL- or ST-terminated) and lone ESC sequences
+RE_ESC = re.compile(
+    r"\x1b\[[0-?]*[ -/]*[@-~]"  # CSI
+    r"|\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)"  # OSC
+    r"|\x1b[ -/]*[@-~]")  # other (Fe/Fs/Fp) escapes
+# SGR (colour/attribute) sequences: the only escapes tqdm knowingly forwards
+RE_SGR = re.compile(r"\x1b\[[0-9;:]*m")
+# C0/C1 control characters except newline, tab and ESC (handled separately)
+RE_CTRL = re.compile(r"[\x00-\x08\x0b-\x1a\x1c-\x1f\x7f-\x9f]")
 
 try:
     if IS_WIN:
@@ -309,7 +318,19 @@ def disp_len(data):
     Returns the real on-screen length of a string which may contain
     ANSI control codes and wide chars.
     """
-    return _text_width(RE_ANSI.sub('', data))
+    return _text_width(RE_ESC.sub('', data))
+
+
+def _esc_tokens(data):
+    """Yield `(text, is_escape)` chunks of `data`, escapes kept intact."""
+    pos = 0
+    for match in RE_ESC.finditer(data):
+        if match.start() > pos:
+            yield data[pos:match.start()], False
+        yield match.group(), True
+        pos = match.end()
+    if pos < len(data):
+        yield data[pos:], False
 
 
 def disp_trim(data, length):
@@ -319,10 +340,55 @@ def disp_trim(data, length):
     if len(data) == disp_len(data):
         return data[:length]
 
-    ansi_present = bool(RE_ANSI.search(data))
-    while disp_len(data) > length:  # carefully delete one char at a time
-        data = data[:-1]
-    if ansi_present and bool(RE_ANSI.search(data)):
+    length = max(0, length)
+    res = []
+    width = 0
+    stopped = False
+    for text, is_escape in _esc_tokens(data):
+        if is_escape:
+            # never cut a sequence in half: keep it, even past the limit
+            res.append(text)
+            continue
+        if stopped:
+            continue
+        for char in text:
+            char_width = 2 if east_asian_width(char) in 'FW' else 1
+            if width + char_width > length:
+                stopped = True
+                break
+            res.append(char)
+            width += char_width
+    trimmed = ''.join(res)
+    if RE_SGR.search(trimmed) and not trimmed.endswith("\033[0m"):
         # assume ANSI reset is required
-        return data if data.endswith("\033[0m") else data + "\033[0m"
-    return data
+        trimmed += "\033[0m"
+    return trimmed
+
+
+def disp_escape(data):
+    """
+    Make untrusted text safe to send to a terminal.
+
+    SGR (colour/attribute) sequences are forwarded unchanged so that coloured
+    descriptions keep working; every other escape sequence and C0/C1 control
+    character is rendered visually (`^[`, `^G`, ...) instead of being executed
+    by the terminal. Newlines and tabs are preserved.
+    """
+    def _escape_ctrl(match):
+        code = ord(match.group())
+        if code == 0x7f:
+            return '^?'
+        if code < 0x20:
+            return '^' + chr(code + 0x40)
+        return f'\\x{code:02x}'  # C1 controls (0x80-0x9f)
+
+    def _escape_text(text):
+        return RE_CTRL.sub(_escape_ctrl, text).replace('\x1b', '^[')
+
+    res = []
+    for text, is_escape in _esc_tokens(data):
+        if is_escape and RE_SGR.fullmatch(text):
+            res.append(text)  # colour/attributes are honoured
+        else:
+            res.append(_escape_text(text))
+    return ''.join(res)

@@ -3,7 +3,7 @@ import os
 import re
 import sys
 from importlib import import_module
-from io import BytesIO, IOBase
+from io import BytesIO, IOBase, StringIO
 
 from pytest import importorskip, mark, raises, warns
 
@@ -1579,3 +1579,34 @@ def test_contains(caperr):
 def test_write_stdout_none(monkeypatch):
     monkeypatch.setattr(sys, 'stdout', None)
     tqdm.write("should do nothing")
+
+
+def test_write_escapes_control_sequences():
+    """Untrusted `tqdm.write()` text must not drive the terminal (#1864)."""
+    buf = StringIO()
+    tqdm.write("\x1b]52;c;ZXZpbA==\x07clipboard", file=buf)
+    assert "^[]52;c;ZXZpbA==^Gclipboard\n" == buf.getvalue()
+
+
+def test_desc_escapes_control_sequences():
+    """Untrusted `desc` must not be able to drive the terminal (#1864)."""
+    buf = StringIO()
+    tqdm(desc="\x1b]0;evil-title\x07", total=1, file=buf).close()
+    out = buf.getvalue()
+    assert "\x1b" not in out
+    assert "^[]0;evil-title^G" in out
+
+
+def test_desc_keeps_colour():
+    """SGR colour codes in `desc` keep working."""
+    buf = StringIO()
+    tqdm(desc="\x1b[32mok\x1b[0m", total=1, file=buf).close()
+    assert "\x1b[32mok\x1b[0m" in buf.getvalue()
+
+
+def test_format_meter_escapes_prefix():
+    """`format_meter()` must escape an untrusted `prefix` (#1864)."""
+    res = tqdm.format_meter(1, 2, 1, ncols=35, prefix="\x1b]0;pwned\x07docs",
+                            bar_format="{desc}: {bar}| {n}/{total}")
+    assert "\x1b]" not in res
+    assert "^[]0;pwned^Gdocs" in res
