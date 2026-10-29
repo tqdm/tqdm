@@ -3,7 +3,7 @@ import os
 import re
 import sys
 from importlib import import_module
-from io import BytesIO, IOBase
+from io import BytesIO, IOBase, StringIO
 
 from pytest import importorskip, mark, raises, warns
 
@@ -1389,6 +1389,23 @@ def test_file_redirection(tmp_file, monkeypatch):
     assert res.count("Such fun\n") == 3
     assert "0/3" in res
     assert "3/3" in res
+
+
+@mark.parametrize('binary', [False, True])
+def test_file_redirection_write_count(binary):
+    stream = BytesIO() if binary else StringIO()
+    dummy = DummyTqdmFile(stream)
+    chunks = ['', 'caf\u00e9', '\n', 'first\nsecond\nrest', '\n']
+    if binary:
+        chunks = [chunk.encode('utf-8') for chunk in chunks]
+    accepted = 0
+    for chunk in chunks:
+        count = dummy.write(chunk)
+        assert count == len(chunk)
+        accepted += count
+    expected = (b'' if binary else '').join(chunks)
+    assert accepted == len(expected)
+    assert stream.getvalue() == expected
 
 
 def test_external_write(tmp_file):

@@ -21,6 +21,7 @@ class DummyTqdmFile(ObjectWrapper):
         self._buf = []
 
     def write(self, x, nolock=False):
+        """Write or buffer input, returning the number of characters/bytes accepted."""
         nl = b"\n" if isinstance(x, bytes) else "\n"
         pre, sep, post = x.rpartition(nl)
         if sep:
@@ -30,6 +31,7 @@ class DummyTqdmFile(ObjectWrapper):
             self._buf = [post]
         else:
             self._buf.append(x)
+        return len(x)
 
     def __del__(self):
         if self._buf:
