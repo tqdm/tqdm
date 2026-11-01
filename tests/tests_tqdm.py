@@ -1248,6 +1248,68 @@ def test_write_other_file(tmp_file, tmp_file2):
         assert tmp_file.getvalue() == before_bar
 
 
+def test_write_sanitizes_control_sequences(tmp_file):
+    """Untrusted messages must not be able to drive the terminal (#1864)."""
+    payload = "downloading \x1b]52;c;cGF5bG9hZA==\x07\x1b[2Jfile"
+    tqdm.write(payload, file=tmp_file)
+    written = tmp_file.getvalue()
+    assert "\x1b]52" not in written
+    assert "\x1b[2J" not in written
+    assert "downloading" in written and "file" in written
+
+
+def test_write_sanitize_can_be_disabled(tmp_file):
+    """`sanitize=False` keeps the previous pass-through behaviour."""
+    payload = "raw \x1b]52;c;cGF5bG9hZA==\x07 end"
+    tqdm.write(payload, file=tmp_file, sanitize=False)
+    assert "\x1b]52" in tmp_file.getvalue()
+
+
+def test_desc_sanitizes_control_sequences(tmp_file):
+    """A `desc` built from untrusted data must not reach the terminal raw."""
+    with tqdm(total=10, file=tmp_file, desc="\x1b]52;c;payload\x07job",
+              bar_format='{l_bar}', mininterval=0, miniters=1) as t:
+        t.update()
+    rendered = tmp_file.getvalue()
+    assert "\x1b]52" not in rendered
+    assert "job" in rendered
+
+
+def test_desc_sanitize_can_be_disabled(tmp_file):
+    """`sanitize=False` keeps the previous pass-through behaviour for `desc`."""
+    with tqdm(total=10, file=tmp_file, desc="\x1b]52;c;payload\x07job", sanitize=False,
+              bar_format='{l_bar}', mininterval=0, miniters=1) as t:
+        t.update()
+    assert "\x1b]52" in tmp_file.getvalue()
+
+
+def test_setters_sanitize_control_sequences(tmp_file):
+    """The `set_*` entry points must not bypass sanitisation either (#1864)."""
+    payload = "\x1b]52;c;payload\x07\x1b[2Jjob"
+    with tqdm(total=10, file=tmp_file, bar_format='{l_bar}{postfix}',
+              mininterval=0, miniters=1) as t:
+        t.set_description(payload, refresh=False)
+        t.set_description_str(payload, refresh=False)
+        t.update()
+        t.set_postfix_str(payload, refresh=False)
+        t.set_postfix({"k": payload}, refresh=False)
+        t.refresh()
+    rendered = tmp_file.getvalue()
+    assert "\x1b]52" not in rendered
+    assert "\x1b[2J" not in rendered
+    assert "job" in rendered
+
+
+def test_setters_sanitize_can_be_disabled(tmp_file):
+    """`sanitize=False` also opts the `set_*` entry points out."""
+    payload = "\x1b]52;c;payload\x07job"
+    with tqdm(total=10, file=tmp_file, sanitize=False, bar_format='{l_bar}',
+              mininterval=0, miniters=1) as t:
+        t.set_description_str(payload, refresh=False)
+        t.update()
+    assert "\x1b]52" in tmp_file.getvalue()
+
+
 def test_write_stdout_stderr(capsys):
     """Test stdout/stderr anti-mixup strategy"""
     s = "Hello world"

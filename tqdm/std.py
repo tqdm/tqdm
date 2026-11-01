@@ -20,7 +20,7 @@ from ._monitor import TMonitor
 from .utils import (
     CallbackIOWrapper, Comparable, DisableOnWriteError, FormatReplace, SimpleTextIOWrapper,
     _is_ascii, _screen_shape_wrapper, _supports_unicode, _term_move_up, disp_len, disp_trim,
-    envwrap)
+    envwrap, strip_control_sequences)
 
 __author__ = "https://github.com/tqdm/tqdm#contributions"
 __all__ = ['tqdm', 'trange',
@@ -715,11 +715,17 @@ class tqdm(Comparable):
                     inst.pos = abs(instance.pos)
 
     @classmethod
-    def write(cls, s, file=None, end="\n", nolock=False):
-        """Print a message via tqdm (without overlap with bars)."""
+    def write(cls, s, file=None, end="\n", nolock=False, sanitize=True):
+        """Print a message via tqdm (without overlap with bars).
+
+        Unless `sanitize=False`, terminal control sequences are stripped
+        from `s` first (see `tqdm.utils.strip_control_sequences`).
+        """
         fp = file if file is not None else sys.stdout
         if fp is None:
             return
+        if sanitize:
+            s = strip_control_sequences(s)
         with cls.external_write_mode(file=file, nolock=nolock):
             # Write the message
             fp.write(s)
@@ -963,6 +969,7 @@ class tqdm(Comparable):
                  disable=False, unit='it', unit_scale=False, dynamic_ncols=False, smoothing=0.3,
                  bar_format=None, initial=0, position=None, postfix=None, unit_divisor=1000,
                  write_bytes=False, lock_args=None, nrows=None, colour=None, delay=0.0, gui=False,
+                 sanitize=True,
                  **kwargs):
         """see tqdm.tqdm for arguments"""
         if file is None:
@@ -1052,7 +1059,8 @@ class tqdm(Comparable):
 
         # Store the arguments
         self.iterable = iterable
-        self.desc = desc or ''
+        self._sanitize = sanitize
+        self.desc = self._clean(desc) or ''
         self.total = total
         self.leave = leave
         self.fp = file
@@ -1084,7 +1092,7 @@ class tqdm(Comparable):
             try:
                 self.set_postfix(refresh=False, **postfix)
             except TypeError:
-                self.postfix = postfix
+                self.postfix = self._clean(postfix)
 
         # Init the iterations counters
         self.last_print_n = initial
@@ -1386,6 +1394,10 @@ class tqdm(Comparable):
         self._ema_miniters = EMA(self.smoothing)
         self.refresh()
 
+    def _clean(self, s):
+        """Strip terminal control sequences unless `sanitize=False` was passed."""
+        return strip_control_sequences(s) if getattr(self, '_sanitize', True) else s
+
     def set_description(self, desc=None, refresh=True):
         """
         Set/modify description of the progress bar.
@@ -1396,13 +1408,14 @@ class tqdm(Comparable):
         refresh  : bool, optional
             Forces refresh [default: True].
         """
+        desc = self._clean(desc)
         self.desc = desc + ': ' if desc else ''
         if refresh:
             self.refresh()
 
     def set_description_str(self, desc=None, refresh=True):
         """Set/modify description without ': ' appended."""
-        self.desc = desc or ''
+        self.desc = self._clean(desc) or ''
         if refresh:
             self.refresh()
 
@@ -1432,8 +1445,8 @@ class tqdm(Comparable):
                 postfix[key] = str(postfix[key])
             # Else if it's a string, don't need to preprocess anything
         # Stitch together to get the final postfix
-        self.postfix = ', '.join(key + '=' + postfix[key].strip()
-                                 for key in postfix.keys())
+        self.postfix = self._clean(', '.join(key + '=' + postfix[key].strip()
+                                             for key in postfix.keys()))
         if refresh:
             self.refresh()
 
@@ -1441,7 +1454,7 @@ class tqdm(Comparable):
         """
         Postfix without dictionary expansion, similar to prefix handling.
         """
-        self.postfix = str(s)
+        self.postfix = self._clean(str(s))
         if refresh:
             self.refresh()
 

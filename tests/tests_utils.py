@@ -2,9 +2,9 @@ from ast import literal_eval
 from collections import defaultdict
 from typing import Union  # py<3.10
 
-from pytest import warns
+from pytest import mark, warns
 
-from tqdm.utils import envwrap
+from tqdm.utils import envwrap, strip_control_sequences
 
 
 def test_envwrap_deprecated(monkeypatch):
@@ -62,3 +62,30 @@ def test_envwrap_annotations(monkeypatch):
         return number, string
 
     assert 1.1, "1.1" == annotated()
+
+
+@mark.parametrize('src, expected', [
+    # OSC 52 clipboard write, BEL- and ST-terminated
+    ("\x1b]52;c;cGF5bG9hZA==\x07", ""),
+    ("\x1b]52;c;cGF5bG9hZA==\x1b\\", ""),
+    # OSC 0 window title
+    ("\x1b]0;evil\x1b\\", ""),
+    # OSC 8 hyperlink: sequence goes, link text stays
+    ("\x1b]8;;http://example.com\x1b\\link\x1b]8;;\x1b\\", "link"),
+    # cursor/erase CSI sequences
+    ("\x1b[2J\x1b[3J", ""),
+    ("\x1b[1;1Hmoved", "moved"),
+    # SGR colour is preserved
+    ("\x1b[31mred\x1b[0m", "\x1b[31mred\x1b[0m"),
+    # C0 controls other than \t \n \r are dropped
+    ("a\x07b\x08c", "abc"),
+    # \t \n \r survive
+    ("a\tb\nc\rd", "a\tb\nc\rd"),
+    # a lone ESC is dropped
+    ("a\x1bb", "ab"),
+    # non-strings pass through untouched
+    (None, None),
+])
+def test_strip_control_sequences(src, expected):
+    """Untrusted descriptions must not be able to drive the terminal."""
+    assert strip_control_sequences(src) == expected
