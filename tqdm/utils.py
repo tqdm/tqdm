@@ -16,6 +16,16 @@ CUR_OS = sys.platform
 IS_WIN = any(CUR_OS.startswith(i) for i in ['win32', 'cygwin'])
 IS_NIX = any(CUR_OS.startswith(i) for i in ['aix', 'linux', 'darwin', 'freebsd'])
 RE_ANSI = re.compile(r"\x1b\[[;\d]*[A-Za-z]")
+# OSC (Operating System Command) sequences: `ESC ]` ... terminated by BEL or ST.
+# Used for window titles, hyperlinks (OSC 8) and clipboard writes (OSC 52).
+RE_OSC = re.compile(r"\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)")
+# C0 (except \t \n \r \x1b) and C1 control characters, plus DEL. `\x1b` is
+# handled separately so that preserved SGR colour sequences keep their ESC.
+RE_CONTROL = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1a\x1c-\x1f\x7f-\x9f]")
+# Any CSI sequence, including the SGR ones used for colours.
+RE_CSI = re.compile(r"\x1b\[[0-9;?]*[ -/]*[@-~]")
+# A stray ESC that does not start a preserved SGR sequence.
+RE_STRAY_ESC = re.compile(r"\x1b(?!\[[0-9;]*m)")
 
 try:
     if IS_WIN:
@@ -80,6 +90,30 @@ try:
     from envwrap import envwrap  # noqa: F401, F811, pylint: disable=unused-import
 except ModuleNotFoundError:
     pass
+
+
+def strip_control_sequences(s):
+    """
+    Remove dangerous terminal control sequences from `s`.
+
+    Untrusted values (a downloaded filename, a remote task name, a log line)
+    are routinely passed to `tqdm(desc=...)` or `tqdm.write()`. Written
+    verbatim, they can clear the screen, repaint the terminal, rewrite the
+    window title or overwrite the clipboard (OSC 52).
+
+    Strips OSC sequences (`RE_OSC`), non-SGR CSI sequences (cursor movement,
+    erase) and C0/C1 control characters, while keeping:
+
+    * `\\t`, `\\n` and `\\r`, so multi-line descriptions keep working;
+    * SGR sequences (`ESC [ ... m`), so coloured descriptions keep working.
+    """
+    if not isinstance(s, str):
+        return s
+    s = RE_OSC.sub('', s)
+    # keep colour (`...m`), drop every other CSI-driven effect
+    s = RE_CSI.sub(lambda match: match.group(0) if match.group(0).endswith('m') else '', s)
+    s = RE_STRAY_ESC.sub('', s)
+    return RE_CONTROL.sub('', s)
 
 
 class FormatReplace:
