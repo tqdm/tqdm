@@ -58,7 +58,7 @@ def test_envwrap_annotations(monkeypatch):
     monkeypatch.setenv('FUNC_string', "1.1")
 
     @envwrap("func")
-    def annotated(number: Union[int, float] = None, string: int = None):
+    def annotated(number: int | float = None, string: int = None):
         return number, string
 
     assert 1.1, "1.1" == annotated()
