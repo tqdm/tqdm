@@ -610,7 +610,11 @@ Returns
 
       @classmethod
       def write(cls, s, file=sys.stdout, end="\n"):
-          """Print a message via tqdm (without overlap with bars)."""
+          """Print a message via tqdm (without overlap with bars).
+
+          Unless `sanitize=False`, terminal control sequences are stripped
+          from `s` first (see `tqdm.utils.strip_control_sequences`).
+          """
 
       @property
       def format_dict(self):
