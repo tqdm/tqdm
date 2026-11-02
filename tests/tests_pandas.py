@@ -126,6 +126,15 @@ def test_pandas_groupby_apply(caperr):
     assert all(exres in err for exres in ('500/500', '1/1', '4/4'))
 
 
+def test_pandas_groupby_progress_map_absent():
+    """GroupBy has no `map`, so `progress_map` must not be registered (tqdm#1803)."""
+    tqdm.pandas(leave=False, ascii=True)
+    df = pd.DataFrame({'a': randint(0, 2, 100), 'b': rand(100)})
+    grouped = df.groupby('a')
+    assert not hasattr(grouped, 'progress_map')
+    assert not hasattr(grouped['b'], 'progress_map')
+
+
 @mark.filterwarnings("ignore:DataFrameGroupBy.apply operated on the grouping columns")
 def test_pandas_leave(caperr):
     df = pd.DataFrame(randint(0, 100, (1000, 6)))

@@ -930,14 +930,14 @@ class tqdm(Comparable):
         # Enable custom tqdm progress in pandas!
         Series.progress_apply = inner_generator()
         SeriesGroupBy.progress_apply = inner_generator()
+        # GroupBy has no `map`, so `progress_map` is only registered below
+        # for Series/DataFrame and must not be exposed on groupby objects.
         Series.progress_map = inner_generator('map')
-        SeriesGroupBy.progress_map = inner_generator('map')
 
         DataFrame.progress_apply = inner_generator()
         DataFrameGroupBy.progress_apply = inner_generator()
         DataFrame.progress_applymap = inner_generator('applymap')
         DataFrame.progress_map = inner_generator('map')
-        DataFrameGroupBy.progress_map = inner_generator('map')
 
         if Panel is not None:
             Panel.progress_apply = inner_generator()
