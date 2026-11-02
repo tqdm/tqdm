@@ -1,4 +1,6 @@
-from pytest import importorskip, mark
+from importlib import import_module
+
+from pytest import importorskip, mark, raises
 
 from tqdm import tqdm
 from tqdm.contrib import tenumerate, tmap, tzip
@@ -40,3 +42,21 @@ def test_map(tqdm_kwargs):
     gen = tmap(lambda x: x + 1, a, **tqdm_kwargs)
     assert gen != b
     assert list(gen) == b
+
+
+@mark.parametrize("module_name,class_name", [
+    ("tqdm.contrib.discord", "DiscordIO"),
+    ("tqdm.contrib.telegram", "TelegramIO"),
+])
+def test_contrib_connection_error(monkeypatch, module_name, class_name):
+    """Connection errors must not be masked by UnboundLocalError (tqdm#1812)."""
+    requests = importorskip("requests")
+    io_class = getattr(import_module(module_name), class_name)
+    message = f"{class_name} connection failed"
+
+    def post(*args, **kwargs):
+        raise requests.exceptions.ConnectionError(message)
+
+    monkeypatch.setattr(requests.Session, "post", post)
+    with raises(requests.exceptions.ConnectionError, match=message):
+        io_class("token", "id")
