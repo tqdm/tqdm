@@ -65,7 +65,7 @@ def test_pandas_data_frame(caperr):
         res1 = df.progress_map(task_func)
         res2 = df.map(task_func)
         assert res1.equals(res2)
-        expected = '200/200'
+        expected = '20000/20000'
     else:
         # applymap
         res1 = df.progress_applymap(task_func)
@@ -89,6 +89,24 @@ def test_pandas_data_frame(caperr):
     assert '200/200' in err  # axis=0
     assert '100/100' in err  # axis=1
     assert err.count('100%') >= 5
+
+
+def test_pandas_data_frame_map_total(caperr):
+    """DataFrame.progress_map uses element count as total (tqdm#1798)."""
+    tqdm.pandas(leave=True, ascii=True)
+    df = pd.DataFrame(randint(0, 50, (3, 100)))
+    if not hasattr(df, 'map'):  # pandas<2.1.0
+        return
+
+    calls = []
+
+    def task_func(x):
+        calls.append(x)
+        return x
+
+    df.progress_map(task_func)
+    assert len(calls) == df.size == 300
+    assert '300/300' in caperr()
 
 
 @mark.filterwarnings("ignore:DataFrameGroupBy.apply operated on the grouping columns")
