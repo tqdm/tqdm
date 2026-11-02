@@ -1,6 +1,6 @@
 import asyncio
 from functools import partial
-from sys import platform
+from sys import platform, version_info
 from time import time
 
 from pytest import mark
@@ -166,3 +166,38 @@ async def test_async_iterable(caperr):
     assert result == list(range(9))
     err = caperr()
     assert '9it' in err
+
+
+@mark.asyncio
+async def test_as_completed_generator(caperr):
+    """Test asyncio as_completed with a generator (GitHub issue #1811)."""
+    tasks = (asyncio.create_task(asyncio.sleep(0, result=i)) for i in range(3))
+    result = [await future for future in as_completed(tasks)]
+    assert sorted(result) == [0, 1, 2]
+    err = caperr()
+    if version_info[:2] < (3, 12):
+        # `asyncio.as_completed` doesn't accept generators before Python 3.12;
+        # tqdm materializes them so the bar still has a total.
+        assert '3/3' in err
+    else:
+        assert '3it' in err
+
+
+@mark.asyncio
+async def test_as_completed_list(caperr):
+    """Test asyncio as_completed with a list of awaitables."""
+    tasks = [asyncio.sleep(0, result=i) for i in range(3)]
+    result = [await future for future in as_completed(tasks)]
+    assert sorted(result) == [0, 1, 2]
+    err = caperr()
+    assert '3/3' in err
+
+
+@mark.asyncio
+async def test_as_completed_generator_with_total(caperr):
+    """Test that an explicit total is preserved for a generator input."""
+    tasks = (asyncio.sleep(0, result=i) for i in range(3))
+    result = [await future for future in as_completed(tasks, total=3)]
+    assert sorted(result) == [0, 1, 2]
+    err = caperr()
+    assert '3/3' in err

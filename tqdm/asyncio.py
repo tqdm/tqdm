@@ -63,8 +63,21 @@ class tqdm_asyncio(std_tqdm):
         """
         Wrapper for `asyncio.as_completed`.
         """
-        if total is None:
-            total = len(fs)
+        if total is None or version_info[:2] < (3, 12):
+            try:
+                length = len(fs)
+            except TypeError:
+                if version_info[:2] < (3, 12):
+                    # `asyncio.as_completed` doesn't accept generators before
+                    # Python 3.12, so materialize unsized inputs on those versions.
+                    fs = list(fs)
+                    length = len(fs)
+                else:
+                    # `fs` may be a generator (accepted by `asyncio.as_completed`
+                    # since Python 3.12); let the bar infer the total instead.
+                    length = None
+            if total is None:
+                total = length
         kwargs = {}
         if version_info[:2] < (3, 10):
             kwargs['loop'] = loop
