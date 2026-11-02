@@ -13,6 +13,8 @@ from .version import __version__
 __all__ = ["main"]
 log = logging.getLogger(__name__)
 
+LOG_LEVELS = ('CRITICAL', 'FATAL', 'ERROR', 'WARN', 'WARNING', 'INFO', 'DEBUG', 'NOTSET')
+
 
 def cast(val, typ):
     log.debug((val, typ))
@@ -162,21 +164,6 @@ def main(fp=sys.stderr, argv=None):
     """
     if argv is None:
         argv = sys.argv[1:]
-    try:
-        log_idx = argv.index('--log')
-    except ValueError:
-        for i in argv:
-            if i.startswith('--log='):
-                logLevel = i[len('--log='):]
-                break
-        else:
-            logLevel = 'INFO'
-    else:
-        # argv.pop(log_idx)
-        # logLevel = argv.pop(log_idx)
-        logLevel = argv[log_idx + 1]
-    logging.basicConfig(level=getattr(logging, logLevel),
-                        format="%(levelname)s:%(module)s:%(lineno)d:%(message)s")
 
     # py<3.13 doesn't dedent docstrings
     d = (tqdm.__doc__ if sys.version_info < (3, 13)
@@ -219,10 +206,19 @@ Options:
     opts = dict(zip(argv[1::3], argv[3::3]))
 
     log.debug(opts)
-    opts.pop('log', True)
 
     tqdm_args = {'file': fp}
     try:
+        log_level = opts.pop('log', 'INFO')
+        if not log_level:
+            raise TqdmKeyError(
+                f"--log requires a value. Valid levels: {', '.join(LOG_LEVELS)}")
+        if log_level not in LOG_LEVELS:
+            raise TqdmKeyError(
+                f"Invalid log level {log_level!r}. Valid levels: {', '.join(LOG_LEVELS)}")
+        logging.basicConfig(level=getattr(logging, log_level),
+                            format="%(levelname)s:%(module)s:%(lineno)d:%(message)s")
+
         for (o, v) in opts.items():
             o = o.replace('-', '_')
             try:

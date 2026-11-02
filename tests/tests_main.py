@@ -64,16 +64,39 @@ def test_main_bytes(capsysbinary, monkeypatch):
     assert str(len(IN_DATA)) + "B" in err.decode('U8')
 
 
-@mark.parametrize("level,logged", [("INFO", False), ("DEBUG", True)])
-def test_main_log(capsysbinary, caplog, monkeypatch, level, logged):
+@mark.parametrize("level,logged,log_args", [
+    ("INFO", False, ['--log', 'INFO']),
+    ("INFO", False, ['--log=INFO']),
+    ("DEBUG", True, ['--log', 'DEBUG']),
+    ("DEBUG", True, ['--log=DEBUG']),
+])
+def test_main_log(capsysbinary, caplog, monkeypatch, level, logged, log_args):
     N = 123
     lines = [(str(i) + '\n').encode() for i in range(N)]
     monkeypatch.setattr(sys, 'stdin', lines)
     with caplog.at_level(getattr(logging, level)):
-        main(sys.stderr, ['--log', level])
+        main(sys.stderr, log_args)
         out, err = capsysbinary.readouterr()
         assert norm(out) == b''.join(lines) and b"123/123" in err
         assert bool(caplog.record_tuples) is logged
+
+
+@mark.parametrize("log_args,message", [
+    (['--log'], "--log requires a value"),
+    (['--log='], "--log requires a value"),
+    (['--log', 'NOTALEVEL'], "Invalid log level"),
+    (['--log=NOTALEVEL'], "Invalid log level"),
+])
+def test_main_log_errors(capsysbinary, monkeypatch, log_args, message):
+    monkeypatch.setattr(sys, 'stdin', [])
+    with raises(TqdmKeyError, match=message) as exc_info:
+        main(sys.stderr, argv=log_args)
+    out, err = capsysbinary.readouterr()
+    assert out == b""
+    levels = ('CRITICAL', 'FATAL', 'ERROR', 'WARN', 'WARNING', 'INFO', 'DEBUG', 'NOTSET')
+    assert all(level in str(exc_info.value) for level in levels)
+    assert b"Error:" in err
+    assert b"Usage:" in err
 
 
 def test_main_misc_options(capsysbinary, monkeypatch):
