@@ -139,6 +139,22 @@ def test_main_misc_options(capsysbinary, monkeypatch):
     assert (str(N / 2.0) + "it").encode() not in err
 
 
+@mark.parametrize("extra_args,expected_total", [
+    ([], b"3it"),
+    (["--update"], b"6it"),
+])
+def test_main_multibyte_delim_across_buffers(capsysbinary, monkeypatch,
+                                             extra_args, expected_total):
+    """Multibyte delimiters split across read buffers must not merge records."""
+    IN_DATA = '1é2é3'.encode()
+    monkeypatch.setattr(sys, 'stdin', BytesIO(IN_DATA))
+    main(sys.stderr, ['--delim', 'é', '--buf-size', '2',
+                      '--bar-format', '{n}it'] + extra_args)
+    out, err = capsysbinary.readouterr()
+    assert out == IN_DATA
+    assert err.rstrip().endswith(expected_total)
+
+
 @mark.slow
 @mark.skipif(IS_WIN, reason="no man pages on windows")
 def test_manpath(tmp_path):
