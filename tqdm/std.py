@@ -1381,6 +1381,10 @@ class tqdm(Comparable):
             return
         self.last_print_n = 0
         self.last_print_t = self.start_t = self._time()
+        if self.dynamic_miniters:
+            # restart auto-adjustment (stale `miniters` would suppress
+            # displays until the previous run's threshold is reached again)
+            self.miniters = 0
         self._ema_dn = EMA(self.smoothing)
         self._ema_dt = EMA(self.smoothing)
         self._ema_miniters = EMA(self.smoothing)
