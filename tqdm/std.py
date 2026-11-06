@@ -409,8 +409,9 @@ class tqdm(Comparable):
         out  : str
             [H:]MM:SS
         """
+        t = int(t)
         sign = '-' if t < 0 else ''
-        mins, s = divmod(abs(int(t)), 60)
+        mins, s = divmod(abs(t), 60)
         h, m = divmod(mins, 60)
         return f'{sign}{h:d}:{m:02d}:{s:02d}' if h else f'{sign}{m:02d}:{s:02d}'
 
