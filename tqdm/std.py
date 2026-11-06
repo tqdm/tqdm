@@ -1128,10 +1128,19 @@ class tqdm(Comparable):
         except AttributeError:
             raise TypeError("'tqdm' object is not reversible")
         else:
-            self.iterable = reversed(self.iterable)
-            return self.__iter__()
-        finally:
-            self.iterable = orig
+            # NB: __iter__ is a generator, so the iterable swap must be
+            # deferred until iteration starts; otherwise the finally below
+            # would restore the original before __iter__ reads it.
+            rev_iterable = reversed(self.iterable)
+
+            def gen():
+                self.iterable = rev_iterable
+                try:
+                    yield from self.__iter__()
+                finally:
+                    self.iterable = orig
+
+            return gen()
 
     def __contains__(self, item):
         contains = getattr(self.iterable, '__contains__', None)

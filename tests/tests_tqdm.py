@@ -1198,7 +1198,7 @@ def test_refresh(caperr):
 
 def test_disabled_repr(capsys):
     with tqdm(total=10, disable=True) as t:
-        str(t)
+        _ = str(t)
         t.update()
         print(t)
     out, err = capsys.readouterr()
@@ -1564,6 +1564,15 @@ def test_reversed(caperr):
     err = caperr()
     assert '  0%' in err
     assert '100%' in err
+
+
+def test_reversed_order():
+    """reversed(tqdm(...)) must yield items in reverse order (not forward)."""
+    assert list(reversed(tqdm([1, 2, 3], disable=True))) == [3, 2, 1]
+    # The bar's iterable is restored after reversed iteration.
+    bar = tqdm([1, 2, 3], disable=True)
+    list(reversed(bar))
+    assert list(bar.iterable) == [1, 2, 3]
 
 
 def test_contains(caperr):
