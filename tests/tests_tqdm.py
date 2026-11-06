@@ -158,6 +158,15 @@ def test_format_interval():
     assert format_interval(-60) == '-01:00'
     assert format_interval(-100000) == '-27:46:40'
     assert format_interval(0) == '00:00'
+    assert format_interval(-0.5) == '00:00'
+    assert format_interval(-1.5) == '-00:01'
+
+
+def test_format_meter_float_overshoot():
+    """`n` a little past `total` (#849) => no `-00:00` remaining time"""
+    n = 0.1 + 0.1 + 0.1  # 0.30000000000000004
+    assert tqdm.format_meter(n, 0.3, 1, bar_format='{remaining}') == '00:00'
+    assert tqdm.format_meter(10.4, 10, 5, bar_format='{remaining}') == '00:00'
 
 
 def test_format_num():
