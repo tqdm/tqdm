@@ -66,7 +66,8 @@ class tqdm_gui(std_tqdm):  # pragma: no cover
             self.fig.legend((self.line1, self.line2), ("cur", "est"),
                             loc='center right')
             # progress bar
-            self.hspan = plt.axhspan(0, 0.001, xmin=0, xmax=0, color=colour)
+            self.hspan = plt.axhspan(
+                0, 0.001, xmin=0, xmax=self.n / total if total else 0, color=colour)
         else:
             # ax.set_xlim(-60, 0)
             ax.set_xlim(0, 60)
@@ -84,6 +85,13 @@ class tqdm_gui(std_tqdm):  # pragma: no cover
         self.wasion = plt.isinteractive()
         plt.ion()
         self.ax = ax
+
+        if self.delay <= 0:
+            # Render before the first iteration without recording a rate sample.
+            self._update_title()
+            self.fig.show(warn=False)
+            self.fig.canvas.draw_idle()
+            self.fig.canvas.flush_events()
 
     def close(self):
         if self.disable:
@@ -158,6 +166,10 @@ class tqdm_gui(std_tqdm):  # pragma: no cover
             line1.set_data(t_ago, ydata)
             line2.set_data(t_ago, zdata)
 
+        self._update_title()
+        self.plt.pause(1e-9)
+
+    def _update_title(self):
         d = self.format_dict
         # remove {bar}
         d['bar_format'] = (d['bar_format'] or "{l_bar}<bar/>{r_bar}").replace(
@@ -165,8 +177,7 @@ class tqdm_gui(std_tqdm):  # pragma: no cover
         msg = self.format_meter(**d)
         if '<bar/>' in msg:
             msg = "".join(re.split(r'\|?<bar/>\|?', msg, maxsplit=1))
-        ax.set_title(msg, fontname="DejaVu Sans Mono", fontsize=11)
-        self.plt.pause(1e-9)
+        self.ax.set_title(msg, fontname="DejaVu Sans Mono", fontsize=11)
 
 
 def tgrange(*args, **kwargs):
