@@ -98,6 +98,9 @@ class tqdm_tk(std_tqdm):  # pragma: no cover
         if grab:
             self._tk_window.grab_set()
 
+        if self.delay <= 0:
+            self.refresh()
+
     def close(self):
         if self.disable:
             return
