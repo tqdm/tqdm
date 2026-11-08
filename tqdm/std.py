@@ -348,6 +348,9 @@ class tqdm(Comparable):
         The fallback is 20.
     colour  : str, optional
         Bar colour (e.g. 'green', '#00ff00').
+    alarm  : bool, optional
+        If True, emit a short audible cue when the progress bar finishes.
+        Useful for visually impaired users [default: False].
     delay  : float, optional
         Don't display until [default: 0] seconds have elapsed.
     gui  : bool, optional
@@ -963,7 +966,7 @@ class tqdm(Comparable):
                  disable=False, unit='it', unit_scale=False, dynamic_ncols=False, smoothing=0.3,
                  bar_format=None, initial=0, position=None, postfix=None, unit_divisor=1000,
                  write_bytes=False, lock_args=None, nrows=None, colour=None, delay=0.0, gui=False,
-                 **kwargs):
+                 alarm=False, **kwargs):
         """see tqdm.tqdm for arguments"""
         if file is None:
             file = sys.stderr
@@ -1078,6 +1081,7 @@ class tqdm(Comparable):
         self._ema_miniters = EMA(smoothing)
         self.bar_format = bar_format
         self.postfix = None
+        self.alarm = alarm
         self.colour = colour
         self._time = time
         if postfix:
@@ -1308,10 +1312,24 @@ class tqdm(Comparable):
                 self._ema_dt = lambda: None
                 self.display(pos=0)
                 fp_write('\n')
+                if getattr(self, 'alarm', False):
+                    self._play_alarm()
             else:
                 # clear previous display
                 if self.display(msg='', pos=pos) and not pos:
                     fp_write('\r')
+
+    def _play_alarm(self):
+        """Emit a short audible cue (best-effort, cross-platform)."""
+        try:
+            if sys.platform.startswith('win'):
+                import winsound
+                winsound.Beep(600, 300)  # frequency Hz, duration ms
+            else:
+                self.fp.write('\a')  # terminal bell, written to the same stream as the bar
+                self.fp.flush()
+        except Exception:  # pylint: disable=broad-except
+            pass  # audio must never break the user's program
 
     def clear(self, nolock=False):
         """Clear current bar display."""
