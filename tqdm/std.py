@@ -711,7 +711,9 @@ class tqdm(Comparable):
                 # set first found to current `pos`
                 if instances:
                     inst = min(instances, key=lambda i: i.pos)
-                    inst.clear(nolock=True)
+                    # the bar is about to move off this row, so blank it even
+                    # when it holds only the hidden marker (`clear()` skips it)
+                    inst._clear_row(abs(inst.pos))
                     inst.pos = abs(instance.pos)
 
     @classmethod
@@ -1321,13 +1323,19 @@ class tqdm(Comparable):
         if not nolock:
             self._lock.acquire()
         pos = abs(self.pos)
-        if pos < (self.nrows or 20):
-            self.moveto(pos)
-            self.sp('')
-            self.fp.write('\r')  # place cursor back at the beginning of line
-            self.moveto(-pos)
+        # keep in step with `display()`: at `nrows - 1` the bar is hidden, so
+        # there is nothing of ours to clear (and `moveto` would print blank lines)
+        if pos < (self.nrows or 20) - 1:
+            self._clear_row(pos)
         if not nolock:
             self._lock.release()
+
+    def _clear_row(self, pos):
+        """Blank whatever this bar drew on row `pos`."""
+        self.moveto(pos)
+        self.sp('')
+        self.fp.write('\r')  # place cursor back at the beginning of line
+        self.moveto(-pos)
 
     def refresh(self, nolock=False, lock_args=None):
         """
