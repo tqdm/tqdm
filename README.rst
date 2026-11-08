@@ -481,6 +481,9 @@ Parameters
     The fallback is 20.
 * colour  : str, optional  
     Bar colour (e.g. 'green', '#00ff00').
+* alarm  : bool, optional  
+    If True, emit a short audible cue when the progress bar finishes.
+    Useful for visually impaired users [default: False].
 * delay  : float, optional  
     Don't display until [default: 0] seconds have elapsed.
 
