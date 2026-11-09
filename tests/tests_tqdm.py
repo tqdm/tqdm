@@ -952,19 +952,32 @@ def test_reset(caperr):
     assert '| 10/12' in err
 
 
-def test_reset_dynamic_miniters(caperr):
+@mark.parametrize("smoothing", [0, 0.3])
+def test_reset_dynamic_miniters(caperr, smoothing):
     """auto-adjusted `miniters` must not leak into the next run after `reset()`"""
     timer = DiscreteTimer()
-    with tqdm(total=100, miniters=None, smoothing=0, mininterval=0.1) as t:
+    with tqdm(total=100, miniters=None, smoothing=smoothing, mininterval=0.1) as t:
         cpu_timify(t, timer)
         timer.sleep(0.5)
-        t.update(10)  # displayed, dynamic miniters raised to 10
-        assert t.miniters == 10
+        t.update(10)  # displayed, dynamic miniters raised
+        assert t.miniters > 0
         t.reset()
+        assert t.miniters == 0  # auto-adjustment restarted like a fresh bar
         timer.sleep(0.5)
         t.update(5)  # below the stale miniters: must still display
         assert '| 5/100' in caperr()
-    assert t.miniters == 5
+
+
+def test_reset_explicit_miniters(caperr):
+    """an explicit `miniters` is not auto-adjusted and must survive `reset()`"""
+    timer = DiscreteTimer()
+    with tqdm(total=100, miniters=5, smoothing=0.3, mininterval=0.1) as t:
+        cpu_timify(t, timer)
+        assert not t.dynamic_miniters
+        timer.sleep(0.5)
+        t.update(10)
+        t.reset()
+        assert t.miniters == 5  # explicit value preserved, not zeroed
 
 
 def test_reset_inf(caperr):
