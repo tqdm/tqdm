@@ -11,18 +11,17 @@ import asyncio
 from sys import version_info
 
 from .std import tqdm as std_tqdm
+from typing import AsyncIterable, Iterable, Self
 
 __author__ = {"github.com/": ["casperdcl"]}
 __all__ = ['tqdm_asyncio', 'tarange', 'tqdm', 'trange']
 
-from typing import AsyncIterator, AsyncIterable, Iterable, TypeVar, Generic
 
-T = TypeVar('T')
-class tqdm_asyncio(Generic[T],std_tqdm[T]):
+class tqdm_asyncio[T](std_tqdm[T]):
     """
     Asynchronous-friendly version of tqdm.
     """
-    def __init__(self, iterable: AsyncIterable[T] |Iterable[T] | None =None, *args, **kwargs):
+    def __init__(self, iterable: AsyncIterable[T] | Iterable[T] | None = None, *args, **kwargs):
         super().__init__(iterable, *args, **kwargs)
         self.iterable_awaitable = False
         if iterable is not None:
@@ -39,10 +38,10 @@ class tqdm_asyncio(Generic[T],std_tqdm[T]):
                 self.iterable_iterator = iter(iterable)
                 self.iterable_next = self.iterable_iterator.__next__
 
-    def __aiter__(self):
+    def __aiter__(self) -> Self:
         return self
 
-    async def __anext__(self) -> AsyncIterator[T]:
+    async def __anext__(self) -> T:
         try:
             if self.iterable_awaitable:
                 res = await self.iterable_next()
@@ -93,11 +92,11 @@ class tqdm_asyncio(Generic[T],std_tqdm[T]):
         return [i for _, i in sorted(res)]
 
 
-def tarange(*args, **kwargs):
+def tarange(*args, **kwargs) -> tqdm_asyncio[int]:
     """
     A shortcut for `tqdm.asyncio.tqdm(range(*args), **kwargs)`.
     """
-    return tqdm_asyncio(range(*args), **kwargs)
+    return tqdm_asyncio[int](range(*args), **kwargs)
 
 
 # Aliases

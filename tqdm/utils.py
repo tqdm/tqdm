@@ -1,6 +1,7 @@
 """
 General helpers required for `tqdm.std`.
 """
+from typing import Any, Callable
 import os
 import re
 import sys
@@ -31,7 +32,8 @@ else:
         colorama.init()
 
 
-def envwrap(name, app="", types=None, is_method=False):
+def envwrap[T](name: str, app: str = "", types: dict[str, Any] | None = None,
+               is_method: bool = False) -> Callable[[T], T]:
     """
     Basic (env-only) version of [envwrap](https://github.com/tqdm/envwrap).
     Install `envwrap` for config file support.
@@ -50,7 +52,7 @@ def envwrap(name, app="", types=None, is_method=False):
             (k[i:].lower(), v) for k, v in os.environ.items() if k.startswith(prefix))
     part = partialmethod if is_method else partial
 
-    def wrap(func):
+    def wrap(func: T) -> T:
         params = signature(func).parameters
         # ignore unknown env vars
         overrides = {k: v for k, v in env_overrides.items() if k in params}

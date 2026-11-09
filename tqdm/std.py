@@ -7,6 +7,7 @@ Usage:
 >>> for i in trange(10):
 ...     ...
 """
+from collections.abc import Iterator
 import sys
 from collections import OrderedDict, defaultdict
 from contextlib import contextmanager
@@ -15,7 +16,7 @@ from numbers import Number
 from time import time
 from warnings import warn
 from weakref import WeakSet
-from typing import Iterable, TypeVar, Generic
+from typing import AsyncIterable, Iterable, Self
 
 from ._monitor import TMonitor
 from .utils import (
@@ -239,8 +240,8 @@ class EMA:
             self.calls += 1
         return self.last / (1 - beta ** self.calls) if self.calls else self.last
 
-T = TypeVar('T')
-class tqdm(Comparable, Generic[T]):
+
+class tqdm[T](Comparable):
     """
     Decorate an iterable object, returning an iterator which acts exactly
     like the original iterable, but prints a dynamically updating
@@ -958,9 +959,9 @@ class tqdm(Comparable, Generic[T]):
     # override defaults via env vars
     @envwrap("tqdm", is_method=True, types={'total': float, 'ncols': int, 'miniters': float,
                                             'position': int, 'nrows': int})
-    def __init__(self, iterable:Iterable[T] | None = None, desc=None, total=None, leave=True, file=None,
-                 ncols=None, mininterval=0.1, maxinterval=10.0, miniters=None,
-                 ascii=None,  # pylint: disable=redefined-builtin
+    def __init__(self, iterable: AsyncIterable[T] | Iterable[T] | None = None, desc=None, 
+                 total=None, leave=True, file=None, ncols=None, mininterval=0.1, maxinterval=10.0,
+                 miniters=None, ascii=None,  # pylint: disable=redefined-builtin
                  disable=False, unit='it', unit_scale=False, dynamic_ncols=False, smoothing=0.3,
                  bar_format=None, initial=0, position=None, postfix=None, unit_divisor=1000,
                  write_bytes=False, lock_args=None, nrows=None, colour=None, delay=0.0, gui=False,
@@ -1139,7 +1140,7 @@ class tqdm(Comparable, Generic[T]):
         return (contains(item) if contains is not None  # pylint: disable=not-callable
                 else item in self.__iter__())
 
-    def __enter__(self):
+    def __enter__(self) -> Self:
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
@@ -1164,7 +1165,7 @@ class tqdm(Comparable, Generic[T]):
     def __hash__(self):
         return id(self)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[T]:
         """Backward-compatibility to use: for x in tqdm(iterable)"""
 
         # Inlining instance variables as locals (speed optimisation)
@@ -1528,6 +1529,6 @@ class tqdm(Comparable, Generic[T]):
             yield CallbackIOWrapper(t.update, stream, method)
 
 
-def trange(*args, **kwargs):
+def trange(*args, **kwargs) -> tqdm[int]:
     """Shortcut for tqdm(range(*args), **kwargs)."""
-    return tqdm(range(*args), **kwargs)
+    return tqdm[int](range(*args), **kwargs)

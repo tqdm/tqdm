@@ -1,10 +1,12 @@
 """Asynchronous examples using `asyncio`, `async` and `await`."""
+
 import asyncio
-
+from typing import Iterator
 from tqdm.asyncio import tqdm, trange
+from tqdm import tqdm as stdtqdm
 
 
-def count(start=0, step=1):
+def count(start: int = 0, step: int = 1) -> Iterator[int]:
     i = start
     while True:
         new_start = yield i
@@ -27,9 +29,14 @@ async def main():
                 assert row == -9
                 break
     # should be ~1sec rather than ~50s due to async scheduling
-    for i in tqdm.as_completed([asyncio.sleep(0.01 * i)
-                                for i in range(100, 0, -1)], desc="as_completed"):
+    for i in tqdm.as_completed(
+        [asyncio.sleep(0.01 * i) for i in range(100, 0, -1)], desc="as_completed"
+    ):
         await i
+
+    with stdtqdm(count(), total=N + 2) as pbar2:
+        for row in pbar2:
+            print(row)
 
 
 if __name__ == "__main__":
