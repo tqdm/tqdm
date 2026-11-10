@@ -1,12 +1,12 @@
 """
 General helpers required for `tqdm.std`.
 """
-from typing import Any, Callable
 import os
 import re
 import sys
 from functools import partial, partialmethod, wraps
 from inspect import signature
+from typing import Any, Callable
 # TODO consider using wcswidth third-party package for 0-width characters
 from unicodedata import east_asian_width
 from warnings import warn

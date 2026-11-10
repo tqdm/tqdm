@@ -2,8 +2,9 @@
 
 import asyncio
 from typing import Iterator
-from tqdm.asyncio import tqdm, trange
+
 from tqdm import tqdm as stdtqdm
+from tqdm.asyncio import tqdm, trange
 
 
 def count(start: int = 0, step: int = 1) -> Iterator[int]:

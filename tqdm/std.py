@@ -20,19 +20,9 @@ from weakref import WeakSet
 
 from ._monitor import TMonitor
 from .utils import (
-    CallbackIOWrapper,
-    Comparable,
-    DisableOnWriteError,
-    FormatReplace,
-    SimpleTextIOWrapper,
-    _is_ascii,
-    _screen_shape_wrapper,
-    _supports_unicode,
-    _term_move_up,
-    disp_len,
-    disp_trim,
-    envwrap,
-)
+    CallbackIOWrapper, Comparable, DisableOnWriteError, FormatReplace, SimpleTextIOWrapper,
+    _is_ascii, _screen_shape_wrapper, _supports_unicode, _term_move_up, disp_len, disp_trim,
+    envwrap)
 
 __author__ = "https://github.com/tqdm/tqdm#contributions"
 __all__ = [
@@ -975,7 +965,7 @@ class tqdm[T](Comparable):
     # override defaults via env vars
     @envwrap("tqdm", is_method=True, types={'total': float, 'ncols': int, 'miniters': float,
                                             'position': int, 'nrows': int})
-    def __init__(self, iterable: AsyncIterable[T] | Iterable[T] | None = None, desc=None, 
+    def __init__(self, iterable: AsyncIterable[T] | Iterable[T] | None = None, desc=None,
                  total=None, leave=True, file=None, ncols=None, mininterval=0.1, maxinterval=10.0,
                  miniters=None, ascii=None,  # pylint: disable=redefined-builtin
                  disable=False, unit='it', unit_scale=False, dynamic_ncols=False, smoothing=0.3,
