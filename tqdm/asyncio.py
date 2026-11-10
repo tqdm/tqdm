@@ -8,13 +8,13 @@ Usage:
 ...     ...
 """
 import asyncio
-from sys import version_info
+from collections.abc import AsyncIterable, Iterable
+from typing import Self
 
 from .std import tqdm as std_tqdm
-from typing import AsyncIterable, Iterable, Self
 
 __author__ = {"github.com/": ["casperdcl"]}
-__all__ = ['tqdm_asyncio', 'tarange', 'tqdm', 'trange']
+__all__ = ['tarange', 'tqdm', 'tqdm_asyncio', 'trange']
 
 
 class tqdm_asyncio[T](std_tqdm[T]):
@@ -67,8 +67,6 @@ class tqdm_asyncio[T](std_tqdm[T]):
         if total is None:
             total = len(fs)
         kwargs = {}
-        if version_info[:2] < (3, 10):
-            kwargs['loop'] = loop
         yield from cls(asyncio.as_completed(fs, timeout=timeout, **kwargs),
                        total=total, **tqdm_kwargs)
 
