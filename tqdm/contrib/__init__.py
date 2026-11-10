@@ -18,7 +18,7 @@ class DummyTqdmFile(ObjectWrapper):
 
     def __init__(self, wrapped):
         super().__init__(wrapped)
-        self._buf = []
+        self.wrapper_setattr('_buf', [])
 
     def write(self, x, nolock=False):
         nl = b"\n" if isinstance(x, bytes) else "\n"
@@ -27,7 +27,7 @@ class DummyTqdmFile(ObjectWrapper):
             blank = type(nl)()
             tqdm.write(blank.join(self._buf + [pre, sep]),
                        end=blank, file=self._wrapped, nolock=nolock)
-            self._buf = [post]
+            self.wrapper_setattr('_buf', [post])
         else:
             self._buf.append(x)
 
