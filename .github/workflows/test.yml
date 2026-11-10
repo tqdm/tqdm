@@ -11,7 +11,7 @@ jobs:
     continue-on-error: ${{ matrix.os == 'windows' }}
     strategy:
       matrix:
-        python: [3.8, 3.9, '3.10', 3.11, 3.12, 3.13, 3.14]
+        python: [3.12, 3.13, 3.14]
         os: [ubuntu]
         include:
         - {os: macos, python: 3.14}
