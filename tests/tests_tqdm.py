@@ -3,7 +3,7 @@ import os
 import re
 import sys
 from importlib import import_module
-from io import BytesIO, IOBase
+from io import BytesIO, IOBase, StringIO
 
 from pytest import importorskip, mark, raises, warns
 
@@ -1198,7 +1198,7 @@ def test_refresh(caperr):
 
 def test_disabled_repr(capsys):
     with tqdm(total=10, disable=True) as t:
-        str(t)
+        _ = str(t)
         t.update()
         print(t)
     out, err = capsys.readouterr()
@@ -1389,6 +1389,52 @@ def test_file_redirection(tmp_file, monkeypatch):
     assert res.count("Such fun\n") == 3
     assert "0/3" in res
     assert "3/3" in res
+
+
+@mark.parametrize("stream_type, first_text, second_text, newline", [
+    (StringIO, "first", "second", "\n"),
+    (BytesIO, b"first", b"second", b"\n"),
+])
+@mark.parametrize("buffer_before_second_wrapper", [False, True])
+def test_file_redirection_independent_buffers(
+        stream_type, first_text, second_text, newline, buffer_before_second_wrapper):
+    with stream_type() as stream:
+        first = DummyTqdmFile(stream)
+        if buffer_before_second_wrapper:
+            first.write(first_text)
+        second = DummyTqdmFile(stream)
+        if not buffer_before_second_wrapper:
+            first.write(first_text)
+        second.write(second_text + newline)
+        first.write(newline)
+        assert stream.getvalue() == second_text + newline + first_text + newline
+
+
+@mark.parametrize("stream_type, message", [
+    (StringIO, "line\npending"),
+    (BytesIO, b"line\npending"),
+])
+def test_file_redirection_preserves_stream_buffer(stream_type, message):
+    with stream_type() as stream:
+        original_buffer = ["stream-owned state"]
+        stream._buf = original_buffer
+        dummy = DummyTqdmFile(stream)
+        assert stream._buf is original_buffer
+        dummy.write(message)
+        assert stream._buf is original_buffer
+        assert original_buffer == ["stream-owned state"]
+
+
+@mark.parametrize("stream_type, first_part, second_part, expected", [
+    (StringIO, "first\nsec", "ond\n", "first\nsecond\n"),
+    (BytesIO, b"first\nsec", b"ond\n", b"first\nsecond\n"),
+])
+def test_file_redirection_retains_partial_line(stream_type, first_part, second_part, expected):
+    with stream_type() as stream:
+        dummy = DummyTqdmFile(stream)
+        dummy.write(first_part)
+        dummy.write(second_part)
+        assert stream.getvalue() == expected
 
 
 def test_external_write(tmp_file):
