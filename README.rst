@@ -1467,7 +1467,7 @@ Citation information: |DOI|
 .. |GitHub-Forks| image:: https://img.shields.io/github/forks/tqdm/tqdm.svg?logo=github&logoColor=white
    :target: https://github.com/tqdm/tqdm/network
 .. |GitHub-Stars| image:: https://img.shields.io/github/stars/tqdm/tqdm.svg?logo=github&logoColor=white
-   :target: https://github.com/tqdm/tqdm/stargazers
+   :target: https://github.com/tqdm/tqdm
 .. |GitHub-Commits| image:: https://img.shields.io/github/commit-activity/y/tqdm/tqdm.svg?logo=git&logoColor=white
    :target: https://github.com/tqdm/tqdm/graphs/commit-activity
 .. |GitHub-Issues| image:: https://img.shields.io/github/issues-closed/tqdm/tqdm.svg?logo=github&logoColor=white
