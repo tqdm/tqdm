@@ -1089,6 +1089,7 @@ class tqdm(Comparable):
         # Init the iterations counters
         self.last_print_n = initial
         self.n = initial
+        self._displayed = False
 
         # if nested, at initial sp() call we replace '\r' by '\n' to
         # not overwrite the outer progress bar
@@ -1281,7 +1282,8 @@ class tqdm(Comparable):
 
         if not hasattr(self, 'last_print_t'):
             return
-        if self.last_print_t < self.start_t + self.delay:
+        # Explicit refreshes can display the bar before the delay expires.
+        if not self._displayed and self.last_print_t < self.start_t + self.delay:
             # haven't ever displayed; nothing to clear
             return
 
@@ -1500,6 +1502,7 @@ class tqdm(Comparable):
         if pos:
             self.moveto(pos)
         self.sp(self.__str__() if msg is None else msg)
+        self._displayed = True
         if pos:
             self.moveto(-pos)
         return True

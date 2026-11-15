@@ -4,6 +4,7 @@ import re
 import sys
 from importlib import import_module
 from io import BytesIO, IOBase
+from threading import Lock
 
 from pytest import importorskip, mark, raises, warns
 
@@ -528,6 +529,125 @@ def test_delay(caperr):
     t.update(1)
     assert caperr()
     t.close()
+
+
+@mark.parametrize("delay", [0, 1000000])
+@mark.parametrize("method,args", [
+    ("refresh", ()),
+    ("set_description", ("working",)),
+    ("set_postfix", ({"state": "running"},)),
+])
+def test_delay_refresh_close(tmp_file, delay, method, args):
+    """Explicit refreshes create a display that needs clearing on close."""
+    with tqdm(total=2, file=tmp_file, delay=delay, leave=False,
+              bar_format="{desc}{n}/{total}{postfix}") as t:
+        timing = (t.start_t, t.last_print_t, t.last_print_n, t.miniters)
+        getattr(t, method)(*args)
+        assert (t.start_t, t.last_print_t, t.last_print_n, t.miniters) == timing
+        before = tmp_file.getvalue()
+        visible = before.rsplit('\r', 1)[-1]
+        assert '0/2' in visible
+    after = tmp_file.getvalue()
+    assert after[len(before):] == '\r' + ' ' * len(visible) + '\r'
+    assert squash_ctrlchars(after) == ['']
+    t.close()
+    assert tmp_file.getvalue() == after
+
+
+@mark.parametrize("update", [False, True])
+def test_delay_no_display_close(tmp_file, update):
+    with tqdm(total=2, file=tmp_file, delay=1000000, leave=False) as t:
+        if update:
+            t.update()
+        assert tmp_file.getvalue() == ''
+    assert tmp_file.getvalue() == ''
+
+
+@mark.parametrize("leave", [True, None])
+def test_delay_refresh_leave(tmp_file, leave):
+    with tqdm(total=2, file=tmp_file, delay=1000000, leave=leave,
+              bar_format="{n}/{total}") as t:
+        t.refresh()
+        before = tmp_file.getvalue()
+        assert before == '\r0/2'
+    assert tmp_file.getvalue()[len(before):] == '\r0/2\n'
+    assert squash_ctrlchars(tmp_file.getvalue()) == ['0/2', '']
+
+
+def test_delay_refresh_context_error(tmp_file):
+    with raises(ValueError, match="work failed"):
+        with tqdm(total=2, file=tmp_file, delay=1000000, leave=False,
+                  bar_format="{n}/{total}") as t:
+            t.refresh()
+            assert tmp_file.getvalue() == '\r0/2'
+            raise ValueError("work failed")
+    assert tmp_file.getvalue() == '\r0/2\r   \r'
+    assert squash_ctrlchars(tmp_file.getvalue()) == ['']
+
+
+def test_delay_disabled_refresh(tmp_file):
+    with tqdm(total=2, file=tmp_file, delay=1000000, disable=True) as t:
+        t.refresh()
+    assert tmp_file.getvalue() == ''
+
+
+def test_delay_refresh_lock_rejected(tmp_file):
+    with tqdm(total=2, file=tmp_file, delay=1000000, leave=False) as t:
+        default_lock = tqdm.get_lock()
+        lock = Lock()
+        tqdm.set_lock(lock)
+        try:
+            with lock:
+                assert t.refresh(lock_args=(False,)) is False
+        finally:
+            tqdm.set_lock(default_lock)
+    assert tmp_file.getvalue() == ''
+
+
+def test_delay_refresh_hidden(tmp_file):
+    with tqdm(total=2, file=tmp_file, delay=1000000, leave=False,
+              position=2, nrows=2) as t:
+        t.refresh()
+        assert tmp_file.getvalue() == ''
+    assert tmp_file.getvalue() == ''
+
+
+def test_delay_refresh_nested(tmp_file):
+    with tqdm(total=2, file=tmp_file, leave=False, desc="outer"):
+        with tqdm(total=2, file=tmp_file, delay=1000000, leave=None,
+                  desc="inner") as t:
+            t.refresh()
+            assert any('inner' in line for line in squash_ctrlchars(tmp_file.getvalue()))
+        lines = squash_ctrlchars(tmp_file.getvalue())
+        assert 'outer' in lines[0]
+        assert not any(line.strip() for line in lines[1:])
+    assert not any(line.strip() for line in squash_ctrlchars(tmp_file.getvalue()))
+
+
+def test_delay_refresh_hidden_placeholder(tmp_file):
+    with tqdm(total=2, file=tmp_file, delay=1000000, leave=False,
+              position=1, nrows=2) as t:
+        t.refresh()
+        assert 'more hidden' in tmp_file.getvalue()
+    assert not any(line.strip() for line in squash_ctrlchars(tmp_file.getvalue()))
+
+
+def test_delay_partial_init(tmp_file):
+    with raises(TypeError):
+        tqdm(total=2, file=tmp_file, ncols="invalid")
+
+
+def test_delay_refresh_write_error():
+    class FailingOutput:
+        def write(self, text):
+            raise OSError("write failed")
+
+        def flush(self):
+            pass
+
+    with tqdm(total=2, file=FailingOutput(), delay=1000000, leave=False) as t:
+        with raises(OSError, match="write failed"):
+            t.refresh(nolock=True)
 
 
 def test_min_iters(caperr):
