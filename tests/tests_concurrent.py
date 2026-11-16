@@ -2,7 +2,7 @@ import sys
 
 from pytest import mark, skip, warns
 
-from tqdm import TqdmWarning
+from tqdm import TqdmWarning, tqdm
 from tqdm.contrib import concurrent
 from tqdm.contrib.concurrent import interpreter_map, process_map, thread_map
 
@@ -11,10 +11,26 @@ def dummy_func(x):
     return x + 1
 
 
+def dummy_func2(x, y):
+    return x + y + 1
+
+
+class TotalRecordingTqdm(tqdm):
+    totals = []
+
+    def __init__(self, *args, **kwargs):
+        type(self).totals.append(kwargs.get('total'))
+        super().__init__(*args, **kwargs)
+
+
 def test_min_map_len():
     assert concurrent._min_map_len([]) == 0
-    assert concurrent._min_map_len([(i for i in range(9))]) == 0
+    assert concurrent._min_map_len([(i for i in range(9))]) is None
     assert concurrent._min_map_len([(i for i in range(9)), range(5)]) == 5
+    assert concurrent._min_map_len([(i for i in range(9)), (i for i in range(5))]) is None
+    it = (i for i in range(9))
+    assert concurrent._min_map_len([it]) is None
+    assert next(it) == 0
 
 
 @mark.parametrize("mapper", [interpreter_map, process_map, thread_map])
@@ -38,6 +54,34 @@ def test_concurrent_map_unknown_len(mapper, caperr):
         skip(str(err))
     err = caperr()
     assert '9it [' in err
+
+
+@mark.parametrize("mapper", [process_map, thread_map])
+def test_concurrent_map_generator_without_chunksize(mapper, caperr):
+    b = [i + 1 for i in range(9)]
+    assert mapper(dummy_func, (i for i in range(9))) == b
+    err = caperr()
+    assert '9it [' in err
+
+
+@mark.parametrize("mapper", [process_map, thread_map])
+def test_concurrent_map_generator_total_unknown(mapper):
+    TotalRecordingTqdm.totals.clear()
+    b = [i + 1 for i in range(9)]
+    assert mapper(dummy_func, (i for i in range(9)),
+                  tqdm_class=TotalRecordingTqdm, disable=True) == b
+    assert TotalRecordingTqdm.totals == [None]
+
+
+@mark.parametrize("mapper", [interpreter_map, process_map, thread_map])
+def test_concurrent_map_mixed_known_unknown_len(mapper, caperr):
+    b = [2 * i + 1 for i in range(9)]
+    try:
+        assert mapper(dummy_func2, (i for i in range(9)), range(9)) == b
+    except ImportError as err:
+        skip(str(err))
+    err = caperr()
+    assert '0/9' in err
 
 
 def check_lock(args):
