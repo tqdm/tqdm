@@ -6,6 +6,9 @@ on:
   workflow_dispatch:
 jobs:
   test:
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}-test
+      cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
     if: github.event_name != 'pull_request' || !contains('OWNER,MEMBER,COLLABORATOR', github.event.pull_request.author_association)
     name: py${{ matrix.python }}-${{ matrix.os }}
     continue-on-error: ${{ matrix.os == 'windows' }}
