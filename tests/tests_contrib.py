@@ -40,3 +40,26 @@ def test_map(tqdm_kwargs):
     gen = tmap(lambda x: x + 1, a, **tqdm_kwargs)
     assert gen != b
     assert list(gen) == b
+
+
+@mark.parametrize("status", [400, None])
+def test_telegram_token_redacted(status, capsys, monkeypatch):
+    """Test bot token (part of the API URL) is not printed on errors"""
+    requests = importorskip("requests")
+    from tqdm.contrib import telegram
+
+    class Session:
+        @staticmethod
+        def post(url, **_):
+            if status is None:
+                raise requests.ConnectionError(f"Max retries exceeded with url: {url}")
+            res = requests.Response()
+            res.status_code, res.url, res._content = status, url, b'{"ok": false}'
+            return res
+
+    monkeypatch.setattr(telegram, "Session", Session)
+    token = "123456:SECRET"
+    assert telegram.TelegramIO(token, "0").message_id is None
+    out = capsys.readouterr().out
+    assert "<token>" in out
+    assert token not in out
