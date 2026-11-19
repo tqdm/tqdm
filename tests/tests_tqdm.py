@@ -159,6 +159,26 @@ def test_format_interval():
     assert format_interval(-100000) == '-27:46:40'
     assert format_interval(0) == '00:00'
 
+    # non-finite durations render as the unknown placeholder instead of
+    # raising ValueError/OverflowError from int() conversion (#1928)
+    assert format_interval(float('nan')) == '?'
+    assert format_interval(float('inf')) == '?'
+    assert format_interval(float('-inf')) == '?'
+
+
+def test_tqdm_nan_total_no_crash(caperr):
+    """NaN total must not crash format_meter via format_interval/ETA (#1928)."""
+    timer = DiscreteTimer()
+    with warns(TqdmWarning, match="clamping frac"):
+        with tqdm(total=float('nan')) as t:
+            cpu_timify(t, timer)
+            timer.sleep(0.5)
+            t.update(1)  # rate > 0 -> remaining = NaN
+            assert '?' in caperr()
+            timer.sleep(0.5)
+            t.update(1)
+    assert '?' in caperr()
+
 
 def test_format_num():
     format_num = tqdm.format_num
