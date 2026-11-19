@@ -160,6 +160,11 @@ def test_format_interval():
     assert format_interval(0) == '00:00'
 
 
+@mark.parametrize('value', [float('nan'), float('inf'), float('-inf')])
+def test_format_interval_non_finite(value):
+    assert tqdm.format_interval(value) == '?'
+
+
 def test_format_num():
     format_num = tqdm.format_num
 
