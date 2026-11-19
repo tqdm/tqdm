@@ -7,6 +7,7 @@ Usage:
 >>> for i in trange(10):
 ...     ...
 """
+import math
 import sys
 from collections import OrderedDict, defaultdict
 from contextlib import contextmanager
@@ -409,6 +410,10 @@ class tqdm(Comparable):
         out  : str
             [H:]MM:SS
         """
+        if not math.isfinite(t):
+            # NaN/±Inf cannot be converted to seconds; mirrors the '?'
+            # placeholder used elsewhere for unknown durations (#1928)
+            return '?'
         sign = '-' if t < 0 else ''
         mins, s = divmod(abs(int(t)), 60)
         h, m = divmod(mins, 60)
@@ -575,7 +580,9 @@ class tqdm(Comparable):
         try:
             eta_dt = (datetime.now() + timedelta(seconds=remaining)
                       if rate and total else datetime.fromtimestamp(0, timezone.utc))
-        except OverflowError:
+        except (OverflowError, ValueError):
+            # ±Inf overflows and NaN raises ValueError; the ETA is simply
+            # unknown in both cases (#1928)
             eta_dt = datetime.max
 
         # format the stats displayed to the left and right sides of the bar
