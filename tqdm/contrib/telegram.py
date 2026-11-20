@@ -124,7 +124,7 @@ class tqdm_telegram(tqdm_auto):  # pylint: disable=inconsistent-mro
         super().display(**kwargs)
         if self.tgio is None:
             self.tgio = TelegramIO(*self._telegram_args)
-            delattr(self, '_telegram_args')
+            del self._telegram_args
         fmt = self.format_dict
         if fmt.get('bar_format', None):
             fmt['bar_format'] = fmt['bar_format'].replace(
