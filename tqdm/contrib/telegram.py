@@ -66,6 +66,7 @@ class TelegramIO(MonoWorker):
         if message_id is None:
             return
         self.text = s
+        s = s.replace('\\', '\\\\').replace('`', '\\`')
         try:
             future = self.submit(
                 self.session.post, f'{self.API}{self.token}/editMessageText',

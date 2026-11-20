@@ -40,3 +40,20 @@ def test_map(tqdm_kwargs):
     gen = tmap(lambda x: x + 1, a, **tqdm_kwargs)
     assert gen != b
     assert list(gen) == b
+
+
+def test_telegram_progress_with_backticks_and_backslashes(monkeypatch):
+    importorskip("requests")
+    from unittest.mock import Mock
+
+    from tqdm.contrib.telegram import TelegramIO
+
+    session = Mock()
+    session.post.return_value.json.return_value = {'result': {'message_id': 42}}
+    monkeypatch.setattr('tqdm.contrib.telegram.Session', lambda: session)
+    stream = TelegramIO('test', 1)
+    try:
+        stream.write(r'copy C:\tmp `notes`').result()
+        assert session.post.call_args.kwargs['data']['text'] == r'`copy C:\\tmp \`notes\``'
+    finally:
+        stream.pool.shutdown()
