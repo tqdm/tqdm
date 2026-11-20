@@ -116,13 +116,15 @@ class tqdm_telegram(tqdm_auto):  # pylint: disable=inconsistent-mro
 
         See `tqdm.auto.tqdm.__init__` for other parameters.
         """
-        if not kwargs.get('disable'):
-            kwargs = kwargs.copy()
-            self.tgio = TelegramIO(token, chat_id)
+        self._telegram_args = (token, chat_id)
+        self.tgio = None
         super().__init__(*args, **kwargs)
 
     def display(self, **kwargs):  # pylint: disable=arguments-differ
         super().display(**kwargs)
+        if self.tgio is None:
+            self.tgio = TelegramIO(*self._telegram_args)
+            del self._telegram_args
         fmt = self.format_dict
         if fmt.get('bar_format', None):
             fmt['bar_format'] = fmt['bar_format'].replace(
@@ -131,14 +133,14 @@ class tqdm_telegram(tqdm_auto):  # pylint: disable=inconsistent-mro
 
     def clear(self, *args, **kwargs):
         super().clear(*args, **kwargs)
-        if not self.disable:
+        if not self.disable and self.tgio is not None:
             self.tgio.write("")
 
     def close(self):
         if self.disable:
             return
         super().close()
-        if not (self.leave or (self.leave is None and self.pos == 0)):
+        if self.tgio is not None and not (self.leave or (self.leave is None and self.pos == 0)):
             self.tgio.delete()
 
 
