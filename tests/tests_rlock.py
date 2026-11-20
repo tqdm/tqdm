@@ -1,3 +1,6 @@
+import os
+import subprocess
+import sys
 from io import StringIO
 
 from pytest import importorskip, mark
@@ -6,13 +9,15 @@ from pytest import importorskip, mark
 @mark.slow
 def test_rlock_creation():
     """Test that importing tqdm does not create multiprocessing objects."""
-    mp = importorskip('multiprocessing')
-    # Use 'spawn' instead of 'fork' so that the process does not inherit any
-    # globals that have been constructed by running other tests
-    ctx = mp.get_context('spawn')
-    with ctx.Pool(1) as pool:
-        # The pool will propagate the error if the target method fails
-        pool.apply(_rlock_creation_target)
+    importorskip('multiprocessing')
+    # Run the check in a new interpreter so that it does not inherit any
+    # globals that have been constructed by running other tests.
+    # A 'spawn' pool would also re-import the main module of this process,
+    # which fails when pytest is started from a script without a
+    # `if __name__ == '__main__'` guard (#1638).
+    # Pass on the import path, as 'spawn' does, in case tqdm is not installed.
+    env = dict(os.environ, PYTHONPATH=os.pathsep.join(sys.path))
+    subprocess.run([sys.executable, __file__], check=True, env=env)
 
 
 def _rlock_creation_target():
@@ -35,3 +40,7 @@ def _rlock_creation_target():
             with tqdm(file=tmp_file) as _:  # NOQA
                 pass
         assert rlock_mock.call_count == 1
+
+
+if __name__ == '__main__':
+    _rlock_creation_target()
