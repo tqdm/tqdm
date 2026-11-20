@@ -458,9 +458,11 @@ Parameters
     Note that a trailing ": " is automatically removed after {desc}
     if the latter is empty.
 * initial  : int or float, optional  
-    The initial counter value. Useful when restarting a progress
-    bar [default: 0]. If using float, consider specifying ``{n:.3f}``
-    or similar in ``bar_format``, or specifying ``unit_scale``.
+    Starting value of the counter [default: 0]. Every item in the
+    supplied iterable is still yielded. To resume after 10 of 15
+    items, pass the five remaining items with ``initial=10, total=15``.
+    If using float, consider specifying ``{n:.3f}`` or similar in
+    ``bar_format``, or specifying ``unit_scale``.
 * position  : int, optional  
     Specify the line offset to print this bar (starting from 0)
     Automatic if unspecified.

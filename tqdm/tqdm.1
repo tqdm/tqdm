@@ -139,8 +139,10 @@ the latter is empty.
 .TP
 \-\-initial=\f[I]initial\f[R]
 int or float, optional.
-The initial counter value.
-Useful when restarting a progress bar [default: 0].
+Starting value of the counter [default: 0].
+Every item in the supplied iterable is still yielded.
+To resume after 10 of 15 items, pass the five remaining items with
+\f[CR]initial=10, total=15\f[R].
 If using float, consider specifying \f[CR]{n:.3f}\f[R] or similar in
 \f[CR]bar_format\f[R], or specifying \f[CR]unit_scale\f[R].
 .TP
