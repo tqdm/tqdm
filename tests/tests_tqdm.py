@@ -1579,3 +1579,9 @@ def test_contains(caperr):
 def test_write_stdout_none(monkeypatch):
     monkeypatch.setattr(sys, 'stdout', None)
     tqdm.write("should do nothing")
+
+
+def test_format_interval_non_finite():
+    assert tqdm.format_interval(float("nan")) == "nan"
+    assert tqdm.format_interval(float("inf")) == "inf"
+    assert tqdm.format_interval(float("-inf")) == "-inf"
