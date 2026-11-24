@@ -37,7 +37,7 @@ class TqdmCallback(Callback):
 
     def display(self):
         """Displays in the current cell in Notebooks."""
-        container = getattr(self.bar, 'container', None)
+        container = getattr(self.pbar, 'container', None)
         if container is None:
             return
         from .notebook import display
