@@ -196,6 +196,11 @@ Instantiation outside of the loop allows for manual control over ``tqdm()``:
 Manual
 ~~~~~~
 
+When wrapping an iterable, ``pbar.n`` tracks the last progress update and can lag
+behind the current item between updates. Use ``enumerate(tqdm(iterable))`` for an
+exact iteration index. To manage the counter directly, use a manual progress bar
+and call ``update()`` once per item as shown below.
+
 Manual control of ``tqdm()`` updates using a ``with`` statement:
 
 .. code:: python
