@@ -174,8 +174,15 @@ def main(fp=sys.stderr, argv=None):
     else:
         # argv.pop(log_idx)
         # logLevel = argv.pop(log_idx)
-        logLevel = argv[log_idx + 1]
-    logging.basicConfig(level=getattr(logging, logLevel),
+        try:
+            logLevel = argv[log_idx + 1]
+        except IndexError:
+            raise TqdmKeyError("--log requires a level") from None
+    try:
+        level = getattr(logging, logLevel)
+    except AttributeError:
+        raise TqdmTypeError(f"{logLevel} : log level") from None
+    logging.basicConfig(level=level,
                         format="%(levelname)s:%(module)s:%(lineno)d:%(message)s")
 
     # py<3.13 doesn't dedent docstrings
