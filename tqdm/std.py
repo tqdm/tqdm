@@ -7,6 +7,7 @@ Usage:
 >>> for i in trange(10):
 ...     ...
 """
+import math
 import sys
 from collections import OrderedDict, defaultdict
 from contextlib import contextmanager
@@ -409,6 +410,13 @@ class tqdm(Comparable):
         out  : str
             [H:]MM:SS
         """
+        try:
+            if not math.isfinite(t):
+                return '?'
+        except OverflowError:
+            # Very large integers are finite, even if they cannot be converted
+            # to a float for the check above.
+            pass
         sign = '-' if t < 0 else ''
         mins, s = divmod(abs(int(t)), 60)
         h, m = divmod(mins, 60)

@@ -158,6 +158,9 @@ def test_format_interval():
     assert format_interval(-60) == '-01:00'
     assert format_interval(-100000) == '-27:46:40'
     assert format_interval(0) == '00:00'
+    assert format_interval(float('nan')) == '?'
+    assert format_interval(float('inf')) == '?'
+    assert format_interval(float('-inf')) == '?'
 
 
 def test_format_num():
