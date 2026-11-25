@@ -191,6 +191,15 @@ def test_exceptions(capsysbinary, monkeypatch):
     out, _ = capsysbinary.readouterr()
     assert norm(out) == IN_DATA
 
+    with raises(TqdmKeyError, match="--log requires a level"):
+        main(sys.stderr, argv=['--log'])
+
+    with raises(TqdmTypeError, match="NOTALEVEL"):
+        main(sys.stderr, argv=['--log', 'NOTALEVEL'])
+
+    with raises(TqdmTypeError, match="NOTALEVEL"):
+        main(sys.stderr, argv=['--log=NOTALEVEL'])
+
     # test SystemExits
     for i in ('-h', '--help', '-v', '--version'):
         with raises(SystemExit):
