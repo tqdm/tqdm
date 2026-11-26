@@ -8,7 +8,7 @@ Usage:
 ...     ...
 """
 import sys
-from collections import OrderedDict, defaultdict
+from collections import defaultdict
 from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
 from numbers import Number
@@ -18,9 +18,11 @@ from weakref import WeakSet
 
 from ._monitor import TMonitor
 from .utils import (
-    CallbackIOWrapper, Comparable, DisableOnWriteError, FormatReplace, SimpleTextIOWrapper,
-    _is_ascii, _screen_shape_wrapper, _supports_unicode, _term_move_up, disp_len, disp_trim,
-    envwrap)
+    RE_ANSI, CallbackIOWrapper, Comparable, DisableOnWriteError, FormatReplace,
+    SimpleTextIOWrapper, _is_ascii, _screen_shape_wrapper, _supports_unicode, _term_move_up,
+    disp_len, disp_trim, envwrap)
+
+_TWO_DIGITS = tuple(f'{i:02d}' for i in range(60))
 
 __author__ = "https://github.com/tqdm/tqdm#contributions"
 __all__ = ['tqdm', 'trange',
@@ -142,11 +144,13 @@ class Bar:
     ASCII = " 123456789#"
     UTF = " " + ''.join(map(chr, range(0x258F, 0x2587, -1)))
     BLANK = "  "
+    _CHARSETS = {'a': ASCII, 'u': UTF, 'b': BLANK}
     COLOUR_RESET = '\x1b[0m'
     COLOUR_RGB = '\x1b[38;2;%d;%d;%dm'
     COLOURS = {'BLACK': '\x1b[30m', 'RED': '\x1b[31m', 'GREEN': '\x1b[32m',
                'YELLOW': '\x1b[33m', 'BLUE': '\x1b[34m', 'MAGENTA': '\x1b[35m',
                'CYAN': '\x1b[36m', 'WHITE': '\x1b[37m'}
+    _COLOURS_CI = {k: v for name, v in COLOURS.items() for k in (name, name.lower())}
 
     def __init__(self, frac, default_len=10, charset=UTF, colour=None):
         if not 0 <= frac <= 1:
@@ -158,34 +162,40 @@ class Bar:
         self.charset = charset
         self.colour = colour
 
+    @classmethod
+    def _resolve_colour(cls, value, stacklevel=2):
+        if not value:
+            return None
+        code = cls._COLOURS_CI.get(value)
+        if code is not None:
+            return code
+        try:
+            upper = value.upper()
+            if upper in cls.COLOURS:
+                return cls.COLOURS[upper]
+            if value[0] == '#' and len(value) == 7:
+                return cls.COLOUR_RGB % (
+                    int(value[1:3], 16), int(value[3:5], 16), int(value[5:7], 16))
+            raise KeyError
+        except (KeyError, AttributeError):
+            warn(f"Unknown colour ({value}); valid choices:"
+                 f" [hex (#00ff00), {', '.join(cls.COLOURS)}]", TqdmWarning,
+                 stacklevel=stacklevel)
+            return None
+
     @property
     def colour(self):
         return self._colour
 
     @colour.setter
     def colour(self, value):
-        if not value:
-            self._colour = None
-            return
-        try:
-            if value.upper() in self.COLOURS:
-                self._colour = self.COLOURS[value.upper()]
-            elif value[0] == '#' and len(value) == 7:
-                self._colour = self.COLOUR_RGB % tuple(
-                    int(i, 16) for i in (value[1:3], value[3:5], value[5:7]))
-            else:
-                raise KeyError
-        except (KeyError, AttributeError):
-            warn(f"Unknown colour ({value}); valid choices:"
-                 f" [hex (#00ff00), {', '.join(self.COLOURS)}]", TqdmWarning, stacklevel=2)
-            self._colour = None
+        self._colour = self._resolve_colour(value, stacklevel=3)
 
     def __format__(self, format_spec):
         if format_spec:
             _type = format_spec[-1].lower()
-            try:
-                charset = {'a': self.ASCII, 'u': self.UTF, 'b': self.BLANK}[_type]
-            except KeyError:
+            charset = self._CHARSETS.get(_type)
+            if charset is None:
                 charset = self.charset
             else:
                 format_spec = format_spec[:-1]
@@ -200,7 +210,9 @@ class Bar:
             N_BARS = self.default_len
 
         nsyms = len(charset) - 1
-        bar_length, frac_bar_length = divmod(int(self.frac * N_BARS * nsyms), nsyms)
+        ticks = int(self.frac * N_BARS * nsyms)
+        bar_length = ticks // nsyms
+        frac_bar_length = ticks - bar_length * nsyms
 
         res = charset[-1] * bar_length
         if bar_length < N_BARS:  # whitespace padding
@@ -384,10 +396,11 @@ class tqdm(Comparable):
         out  : str
             Number with Order of Magnitude SI unit postfix.
         """
-        for unit in ['', 'k', 'M', 'G', 'T', 'P', 'E', 'Z']:
-            if abs(num) < 999.5:
-                if abs(num) < 99.95:
-                    if abs(num) < 9.995:
+        for unit in ('', 'k', 'M', 'G', 'T', 'P', 'E', 'Z'):
+            abs_num = -num if num < 0 else num
+            if abs_num < 999.5:
+                if abs_num < 99.95:
+                    if abs_num < 9.995:
                         return f'{num:1.2f}{unit}{suffix}'
                     return f'{num:2.1f}{unit}{suffix}'
                 return f'{num:3.0f}{unit}{suffix}'
@@ -410,9 +423,17 @@ class tqdm(Comparable):
             [H:]MM:SS
         """
         sign = '-' if t < 0 else ''
-        mins, s = divmod(abs(int(t)), 60)
-        h, m = divmod(mins, 60)
-        return f'{sign}{h:d}:{m:02d}:{s:02d}' if h else f'{sign}{m:02d}:{s:02d}'
+        t = int(t)
+        if t < 0:
+            t = -t
+        if t < 3600:
+            m = t // 60
+            return f'{sign}{_TWO_DIGITS[m]}:{_TWO_DIGITS[t - m * 60]}'
+        mins = t // 60
+        s = t - mins * 60
+        h = mins // 60
+        m = mins - h * 60
+        return f'{sign}{h:d}:{_TWO_DIGITS[m]}:{_TWO_DIGITS[s]}'
 
     @staticmethod
     def format_num(n):
@@ -446,15 +467,15 @@ class tqdm(Comparable):
             getattr(sys.stderr, 'flush', lambda: None)()
             getattr(sys.stdout, 'flush', lambda: None)()
 
-        def fp_write(s):
-            fp.write(str(s))
-            fp_flush()
-
         last_len = [0]
 
         def print_status(s):
+            if type(s) is not str:
+                s = str(s)
             len_s = disp_len(s)
-            fp_write('\r' + s + (' ' * max(last_len[0] - len_s, 0)))
+            prev_len = last_len[0]
+            fp.write('\r' + s if len_s >= prev_len else '\r' + s + (' ' * (prev_len - len_s)))
+            fp_flush()
             last_len[0] = len_s
 
         return print_status
@@ -543,40 +564,120 @@ class tqdm(Comparable):
                 rate *= unit_scale  # by default rate = self.avg_dn / self.avg_dt
             unit_scale = False
 
-        elapsed_str = tqdm.format_interval(elapsed)
+        format_interval = tqdm.format_interval
+        elapsed_str = format_interval(elapsed)
 
         # if unspecified, attempt to use rate = average speed
         # (we allow manual override since predicting time is an arcane art)
         if rate is None and elapsed:
             rate = (n - initial) / elapsed
         inv_rate = 1 / rate if rate else None
-        format_sizeof = tqdm.format_sizeof
-        rate_noinv_fmt = ((format_sizeof(rate) if unit_scale else f'{rate:5.2f}')
-                          if rate else '?') + unit + '/s'
-        rate_inv_fmt = (
-            (format_sizeof(inv_rate) if unit_scale else f'{inv_rate:5.2f}')
-            if inv_rate else '?') + 's/' + unit
-        rate_fmt = rate_inv_fmt if inv_rate and inv_rate > 1 else rate_noinv_fmt
-
-        if unit_scale:
-            n_fmt = format_sizeof(n, divisor=unit_divisor)
-            total_fmt = format_sizeof(total, divisor=unit_divisor) if total is not None else '?'
+        use_inv_rate = bool(inv_rate and inv_rate > 1)
+        format_sizeof = tqdm.format_sizeof if unit_scale else None
+        if use_inv_rate:
+            rate_inv_fmt = (
+                (format_sizeof(inv_rate) if unit_scale else f'{inv_rate:5.2f}')
+                + 's/' + unit)
+            rate_fmt = rate_inv_fmt
+            rate_noinv_fmt = None
         else:
-            n_fmt = str(n)
-            total_fmt = str(total) if total is not None else '?'
+            rate_noinv_fmt = ((format_sizeof(rate) if unit_scale else f'{rate:5.2f}')
+                              if rate else '?') + unit + '/s'
+            rate_fmt = rate_noinv_fmt
+            rate_inv_fmt = None
+
+        n_fmt = format_sizeof(n, divisor=unit_divisor) if unit_scale else str(n)
 
         try:
             postfix = ', ' + postfix if postfix else ''
         except TypeError:
             pass
 
+        if not bar_format:
+            if not total:
+                # no total: no bar & ETA, just progress stats
+                res = (f'{(prefix + ": ") if prefix else ""}'
+                       f'{n_fmt}{unit} [{elapsed_str}, {rate_fmt}{postfix}]')
+                return disp_trim(res, ncols) if ncols else res
+
+            total_fmt = format_sizeof(total, divisor=unit_divisor) if unit_scale else str(total)
+            remaining = (total - n) / rate if rate else 0
+            remaining_str = format_interval(remaining) if rate else '?'
+            if prefix:
+                l_prefix = prefix if prefix[-2:] == ": " else prefix + ": "
+            else:
+                l_prefix = ''
+
+            frac = n / total
+            percentage = frac * 100
+            if ncols == 0:
+                return (f'{l_prefix}{percentage:3.0f}% '
+                        f'{n_fmt}/{total_fmt} [{elapsed_str}<{remaining_str}, '
+                        f'{rate_fmt}{postfix}]')
+
+            l_bar = f'{l_prefix}{percentage:3.0f}%|'
+            r_bar = f'| {n_fmt}/{total_fmt} [{elapsed_str}<{remaining_str}, {rate_fmt}{postfix}]'
+            if ncols:
+                nobar_len = (
+                    (len(l_bar) if '\x1b' not in l_bar and l_bar.isascii() else disp_len(l_bar))
+                    + (len(r_bar) if '\x1b' not in r_bar and r_bar.isascii() else disp_len(r_bar))
+                )
+                n_bars = ncols - nobar_len
+                if n_bars < 1:
+                    n_bars = 1
+            else:
+                nobar_len = 0
+                n_bars = 10
+
+            if not 0 <= frac <= 1:
+                warn("clamping frac to range [0, 1]", TqdmWarning, stacklevel=2)
+                frac = max(0, min(1, frac))
+            charset = Bar.ASCII if ascii is True else ascii or Bar.UTF
+            nsyms = len(charset) - 1
+            ticks = int(frac * n_bars * nsyms)
+            bar_length = ticks // nsyms
+            frac_bar_length = ticks - bar_length * nsyms
+            bar_str = charset[-1] * bar_length
+            if bar_length < n_bars:
+                bar_str += charset[frac_bar_length] + charset[0] * (n_bars - bar_length - 1)
+            colour_code = Bar._resolve_colour(colour) if colour else None
+            if colour_code:
+                bar_str = colour_code + bar_str + Bar.COLOUR_RESET
+
+            res = l_bar + bar_str + r_bar
+            if not ncols:
+                return res
+            if (charset is Bar.UTF or charset is Bar.ASCII) and nobar_len + n_bars <= ncols:
+                if colour_code or ('\x1b' in l_bar and RE_ANSI.search(l_bar)) or (
+                        '\x1b' in r_bar and RE_ANSI.search(r_bar)):
+                    return res if res.endswith("\033[0m") else res + "\033[0m"
+                return res
+            return disp_trim(res, ncols)
+
+        # Custom bar_format path
+        if rate_noinv_fmt is None and 'rate_noinv_fmt' in bar_format:
+            rate_noinv_fmt = ((format_sizeof(rate) if unit_scale else f'{rate:5.2f}')
+                              if rate else '?') + unit + '/s'
+        if rate_inv_fmt is None and 'rate_inv_fmt' in bar_format:
+            rate_inv_fmt = (
+                (format_sizeof(inv_rate) if unit_scale else f'{inv_rate:5.2f}')
+                if inv_rate else '?') + 's/' + unit
+
+        if unit_scale:
+            total_fmt = format_sizeof(total, divisor=unit_divisor) if total is not None else '?'
+        else:
+            total_fmt = str(total) if total is not None else '?'
+
         remaining = (total - n) / rate if rate and total else 0
-        remaining_str = tqdm.format_interval(remaining) if rate else '?'
-        try:
-            eta_dt = (datetime.now() + timedelta(seconds=remaining)
-                      if rate and total else datetime.fromtimestamp(0, timezone.utc))
-        except OverflowError:
-            eta_dt = datetime.max
+        remaining_str = format_interval(remaining) if rate else '?'
+        if 'eta' in bar_format:
+            try:
+                eta_dt = (datetime.now() + timedelta(seconds=remaining)
+                          if rate and total else datetime.fromtimestamp(0, timezone.utc))
+            except OverflowError:
+                eta_dt = datetime.max
+        else:
+            eta_dt = None
 
         # format the stats displayed to the left and right sides of the bar
         if prefix:
@@ -595,7 +696,7 @@ class tqdm(Comparable):
             'n': n, 'n_fmt': n_fmt, 'total': total, 'total_fmt': total_fmt,
             'elapsed': elapsed_str, 'elapsed_s': elapsed,
             'ncols': ncols, 'desc': prefix or '', 'unit': unit,
-            'rate': inv_rate if inv_rate and inv_rate > 1 else rate,
+            'rate': inv_rate if use_inv_rate else rate,
             'rate_fmt': rate_fmt, 'rate_noinv': rate,
             'rate_noinv_fmt': rate_noinv_fmt, 'rate_inv': inv_rate,
             'rate_inv_fmt': rate_inv_fmt,
@@ -617,15 +718,44 @@ class tqdm(Comparable):
             if ncols == 0:
                 return l_bar[:-1] + r_bar[1:]
 
-            format_dict.update(l_bar=l_bar)
-            if bar_format:
-                format_dict.update(percentage=percentage)
+            format_dict['l_bar'] = l_bar
+            format_dict['percentage'] = percentage
 
-                # auto-remove colon for empty `{desc}`
-                if not prefix:
-                    bar_format = bar_format.replace("{desc}: ", '')
-            else:
-                bar_format = "{l_bar}{bar}{r_bar}"
+            # auto-remove colon for empty `{desc}`
+            if not prefix:
+                bar_format = bar_format.replace("{desc}: ", '')
+
+            if (type(bar_format) is str and '{bar}' in bar_format
+                    and '{{' not in bar_format and '}}' not in bar_format
+                    and '{bar:' not in bar_format and '{bar!' not in bar_format
+                    and '{bar.' not in bar_format and '{bar[' not in bar_format):
+                bar_parts = bar_format.split('{bar}')
+                if len(bar_parts) == 2:
+                    left_fmt, right_fmt = bar_parts
+                    left_part = (
+                        l_bar if left_fmt == '{l_bar}'
+                        else (left_fmt.format(**format_dict) if left_fmt else ''))
+                    right_part = (
+                        r_bar if right_fmt == '{r_bar}'
+                        else (right_fmt.format(**format_dict) if right_fmt else ''))
+                    n_bars = max(1, ncols - disp_len(left_part + right_part)) if ncols else 10
+                    if not 0 <= frac <= 1:
+                        warn("clamping frac to range [0, 1]", TqdmWarning, stacklevel=2)
+                        frac = max(0, min(1, frac))
+                    charset = Bar.ASCII if ascii is True else ascii or Bar.UTF
+                    nsyms = len(charset) - 1
+                    ticks = int(frac * n_bars * nsyms)
+                    bar_length = ticks // nsyms
+                    frac_bar_length = ticks - bar_length * nsyms
+                    bar_str = charset[-1] * bar_length
+                    if bar_length < n_bars:
+                        bar_str += charset[frac_bar_length] + charset[0] * (
+                            n_bars - bar_length - 1)
+                    colour_code = Bar._resolve_colour(colour) if colour else None
+                    if colour_code:
+                        bar_str = colour_code + bar_str + Bar.COLOUR_RESET
+                    res = left_part + bar_str + right_part
+                    return disp_trim(res, ncols) if ncols else res
 
             full_bar = FormatReplace()
             nobar = bar_format.format(bar=full_bar, **format_dict)  # no `{bar}`
@@ -637,15 +767,17 @@ class tqdm(Comparable):
                            max(1, ncols - disp_len(nobar)) if ncols else 10,
                            charset=Bar.ASCII if ascii is True else ascii or Bar.UTF,
                            colour=colour)
-            if not _is_ascii(full_bar.charset) and _is_ascii(bar_format):
+            if type(bar_format) is not str and (
+                    not _is_ascii(full_bar.charset) and _is_ascii(bar_format)):
                 bar_format = str(bar_format)
             res = bar_format.format(bar=full_bar, **format_dict)
             return disp_trim(res, ncols) if ncols else res
 
-        elif bar_format:
+        else:
             # user-specified bar_format but no total
             l_bar += '|'
-            format_dict.update(l_bar=l_bar, percentage=0)
+            format_dict['l_bar'] = l_bar
+            format_dict['percentage'] = 0
             full_bar = FormatReplace()
             nobar = bar_format.format(bar=full_bar, **format_dict)
             if not full_bar.format_called:
@@ -654,11 +786,6 @@ class tqdm(Comparable):
                            max(1, ncols - disp_len(nobar)) if ncols else 10,
                            charset=Bar.BLANK, colour=colour)
             res = bar_format.format(bar=full_bar, **format_dict)
-            return disp_trim(res, ncols) if ncols else res
-        else:
-            # no total: no bar & ETA, just progress stats
-            res = (f'{(prefix + ": ") if prefix else ""}'
-                   f'{n_fmt}{unit} [{elapsed_str}, {rate_fmt}{postfix}]')
             return disp_trim(res, ncols) if ncols else res
 
     def __new__(cls, *_, **__):
@@ -1154,6 +1281,29 @@ class tqdm(Comparable):
         self.close()
 
     def __str__(self):
+        if type(self).format_dict is tqdm.format_dict and (
+                type(self).format_meter is tqdm.format_meter):
+            if self.disable and not hasattr(self, 'unit'):
+                return self.format_meter(self.n, self.total, 0, unit='it')
+            if self.dynamic_ncols:
+                self.ncols, self.nrows = self.dynamic_ncols(self.fp)
+            ema_dt = self._ema_dt()
+            elapsed = self._time() - self.start_t if hasattr(self, 'start_t') else 0
+            rate = self._ema_dn() / ema_dt if ema_dt else None
+            if self.bar_format:
+                return self.format_meter(
+                    self.n, self.total, elapsed,
+                    ncols=self.ncols, prefix=self.desc, ascii=self.ascii,
+                    unit=self.unit, unit_scale=self.unit_scale, rate=rate,
+                    bar_format=self.bar_format, postfix=self.postfix,
+                    unit_divisor=self.unit_divisor, initial=self.initial,
+                    colour=self.colour, nrows=self.nrows)
+            return self.format_meter(
+                self.n, self.total, elapsed,
+                ncols=self.ncols, prefix=self.desc, ascii=self.ascii,
+                unit=self.unit, unit_scale=self.unit_scale, rate=rate,
+                postfix=self.postfix, unit_divisor=self.unit_divisor,
+                initial=self.initial, colour=self.colour)
         return self.format_meter(**self.format_dict)
 
     @property
@@ -1419,21 +1569,23 @@ class tqdm(Comparable):
         kwargs  : dict, optional
         """
         # Sort in alphabetical order to be more deterministic
-        postfix = OrderedDict([] if ordered_dict is None else ordered_dict)
-        for key in sorted(kwargs.keys()):
-            postfix[key] = kwargs[key]
-        # Preprocess stats according to datatype
-        for key in postfix.keys():
+        postfix = {} if ordered_dict is None else dict(ordered_dict)
+        if kwargs:
+            for key in sorted(kwargs):
+                postfix[key] = kwargs[key]
+        # Preprocess stats according to datatype and stitch together
+        parts = []
+        format_num = self.format_num
+        for key, val in postfix.items():
             # Number: limit the length of the string
-            if isinstance(postfix[key], Number):
-                postfix[key] = self.format_num(postfix[key])
+            if type(val) in (int, float) or isinstance(val, Number):
+                val = format_num(val)
             # Else for any other type, try to get the string conversion
-            elif not isinstance(postfix[key], str):
-                postfix[key] = str(postfix[key])
+            elif not isinstance(val, str):
+                val = str(val)
             # Else if it's a string, don't need to preprocess anything
-        # Stitch together to get the final postfix
-        self.postfix = ', '.join(key + '=' + postfix[key].strip()
-                                 for key in postfix.keys())
+            parts.append(f'{key}={val.strip()}')
+        self.postfix = ', '.join(parts)
         if refresh:
             self.refresh()
 
@@ -1458,12 +1610,13 @@ class tqdm(Comparable):
                 'n': self.n, 'total': self.total, 'elapsed': 0, 'unit': 'it'})
         if self.dynamic_ncols:
             self.ncols, self.nrows = self.dynamic_ncols(self.fp)
+        ema_dt = self._ema_dt()
         return {
             'n': self.n, 'total': self.total,
             'elapsed': self._time() - self.start_t if hasattr(self, 'start_t') else 0,
             'ncols': self.ncols, 'nrows': self.nrows, 'prefix': self.desc,
             'ascii': self.ascii, 'unit': self.unit, 'unit_scale': self.unit_scale,
-            'rate': self._ema_dn() / self._ema_dt() if self._ema_dt() else None,
+            'rate': self._ema_dn() / ema_dt if ema_dt else None,
             'bar_format': self.bar_format, 'postfix': self.postfix,
             'unit_divisor': self.unit_divisor, 'initial': self.initial,
             'colour': self.colour}

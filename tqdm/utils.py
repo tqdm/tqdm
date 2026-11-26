@@ -16,6 +16,9 @@ CUR_OS = sys.platform
 IS_WIN = any(CUR_OS.startswith(i) for i in ['win32', 'cygwin'])
 IS_NIX = any(CUR_OS.startswith(i) for i in ['aix', 'linux', 'darwin', 'freebsd'])
 RE_ANSI = re.compile(r"\x1b\[[;\d]*[A-Za-z]")
+# Code points in 0x0000..0x10FF and 0x2580..0x259F (including Bar.UTF blocks)
+# never have East Asian Width 'F' or 'W'.
+_RE_MAYBE_WIDE = re.compile(r"[^\x00-\u10ff\u2580-\u259f]")
 
 try:
     if IS_WIN:
@@ -255,10 +258,7 @@ def _supports_unicode(fp):
 
 def _is_ascii(s):
     if isinstance(s, str):
-        for c in s:
-            if ord(c) > 255:
-                return False
-        return True
+        return not s or s.isascii() or max(s) <= '\xff'
     return _supports_unicode(s)
 
 
@@ -301,7 +301,16 @@ def _term_move_up():  # pragma: no cover
 
 
 def _text_width(s):
-    return sum(2 if east_asian_width(ch) in 'FW' else 1 for ch in str(s))
+    if not isinstance(s, str):
+        s = str(s)
+    if s.isascii():
+        return len(s)
+    match = _RE_MAYBE_WIDE.search(s)
+    if match is None:
+        return len(s)
+    return len(s) + sum(
+        1 for ch in _RE_MAYBE_WIDE.findall(s, match.start())
+        if east_asian_width(ch) in ('F', 'W'))
 
 
 def disp_len(data):
@@ -309,20 +318,34 @@ def disp_len(data):
     Returns the real on-screen length of a string which may contain
     ANSI control codes and wide chars.
     """
-    return _text_width(RE_ANSI.sub('', data))
+    if '\x1b' in data:
+        data = RE_ANSI.sub('', data)
+    if data.isascii():
+        return len(data)
+    return _text_width(data)
 
 
 def disp_trim(data, length):
     """
     Trim a string which may contain ANSI control characters.
     """
-    if len(data) == disp_len(data):
-        return data[:length]
+    has_ansi = '\x1b' in data and bool(RE_ANSI.search(data))
+    cur_len = _text_width(RE_ANSI.sub('', data)) if has_ansi else _text_width(data)
+    if not has_ansi:
+        if cur_len == len(data):
+            return data[:length]
+        if cur_len <= length:
+            return data
+        end = len(data)
+        while cur_len > length and end > 0:
+            end -= 1
+            cur_len -= 2 if east_asian_width(data[end]) in ('F', 'W') else 1
+        return data[:end]
 
-    ansi_present = bool(RE_ANSI.search(data))
-    while disp_len(data) > length:  # carefully delete one char at a time
-        data = data[:-1]
-    if ansi_present and bool(RE_ANSI.search(data)):
-        # assume ANSI reset is required
-        return data if data.endswith("\033[0m") else data + "\033[0m"
-    return data
+    if cur_len > length:
+        while disp_len(data) > length:  # carefully delete one char at a time
+            data = data[:-1]
+        if not RE_ANSI.search(data):
+            return data
+    # assume ANSI reset is required
+    return data if data.endswith("\033[0m") else data + "\033[0m"
