@@ -4,7 +4,7 @@ from typing import Union  # py<3.10
 
 from pytest import warns
 
-from tqdm.utils import envwrap
+from tqdm.utils import _is_ascii, _text_width, disp_len, disp_trim, envwrap
 
 
 def test_envwrap_deprecated(monkeypatch):
@@ -62,3 +62,29 @@ def test_envwrap_annotations(monkeypatch):
         return number, string
 
     assert 1.1, "1.1" == annotated()
+
+
+def test_disp_len_and_trim():
+    assert _is_ascii("")
+    assert _is_ascii("abc 123")
+    assert _is_ascii("caf\xe9")
+    assert not _is_ascii("\u2588")
+
+    # ASCII and Bar.UTF block elements have width 1 per character
+    blocks = "\u2588\u2589\u258a\u258b\u258c\u258d\u258e\u258f"
+    assert _text_width("abc") == 3
+    assert _text_width(blocks) == len(blocks)
+    assert disp_len("50%|" + blocks + "| 1/2") == 4 + len(blocks) + 5
+
+    # Fullwidth / CJK characters count as width 2
+    assert disp_len("\uff41\uff42c") == 5
+    assert disp_trim("\uff41\uff42c", 5) == "\uff41\uff42c"
+    assert disp_trim("\uff41\uff42c", 4) == "\uff41\uff42"
+    assert disp_trim("\uff41\uff42c", 3) == "\uff41"
+
+    # ANSI escape codes have zero display width and get a reset when present
+    colored = "\x1b[32mhello\x1b[0m world"
+    assert disp_len(colored) == 11
+    assert disp_trim(colored, 11) == colored + "\x1b[0m"
+    assert disp_trim(colored, 4) == "\x1b[32mhell\x1b[0m"
+    assert disp_trim("abc\x1b[32m", 2) == "ab"
