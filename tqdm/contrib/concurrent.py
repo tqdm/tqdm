@@ -117,7 +117,7 @@ def _executor_map(
     max_workers  : int
     timeout  : int
     buffersize  : int
-        Requires Python>=3.14.
+        Maximum number of submitted in-flight tasks.
     thread_name_prefix  : str
     max_tasks_per_child  : int
     mp_context  : str
@@ -126,8 +126,12 @@ def _executor_map(
     if 'total' not in kwargs:
         kwargs['total'] = _min_map_len(iterables)
     map_kwargs = {}
-    if 'buffersize' in kwargs:
-        map_kwargs['buffersize'] = kwargs.pop('buffersize')
+    buffersize = kwargs.pop('buffersize', None)
+    if buffersize is not None:
+        if not isinstance(buffersize, int) or isinstance(buffersize, bool) or buffersize < 1:
+            raise ValueError("buffersize must be a positive integer")
+        if sys.version_info >= (3, 14):
+            map_kwargs['buffersize'] = buffersize
     pool_kwargs = {}
     for k in ('thread_name_prefix', 'max_tasks_per_child', 'mp_context'):
         if k in kwargs:
@@ -160,6 +164,33 @@ def _executor_map(
                     fut.add_done_callback(lambda _: pbar.update())
                     return fut
                 ex.submit = patchsubmit
+                if buffersize is not None and sys.version_info < (3, 14):
+                    from collections import deque
+                    from time import monotonic
+
+                    end_time = monotonic() + timeout if timeout is not None else None
+                    it = zip(*iterables)
+                    pending = deque()
+                    results = []
+                    for _ in range(buffersize):
+                        try:
+                            args = next(it)
+                        except StopIteration:
+                            break
+                        pending.append(ex.submit(fn, *args))
+                    while pending:
+                        fut = pending.popleft()
+                        if end_time is None:
+                            results.append(fut.result())
+                        else:
+                            results.append(fut.result(end_time - monotonic()))
+                        try:
+                            args = next(it)
+                        except StopIteration:
+                            pass
+                        else:
+                            pending.append(ex.submit(fn, *args))
+                    return results
                 return list(ex.map(
                     fn, *iterables, timeout=timeout, chunksize=chunksize, **map_kwargs))
 
@@ -179,7 +210,7 @@ def thread_map(fn, *iterables, **tqdm_kwargs):
         Seconds to wait before raising `TimeoutError` if `__next__` is called and the
         result isn't available. [default: None].
     buffersize  : int, optional
-        Requires Python>=3.14 [default: None].
+        Maximum number of submitted in-flight tasks [default: None].
     tqdm_class  : optional
         `tqdm` class to use for bars [default: tqdm.auto.tqdm].
     smoothing  : float, optional
@@ -232,7 +263,7 @@ def process_map(fn, *iterables, lock_name="mp_lock", **tqdm_kwargs):
         Approximate size of chunks sent to worker processes; passed to
         `concurrent.futures.ProcessPoolExecutor.map`. [default: 1].
     buffersize  : int, optional
-        Requires Python>=3.14 [default: None].
+        Maximum number of submitted in-flight tasks [default: None].
     max_tasks_per_child  : int, optional
         Maximum number of tasks a worker process can complete before being replaced
         with a new process; passed to `concurrent.futures.ProcessPoolExecutor`.

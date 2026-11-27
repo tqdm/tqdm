@@ -1,6 +1,8 @@
 import sys
+import threading
+import time
 
-from pytest import mark, skip, warns
+from pytest import mark, raises, skip, warns
 
 from tqdm import TqdmWarning
 from tqdm.contrib import concurrent
@@ -40,6 +42,32 @@ def test_concurrent_map_unknown_len(mapper, caperr):
     assert '9it [' in err
 
 
+def test_concurrent_map_buffersize():
+    in_flight = 0
+    max_in_flight = 0
+    lock = threading.Lock()
+
+    def work(x):
+        nonlocal in_flight, max_in_flight
+        with lock:
+            in_flight += 1
+            max_in_flight = max(max_in_flight, in_flight)
+        time.sleep(0.01)
+        with lock:
+            in_flight -= 1
+        return x + 1
+
+    assert thread_map(work, range(10), max_workers=4, buffersize=2, disable=True) == list(
+        range(1, 11)
+    )
+    assert max_in_flight <= 2
+    assert process_map(dummy_func, range(6), max_workers=2, buffersize=2, disable=True) == list(
+        range(1, 7)
+    )
+    with raises(ValueError):
+        thread_map(dummy_func, range(3), buffersize=0, disable=True)
+
+
 def check_lock(args):
     """Check that another interpreter cannot acquire a held tqdm lock"""
     from os.path import exists
@@ -74,7 +102,7 @@ def test_interpreter_map_lock(tmp_path):
     """Test interpreter workers share tqdm's write lock"""
     held = str(tmp_path / 'held')
     checked = str(tmp_path / 'checked')
-    result = tmp_path / 'result'
+    result = str(tmp_path / 'result')
     roles = ['holder', 'contender']
     args = [(held, checked, str(result), role) for role in roles]
     try:
