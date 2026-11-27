@@ -1,4 +1,5 @@
 from pytest import importorskip
+
 from tqdm.notebook import tqdm as tqdm_notebook
 
 
