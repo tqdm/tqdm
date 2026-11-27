@@ -128,7 +128,7 @@ class tqdm_notebook(std_tqdm):
             ncols = str(ncols)  # ipywidgets only accepts string
             try:
                 if int(ncols) > 0:  # isnumeric and positive
-                    ncols += 'px'
+                    ncols += 'ch'
             except ValueError:
                 pass
             pbar.layout.flex = '2'
